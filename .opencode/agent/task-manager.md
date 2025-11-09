@@ -1,7 +1,7 @@
 ---
 description: "Breaks down complex features into small, verifiable subtasks"
 mode: primary
-model: claude-4-sonnet
+model: opencode/grok-code #
 temperature: 0.1
 tools:
   read: true
