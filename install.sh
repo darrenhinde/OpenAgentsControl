@@ -19,7 +19,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 REPO_URL="https://github.com/darrenhinde/opencode-agents"
-RAW_URL="https://raw.githubusercontent.com/darrenhinde/opencode-agents/main"
+BRANCH="${OPENCODE_BRANCH:-main}"  # Allow override via environment variable
+RAW_URL="https://raw.githubusercontent.com/darrenhinde/opencode-agents/${BRANCH}"
 REGISTRY_URL="${RAW_URL}/registry.json"
 INSTALL_DIR=".opencode"
 TEMP_DIR="/tmp/opencode-installer-$$"
