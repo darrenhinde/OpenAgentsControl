@@ -1,0 +1,393 @@
+{
+  "version": "1.0.0",
+  "repository": "https://github.com/darrenhinde/opencode-agents",
+  "components": {
+    "agents": [
+      {
+        "id": "task-manager",
+        "name": "Task Manager",
+        "type": "agent",
+        "path": ".opencode/agent/task-manager.md",
+        "description": "Breaks down complex features into small, verifiable subtasks",
+        "tags": ["planning", "organization", "task-management"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "codebase-agent",
+        "name": "Codebase Agent",
+        "type": "agent",
+        "path": ".opencode/agent/codebase-agent.md",
+        "description": "Analyzes codebase patterns and architecture",
+        "tags": ["analysis", "architecture", "patterns"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "image-specialist",
+        "name": "Image Specialist",
+        "type": "agent",
+        "path": ".opencode/agent/image-specialist.md",
+        "description": "Generates and edits images using Gemini AI",
+        "tags": ["images", "ai", "generation"],
+        "dependencies": ["tool:gemini"],
+        "category": "extended"
+      },
+      {
+        "id": "workflow-orchestrator",
+        "name": "Workflow Orchestrator",
+        "type": "agent",
+        "path": ".opencode/agent/workflow-orchestrator.md",
+        "description": "Orchestrates complex multi-agent workflows",
+        "tags": ["orchestration", "workflow", "automation"],
+        "dependencies": [],
+        "category": "extended"
+      }
+    ],
+    "subagents": [
+      {
+        "id": "reviewer",
+        "name": "Code Reviewer",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/reviewer.md",
+        "description": "Performs code review with security and quality checks",
+        "tags": ["review", "security", "quality"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "tester",
+        "name": "Test Writer",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/tester.md",
+        "description": "Writes unit and integration tests",
+        "tags": ["testing", "tdd", "quality"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "documentation",
+        "name": "Documentation Writer",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/documentation.md",
+        "description": "Creates and updates documentation",
+        "tags": ["docs", "documentation", "writing"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "coder-agent",
+        "name": "Coder Agent",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/coder-agent.md",
+        "description": "Executes coding subtasks in sequence",
+        "tags": ["coding", "implementation", "execution"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "build-agent",
+        "name": "Build Agent",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/build-agent.md",
+        "description": "Type checks and validates builds",
+        "tags": ["build", "validation", "type-checking"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "codebase-pattern-analyst",
+        "name": "Codebase Pattern Analyst",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/codebase-pattern-analyst.md",
+        "description": "Analyzes and implements codebase patterns",
+        "tags": ["patterns", "analysis", "architecture"],
+        "dependencies": [],
+        "category": "extended"
+      }
+    ],
+    "commands": [
+      {
+        "id": "test",
+        "name": "Test Pipeline",
+        "type": "command",
+        "path": ".opencode/command/test.md",
+        "description": "Run the complete testing pipeline",
+        "tags": ["testing", "ci", "validation"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "commit",
+        "name": "Smart Commit",
+        "type": "command",
+        "path": ".opencode/command/commit.md",
+        "description": "Create intelligent git commits with context",
+        "tags": ["git", "commit", "version-control"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "context",
+        "name": "Context Manager",
+        "type": "command",
+        "path": ".opencode/command/context.md",
+        "description": "Manage project context and documentation",
+        "tags": ["context", "documentation", "management"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "clean",
+        "name": "Clean Project",
+        "type": "command",
+        "path": ".opencode/command/clean.md",
+        "description": "Clean build artifacts and temporary files",
+        "tags": ["cleanup", "maintenance", "build"],
+        "dependencies": [],
+        "category": "extended"
+      },
+      {
+        "id": "optimize",
+        "name": "Code Optimizer",
+        "type": "command",
+        "path": ".opencode/command/optimize.md",
+        "description": "Optimize code performance and bundle size",
+        "tags": ["optimization", "performance", "build"],
+        "dependencies": [],
+        "category": "extended"
+      },
+      {
+        "id": "prompt-enhancer",
+        "name": "Prompt Enhancer",
+        "type": "command",
+        "path": ".opencode/command/prompt-enchancer.md",
+        "description": "Enhance and improve AI prompts",
+        "tags": ["prompts", "ai", "enhancement"],
+        "dependencies": [],
+        "category": "extended"
+      },
+      {
+        "id": "worktrees",
+        "name": "Git Worktrees Manager",
+        "type": "command",
+        "path": ".opencode/command/worktrees.md",
+        "description": "Manage git worktrees for parallel development",
+        "tags": ["git", "worktrees", "workflow"],
+        "dependencies": [],
+        "category": "advanced"
+      }
+    ],
+    "tools": [
+      {
+        "id": "gemini",
+        "name": "Gemini AI Tool",
+        "type": "tool",
+        "path": ".opencode/tool/gemini/index.ts",
+        "description": "Image generation, editing, and analysis using Gemini AI",
+        "tags": ["ai", "images", "gemini"],
+        "dependencies": ["tool:env"],
+        "category": "extended"
+      },
+      {
+        "id": "env",
+        "name": "Environment Manager",
+        "type": "tool",
+        "path": ".opencode/tool/env/index.ts",
+        "description": "Load and manage environment variables securely",
+        "tags": ["environment", "config", "security"],
+        "dependencies": [],
+        "category": "core"
+      }
+    ],
+    "plugins": [
+      {
+        "id": "telegram-notify",
+        "name": "Telegram Notifications",
+        "type": "plugin",
+        "path": ".opencode/plugin/telegram-notify.ts",
+        "description": "Send notifications via Telegram bot",
+        "tags": ["notifications", "telegram", "integration"],
+        "dependencies": ["tool:env"],
+        "category": "extended"
+      },
+      {
+        "id": "notify",
+        "name": "Generic Notifier",
+        "type": "plugin",
+        "path": ".opencode/plugin/notify.ts",
+        "description": "Generic notification system",
+        "tags": ["notifications", "alerts"],
+        "dependencies": [],
+        "category": "extended"
+      }
+    ],
+    "contexts": [
+      {
+        "id": "essential-patterns",
+        "name": "Essential Patterns",
+        "type": "context",
+        "path": ".opencode/context/core/essential-patterns.md",
+        "description": "Core development patterns and best practices",
+        "tags": ["patterns", "best-practices", "guidelines"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "project-context",
+        "name": "Project Context",
+        "type": "context",
+        "path": ".opencode/context/project/project-context.md",
+        "description": "Project-specific context and configuration",
+        "tags": ["context", "project", "configuration"],
+        "dependencies": [],
+        "category": "core"
+      }
+    ],
+    "config": [
+      {
+        "id": "env-example",
+        "name": "Environment Template",
+        "type": "config",
+        "path": "env.example",
+        "description": "Example environment configuration file",
+        "tags": ["config", "environment", "template"],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
+        "id": "readme",
+        "name": "README",
+        "type": "config",
+        "path": "README.md",
+        "description": "Project documentation and setup guide",
+        "tags": ["documentation", "readme", "guide"],
+        "dependencies": [],
+        "category": "core"
+      }
+    ]
+  },
+  "profiles": {
+    "core": {
+      "name": "Core",
+      "description": "Essential agents and commands for basic OpenCode usage",
+      "components": [
+        "agent:task-manager",
+        "agent:codebase-agent",
+        "subagent:reviewer",
+        "subagent:tester",
+        "subagent:documentation",
+        "subagent:coder-agent",
+        "subagent:build-agent",
+        "command:test",
+        "command:commit",
+        "command:context",
+        "tool:env",
+        "context:essential-patterns",
+        "context:project-context",
+        "config:env-example",
+        "config:readme"
+      ]
+    },
+    "developer": {
+      "name": "Developer",
+      "description": "Balanced setup for daily development work with all core features plus useful extensions",
+      "components": [
+        "agent:task-manager",
+        "agent:codebase-agent",
+        "agent:image-specialist",
+        "agent:workflow-orchestrator",
+        "subagent:reviewer",
+        "subagent:tester",
+        "subagent:documentation",
+        "subagent:coder-agent",
+        "subagent:build-agent",
+        "subagent:codebase-pattern-analyst",
+        "command:test",
+        "command:commit",
+        "command:context",
+        "command:clean",
+        "command:optimize",
+        "command:prompt-enhancer",
+        "tool:env",
+        "tool:gemini",
+        "plugin:notify",
+        "plugin:telegram-notify",
+        "context:essential-patterns",
+        "context:project-context",
+        "config:env-example",
+        "config:readme"
+      ]
+    },
+    "full": {
+      "name": "Full",
+      "description": "Complete installation with all available components",
+      "components": [
+        "agent:task-manager",
+        "agent:codebase-agent",
+        "agent:image-specialist",
+        "agent:workflow-orchestrator",
+        "subagent:reviewer",
+        "subagent:tester",
+        "subagent:documentation",
+        "subagent:coder-agent",
+        "subagent:build-agent",
+        "subagent:codebase-pattern-analyst",
+        "command:test",
+        "command:commit",
+        "command:context",
+        "command:clean",
+        "command:optimize",
+        "command:prompt-enhancer",
+        "command:worktrees",
+        "tool:env",
+        "tool:gemini",
+        "plugin:notify",
+        "plugin:telegram-notify",
+        "context:essential-patterns",
+        "context:project-context",
+        "config:env-example",
+        "config:readme"
+      ]
+    },
+    "advanced": {
+      "name": "Advanced",
+      "description": "Full installation plus experimental features and planning documentation",
+      "components": [
+        "agent:task-manager",
+        "agent:codebase-agent",
+        "agent:image-specialist",
+        "agent:workflow-orchestrator",
+        "subagent:reviewer",
+        "subagent:tester",
+        "subagent:documentation",
+        "subagent:coder-agent",
+        "subagent:build-agent",
+        "subagent:codebase-pattern-analyst",
+        "command:test",
+        "command:commit",
+        "command:context",
+        "command:clean",
+        "command:optimize",
+        "command:prompt-enhancer",
+        "command:worktrees",
+        "tool:env",
+        "tool:gemini",
+        "plugin:notify",
+        "plugin:telegram-notify",
+        "context:essential-patterns",
+        "context:project-context",
+        "config:env-example",
+        "config:readme"
+      ],
+      "additionalPaths": [
+        ".Building/",
+        ".github/workflows/"
+      ]
+    }
+  },
+  "metadata": {
+    "lastUpdated": "2025-11-17",
+    "schemaVersion": "1.0.0"
+  }
+}

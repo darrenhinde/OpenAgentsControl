@@ -245,7 +245,8 @@ show_custom_menu() {
     for i in "${!categories[@]}"; do
         local cat="${categories[$i]}"
         local count=$(jq -r ".components.${cat} | length" "$TEMP_DIR/registry.json")
-        echo "  $((i+1))) ${cat^} (${count} available)"
+        local cat_display=$(echo "$cat" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
+        echo "  $((i+1))) ${cat_display} (${count} available)"
     done
     echo "  $((${#categories[@]}+1))) Select All"
     echo "  $((${#categories[@]}+2))) Continue to component selection"
@@ -289,7 +290,8 @@ show_component_selection() {
     local component_details=()
     
     for category in "${categories[@]}"; do
-        echo -e "${CYAN}${BOLD}${category^}:${NC}"
+        local cat_display=$(echo "$category" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
+        echo -e "${CYAN}${BOLD}${cat_display}:${NC}"
         
         local components=$(jq -r ".components.${category}[] | .id" "$TEMP_DIR/registry.json")
         
@@ -516,7 +518,8 @@ list_components() {
     local categories=("agents" "subagents" "commands" "tools" "plugins" "contexts")
     
     for category in "${categories[@]}"; do
-        echo -e "${CYAN}${BOLD}${category^}:${NC}"
+        local cat_display=$(echo "$category" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
+        echo -e "${CYAN}${BOLD}${cat_display}:${NC}"
         
         local components=$(jq -r ".components.${category}[] | \"\(.id)|\(.name)|\(.description)\"" "$TEMP_DIR/registry.json")
         
