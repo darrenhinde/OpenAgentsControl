@@ -4,6 +4,8 @@ A set of OpenCode configurations, prompts, agents, and plugins for enhanced deve
 
 [![Watch Demo](https://img.youtube.com/vi/EOIzFMdmox8/maxresdefault.jpg)](https://youtu.be/EOIzFMdmox8?si=4ZSsVlAkhMxVmF2R)
 
+> **Note:** This repository has evolved since the demo video with continuous improvements to make it easier for others to use in their projects. The core concepts remain the same, but installation and component organization have been streamlined.
+
 ## Why Use This?
 
 - ✅ **Multi-language support** - Works with TypeScript, Python, Go, Rust, and more
