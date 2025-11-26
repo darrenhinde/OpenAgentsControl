@@ -154,6 +154,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test-openagent, test-opencoder]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout code
