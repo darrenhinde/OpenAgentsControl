@@ -190,27 +190,29 @@ add_component_to_registry() {
         description="Component: ${name}"
     fi
     
+    # Escape quotes and special characters in description
+    description=$(echo "$description" | sed 's/"/\\"/g' | sed "s/'/\\'/g")
+    
     # Get registry key (agents, subagents, commands, etc.)
     local registry_key=$(get_registry_key "$comp_type")
     
-    # Create component JSON
-    local component_json=$(cat <<EOF
-{
-  "id": "${id}",
-  "name": "${name}",
-  "type": "${comp_type}",
-  "path": "${path}",
-  "description": "${description}",
-  "tags": [],
-  "dependencies": [],
-  "category": "standard"
-}
-EOF
-)
-    
-    # Add to registry
+    # Use jq to properly construct JSON (avoids escaping issues)
     local temp_file="${REGISTRY_FILE}.tmp"
-    jq ".components.${registry_key} += [${component_json}]" "$REGISTRY_FILE" > "$temp_file"
+    jq --arg id "$id" \
+       --arg name "$name" \
+       --arg type "$comp_type" \
+       --arg path "$path" \
+       --arg desc "$description" \
+       ".components.${registry_key} += [{
+         \"id\": \$id,
+         \"name\": \$name,
+         \"type\": \$type,
+         \"path\": \$path,
+         \"description\": \$desc,
+         \"tags\": [],
+         \"dependencies\": [],
+         \"category\": \"standard\"
+       }]" "$REGISTRY_FILE" > "$temp_file"
     
     if [ $? -eq 0 ]; then
         mv "$temp_file" "$REGISTRY_FILE"

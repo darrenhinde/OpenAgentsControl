@@ -69,6 +69,16 @@
           "subagent:command-creator"
         ],
         "category": "meta"
+      },
+      {
+        "id": "codebase-agent",
+        "name": "Codebase Agent",
+        "type": "agent",
+        "path": ".opencode/agent/codebase-agent.md",
+        "description": "description: \\\"Multi-language implementation agent for modular and functional development\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "subagents": [
@@ -387,6 +397,36 @@
         ],
         "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "commit-openagents",
+        "name": "Commit Openagents",
+        "type": "command",
+        "path": ".opencode/command/commit-openagents.md",
+        "description": "description: Smart commit command for opencode-agents repository with automatic validation and conventional commits",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "prompt-optimizer",
+        "name": "Prompt Optimizer",
+        "type": "command",
+        "path": ".opencode/command/prompt-engineering/prompt-optimizer.md",
+        "description": "description: \\\"Advanced prompt optimizer: Research patterns + token efficiency + semantic preservation. Achieves 30-50% token reduction with 100% meaning preserved.\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "test-new-command",
+        "name": "Test New Command",
+        "type": "command",
+        "path": ".opencode/command/test-new-command.md",
+        "description": "description: \\\"Test command to verify auto-detection and registry updates work correctly\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "tools": [
@@ -620,6 +660,36 @@
         ],
         "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "system-builder-guide",
+        "name": "System Builder Guide",
+        "type": "context",
+        "path": ".opencode/context/system-builder-templates/SYSTEM-BUILDER-GUIDE.md",
+        "description": "System Builder Guide",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "subagent-template",
+        "name": "Subagent Template",
+        "type": "context",
+        "path": ".opencode/context/system-builder-templates/subagent-template.md",
+        "description": "description: \\\"{specific_task_description}\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "orchestrator-template",
+        "name": "Orchestrator Template",
+        "type": "context",
+        "path": ".opencode/context/system-builder-templates/orchestrator-template.md",
+        "description": "description: \\\"{domain} orchestrator for {primary_purpose}\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "config": [
@@ -824,7 +894,7 @@
     }
   },
   "metadata": {
-    "lastUpdated": "2025-11-26",
+    "lastUpdated": "2025-11-27",
     "schemaVersion": "1.0.0"
   }
 }
