@@ -1,4 +1,4 @@
-name: Update Component Registry
+name: Update Component Registry (Direct Push)
 
 on:
   push:
@@ -11,10 +11,9 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
-  update-registry:
+  update-and-validate-registry:
     runs-on: ubuntu-latest
     
     steps:
@@ -28,37 +27,93 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
       
-      - name: Run component registration
+      - name: Make scripts executable
         run: |
+          chmod +x scripts/validate-registry.sh
+          chmod +x scripts/auto-detect-components.sh
           chmod +x scripts/register-component.sh
-          ./scripts/register-component.sh
       
-      - name: Check for changes
-        id: check_changes
+      - name: Auto-detect new components
+        id: auto_detect
         run: |
-          if git diff --quiet registry.json; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No changes to registry.json"
+          echo "## 🔍 Auto-Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run auto-detect in dry-run mode first
+          if ./scripts/auto-detect-components.sh --dry-run > /tmp/detect-output.txt 2>&1; then
+            cat /tmp/detect-output.txt >> $GITHUB_STEP_SUMMARY
+            
+            # Check if new components were found
+            if grep -q "Found.*new component" /tmp/detect-output.txt; then
+              echo "new_components=true" >> $GITHUB_OUTPUT
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "⚠️ New components detected - will auto-add to registry" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "new_components=false" >> $GITHUB_OUTPUT
+              echo "✅ No new components found" >> $GITHUB_STEP_SUMMARY
+            fi
           else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Registry has been updated"
+            echo "new_components=false" >> $GITHUB_OUTPUT
+            echo "❌ Auto-detection failed" >> $GITHUB_STEP_SUMMARY
           fi
       
-      - name: Commit and push changes
-        if: steps.check_changes.outputs.changed == 'true'
+      - name: Add new components to registry
+        if: steps.auto_detect.outputs.new_components == 'true'
+        run: |
+          echo "## 📝 Adding New Components" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          ./scripts/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
+      
+      - name: Validate registry
+        id: validate
+        run: |
+          echo "## ✅ Registry Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if ./scripts/validate-registry.sh -v > /tmp/validation-output.txt 2>&1; then
+            echo "validation=passed" >> $GITHUB_OUTPUT
+            echo "✅ All registry paths are valid!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            tail -20 /tmp/validation-output.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "validation=failed" >> $GITHUB_OUTPUT
+            echo "❌ Registry validation failed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/validation-output.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ WARNING: Direct push to main with invalid registry!" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix registry.json and push a correction." >> $GITHUB_STEP_SUMMARY
+            # Don't exit 1 here - we already pushed to main, just warn
+          fi
+      
+      - name: Commit registry updates
+        if: steps.auto_detect.outputs.new_components == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add registry.json
-          git commit -m "chore: auto-update component registry [skip ci]"
-          git push
+          
+          if ! git diff --quiet registry.json; then
+            git add registry.json
+            git commit -m "chore: auto-update registry with new components [skip ci]"
+            git push
+            
+            echo "## 🚀 Registry Updated" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Registry has been automatically updated with new components." >> $GITHUB_STEP_SUMMARY
+          fi
       
       - name: Summary
-        if: steps.check_changes.outputs.changed == 'true'
+        if: always()
         run: |
-          echo "✅ Registry updated successfully" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Updated Components" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Registry Statistics" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           jq -r '
             "- **Agents:** \(.components.agents | length)",
@@ -68,8 +123,3 @@ jobs:
             "- **Plugins:** \(.components.plugins | length)",
             "- **Contexts:** \(.components.contexts | length)"
           ' registry.json >> $GITHUB_STEP_SUMMARY
-      
-      - name: No changes summary
-        if: steps.check_changes.outputs.changed == 'false'
-        run: |
-          echo "ℹ️ No changes to registry" >> $GITHUB_STEP_SUMMARY
