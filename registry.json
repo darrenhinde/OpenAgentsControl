@@ -332,7 +332,7 @@
         "id": "prompt-enhancer",
         "name": "Prompt Enhancer",
         "type": "command",
-        "path": ".opencode/command/prompt-enchancer.md",
+        "path": ".opencode/command/prompt-engineering/prompt-enhancer.md",
         "description": "Enhance and improve AI prompts",
         "tags": [
           "prompts",

@@ -1,0 +1,141 @@
+name: Validate Registry on PR
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - '.opencode/**'
+      - 'registry.json'
+      - 'scripts/validate-registry.sh'
+      - 'scripts/auto-detect-components.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate-and-update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+      
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/validate-registry.sh
+          chmod +x scripts/auto-detect-components.sh
+          chmod +x scripts/register-component.sh
+      
+      - name: Auto-detect new components
+        id: auto_detect
+        run: |
+          echo "## 🔍 Auto-Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run auto-detect in dry-run mode first to see what would be added
+          if ./scripts/auto-detect-components.sh --dry-run > /tmp/detect-output.txt 2>&1; then
+            cat /tmp/detect-output.txt >> $GITHUB_STEP_SUMMARY
+            
+            # Check if new components were found
+            if grep -q "Found.*new component" /tmp/detect-output.txt; then
+              echo "new_components=true" >> $GITHUB_OUTPUT
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "⚠️ New components detected - will auto-add to registry" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "new_components=false" >> $GITHUB_OUTPUT
+              echo "✅ No new components found" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "new_components=false" >> $GITHUB_OUTPUT
+            echo "❌ Auto-detection failed" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Add new components to registry
+        if: steps.auto_detect.outputs.new_components == 'true'
+        run: |
+          echo "## 📝 Adding New Components" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          ./scripts/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
+      
+      - name: Validate registry
+        id: validate
+        run: |
+          echo "## ✅ Registry Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if ./scripts/validate-registry.sh -v > /tmp/validation-output.txt 2>&1; then
+            echo "validation=passed" >> $GITHUB_OUTPUT
+            echo "✅ All registry paths are valid!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            tail -20 /tmp/validation-output.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "validation=failed" >> $GITHUB_OUTPUT
+            echo "❌ Registry validation failed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/validation-output.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+      
+      - name: Commit registry updates
+        if: steps.auto_detect.outputs.new_components == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          if ! git diff --quiet registry.json; then
+            git add registry.json
+            git commit -m "chore: auto-update registry with new components [skip ci]"
+            git push origin ${{ github.head_ref }}
+            
+            echo "## 🚀 Registry Updated" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Registry has been automatically updated with new components." >> $GITHUB_STEP_SUMMARY
+            echo "Changes have been pushed to this PR branch." >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Post validation summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.validate.outputs.validation }}" = "passed" ]; then
+            echo "### ✅ Validation Passed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All registry paths are valid and point to existing files." >> $GITHUB_STEP_SUMMARY
+            echo "This PR is ready for review!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Validation Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Registry validation failed. Please fix the issues above." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Common fixes:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Update paths in registry.json to match actual file locations" >> $GITHUB_STEP_SUMMARY
+            echo "- Remove entries for deleted files" >> $GITHUB_STEP_SUMMARY
+            echo "- Run \`./scripts/validate-registry.sh --fix\` locally for suggestions" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Fail if validation failed
+        if: steps.validate.outputs.validation == 'failed'
+        run: |
+          echo "❌ Registry validation failed - blocking PR merge"
+          exit 1
