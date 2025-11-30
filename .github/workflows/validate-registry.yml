@@ -38,6 +38,7 @@ jobs:
           chmod +x scripts/validate-registry.sh
           chmod +x scripts/auto-detect-components.sh
           chmod +x scripts/register-component.sh
+          chmod +x scripts/prompts/validate-pr.sh
       
       - name: Auto-detect new components
         id: auto_detect
@@ -70,6 +71,34 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           ./scripts/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
+      
+      - name: Validate prompts use defaults
+        id: validate_prompts
+        run: |
+          echo "## 🔍 Prompt Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if ./scripts/prompts/validate-pr.sh > /tmp/prompt-validation.txt 2>&1; then
+            echo "prompt_validation=passed" >> $GITHUB_OUTPUT
+            echo "✅ All agents use default prompts!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/prompt-validation.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "prompt_validation=failed" >> $GITHUB_OUTPUT
+            echo "❌ Prompt validation failed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/prompt-validation.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**How to fix:**" >> $GITHUB_STEP_SUMMARY
+            echo "1. Restore defaults: \`./scripts/prompts/use-prompt.sh <agent> default\`" >> $GITHUB_STEP_SUMMARY
+            echo "2. If adding a variant, add it to \`.opencode/prompts/<agent>/\` instead" >> $GITHUB_STEP_SUMMARY
+            echo "3. See [CONTRIBUTING.md](docs/contributing/CONTRIBUTING.md) for details" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
       
       - name: Validate registry
         id: validate
@@ -118,24 +147,38 @@ jobs:
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ steps.validate.outputs.validation }}" = "passed" ]; then
-            echo "### ✅ Validation Passed" >> $GITHUB_STEP_SUMMARY
+          PROMPT_VALID="${{ steps.validate_prompts.outputs.prompt_validation }}"
+          REGISTRY_VALID="${{ steps.validate.outputs.validation }}"
+          
+          if [ "$PROMPT_VALID" = "passed" ] && [ "$REGISTRY_VALID" = "passed" ]; then
+            echo "### ✅ All Validations Passed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "All registry paths are valid and point to existing files." >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Prompts use defaults" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Registry paths are valid" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
             echo "This PR is ready for review!" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ❌ Validation Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Registry validation failed. Please fix the issues above." >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$PROMPT_VALID" != "passed" ]; then
+              echo "- ❌ Prompt validation failed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ✅ Prompt validation passed" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            if [ "$REGISTRY_VALID" != "passed" ]; then
+              echo "- ❌ Registry validation failed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ✅ Registry validation passed" >> $GITHUB_STEP_SUMMARY
+            fi
+            
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Common fixes:**" >> $GITHUB_STEP_SUMMARY
-            echo "- Update paths in registry.json to match actual file locations" >> $GITHUB_STEP_SUMMARY
-            echo "- Remove entries for deleted files" >> $GITHUB_STEP_SUMMARY
-            echo "- Run \`./scripts/validate-registry.sh --fix\` locally for suggestions" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix the issues above before merging." >> $GITHUB_STEP_SUMMARY
           fi
       
       - name: Fail if validation failed
-        if: steps.validate.outputs.validation == 'failed'
+        if: steps.validate_prompts.outputs.prompt_validation == 'failed' || steps.validate.outputs.validation == 'failed'
         run: |
-          echo "❌ Registry validation failed - blocking PR merge"
+          echo "❌ Validation failed - blocking PR merge"
           exit 1
