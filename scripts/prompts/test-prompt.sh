@@ -3,14 +3,15 @@
 # test-prompt.sh - Test a specific prompt variant for an agent
 #
 # Usage:
-#   ./scripts/prompts/test-prompt.sh <agent> <prompt-variant>
-#   ./scripts/prompts/test-prompt.sh openagent sonnet-4
+#   ./scripts/prompts/test-prompt.sh <agent> <prompt-variant> [model]
 #   ./scripts/prompts/test-prompt.sh openagent default
+#   ./scripts/prompts/test-prompt.sh openagent default anthropic/claude-sonnet-4-5
+#   ./scripts/prompts/test-prompt.sh openagent sonnet-4 opencode/grok-code-fast
 #
 # What it does:
 #   1. Backs up current agent prompt
 #   2. Copies the specified prompt variant to the agent location
-#   3. Runs the eval tests
+#   3. Runs the eval tests with specified model (defaults to Sonnet 4.5)
 #   4. Restores the original prompt (keeps default in place)
 #   5. Outputs results summary
 #
@@ -30,6 +31,7 @@ NC='\033[0m' # No Color
 # Arguments
 AGENT_NAME="${1:-}"
 PROMPT_VARIANT="${2:-}"
+MODEL="${3:-anthropic/claude-sonnet-4-5}"  # Default to Sonnet 4.5
 
 # Paths
 PROMPTS_DIR="$ROOT_DIR/.opencode/prompts"
@@ -40,12 +42,17 @@ VARIANT_RESULTS_DIR="$PROMPTS_DIR/$AGENT_NAME/results"
 VARIANT_RESULTS_FILE="$VARIANT_RESULTS_DIR/$PROMPT_VARIANT-results.json"
 
 usage() {
-    echo "Usage: $0 <agent-name> <prompt-variant>"
+    echo "Usage: $0 <agent-name> <prompt-variant> [model]"
     echo ""
     echo "Examples:"
-    echo "  $0 openagent default      # Test the default prompt"
-    echo "  $0 openagent sonnet-4     # Test the Sonnet 4 prompt"
-    echo "  $0 openagent grok-fast    # Test the Grok Fast prompt"
+    echo "  $0 openagent default                              # Test with Sonnet 4.5 (default)"
+    echo "  $0 openagent default anthropic/claude-sonnet-4-5  # Test with Sonnet 4.5 (explicit)"
+    echo "  $0 openagent sonnet-4 opencode/grok-code-fast     # Test with Grok Fast"
+    echo ""
+    echo "Available models:"
+    echo "  anthropic/claude-sonnet-4-5      # Claude Sonnet 4.5 (default)"
+    echo "  anthropic/claude-3-5-sonnet-20241022  # Claude Sonnet 3.5"
+    echo "  opencode/grok-code-fast          # Grok Fast (free tier)"
     echo ""
     echo "Available prompts for an agent:"
     echo "  ls $PROMPTS_DIR/<agent-name>/"
@@ -72,6 +79,7 @@ fi
 
 echo -e "${BLUE}╔═══════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║  Testing Prompt: $AGENT_NAME / $PROMPT_VARIANT${NC}"
+echo -e "${BLUE}║  Model: $MODEL${NC}"
 echo -e "${BLUE}╚═══════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -93,6 +101,7 @@ echo "      To     $AGENT_FILE"
 # Step 3: Run tests
 echo -e "${YELLOW}[3/5] Running core eval tests...${NC}"
 echo ""
+echo -e "${BLUE}Model: ${GREEN}$MODEL${NC}"
 echo -e "${BLUE}Running 7 core tests (estimated 5-8 minutes):${NC}"
 echo "  1. Approval Gate"
 echo "  2. Context Loading (Simple)"
@@ -109,7 +118,7 @@ echo ""
 cd "$EVALS_DIR"
 
 # Run tests with real-time output (no capture)
-npm run eval:sdk:core -- --agent="$AGENT_NAME" 2>&1 | tee /tmp/test-output-$AGENT_NAME.txt
+npm run eval:sdk:core -- --agent="$AGENT_NAME" --model="$MODEL" 2>&1 | tee /tmp/test-output-$AGENT_NAME.txt
 TEST_EXIT_CODE=${PIPESTATUS[0]}
 
 echo ""
@@ -171,6 +180,7 @@ if [[ -f "$RESULTS_FILE" ]]; then
 {
   "variant": "$PROMPT_VARIANT",
   "agent": "$AGENT_NAME",
+  "model": "$MODEL",
   "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
   "passed": $PASS_COUNT,
   "failed": $FAIL_COUNT,
@@ -187,6 +197,7 @@ EOF
     echo ""
     echo -e "  Agent:     ${GREEN}$AGENT_NAME${NC}"
     echo -e "  Prompt:    ${GREEN}$PROMPT_VARIANT${NC}"
+    echo -e "  Model:     ${GREEN}$MODEL${NC}"
     echo -e "  Results:   ${GREEN}$PASS_COUNT/$TOTAL_COUNT tests passed${NC} (${PASS_RATE}%)"
     echo ""
     echo "  Variant results: $VARIANT_RESULTS_FILE"
