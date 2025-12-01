@@ -91,12 +91,29 @@ echo "      Copied $PROMPT_FILE"
 echo "      To     $AGENT_FILE"
 
 # Step 3: Run tests
-echo -e "${YELLOW}[3/5] Running eval tests...${NC}"
+echo -e "${YELLOW}[3/5] Running core eval tests...${NC}"
+echo ""
+echo -e "${BLUE}Running 7 core tests (estimated 5-8 minutes):${NC}"
+echo "  1. Approval Gate"
+echo "  2. Context Loading (Simple)"
+echo "  3. Context Loading (Multi-Turn)"
+echo "  4. Stop on Failure"
+echo "  5. Simple Task (No Delegation)"
+echo "  6. Subagent Delegation"
+echo "  7. Tool Usage"
+echo ""
+echo -e "${BLUE}Test output:${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
 
 cd "$EVALS_DIR"
-TEST_OUTPUT=$(npm run eval:sdk:core -- --agent="$AGENT_NAME" 2>&1) || true
-echo "$TEST_OUTPUT"
+
+# Run tests with real-time output (no capture)
+npm run eval:sdk:core -- --agent="$AGENT_NAME" 2>&1 | tee /tmp/test-output-$AGENT_NAME.txt
+TEST_EXIT_CODE=${PIPESTATUS[0]}
+
+echo ""
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 
 # Step 4: Restore default prompt
 echo ""
@@ -122,6 +139,12 @@ echo -e "${YELLOW}[5/5] Saving Results${NC}"
 
 # Create results directory if it doesn't exist
 mkdir -p "$VARIANT_RESULTS_DIR"
+
+# Save the test output for reference
+if [[ -f "/tmp/test-output-$AGENT_NAME.txt" ]]; then
+    cp "/tmp/test-output-$AGENT_NAME.txt" "$VARIANT_RESULTS_DIR/$PROMPT_VARIANT-output.log"
+    echo "      Saved test output to: $VARIANT_RESULTS_DIR/$PROMPT_VARIANT-output.log"
+fi
 
 if [[ -f "$RESULTS_FILE" ]]; then
     # Extract summary from results

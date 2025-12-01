@@ -15,9 +15,10 @@
 ## Variants
 
 ### `default.md`
-- **Target**: Claude Sonnet 3.5/4
+- **Target**: Claude Sonnet 4.5 (anthropic/claude-sonnet-4-5)
 - **Focus**: Clean, maintainable code with TDD workflow
 - **Status**: Stable, used in all PRs
+- **Note**: For smaller/faster models, create a variant optimized for that model
 - **Features**:
   - Plan-and-approve workflow
   - Incremental implementation

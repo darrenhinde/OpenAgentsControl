@@ -15,13 +15,14 @@
 ## Variants
 
 ### `default.md`
-- **Target**: Claude Sonnet 3.5/4
-- **Focus**: Balanced capabilities
+- **Target**: Claude Sonnet 4.5 (anthropic/claude-sonnet-4-5)
+- **Focus**: Balanced capabilities, optimized for Sonnet 4.5
 - **Status**: Stable, used in all PRs
 - **Known Issues**: 
   - Approval gate requires runtime enforcement (cannot be fixed with prompts alone)
   - Stop on failure detection needs improvement
-- **Test Results**: See `results/default-results.json` (once tested)
+- **Test Results**: See `results/default-results.json`
+- **Note**: For smaller/faster models, create a variant optimized for that model
 
 ## Testing a Variant
 
