@@ -65,6 +65,14 @@ CUSTOM_INSTALL_DIR=""  # Set via --install-dir argument
 # Utility Functions
 #############################################################################
 
+jq_exec() {
+    local output
+    output=$(jq -r "$@")
+    local ret=$?
+    printf "%s\n" "$output" | tr -d '\r'
+    return $ret
+}
+
 print_header() {
     echo -e "${CYAN}${BOLD}"
     echo "╔════════════════════════════════════════════════════════════════╗"
@@ -258,14 +266,14 @@ fetch_registry() {
 
 get_profile_components() {
     local profile=$1
-    jq -r ".profiles.${profile}.components[]" "$TEMP_DIR/registry.json"
+    jq_exec ".profiles.${profile}.components[]" "$TEMP_DIR/registry.json"
 }
 
 get_component_info() {
     local component_id=$1
     local component_type=$2
     
-    jq -r ".components.${component_type}[] | select(.id == \"${component_id}\")" "$TEMP_DIR/registry.json"
+    jq_exec ".components.${component_type}[] | select(.id == \"${component_id}\")" "$TEMP_DIR/registry.json"
 }
 
 # Helper function to get the correct registry key for a component type
@@ -298,7 +306,7 @@ resolve_dependencies() {
     local registry_key=$(get_registry_key "$type")
     
     # Get dependencies for this component
-    local deps=$(jq -r ".components.${registry_key}[] | select(.id == \"${id}\") | .dependencies[]?" "$TEMP_DIR/registry.json" 2>/dev/null || echo "")
+    local deps=$(jq_exec ".components.${registry_key}[] | select(.id == \"${id}\") | .dependencies[]?" "$TEMP_DIR/registry.json" 2>/dev/null || echo "")
     
     if [ -n "$deps" ]; then
         for dep in $deps; do
@@ -462,17 +470,17 @@ show_profile_menu() {
     echo -e "${BOLD}Available Installation Profiles:${NC}\n"
     
     # Essential profile
-    local essential_name=$(jq -r '.profiles.essential.name' "$TEMP_DIR/registry.json")
-    local essential_desc=$(jq -r '.profiles.essential.description' "$TEMP_DIR/registry.json")
-    local essential_count=$(jq -r '.profiles.essential.components | length' "$TEMP_DIR/registry.json")
+    local essential_name=$(jq_exec '.profiles.essential.name' "$TEMP_DIR/registry.json")
+    local essential_desc=$(jq_exec '.profiles.essential.description' "$TEMP_DIR/registry.json")
+    local essential_count=$(jq_exec '.profiles.essential.components | length' "$TEMP_DIR/registry.json")
     echo -e "  ${GREEN}1) ${essential_name}${NC}"
     echo -e "     ${essential_desc}"
     echo -e "     Components: ${essential_count}\n"
     
     # Developer profile
-    local dev_desc=$(jq -r '.profiles.developer.description' "$TEMP_DIR/registry.json")
-    local dev_count=$(jq -r '.profiles.developer.components | length' "$TEMP_DIR/registry.json")
-    local dev_badge=$(jq -r '.profiles.developer.badge // ""' "$TEMP_DIR/registry.json")
+    local dev_desc=$(jq_exec '.profiles.developer.description' "$TEMP_DIR/registry.json")
+    local dev_count=$(jq_exec '.profiles.developer.components | length' "$TEMP_DIR/registry.json")
+    local dev_badge=$(jq_exec '.profiles.developer.badge // ""' "$TEMP_DIR/registry.json")
     if [ -n "$dev_badge" ]; then
         echo -e "  ${BLUE}2) Developer ${GREEN}[${dev_badge}]${NC}"
     else
@@ -482,25 +490,25 @@ show_profile_menu() {
     echo -e "     Components: ${dev_count}\n"
     
     # Business profile
-    local business_name=$(jq -r '.profiles.business.name' "$TEMP_DIR/registry.json")
-    local business_desc=$(jq -r '.profiles.business.description' "$TEMP_DIR/registry.json")
-    local business_count=$(jq -r '.profiles.business.components | length' "$TEMP_DIR/registry.json")
+    local business_name=$(jq_exec '.profiles.business.name' "$TEMP_DIR/registry.json")
+    local business_desc=$(jq_exec '.profiles.business.description' "$TEMP_DIR/registry.json")
+    local business_count=$(jq_exec '.profiles.business.components | length' "$TEMP_DIR/registry.json")
     echo -e "  ${CYAN}3) ${business_name}${NC}"
     echo -e "     ${business_desc}"
     echo -e "     Components: ${business_count}\n"
     
     # Full profile
-    local full_name=$(jq -r '.profiles.full.name' "$TEMP_DIR/registry.json")
-    local full_desc=$(jq -r '.profiles.full.description' "$TEMP_DIR/registry.json")
-    local full_count=$(jq -r '.profiles.full.components | length' "$TEMP_DIR/registry.json")
+    local full_name=$(jq_exec '.profiles.full.name' "$TEMP_DIR/registry.json")
+    local full_desc=$(jq_exec '.profiles.full.description' "$TEMP_DIR/registry.json")
+    local full_count=$(jq_exec '.profiles.full.components | length' "$TEMP_DIR/registry.json")
     echo -e "  ${MAGENTA}4) ${full_name}${NC}"
     echo -e "     ${full_desc}"
     echo -e "     Components: ${full_count}\n"
     
     # Advanced profile
-    local adv_name=$(jq -r '.profiles.advanced.name' "$TEMP_DIR/registry.json")
-    local adv_desc=$(jq -r '.profiles.advanced.description' "$TEMP_DIR/registry.json")
-    local adv_count=$(jq -r '.profiles.advanced.components | length' "$TEMP_DIR/registry.json")
+    local adv_name=$(jq_exec '.profiles.advanced.name' "$TEMP_DIR/registry.json")
+    local adv_desc=$(jq_exec '.profiles.advanced.description' "$TEMP_DIR/registry.json")
+    local adv_count=$(jq_exec '.profiles.advanced.components | length' "$TEMP_DIR/registry.json")
     echo -e "  ${YELLOW}5) ${adv_name}${NC}"
     echo -e "     ${adv_desc}"
     echo -e "     Components: ${adv_count}\n"
@@ -549,7 +557,7 @@ show_custom_menu() {
     echo "Available categories:"
     for i in "${!categories[@]}"; do
         local cat="${categories[$i]}"
-        local count=$(jq -r ".components.${cat} | length" "$TEMP_DIR/registry.json")
+        local count=$(jq_exec ".components.${cat} | length" "$TEMP_DIR/registry.json")
         local cat_display=$(echo "$cat" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
         echo "  $((i+1))) ${cat_display} (${count} available)"
     done
@@ -598,12 +606,12 @@ show_component_selection() {
         local cat_display=$(echo "$category" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
         echo -e "${CYAN}${BOLD}${cat_display}:${NC}"
         
-        local components=$(jq -r ".components.${category}[] | .id" "$TEMP_DIR/registry.json")
+        local components=$(jq_exec ".components.${category}[] | .id" "$TEMP_DIR/registry.json")
         
         local idx=1
         while IFS= read -r comp_id; do
-            local comp_name=$(jq -r ".components.${category}[] | select(.id == \"${comp_id}\") | .name" "$TEMP_DIR/registry.json")
-            local comp_desc=$(jq -r ".components.${category}[] | select(.id == \"${comp_id}\") | .description" "$TEMP_DIR/registry.json")
+            local comp_name=$(jq_exec ".components.${category}[] | select(.id == \"${comp_id}\") | .name" "$TEMP_DIR/registry.json")
+            local comp_desc=$(jq_exec ".components.${category}[] | select(.id == \"${comp_id}\") | .description" "$TEMP_DIR/registry.json")
             
             echo "  ${idx}) ${comp_name}"
             echo "     ${comp_desc}"
@@ -821,7 +829,7 @@ perform_installation() {
         local type="${comp%%:*}"
         local id="${comp##*:}"
         local registry_key=$(get_registry_key "$type")
-        local path=$(jq -r ".components.${registry_key}[] | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
+        local path=$(jq_exec ".components.${registry_key}[] | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
         
         if [ -n "$path" ] && [ "$path" != "null" ]; then
             local install_path=$(get_install_path "$path")
@@ -887,7 +895,7 @@ perform_installation() {
         local registry_key=$(get_registry_key "$type")
         
         # Get component path
-        local path=$(jq -r ".components.${registry_key}[] | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
+        local path=$(jq_exec ".components.${registry_key}[] | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
         
         if [ -z "$path" ] || [ "$path" = "null" ]; then
             print_warning "Could not find path for ${comp}"
@@ -944,7 +952,7 @@ perform_installation() {
     
     # Handle additional paths for advanced profile
     if [ "$PROFILE" = "advanced" ]; then
-        local additional_paths=$(jq -r '.profiles.advanced.additionalPaths[]?' "$TEMP_DIR/registry.json")
+        local additional_paths=$(jq_exec '.profiles.advanced.additionalPaths[]?' "$TEMP_DIR/registry.json")
         if [ -n "$additional_paths" ]; then
             print_step "Installing additional paths..."
             while IFS= read -r path; do
@@ -1014,7 +1022,7 @@ list_components() {
         local cat_display=$(echo "$category" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
         echo -e "${CYAN}${BOLD}${cat_display}:${NC}"
         
-        local components=$(jq -r ".components.${category}[] | \"\(.id)|\(.name)|\(.description)\"" "$TEMP_DIR/registry.json")
+        local components=$(jq_exec ".components.${category}[] | \"\(.id)|\(.name)|\(.description)\"" "$TEMP_DIR/registry.json")
         
         while IFS='|' read -r id name desc; do
             echo -e "  ${GREEN}${name}${NC} (${id})"
