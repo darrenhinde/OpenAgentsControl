@@ -5,11 +5,8 @@ on:
     branches:
       - main
       - dev
-    paths:
-      - '.opencode/**'
-      - 'registry.json'
-      - 'scripts/validate-registry.sh'
-      - 'scripts/auto-detect-components.sh'
+    # Removed paths filter - this check is required by repository ruleset
+    # so it must run on ALL PRs to prevent blocking merges
   workflow_dispatch:
     inputs:
       skip_validation:

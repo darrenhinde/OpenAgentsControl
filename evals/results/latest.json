@@ -1,55 +1,31 @@
 {
   "meta": {
-    "timestamp": "2025-12-02T21:59:57.453Z",
+    "timestamp": "2025-11-28T12:51:51.671Z",
     "agent": "openagent",
-    "model": "opencode/grok-code-fast",
+    "model": "anthropic/claude-sonnet-4-5",
     "framework_version": "0.1.0",
-    "git_commit": "381a754"
+    "git_commit": "5e80a2f"
   },
   "summary": {
-    "total": 7,
-    "passed": 2,
-    "failed": 5,
-    "duration_ms": 410269,
-    "pass_rate": 0.2857142857142857
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "duration_ms": 41674,
+    "pass_rate": 0
   },
   "by_category": {
     "developer": {
-      "passed": 1,
-      "total": 6
-    },
-    "business": {
-      "passed": 1,
+      "passed": 0,
       "total": 1
     }
   },
   "tests": [
     {
-      "id": "pos-approval-before-001",
+      "id": "smoke-test-001",
       "category": "developer",
       "passed": false,
-      "duration_ms": 102253,
-      "events": 19,
-      "approvals": 0,
-      "violations": {
-        "total": 1,
-        "errors": 0,
-        "warnings": 1,
-        "details": [
-          {
-            "type": "no-context-loaded",
-            "severity": "warning",
-            "message": "Task execution started without loading any context files"
-          }
-        ]
-      }
-    },
-    {
-      "id": "ctx-code-001",
-      "category": "developer",
-      "passed": false,
-      "duration_ms": 30583,
-      "events": 58,
+      "duration_ms": 41674,
+      "events": 39,
       "approvals": 0,
       "violations": {
         "total": 1,
@@ -59,110 +35,7 @@
           {
             "type": "wrong-context-file",
             "severity": "error",
-            "message": "Task type 'tests' requires context file(s): .opencode/context/core/standards/tests.md or standards/tests.md or tests.md. Loaded: /Users/darrenhinde/Documents/GitHub/opencode-agents/.opencode/context/core/standards/code.md"
-          }
-        ]
-      }
-    },
-    {
-      "id": "ctx-multi-standards-to-docs",
-      "category": "developer",
-      "passed": true,
-      "duration_ms": 122989,
-      "events": 77,
-      "approvals": 0,
-      "violations": {
-        "total": 0,
-        "errors": 0,
-        "warnings": 0
-      }
-    },
-    {
-      "id": "pos-stop-report-001",
-      "category": "developer",
-      "passed": false,
-      "duration_ms": 79076,
-      "events": 29,
-      "approvals": 0,
-      "violations": {
-        "total": 1,
-        "errors": 1,
-        "warnings": 0,
-        "details": [
-          {
-            "type": "missing-propose-step",
-            "severity": "error",
-            "message": "Workflow step 'PROPOSE' was missing after error"
-          }
-        ]
-      }
-    },
-    {
-      "id": "simple-task-direct",
-      "category": "developer",
-      "passed": false,
-      "duration_ms": 20613,
-      "events": 48,
-      "approvals": 0,
-      "violations": {
-        "total": 2,
-        "errors": 1,
-        "warnings": 1,
-        "details": [
-          {
-            "type": "missing-required-tool",
-            "severity": "error",
-            "message": "Required tool 'write' was not used"
-          },
-          {
-            "type": "excessive-tool-calls",
-            "severity": "warning",
-            "message": "Expected at most 3 tool calls, got 7"
-          }
-        ]
-      }
-    },
-    {
-      "id": "int-subagent-001",
-      "category": "business",
-      "passed": true,
-      "duration_ms": 44521,
-      "events": 47,
-      "approvals": 0,
-      "violations": {
-        "total": 1,
-        "errors": 0,
-        "warnings": 1,
-        "details": [
-          {
-            "type": "context-loaded-after-execution",
-            "severity": "warning",
-            "message": "Some executions happened before context was loaded"
-          }
-        ]
-      }
-    },
-    {
-      "id": "dedicated-tools-usage",
-      "category": "developer",
-      "passed": false,
-      "duration_ms": 10234,
-      "events": 13,
-      "approvals": 0,
-      "violations": {
-        "total": 2,
-        "errors": 2,
-        "warnings": 0,
-        "details": [
-          {
-            "type": "missing-required-tool",
-            "severity": "error",
-            "message": "Required tool 'read' was not used"
-          },
-          {
-            "type": "missing-required-tool",
-            "severity": "error",
-            "message": "Required tool 'write' was not used"
+            "message": "Task type 'tests' requires context file(s): .opencode/context/core/standards/tests.md or standards/tests.md or tests.md. Loaded: .opencode/context/core/standards/code.md"
           }
         ]
       }
