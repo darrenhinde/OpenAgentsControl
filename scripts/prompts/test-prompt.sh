@@ -30,7 +30,7 @@ NC='\033[0m' # No Color
 # Default values
 AGENT_NAME=""
 PROMPT_VARIANT=""
-MODEL="anthropic/claude-sonnet-4-5"  # Default to Sonnet 4.5
+MODEL=""  # Will be set from metadata or user input
 
 # Paths
 PROMPTS_DIR="$ROOT_DIR/.opencode/prompts"
@@ -38,26 +38,79 @@ AGENT_DIR="$ROOT_DIR/.opencode/agent"
 EVALS_DIR="$ROOT_DIR/evals/framework"
 RESULTS_FILE="$ROOT_DIR/evals/results/latest.json"
 
+# Function to extract metadata from prompt file
+extract_metadata() {
+    local file="$1"
+    local key="$2"
+    
+    # Extract YAML frontmatter between --- markers
+    # Look for key in the metadata section
+    awk -v key="$key" '
+        /^---$/ { in_yaml = !in_yaml; next }
+        in_yaml && $0 ~ "^" key ":" {
+            sub("^" key ": *", "")
+            gsub(/"/, "")
+            print
+            exit
+        }
+    ' "$file"
+}
+
+# Function to extract recommended models array from metadata
+extract_recommended_models() {
+    local file="$1"
+    
+    # Extract recommended_models array from YAML
+    awk '
+        /^---$/ { in_yaml = !in_yaml; next }
+        in_yaml && /^recommended_models:/ { in_models = 1; next }
+        in_yaml && in_models && /^  - / {
+            # Remove leading spaces, dash, and quotes
+            gsub(/^  - /, "")
+            gsub(/"/, "")
+            # Remove comments
+            sub(/ *#.*$/, "")
+            # Trim whitespace
+            gsub(/^ +| +$/, "")
+            print
+        }
+        in_yaml && in_models && /^[a-z_]+:/ { exit }
+    ' "$file"
+}
+
 usage() {
     echo "Usage: $0 --agent=<name> --variant=<name> [--model=<model>]"
     echo ""
     echo "Required:"
     echo "  --agent=NAME       Agent name (e.g., openagent, opencoder)"
-    echo "  --variant=NAME     Prompt variant (e.g., default, sonnet-4)"
+    echo "  --variant=NAME     Prompt variant by model family (e.g., default, gpt, gemini, grok, llama)"
     echo ""
     echo "Optional:"
-    echo "  --model=MODEL      Model to test with (default: anthropic/claude-sonnet-4-5)"
+    echo "  --model=MODEL      Model to test with (uses prompt metadata if not specified)"
     echo "  --help, -h         Show this help"
     echo ""
     echo "Examples:"
+    echo "  # Test with default (Claude) - uses metadata recommendation"
     echo "  $0 --agent=openagent --variant=default"
-    echo "  $0 --agent=openagent --variant=default --model=anthropic/claude-sonnet-4-5"
-    echo "  $0 --agent=openagent --variant=sonnet-4 --model=opencode/grok-code-fast"
     echo ""
-    echo "Available models:"
-    echo "  anthropic/claude-sonnet-4-5           # Claude Sonnet 4.5 (default)"
-    echo "  anthropic/claude-3-5-sonnet-20241022  # Claude Sonnet 3.5"
-    echo "  opencode/grok-code-fast               # Grok Fast (free tier)"
+    echo "  # Test GPT prompt - uses metadata recommendation (gpt-4o)"
+    echo "  $0 --agent=openagent --variant=gpt"
+    echo ""
+    echo "  # Test Gemini prompt with specific model"
+    echo "  $0 --agent=openagent --variant=gemini --model=google/gemini-2.0-flash-exp"
+    echo ""
+    echo "  # Test Grok prompt - uses metadata recommendation (free tier)"
+    echo "  $0 --agent=openagent --variant=grok"
+    echo ""
+    echo "Available model families:"
+    echo "  default    # Claude Sonnet 4.5 (stable)"
+    echo "  gpt        # OpenAI GPT-4o, GPT-4o-mini, o1"
+    echo "  gemini     # Google Gemini 2.0 Flash, Pro"
+    echo "  grok       # xAI Grok (free tier available)"
+    echo "  llama      # Meta Llama 3.1/3.2 (local or hosted)"
+    echo ""
+    echo "Note: Each prompt contains metadata with recommended models."
+    echo "      If --model is not specified, the primary recommendation is used."
     echo ""
     echo "Available prompts for an agent:"
     echo "  ls $PROMPTS_DIR/<agent-name>/"
@@ -108,8 +161,43 @@ if [[ ! -f "$PROMPT_FILE" ]]; then
     echo -e "${RED}Error: Prompt not found: $PROMPT_FILE${NC}"
     echo ""
     echo "Available prompts for $AGENT_NAME:"
-    ls -1 "$PROMPTS_DIR/$AGENT_NAME/" 2>/dev/null || echo "  (none found)"
+    ls -1 "$PROMPTS_DIR/$AGENT_NAME/"*.md 2>/dev/null | xargs -I {} basename {} .md || echo "  (none found)"
     exit 1
+fi
+
+# Read metadata from prompt file
+MODEL_FAMILY=$(extract_metadata "$PROMPT_FILE" "model_family")
+RECOMMENDED_MODELS=$(extract_recommended_models "$PROMPT_FILE")
+
+# If no model specified, suggest from metadata
+if [[ -z "$MODEL" ]]; then
+    if [[ -n "$RECOMMENDED_MODELS" ]]; then
+        echo -e "${YELLOW}No model specified. Reading recommendations from prompt metadata...${NC}"
+        echo ""
+        echo -e "${BLUE}Recommended models for '$PROMPT_VARIANT' (${MODEL_FAMILY} family):${NC}"
+        
+        # Display recommended models with numbers
+        i=1
+        while IFS= read -r model; do
+            echo "  $i. $model"
+            if [[ $i -eq 1 ]]; then
+                PRIMARY_MODEL="$model"
+            fi
+            ((i++))
+        done <<< "$RECOMMENDED_MODELS"
+        
+        echo ""
+        echo -e "${YELLOW}Using primary recommendation: ${GREEN}$PRIMARY_MODEL${NC}"
+        echo ""
+        echo "To use a different model, run with: --model=<model-id>"
+        echo ""
+        
+        MODEL="$PRIMARY_MODEL"
+    else
+        # Fallback to default if no metadata
+        echo -e "${YELLOW}No metadata found. Using default model: anthropic/claude-sonnet-4-5${NC}"
+        MODEL="anthropic/claude-sonnet-4-5"
+    fi
 fi
 
 echo -e "${BLUE}╔═══════════════════════════════════════════════════════════════╗${NC}"
