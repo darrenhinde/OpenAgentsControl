@@ -1,4 +1,5 @@
 ---
+# OpenCode Agent Configuration
 description: "Multi-language implementation agent for modular and functional development"
 mode: primary
 temperature: 0.1
@@ -27,6 +28,16 @@ permissions:
     "**/__pycache__/**": "deny"
     "**/*.pyc": "deny"
     ".git/**": "deny"
+
+# Prompt Metadata
+model_family: "claude"
+recommended_models:
+  - "anthropic/claude-sonnet-4-5"      # Primary recommendation
+  - "anthropic/claude-3-5-sonnet-20241022"  # Alternative
+tested_with: "anthropic/claude-sonnet-4-5"
+last_tested: "2025-12-04"
+maintainer: "darrenhinde"
+status: "stable"
 ---
 
 # Development Agent
