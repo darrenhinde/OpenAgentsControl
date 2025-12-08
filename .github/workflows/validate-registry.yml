@@ -27,10 +27,22 @@ jobs:
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          # Use head SHA for forks (head_ref is empty), head_ref for internal PRs
-          ref: ${{ github.event.pull_request.head.sha || github.head_ref }}
+          # For forks: fetch from fork repo, for internal: use head_ref
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Detect fork PR
+        id: fork_check
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+            echo "is_fork=true" >> $GITHUB_OUTPUT
+            echo "🔀 Fork PR detected from: ${{ github.event.pull_request.head.repo.full_name }}"
+          else
+            echo "is_fork=false" >> $GITHUB_OUTPUT
+            echo "📝 Internal PR detected"
+          fi
       
       - name: Install dependencies
         run: |
@@ -127,10 +139,10 @@ jobs:
             exit 1
           fi
       
-      - name: Commit registry updates
+      - name: Commit registry updates (Internal PRs only)
         if: |
+          steps.fork_check.outputs.is_fork == 'false' &&
           steps.auto_detect.outputs.new_components == 'true' &&
-          github.head_ref != '' &&
           steps.validate_prompts.outputs.prompt_validation == 'passed' &&
           steps.validate.outputs.validation == 'passed'
         run: |
@@ -140,7 +152,7 @@ jobs:
           if ! git diff --quiet registry.json; then
             git add registry.json
             git commit -m "chore: auto-update registry with new components [skip ci]"
-            git push origin ${{ github.head_ref }}
+            git push origin ${{ github.event.pull_request.head.ref }}
             
             echo "## 🚀 Registry Updated" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -154,22 +166,49 @@ jobs:
       
       - name: Fork PR notice
         if: |
+          steps.fork_check.outputs.is_fork == 'true' &&
           steps.auto_detect.outputs.new_components == 'true' &&
-          github.head_ref == '' &&
           steps.validate_prompts.outputs.prompt_validation == 'passed' &&
           steps.validate.outputs.validation == 'passed'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📝 Registry Update Needed
+            
+            Hi @${{ github.event.pull_request.user.login }}! 👋
+            
+            New components were detected in your PR. Since this is a fork PR, I can't auto-commit the registry updates for security reasons.
+            
+            **Please run these commands locally:**
+            \`\`\`bash
+            ./scripts/registry/auto-detect-components.sh --auto-add
+            git add registry.json
+            git commit -m "chore: update registry"
+            git push
+            \`\`\`
+            
+            Once you push the updated registry, the checks will pass! ✅`
+            });
+      
+      - name: Fork PR summary
+        if: steps.fork_check.outputs.is_fork == 'true'
         run: |
-          echo "## ⚠️ External PR - Manual Action Required" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔀 Fork PR Detected" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "New components detected, but cannot auto-commit to fork." >> $GITHUB_STEP_SUMMARY
+          echo "This is an external contribution - thank you! 🎉" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Please run locally:**" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "./scripts/registry/auto-detect-components.sh --auto-add" >> $GITHUB_STEP_SUMMARY
-          echo "git add registry.json" >> $GITHUB_STEP_SUMMARY
-          echo "git commit -m 'chore: update registry'" >> $GITHUB_STEP_SUMMARY
-          echo "git push" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.auto_detect.outputs.new_components }}" == "true" ]; then
+            echo "⚠️ **Action Required:** New components detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "A comment has been posted with instructions to update the registry." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No registry updates needed" >> $GITHUB_STEP_SUMMARY
+          fi
       
       - name: Post validation summary
         if: always()

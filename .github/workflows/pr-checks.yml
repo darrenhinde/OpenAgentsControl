@@ -1,0 +1,59 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'evals/**'
+      - '.github/workflows/pr-checks.yml'
+
+jobs:
+  build-check:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'evals/framework/package-lock.json'
+      
+      - name: Install dependencies
+        working-directory: evals/framework
+        run: npm ci
+      
+      - name: Build framework
+        working-directory: evals/framework
+        run: npm run build
+      
+      - name: Validate test suites
+        working-directory: evals/framework
+        run: npm run validate:suites:all
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✅ Build Check Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ TypeScript compilation successful" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Test suite validation passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Full agent tests are not run on PRs to save time and costs." >> $GITHUB_STEP_SUMMARY
+          echo "Maintainers can run \`npm run test:ci\` locally if needed." >> $GITHUB_STEP_SUMMARY
+      
+      - name: Failure summary
+        if: failure()
+        run: |
+          echo "## ❌ Build Check Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Common fixes:**" >> $GITHUB_STEP_SUMMARY
+          echo "- TypeScript errors: Fix type issues in \`evals/framework/src/\`" >> $GITHUB_STEP_SUMMARY
+          echo "- YAML validation: Check test files in \`evals/agents/*/tests/\`" >> $GITHUB_STEP_SUMMARY
