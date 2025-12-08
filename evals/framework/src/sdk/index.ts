@@ -39,3 +39,8 @@ export type { TestCase, BehaviorExpectation } from './test-case-schema.js';
 
 // Result saving
 export { ResultSaver } from './result-saver.js';
+export type { SaveOptions, ResultMetadata, ResultSummary } from './result-saver.js';
+
+// Prompt management
+export { PromptManager } from './prompt-manager.js';
+export type { PromptMetadata, SwitchResult } from './prompt-manager.js';

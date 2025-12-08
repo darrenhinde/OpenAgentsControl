@@ -1,0 +1,226 @@
+name: Sync Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'registry.json'
+      - '.opencode/agent/**'
+      - '.opencode/command/**'
+      - '.opencode/context/**'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force documentation update even if no changes detected'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-sync-needed:
+    name: Check if Docs Need Sync
+    runs-on: ubuntu-latest
+    outputs:
+      needs_sync: ${{ steps.check.outputs.needs_sync }}
+      changes_detected: ${{ steps.check.outputs.changes_detected }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+      
+      - name: Check if sync needed
+        id: check
+        run: |
+          # Skip if this is an automated commit to prevent loops
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if echo "$COMMIT_MSG" | grep -qE "\[skip ci\]|\[skip-docs\]|auto-update registry|bump version|Sync documentation"; then
+            echo "needs_sync=false" >> $GITHUB_OUTPUT
+            echo "changes_detected=Automated commit - skipping to prevent loops" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Force update if requested
+          if [ "${{ github.event.inputs.force_update }}" = "true" ]; then
+            echo "needs_sync=true" >> $GITHUB_OUTPUT
+            echo "changes_detected=Force update requested" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Check if registry.json changed
+          if git diff HEAD^ HEAD --name-only | grep -q "registry.json"; then
+            echo "needs_sync=true" >> $GITHUB_OUTPUT
+            echo "changes_detected=Registry updated" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Check if component files changed
+          if git diff HEAD^ HEAD --name-only | grep -qE "^\.opencode/(agent|command|context)/"; then
+            echo "needs_sync=true" >> $GITHUB_OUTPUT
+            echo "changes_detected=Component files updated" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "needs_sync=false" >> $GITHUB_OUTPUT
+          echo "changes_detected=No relevant changes" >> $GITHUB_OUTPUT
+
+  sync-documentation:
+    name: Sync Documentation with OpenCode
+    runs-on: ubuntu-latest
+    needs: check-sync-needed
+    if: needs.check-sync-needed.outputs.needs_sync == 'true'
+    outputs:
+      branch_name: ${{ steps.create_branch.outputs.branch_name }}
+      issue_number: ${{ steps.create_issue.outputs.result }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Create sync branch
+        id: create_branch
+        run: |
+          BRANCH_NAME="docs/auto-sync-$(date +%Y%m%d-%H%M%S)"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git checkout -b "$BRANCH_NAME"
+          git push -u origin "$BRANCH_NAME"
+      
+      - name: Create sync issue for OpenCode
+        id: create_issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🤖 Auto-sync documentation with registry',
+              body: `## Documentation Sync Request
+            
+            **Trigger:** ${{ needs.check-sync-needed.outputs.changes_detected }}
+            **Branch:** \`${{ steps.create_branch.outputs.branch_name }}\`
+            **Commit:** ${{ github.sha }}
+            
+            ### Task
+            
+            Please review the current \`registry.json\` and update the following documentation files to ensure they accurately reflect the current component counts and descriptions:
+            
+            1. **README.md** - Update installation profile component counts:
+               - Essential profile: Update component count
+               - Developer profile: Update component count
+               - Business profile: Update component count
+               - Full profile: Update component count
+               - Advanced profile: Update component count
+            
+            2. **README.md** - Verify "What's Included" section lists match registry
+            
+            3. **docs/README.md** - Ensure component references are accurate
+            
+            ### Instructions
+            
+            1. Read \`registry.json\` to get current component counts
+            2. Extract profile component counts from \`.profiles.<profile>.components | length\`
+            3. Update README.md sections that reference component counts
+            4. Ensure consistency across all documentation
+            5. Commit changes with message: "docs: sync component counts with registry [skip-docs]"
+            
+            **IMPORTANT:** Include \`[skip-docs]\` in commit message to prevent workflow loops!
+            
+            ### Context Files to Load
+            
+            - \`registry.json\` - Source of truth for components
+            - \`README.md\` - Main documentation file
+            - \`docs/README.md\` - Documentation index
+            
+            ### Validation
+            
+            After updates, verify:
+            - All component counts match registry
+            - No broken links
+            - Consistent formatting
+            - No duplicate information
+            
+            /opencode
+            
+            ---
+            
+            **Note:** This is an automated documentation sync. Review changes carefully before merging.`,
+              labels: ['documentation', 'automated']
+            });
+            
+            return issue.data.number;
+      
+      - name: Wait for OpenCode to process
+        run: |
+          echo "OpenCode will process the issue and make changes to branch: ${{ steps.create_branch.outputs.branch_name }}"
+          echo "Issue created: #${{ steps.create_issue.outputs.result }}"
+          echo ""
+          echo "The workflow will:"
+          echo "1. OpenCode reads the issue"
+          echo "2. Analyzes registry.json"
+          echo "3. Updates documentation files"
+          echo "4. Commits changes to the branch"
+          echo "5. Another workflow will create a PR after OpenCode finishes"
+          echo ""
+          echo "Check the issue for progress: https://github.com/${{ github.repository }}/issues/${{ steps.create_issue.outputs.result }}"
+          echo ""
+          echo "⏳ Note: OpenCode may take several minutes to complete the task."
+          echo "The PR will be created automatically once OpenCode commits changes."
+
+  # This job is intentionally removed - PR creation should be manual or triggered by a separate event
+  # after OpenCode completes its work, not on a timer
+  
+  cleanup-on-failure:
+    name: Cleanup on Failure
+    runs-on: ubuntu-latest
+    needs: [check-sync-needed, sync-documentation]
+    if: failure()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Delete branch if created
+        run: |
+          BRANCH_NAME="${{ needs.sync-documentation.outputs.branch_name }}"
+          if [ -n "$BRANCH_NAME" ]; then
+            git push origin --delete "$BRANCH_NAME" || true
+            echo "Cleaned up branch: $BRANCH_NAME"
+          fi
+      
+      - name: Comment on issue
+        if: needs.sync-documentation.outputs.issue_number
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ needs.sync-documentation.outputs.issue_number }},
+              body: '❌ Documentation sync workflow failed. Please check the workflow logs and sync manually if needed.'
+            });
+            
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ needs.sync-documentation.outputs.issue_number }},
+              state: 'closed',
+              labels: ['documentation', 'automated', 'failed']
+            });

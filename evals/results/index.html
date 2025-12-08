@@ -336,6 +336,31 @@
             color: var(--text-secondary);
         }
 
+        .variant-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .variant-badge.default {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .variant-badge {
+            background: #1a237e;
+            color: #90caf9;
+        }
+
+        [data-theme="dark"] .variant-badge.default {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+
         .expandable-row {
             cursor: pointer;
         }
@@ -478,6 +503,12 @@
                     </select>
                 </div>
                 <div class="filter-group">
+                    <label>Prompt Variant</label>
+                    <select id="variantFilter">
+                        <option value="all">All Variants</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label>Time Range</label>
                     <select id="timeFilter">
                         <option value="latest">Latest Run</option>
@@ -581,6 +612,7 @@
             document.getElementById('agentFilter').addEventListener('change', applyFilters);
             document.getElementById('categoryFilter').addEventListener('change', applyFilters);
             document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('variantFilter').addEventListener('change', applyFilters);
             document.getElementById('timeFilter').addEventListener('change', loadResults);
         }
 
@@ -594,6 +626,7 @@
                 
                 allResults = results;
                 populateAgentFilter(results);
+                populateVariantFilter(results);
                 applyFilters();
                 updateStats(results);
                 updateTrendChart(results);
@@ -657,12 +690,38 @@
             });
         }
 
+        // Populate Variant Filter
+        function populateVariantFilter(results) {
+            const variants = [...new Set(results.map(r => r.meta.prompt_variant).filter(Boolean))];
+            const select = document.getElementById('variantFilter');
+            
+            // Keep "All Variants" option
+            select.innerHTML = '<option value="all">All Variants</option>';
+            
+            // Add "No Variant" option if there are results without variant
+            const hasNoVariant = results.some(r => !r.meta.prompt_variant);
+            if (hasNoVariant) {
+                const option = document.createElement('option');
+                option.value = 'none';
+                option.textContent = 'Default (no variant)';
+                select.appendChild(option);
+            }
+            
+            variants.forEach(variant => {
+                const option = document.createElement('option');
+                option.value = variant;
+                option.textContent = variant.charAt(0).toUpperCase() + variant.slice(1);
+                select.appendChild(option);
+            });
+        }
+
         // Apply Filters
         function applyFilters() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const agentFilter = document.getElementById('agentFilter').value;
             const categoryFilter = document.getElementById('categoryFilter').value;
             const statusFilter = document.getElementById('statusFilter').value;
+            const variantFilter = document.getElementById('variantFilter').value;
 
             // Flatten all tests from all results
             const allTests = allResults.flatMap(result => 
@@ -670,7 +729,9 @@
                     ...test,
                     agent: result.meta.agent,
                     timestamp: result.meta.timestamp,
-                    model: result.meta.model
+                    model: result.meta.model,
+                    prompt_variant: result.meta.prompt_variant,
+                    model_family: result.meta.model_family
                 }))
             );
 
@@ -696,6 +757,16 @@
                 }
                 if (statusFilter === 'failed' && test.passed) {
                     return false;
+                }
+
+                // Variant filter
+                if (variantFilter !== 'all') {
+                    if (variantFilter === 'none' && test.prompt_variant) {
+                        return false;
+                    }
+                    if (variantFilter !== 'none' && test.prompt_variant !== variantFilter) {
+                        return false;
+                    }
                 }
 
                 return true;
@@ -725,10 +796,10 @@
                         <tr>
                             <th class="sortable" data-column="id">Test ID</th>
                             <th class="sortable" data-column="agent">Agent</th>
+                            <th class="sortable" data-column="prompt_variant">Variant</th>
                             <th class="sortable" data-column="category">Category</th>
                             <th class="sortable" data-column="passed">Status</th>
                             <th class="sortable" data-column="duration_ms">Duration</th>
-                            <th class="sortable" data-column="events">Events</th>
                             <th class="sortable" data-column="violations.total">Violations</th>
                         </tr>
                     </thead>
@@ -756,15 +827,17 @@
             const statusClass = test.passed ? 'passed' : 'failed';
             const statusText = test.passed ? '✅ Passed' : '❌ Failed';
             const duration = (test.duration_ms / 1000).toFixed(2) + 's';
+            const variant = test.prompt_variant || 'default';
+            const variantClass = test.prompt_variant ? 'variant-badge' : 'variant-badge default';
             
             return `
                 <tr class="expandable-row" data-index="${index}">
                     <td><strong>${test.id}</strong></td>
                     <td>${test.agent}</td>
+                    <td><span class="category-badge ${variantClass}">${variant}</span></td>
                     <td><span class="category-badge">${test.category}</span></td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td>${duration}</td>
-                    <td>${test.events}</td>
                     <td>${test.violations.total} ${test.violations.errors > 0 ? '⚠️' : ''}</td>
                 </tr>
                 <tr class="details-row" id="details-${index}">
@@ -779,6 +852,13 @@
         function renderTestDetails(test) {
             let html = '<div class="details-content">';
             
+            html += `<p><strong>Model:</strong> ${test.model || 'unknown'}</p>`;
+            if (test.prompt_variant) {
+                html += `<p><strong>Prompt Variant:</strong> ${test.prompt_variant}</p>`;
+            }
+            if (test.model_family) {
+                html += `<p><strong>Model Family:</strong> ${test.model_family}</p>`;
+            }
             html += `<p><strong>Approvals:</strong> ${test.approvals}</p>`;
             html += `<p><strong>Events:</strong> ${test.events}</p>`;
             

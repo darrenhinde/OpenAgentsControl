@@ -1,0 +1,175 @@
+name: Post-Merge Automation
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_version_bump:
+        description: 'Skip version bump (maintainer override)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  check-trigger:
+    name: Check Trigger Type
+    runs-on: ubuntu-latest
+    outputs:
+      should_bump: ${{ steps.check.outputs.should_bump }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Determine if version bump needed
+        id: check
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          
+          # Skip version bump commits to prevent loops
+          if echo "$COMMIT_MSG" | grep -qE "^\[skip ci\]|chore: bump version"; then
+            echo "should_bump=false" >> $GITHUB_OUTPUT
+            echo "Version bump commit detected - skipping to prevent loops"
+          else
+            echo "should_bump=true" >> $GITHUB_OUTPUT
+            echo "Will bump version based on commit message: $COMMIT_MSG"
+          fi
+
+  auto-version-bump:
+    name: Auto Version Bump
+    runs-on: ubuntu-latest
+    needs: check-trigger
+    if: |
+      needs.check-trigger.outputs.should_bump == 'true' &&
+      github.event.inputs.skip_version_bump != 'true'
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Determine version bump type
+        id: bump-type
+        run: |
+          # Get the last commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          # Determine bump type from commit message
+          if echo "$COMMIT_MSG" | grep -qiE "^(feat|feature)\(.*\)!:|^BREAKING CHANGE:|^[a-z]+!:"; then
+            echo "type=major" >> $GITHUB_OUTPUT
+            echo "Detected BREAKING CHANGE - bumping major version"
+          elif echo "$COMMIT_MSG" | grep -qiE "^(feat|feature)(\(.*\))?:"; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+            echo "Detected feature - bumping minor version"
+          elif echo "$COMMIT_MSG" | grep -qiE "^(fix|bugfix)(\(.*\))?:"; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+            echo "Detected fix - bumping patch version"
+          elif echo "$COMMIT_MSG" | grep -qiE "^\[alpha\]"; then
+            echo "type=alpha" >> $GITHUB_OUTPUT
+            echo "Detected [alpha] tag - bumping alpha version"
+          elif echo "$COMMIT_MSG" | grep -qiE "^\[beta\]"; then
+            echo "type=beta" >> $GITHUB_OUTPUT
+            echo "Detected [beta] tag - bumping beta version"
+          elif echo "$COMMIT_MSG" | grep -qiE "^\[rc\]"; then
+            echo "type=rc" >> $GITHUB_OUTPUT
+            echo "Detected [rc] tag - bumping rc version"
+          else
+            echo "type=patch" >> $GITHUB_OUTPUT
+            echo "No specific type detected - defaulting to patch version bump"
+          fi
+      
+      - name: Bump version
+        run: |
+          BUMP_TYPE="${{ steps.bump-type.outputs.type }}"
+          
+          # Get current version
+          CURRENT_VERSION=$(cat VERSION)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Bump version in package.json
+          npm run version:bump:$BUMP_TYPE
+          
+          # Get new version
+          NEW_VERSION=$(cat VERSION)
+          echo "New version: $NEW_VERSION"
+          
+          # Update CHANGELOG.md
+          DATE=$(date +%Y-%m-%d)
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          # Create changelog entry
+          cat > /tmp/changelog_entry.md << EOF
+          ## [$NEW_VERSION] - $DATE
+          
+          ### Changes
+          - $COMMIT_MSG
+          
+          EOF
+          
+          # Prepend to CHANGELOG.md (after the header)
+          if [ -f CHANGELOG.md ]; then
+            # Insert after the first occurrence of "## ["
+            awk '/^## \[/ && !found {print; system("cat /tmp/changelog_entry.md"); found=1; next} 1' CHANGELOG.md > /tmp/changelog_new.md
+            mv /tmp/changelog_new.md CHANGELOG.md
+          fi
+      
+      - name: Commit version bump
+        run: |
+          NEW_VERSION=$(cat VERSION)
+          
+          git add VERSION package.json CHANGELOG.md
+          git commit -m "chore: bump version to v$NEW_VERSION [skip ci]"
+          git tag "v$NEW_VERSION"
+      
+      - name: Push changes
+        run: |
+          git push origin main --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create GitHub Release
+        run: |
+          NEW_VERSION=$(cat VERSION)
+          
+          # Extract changelog entry for this version
+          RELEASE_NOTES=$(awk '/^## \['"$NEW_VERSION"'\]/{flag=1; next} /^## \[/{flag=0} flag' CHANGELOG.md)
+          
+          # If no specific notes found, use commit message
+          if [ -z "$RELEASE_NOTES" ]; then
+            RELEASE_NOTES="Release v$NEW_VERSION"
+          fi
+          
+          # Create the release
+          gh release create "v$NEW_VERSION" \
+            --title "v$NEW_VERSION" \
+            --notes "$RELEASE_NOTES" \
+            --latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Summary
+        if: success()
+        run: |
+          NEW_VERSION=$(cat VERSION)
+          echo "## 🚀 Version Bumped to v$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Version updated in VERSION and package.json" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ CHANGELOG.md updated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Git tag created: v$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ GitHub release published" >> $GITHUB_STEP_SUMMARY

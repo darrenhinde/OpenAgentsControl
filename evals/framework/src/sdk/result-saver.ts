@@ -69,6 +69,10 @@ export interface ResultMetadata {
   readonly model: string;
   readonly framework_version: string;
   readonly git_commit?: string;
+  /** Prompt variant used (e.g., 'default', 'gpt', 'gemini') */
+  readonly prompt_variant?: string;
+  /** Model family from prompt metadata (e.g., 'claude', 'gpt', 'gemini') */
+  readonly model_family?: string;
 }
 
 /**
@@ -103,6 +107,18 @@ interface PackageJson {
 }
 
 /**
+ * Options for saving results
+ */
+export interface SaveOptions {
+  /** Prompt variant used (e.g., 'default', 'gpt', 'gemini') */
+  promptVariant?: string;
+  /** Model family from prompt metadata */
+  modelFamily?: string;
+  /** Path to prompts directory for per-variant results */
+  promptsDir?: string;
+}
+
+/**
  * Result saver with type-safe operations
  */
 export class ResultSaver {
@@ -117,9 +133,14 @@ export class ResultSaver {
    * 
    * @throws {Error} If directory creation or file writing fails
    */
-  async save(results: TestResult[], agent: string, model: string): Promise<string> {
-    // Generate compact result
-    const summary = this.generateSummary(results, agent, model);
+  async save(
+    results: TestResult[], 
+    agent: string, 
+    model: string,
+    options: SaveOptions = {}
+  ): Promise<string> {
+    // Generate compact result with optional variant info
+    const summary = this.generateSummary(results, agent, model, options);
     
     // Create history directory for current month
     const now = new Date();
@@ -128,8 +149,8 @@ export class ResultSaver {
     
     this.ensureDirectoryExists(historyDir);
     
-    // Generate filename: DD-HHMMSS-{agent}.json
-    const filename = this.generateFilename(now, agent);
+    // Generate filename: DD-HHMMSS-{agent}[-{variant}].json
+    const filename = this.generateFilename(now, agent, options.promptVariant);
     const historyPath = join(historyDir, filename);
     
     // Save to history
@@ -139,7 +160,51 @@ export class ResultSaver {
     const latestPath = join(this.resultsDir, 'latest.json');
     this.writeJsonFile(latestPath, summary);
     
+    // Also save to prompts results directory if variant specified
+    if (options.promptVariant && options.promptsDir) {
+      await this.saveVariantResults(summary, agent, options.promptVariant, options.promptsDir);
+    }
+    
     return historyPath;
+  }
+  
+  /**
+   * Save results to the prompts variant results directory
+   */
+  private async saveVariantResults(
+    summary: ResultSummary,
+    agent: string,
+    variant: string,
+    promptsDir: string
+  ): Promise<void> {
+    const variantResultsDir = join(promptsDir, agent, 'results');
+    this.ensureDirectoryExists(variantResultsDir);
+    
+    // Save detailed results
+    const detailedPath = join(variantResultsDir, `${variant}-results.json`);
+    
+    // Create variant-specific summary with additional fields
+    const variantSummary = {
+      variant,
+      agent,
+      model: summary.meta.model,
+      model_family: summary.meta.model_family,
+      timestamp: summary.meta.timestamp,
+      passed: summary.summary.passed,
+      failed: summary.summary.failed,
+      total: summary.summary.total,
+      passRate: `${(summary.summary.pass_rate * 100).toFixed(1)}%`,
+      duration_ms: summary.summary.duration_ms,
+      by_category: summary.by_category,
+      // Include test details for debugging
+      tests: summary.tests.map(t => ({
+        id: t.id,
+        passed: t.passed,
+        violations: t.violations.total,
+      })),
+    };
+    
+    writeFileSync(detailedPath, JSON.stringify(variantSummary, null, 2), 'utf8');
   }
   
   /**
@@ -148,7 +213,8 @@ export class ResultSaver {
   private generateSummary(
     results: TestResult[], 
     agent: string, 
-    model: string
+    model: string,
+    options: SaveOptions = {}
   ): ResultSummary {
     const passed = results.filter(r => r.passed).length;
     const failed = results.length - passed;
@@ -167,6 +233,8 @@ export class ResultSaver {
         model,
         framework_version: this.getFrameworkVersion(),
         git_commit: this.getGitCommit(),
+        prompt_variant: options.promptVariant,
+        model_family: options.modelFamily,
       },
       summary: {
         total: results.length,
@@ -258,16 +326,17 @@ export class ResultSaver {
   
   /**
    * Generate filename for result file
-   * Format: DD-HHMMSS-{agent}.json
+   * Format: DD-HHMMSS-{agent}[-{variant}].json
    */
-  private generateFilename(date: Date, agent: string): string {
+  private generateFilename(date: Date, agent: string, variant?: string): string {
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
     const time = `${hours}${minutes}${seconds}`;
     
-    return `${day}-${time}-${agent}.json`;
+    const variantSuffix = variant ? `-${variant}` : '';
+    return `${day}-${time}-${agent}${variantSuffix}.json`;
   }
   
   /**

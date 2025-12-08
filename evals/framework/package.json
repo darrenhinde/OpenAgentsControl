@@ -18,7 +18,9 @@
     "eval:sdk": "tsx src/sdk/run-sdk-tests.ts",
     "eval:sdk:core": "tsx src/sdk/run-sdk-tests.ts --core",
     "eval:sdk:debug": "tsx src/sdk/run-sdk-tests.ts --debug",
-    "eval:sdk:interactive": "tsx src/sdk/run-sdk-tests.ts --interactive"
+    "eval:sdk:interactive": "tsx src/sdk/run-sdk-tests.ts --interactive",
+    "validate:suites": "tsx src/sdk/validate-suites-cli.ts",
+    "validate:suites:all": "tsx src/sdk/validate-suites-cli.ts --all"
   },
   "keywords": [
     "opencode",
@@ -40,6 +42,7 @@
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
+    "ajv-cli": "^5.0.0",
     "eslint": "^8.54.0",
     "tsx": "^4.20.6",
     "typescript": "^5.3.0",

@@ -38,7 +38,7 @@
     "results:opencoder": "echo 'OpenCoder results:' && ls -lh evals/results/history/*opencoder*.json 2>/dev/null | tail -5 || echo 'No results yet'",
     "results:latest": "cat evals/results/latest.json 2>/dev/null | jq '.agent, .passed, .failed' || echo 'No results yet'",
     "version": "node -p \"require('./package.json').version\"",
-    "version:bump": "./scripts/bump-version.sh",
+    "version:bump": "./scripts/versioning/bump-version.sh",
     "version:bump:patch": "npm version patch --no-git-tag-version && node -p \"require('./package.json').version\" > VERSION",
     "version:bump:minor": "npm version minor --no-git-tag-version && node -p \"require('./package.json').version\" > VERSION",
     "version:bump:major": "npm version major --no-git-tag-version && node -p \"require('./package.json').version\" > VERSION",

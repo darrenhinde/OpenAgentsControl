@@ -48,16 +48,9 @@
       "events": 78,
       "approvals": 0,
       "violations": {
-        "total": 1,
-        "errors": 1,
-        "warnings": 0,
-        "details": [
-          {
-            "type": "wrong-context-file",
-            "severity": "error",
-            "message": "Task type 'tests' requires context file(s): .opencode/context/core/standards/tests.md or standards/tests.md or tests.md. Loaded: .opencode/context/core/standards/code.md"
-          }
-        ]
+        "total": 0,
+        "errors": 0,
+        "warnings": 0
       }
     }
   ]

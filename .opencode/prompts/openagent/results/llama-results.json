@@ -1,0 +1,25 @@
+{
+  "variant": "llama",
+  "agent": "openagent",
+  "model": "ollama/llama3.1:70b",
+  "model_family": "llama",
+  "timestamp": "2025-12-08T22:08:42.921Z",
+  "passed": 0,
+  "failed": 1,
+  "total": 1,
+  "passRate": "0.0%",
+  "duration_ms": 5057,
+  "by_category": {
+    "developer": {
+      "passed": 0,
+      "total": 1
+    }
+  },
+  "tests": [
+    {
+      "id": "dedicated-tools-usage",
+      "passed": false,
+      "violations": 2
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "Smoke Test Suite",
+  "description": "Minimal single-test suite for quick validation",
+  "version": "1.0.0",
+  "agent": "openagent",
+  "totalTests": 1,
+  "estimatedRuntime": "30-60 seconds",
+  "coverage": {
+    "toolUsage": true
+  },
+  "tests": [
+    {
+      "id": 1,
+      "name": "Tool Usage - Dedicated Tools",
+      "path": "09-tool-usage/dedicated-tools-usage.yaml",
+      "category": "tool-usage",
+      "priority": "medium",
+      "required": true,
+      "estimatedTime": "30-60s",
+      "description": "Validates agent uses proper tools (read/grep) instead of bash antipatterns"
+    }
+  ],
+  "rationale": {
+    "why1Test": "Single test for quick smoke testing and validation of the eval system",
+    "useCases": [
+      "Quick validation of eval framework",
+      "Testing new model configurations",
+      "Smoke test before running full suite"
+    ]
+  }
+}

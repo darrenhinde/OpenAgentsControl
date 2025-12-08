@@ -1,0 +1,25 @@
+{
+  "variant": "gpt",
+  "agent": "openagent",
+  "model": "openai/gpt-4o-mini",
+  "model_family": "gpt",
+  "timestamp": "2025-12-08T21:06:13.713Z",
+  "passed": 0,
+  "failed": 1,
+  "total": 1,
+  "passRate": "0.0%",
+  "duration_ms": 8030,
+  "by_category": {
+    "developer": {
+      "passed": 0,
+      "total": 1
+    }
+  },
+  "tests": [
+    {
+      "id": "dedicated-tools-usage",
+      "passed": false,
+      "violations": 2
+    }
+  ]
+}

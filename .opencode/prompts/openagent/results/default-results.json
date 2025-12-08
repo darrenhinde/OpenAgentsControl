@@ -1,0 +1,10 @@
+{
+  "variant": "default",
+  "agent": "openagent",
+  "timestamp": "2025-12-01T00:11:27Z",
+  "passed": 0,
+  "failed": 10,
+  "total": 10,
+  "passRate": "0.0%",
+  "fullResults": "/Users/darrenhinde/Documents/GitHub/opencode-agents/evals/results/latest.json"
+}

@@ -983,7 +983,7 @@ After completing a workflow, approve session cleanup:
 
 **Tip**: You can also manually clean up stale sessions:
 ```bash
-./scripts/cleanup-stale-sessions.sh
+./scripts/maintenance/cleanup-stale-sessions.sh
 ```
 
 ---

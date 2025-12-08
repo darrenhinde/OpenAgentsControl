@@ -2,6 +2,7 @@
   "name": "OpenAgent Core Test Suite",
   "description": "Minimal set of tests providing maximum coverage of critical OpenAgent functionality",
   "version": "1.0.0",
+  "agent": "openagent",
   "totalTests": 7,
   "estimatedRuntime": "5-8 minutes",
   "coverage": {
@@ -100,8 +101,8 @@
       "withModel": "npm run test:openagent:core -- --model=anthropic/claude-sonnet-4-5"
     },
     "script": {
-      "basic": "./scripts/test.sh openagent --core",
-      "withModel": "./scripts/test.sh openagent opencode/grok-code-fast --core"
+      "basic": "./scripts/testing/test.sh openagent --core",
+      "withModel": "./scripts/testing/test.sh openagent opencode/grok-code-fast --core"
     },
     "direct": {
       "basic": "cd evals/framework && npm run eval:sdk:core",

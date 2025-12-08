@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://opencode.dev/schemas/test-suite.json",
+  "title": "OpenCode Test Suite",
+  "description": "Schema for test suite definitions",
+  "type": "object",
+  "required": ["name", "description", "version", "agent", "totalTests", "estimatedRuntime", "tests"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable suite name",
+      "minLength": 1,
+      "examples": ["Core Test Suite", "Quick Smoke Tests"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of what this suite tests",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the suite",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["1.0.0", "2.1.3"]
+    },
+    "agent": {
+      "type": "string",
+      "description": "Agent this suite is for",
+      "enum": ["openagent", "opencoder"],
+      "examples": ["openagent"]
+    },
+    "totalTests": {
+      "type": "integer",
+      "description": "Total number of tests in this suite",
+      "minimum": 1
+    },
+    "estimatedRuntime": {
+      "type": "string",
+      "description": "Estimated runtime for the suite",
+      "pattern": "^\\d+-\\d+ (minutes|seconds|hours)$",
+      "examples": ["5-8 minutes", "30-60 seconds"]
+    },
+    "coverage": {
+      "type": "object",
+      "description": "Coverage areas tested by this suite",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "tests": {
+      "type": "array",
+      "description": "List of test definitions",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "path", "category", "priority"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique test ID within suite",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable test name",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "description": "Relative path to test file from tests/ directory",
+            "pattern": "^[^/].*\\.yaml$",
+            "examples": [
+              "01-critical-rules/approval-gate/05-approval-before-execution-positive.yaml"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "description": "Test category",
+            "enum": [
+              "critical-rules",
+              "workflow-stages",
+              "delegation",
+              "execution-paths",
+              "edge-cases",
+              "integration",
+              "negative",
+              "behavior",
+              "tool-usage"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "description": "Test priority level",
+            "enum": ["critical", "high", "medium", "low"]
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether this test must exist (fails validation if missing)",
+            "default": true
+          },
+          "estimatedTime": {
+            "type": "string",
+            "description": "Estimated runtime for this test",
+            "pattern": "^\\d+-\\d+(s|m)$",
+            "examples": ["30-60s", "1-2m"]
+          },
+          "description": {
+            "type": "string",
+            "description": "Brief description of what this test validates"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "rationale": {
+      "type": "object",
+      "description": "Explanation of suite design decisions",
+      "properties": {
+        "why7Tests": {
+          "type": "string"
+        },
+        "coverageBreakdown": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "useCases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "description": "Usage examples for this suite"
+    },
+    "comparison": {
+      "type": "object",
+      "description": "Comparison with other suites"
+    }
+  },
+  "additionalProperties": false
+}

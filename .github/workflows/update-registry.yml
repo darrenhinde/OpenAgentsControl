@@ -29,9 +29,9 @@ jobs:
       
       - name: Make scripts executable
         run: |
-          chmod +x scripts/validate-registry.sh
-          chmod +x scripts/auto-detect-components.sh
-          chmod +x scripts/register-component.sh
+          chmod +x scripts/registry/validate-registry.sh
+          chmod +x scripts/registry/auto-detect-components.sh
+          chmod +x scripts/registry/register-component.sh
       
       - name: Auto-detect new components
         id: auto_detect
@@ -40,7 +40,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Run auto-detect in dry-run mode first
-          if ./scripts/auto-detect-components.sh --dry-run > /tmp/detect-output.txt 2>&1; then
+          if ./scripts/registry/auto-detect-components.sh --dry-run > /tmp/detect-output.txt 2>&1; then
             cat /tmp/detect-output.txt >> $GITHUB_STEP_SUMMARY
             
             # Check if new components were found
@@ -63,7 +63,7 @@ jobs:
           echo "## 📝 Adding New Components" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          ./scripts/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
+          ./scripts/registry/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
       
       - name: Validate registry
         id: validate
@@ -71,7 +71,7 @@ jobs:
           echo "## ✅ Registry Validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if ./scripts/validate-registry.sh -v > /tmp/validation-output.txt 2>&1; then
+          if ./scripts/registry/validate-registry.sh -v > /tmp/validation-output.txt 2>&1; then
             echo "validation=passed" >> $GITHUB_OUTPUT
             echo "✅ All registry paths are valid!" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
