@@ -22,7 +22,7 @@ NC='\033[0m'
 
 # Configuration
 REGISTRY_FILE="registry.json"
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 VERBOSE=false
 FIX_MODE=false
 
