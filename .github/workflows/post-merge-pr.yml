@@ -1,4 +1,4 @@
-name: Post-Merge Version & Docs Sync
+name: Post-Merge Version Bump
 
 on:
   push:
@@ -17,10 +17,10 @@ permissions:
 
 jobs:
   check-trigger:
-    name: Check if Sync Needed
+    name: Check if Version Bump Needed
     runs-on: ubuntu-latest
     outputs:
-      should_sync: ${{ steps.check.outputs.should_sync }}
+      should_bump: ${{ steps.check.outputs.should_bump }}
       bump_type: ${{ steps.check.outputs.bump_type }}
     
     steps:
@@ -63,7 +63,7 @@ jobs:
         run: |
           # Skip if the merged PR was a version bump PR
           if [ "${{ steps.check_pr_labels.outputs.skip_version_bump }}" = "true" ]; then
-            echo "should_sync=false" >> $GITHUB_OUTPUT
+            echo "should_bump=false" >> $GITHUB_OUTPUT
             echo "Version bump PR detected - skipping to prevent loops"
             exit 0
           fi
@@ -73,8 +73,8 @@ jobs:
           
           # Skip if this is an automated commit to prevent loops
           # Only check the title, not the full body to avoid false positives
-          if echo "$COMMIT_TITLE" | grep -qE "\[skip ci\]|chore: bump version|docs: sync|chore: version and docs sync"; then
-            echo "should_sync=false" >> $GITHUB_OUTPUT
+          if echo "$COMMIT_TITLE" | grep -qE "\[skip ci\]|chore: bump version"; then
+            echo "should_bump=false" >> $GITHUB_OUTPUT
             echo "Automated commit detected in title - skipping to prevent loops"
             exit 0
           fi
@@ -93,15 +93,15 @@ jobs:
             echo "bump_type=patch" >> $GITHUB_OUTPUT
           fi
           
-          echo "should_sync=true" >> $GITHUB_OUTPUT
-          echo "Will create version bump and docs sync PR"
+          echo "should_bump=true" >> $GITHUB_OUTPUT
+          echo "Will create version bump PR"
 
-  create-sync-pr:
-    name: Create Version & Docs Sync PR
+  create-version-bump-pr:
+    name: Create Version Bump PR
     runs-on: ubuntu-latest
     needs: check-trigger
     if: |
-      needs.check-trigger.outputs.should_sync == 'true' &&
+      needs.check-trigger.outputs.should_bump == 'true' &&
       github.event.inputs.skip_version_bump != 'true'
     
     steps:
@@ -120,10 +120,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       
-      - name: Create sync branch
+      - name: Create version bump branch
         id: create_branch
         run: |
-          BRANCH_NAME="chore/version-docs-sync-$(date +%Y%m%d-%H%M%S)"
+          BRANCH_NAME="chore/version-bump-$(date +%Y%m%d-%H%M%S)"
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
           git checkout -b "$BRANCH_NAME"
       
@@ -180,7 +180,7 @@ jobs:
           
           # Create PR body
           cat > /tmp/pr_body.md << 'EOFPR'
-          ## 🤖 Automated Version Bump & Documentation Sync
+          ## 🤖 Automated Version Bump
           
           ### Version Update
           - **New Version:** v$NEW_VERSION
@@ -191,23 +191,15 @@ jobs:
           - ✅ package.json version updated  
           - ✅ CHANGELOG.md updated with latest changes
           
-          ### Documentation Sync
-          This PR also serves as a placeholder for documentation updates. If registry or component changes were made, please:
-          
-          1. Review `registry.json` for any updates
-          2. Update README.md component counts if needed
-          3. Sync any documentation that references version numbers
-          4. Verify all links and references are current
-          
           ### Next Steps
           1. Review the version bump is correct
-          2. Add any additional documentation updates if needed
-          3. Merge this PR to apply version bump
-          4. GitHub release will be created after merge
+          2. Merge this PR to apply the version bump
           
           ---
           
           **Note:** This PR was created automatically by the post-merge workflow.
+          
+          **Documentation updates:** If registry or component changes require documentation updates, the separate "Sync Documentation" workflow will handle that automatically when `registry.json` or `.opencode/` files are modified.
           EOFPR
           
           # Replace variables
@@ -216,10 +208,10 @@ jobs:
           
           # Create PR
           gh pr create \
-            --title "chore: version and docs sync v$NEW_VERSION" \
+            --title "chore: bump version to v$NEW_VERSION" \
             --body-file /tmp/pr_body.md \
             --base main \
             --head "$BRANCH_NAME" \
-            --label "documentation,automated,version-bump"
+            --label "automated,version-bump"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
