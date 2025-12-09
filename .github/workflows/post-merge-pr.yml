@@ -1,0 +1,184 @@
+name: Post-Merge Version & Docs Sync
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_version_bump:
+        description: 'Skip version bump'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-trigger:
+    name: Check if Sync Needed
+    runs-on: ubuntu-latest
+    outputs:
+      should_sync: ${{ steps.check.outputs.should_sync }}
+      bump_type: ${{ steps.check.outputs.bump_type }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Determine if sync needed
+        id: check
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          # Skip if this is an automated commit to prevent loops
+          if echo "$COMMIT_MSG" | grep -qE "\[skip ci\]|chore: bump version|docs: sync|chore: version and docs sync"; then
+            echo "should_sync=false" >> $GITHUB_OUTPUT
+            echo "Automated commit detected - skipping to prevent loops"
+            exit 0
+          fi
+          
+          # Determine version bump type from commit message
+          if echo "$COMMIT_MSG" | grep -qiE "^(feat|feature)\(.*\)!:|^BREAKING CHANGE:|^[a-z]+!:"; then
+            echo "bump_type=major" >> $GITHUB_OUTPUT
+          elif echo "$COMMIT_MSG" | grep -qiE "^(feat|feature)(\(.*\))?:"; then
+            echo "bump_type=minor" >> $GITHUB_OUTPUT
+          elif echo "$COMMIT_MSG" | grep -qiE "^(fix|bugfix)(\(.*\))?:"; then
+            echo "bump_type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "bump_type=patch" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "should_sync=true" >> $GITHUB_OUTPUT
+          echo "Will create version bump and docs sync PR"
+
+  create-sync-pr:
+    name: Create Version & Docs Sync PR
+    runs-on: ubuntu-latest
+    needs: check-trigger
+    if: |
+      needs.check-trigger.outputs.should_sync == 'true' &&
+      github.event.inputs.skip_version_bump != 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Create sync branch
+        id: create_branch
+        run: |
+          BRANCH_NAME="chore/version-docs-sync-$(date +%Y%m%d-%H%M%S)"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          git checkout -b "$BRANCH_NAME"
+      
+      - name: Bump version
+        id: bump_version
+        run: |
+          BUMP_TYPE="${{ needs.check-trigger.outputs.bump_type }}"
+          
+          # Get current version
+          CURRENT_VERSION=$(cat VERSION)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Bump version
+          npm run version:bump:$BUMP_TYPE
+          
+          # Get new version
+          NEW_VERSION=$(cat VERSION)
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+      
+      - name: Update CHANGELOG
+        run: |
+          NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
+          DATE=$(date +%Y-%m-%d)
+          COMMIT_TITLE=$(git log -1 --pretty=%s)
+          
+          # Create changelog entry
+          printf "## [%s] - %s\n\n### Changes\n- %s\n\n" "$NEW_VERSION" "$DATE" "$COMMIT_TITLE" > /tmp/changelog_entry.md
+          
+          # Prepend to CHANGELOG.md (after the header)
+          if [ -f CHANGELOG.md ]; then
+            awk '/^## \[/ && !found {print; system("cat /tmp/changelog_entry.md"); found=1; next} 1' CHANGELOG.md > /tmp/changelog_new.md
+            mv /tmp/changelog_new.md CHANGELOG.md
+          fi
+      
+      - name: Commit version bump
+        run: |
+          NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
+          
+          git add VERSION package.json CHANGELOG.md
+          git commit -m "chore: bump version to v$NEW_VERSION [skip ci]"
+      
+      - name: Push branch
+        run: |
+          BRANCH_NAME="${{ steps.create_branch.outputs.branch_name }}"
+          git push -u origin "$BRANCH_NAME"
+      
+      - name: Create Pull Request
+        id: create_pr
+        run: |
+          NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
+          BUMP_TYPE="${{ needs.check-trigger.outputs.bump_type }}"
+          BRANCH_NAME="${{ steps.create_branch.outputs.branch_name }}"
+          
+          # Create PR body
+          cat > /tmp/pr_body.md << 'EOFPR'
+          ## 🤖 Automated Version Bump & Documentation Sync
+          
+          ### Version Update
+          - **New Version:** v$NEW_VERSION
+          - **Bump Type:** $BUMP_TYPE
+          
+          ### Changes Included
+          - ✅ VERSION file updated
+          - ✅ package.json version updated  
+          - ✅ CHANGELOG.md updated with latest changes
+          
+          ### Documentation Sync
+          This PR also serves as a placeholder for documentation updates. If registry or component changes were made, please:
+          
+          1. Review `registry.json` for any updates
+          2. Update README.md component counts if needed
+          3. Sync any documentation that references version numbers
+          4. Verify all links and references are current
+          
+          ### Next Steps
+          1. Review the version bump is correct
+          2. Add any additional documentation updates if needed
+          3. Merge this PR to apply version bump
+          4. GitHub release will be created after merge
+          
+          ---
+          
+          **Note:** This PR was created automatically by the post-merge workflow.
+          EOFPR
+          
+          # Replace variables
+          sed -i "s/\$NEW_VERSION/$NEW_VERSION/g" /tmp/pr_body.md
+          sed -i "s/\$BUMP_TYPE/$BUMP_TYPE/g" /tmp/pr_body.md
+          
+          # Create PR
+          gh pr create \
+            --title "chore: version and docs sync v$NEW_VERSION" \
+            --body-file /tmp/pr_body.md \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --label "documentation,automated,version-bump"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
