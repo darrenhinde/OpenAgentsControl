@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.3.1] - 2025-12-09
+
+### Changes
+- fix(ci): check only commit title for skip patterns (#46)
+
 
 _No unreleased changes yet._
 
