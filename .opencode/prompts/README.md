@@ -24,10 +24,10 @@ open ../results/index.html
 
 ```bash
 # Switch to a variant
-./scripts/prompts/use-prompt.sh openagent llama
+./scripts/prompts/use-prompt.sh --agent=openagent --variant=llama
 
-# Restore default
-./scripts/prompts/use-prompt.sh openagent default
+# Restore default (canonical agent file)
+./scripts/prompts/use-prompt.sh --agent=openagent --variant=default
 ```
 
 ---
@@ -35,23 +35,32 @@ open ../results/index.html
 ## 📁 Structure
 
 ```
-.opencode/prompts/
-├── README.md                    # This file
-├── openagent/                   # OpenAgent variants
-│   ├── default.md              # Stable default (Claude-optimized)
-│   ├── gpt.md                  # GPT-4 optimized
-│   ├── gemini.md               # Gemini optimized
-│   ├── grok.md                 # Grok optimized
-│   ├── llama.md                # Llama/OSS optimized
-│   ├── TEMPLATE.md             # Template for new variants
-│   ├── README.md               # Variant documentation
-│   └── results/                # Per-variant test results
-│       ├── gpt-results.json
-│       ├── gemini-results.json
-│       └── llama-results.json
-└── opencoder/                   # OpenCoder variants
-    └── ...
+.opencode/
+├── agent/                       # Canonical agent prompts (defaults)
+│   ├── openagent.md            # OpenAgent default (Claude-optimized)
+│   └── opencoder.md            # OpenCoder default
+└── prompts/                     # Model-specific variants
+    ├── README.md               # This file
+    ├── openagent/              # OpenAgent variants
+    │   ├── gpt.md             # GPT-4 optimized
+    │   ├── gemini.md          # Gemini optimized
+    │   ├── grok.md            # Grok optimized
+    │   ├── llama.md           # Llama/OSS optimized
+    │   ├── TEMPLATE.md        # Template for new variants
+    │   ├── README.md          # Variant documentation
+    │   └── results/           # Per-variant test results
+    │       ├── default-results.json  # Default (agent file) results
+    │       ├── gpt-results.json
+    │       ├── gemini-results.json
+    │       └── llama-results.json
+    └── opencoder/              # OpenCoder variants
+        └── ...
 ```
+
+**Architecture:**
+- **Agent files** (`.opencode/agent/*.md`) = Canonical defaults (source of truth)
+- **Prompt variants** (`.opencode/prompts/<agent>/<model>.md`) = Model-specific optimizations
+- **Results** always saved to `.opencode/prompts/<agent>/results/` (including default)
 
 ---
 
@@ -253,7 +262,7 @@ The results dashboard (`evals/results/index.html`) shows:
 
 ### Creating a Variant for PR
 
-1. **Create your variant** (don't modify default.md)
+1. **Create your variant** in `.opencode/prompts/<agent>/<model>.md`
 2. **Test thoroughly** with eval framework
 3. **Document results** in agent README
 4. **Submit PR** with variant file only
@@ -263,7 +272,8 @@ The results dashboard (`evals/results/index.html`) shows:
 - ✅ Variant has YAML frontmatter with metadata
 - ✅ Variant passes core test suite (≥85% pass rate)
 - ✅ Results documented in agent README
-- ✅ Default prompt unchanged
+- ✅ Agent file unchanged (unless updating default)
+- ✅ No `default.md` files in prompts directory
 - ✅ CI validation passes
 
 ### Validation
@@ -281,12 +291,14 @@ npm run eval:sdk -- --agent=openagent --prompt-variant=your-variant --suite=core
 
 ## 🎓 Design Principles
 
-### 1. Default is Stable
-- `default.md` is tested and production-ready
+### 1. Agent Files are Canonical Defaults
+- Agent files (`.opencode/agent/*.md`) are the source of truth
+- Tested and production-ready
 - Optimized for Claude (primary model)
-- All PRs must use default
+- Modified through normal PR process
 
-### 2. Variants are Experiments
+### 2. Variants are Model-Specific Optimizations
+- Stored in `.opencode/prompts/<agent>/<model>.md`
 - Optimized for specific models/use cases
 - May have different trade-offs
 - Results documented transparently

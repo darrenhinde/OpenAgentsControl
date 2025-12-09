@@ -83,36 +83,41 @@ usage() {
     echo ""
     echo "Required:"
     echo "  --agent=NAME       Agent name (e.g., openagent, opencoder)"
-    echo "  --variant=NAME     Prompt variant by model family (e.g., default, gpt, gemini, grok, llama)"
+    echo "  --variant=NAME     Prompt variant (default, gpt, gemini, grok, llama)"
     echo ""
     echo "Optional:"
     echo "  --model=MODEL      Model to test with (uses prompt metadata if not specified)"
     echo "  --help, -h         Show this help"
     echo ""
+    echo -e "${BLUE}Architecture:${NC}"
+    echo "  • default = Canonical agent file (.opencode/agent/<agent>.md)"
+    echo "  • Other variants = Model-specific optimizations (.opencode/prompts/<agent>/<model>.md)"
+    echo "  • Results always saved to .opencode/prompts/<agent>/results/"
+    echo ""
     echo "Examples:"
-    echo "  # Test with default (Claude) - uses metadata recommendation"
+    echo "  # Test default (canonical agent file)"
     echo "  $0 --agent=openagent --variant=default"
     echo ""
-    echo "  # Test GPT prompt - uses metadata recommendation (gpt-4o)"
+    echo "  # Test GPT-optimized prompt"
     echo "  $0 --agent=openagent --variant=gpt"
     echo ""
     echo "  # Test Gemini prompt with specific model"
     echo "  $0 --agent=openagent --variant=gemini --model=google/gemini-2.0-flash-exp"
     echo ""
-    echo "  # Test Grok prompt - uses metadata recommendation (free tier)"
+    echo "  # Test Grok prompt"
     echo "  $0 --agent=openagent --variant=grok"
     echo ""
     echo "Available model families:"
-    echo "  default    # Claude Sonnet 4.5 (stable)"
+    echo "  default    # Canonical agent file (Claude Sonnet 4.5)"
     echo "  gpt        # OpenAI GPT-4o, GPT-4o-mini, o1"
     echo "  gemini     # Google Gemini 2.0 Flash, Pro"
     echo "  grok       # xAI Grok (free tier available)"
     echo "  llama      # Meta Llama 3.1/3.2 (local or hosted)"
     echo ""
-    echo "Note: Each prompt contains metadata with recommended models."
+    echo "Note: Model-specific prompts contain metadata with recommended models."
     echo "      If --model is not specified, the primary recommendation is used."
     echo ""
-    echo "Available prompts for an agent:"
+    echo "Available variants for an agent:"
     echo "  ls $PROMPTS_DIR/<agent-name>/"
     exit 1
 }
@@ -150,19 +155,29 @@ if [[ -z "$AGENT_NAME" ]] || [[ -z "$PROMPT_VARIANT" ]]; then
     usage
 fi
 
-PROMPT_FILE="$PROMPTS_DIR/$AGENT_NAME/$PROMPT_VARIANT.md"
 AGENT_FILE="$AGENT_DIR/$AGENT_NAME.md"
 BACKUP_FILE="$AGENT_DIR/.$AGENT_NAME.md.backup"
 VARIANT_RESULTS_DIR="$PROMPTS_DIR/$AGENT_NAME/results"
 VARIANT_RESULTS_FILE="$VARIANT_RESULTS_DIR/$PROMPT_VARIANT-results.json"
 
-# Check prompt exists
-if [[ ! -f "$PROMPT_FILE" ]]; then
-    echo -e "${RED}Error: Prompt not found: $PROMPT_FILE${NC}"
-    echo ""
-    echo "Available prompts for $AGENT_NAME:"
-    ls -1 "$PROMPTS_DIR/$AGENT_NAME/"*.md 2>/dev/null | xargs -I {} basename {} .md || echo "  (none found)"
-    exit 1
+# Handle "default" variant - use agent file directly
+if [[ "$PROMPT_VARIANT" == "default" ]]; then
+    PROMPT_FILE="$AGENT_FILE"
+    echo -e "${BLUE}Testing default prompt (canonical agent file)${NC}"
+else
+    PROMPT_FILE="$PROMPTS_DIR/$AGENT_NAME/$PROMPT_VARIANT.md"
+    
+    # Check prompt exists
+    if [[ ! -f "$PROMPT_FILE" ]]; then
+        echo -e "${RED}Error: Prompt variant not found: $PROMPT_FILE${NC}"
+        echo ""
+        echo "Available variants for $AGENT_NAME:"
+        echo "  - default (canonical agent file)"
+        if [[ -d "$PROMPTS_DIR/$AGENT_NAME" ]]; then
+            ls -1 "$PROMPTS_DIR/$AGENT_NAME/"*.md 2>/dev/null | grep -v "TEMPLATE.md" | grep -v "README.md" | xargs -I {} basename {} .md || echo "  (no model variants found)"
+        fi
+        exit 1
+    fi
 fi
 
 # Read metadata from prompt file
@@ -215,11 +230,16 @@ else
     echo "      No existing agent file to backup"
 fi
 
-# Step 2: Copy prompt variant to agent location
-echo -e "${YELLOW}[2/5] Copying prompt variant to agent location...${NC}"
-cp "$PROMPT_FILE" "$AGENT_FILE"
-echo "      Copied $PROMPT_FILE"
-echo "      To     $AGENT_FILE"
+# Step 2: Copy prompt variant to agent location (skip if testing default)
+if [[ "$PROMPT_VARIANT" == "default" ]]; then
+    echo -e "${YELLOW}[2/5] Using default prompt (already in place)...${NC}"
+    echo "      Testing: $AGENT_FILE"
+else
+    echo -e "${YELLOW}[2/5] Copying prompt variant to agent location...${NC}"
+    cp "$PROMPT_FILE" "$AGENT_FILE"
+    echo "      Copied $PROMPT_FILE"
+    echo "      To     $AGENT_FILE"
+fi
 
 # Step 3: Run tests
 echo -e "${YELLOW}[3/5] Running core eval tests...${NC}"
@@ -249,18 +269,18 @@ set -e
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 
-# Step 4: Restore default prompt
+# Step 4: Restore original prompt (if we changed it)
 echo ""
-echo -e "${YELLOW}[4/5] Restoring default prompt...${NC}"
-DEFAULT_PROMPT="$PROMPTS_DIR/$AGENT_NAME/default.md"
-if [[ -f "$DEFAULT_PROMPT" ]]; then
-    cp "$DEFAULT_PROMPT" "$AGENT_FILE"
-    echo "      Restored default.md to agent location"
+if [[ "$PROMPT_VARIANT" == "default" ]]; then
+    echo -e "${YELLOW}[4/5] No restore needed (tested default)...${NC}"
+    echo "      Agent file unchanged"
 else
-    # Restore backup if no default
+    echo -e "${YELLOW}[4/5] Restoring original prompt...${NC}"
     if [[ -f "$BACKUP_FILE" ]]; then
         cp "$BACKUP_FILE" "$AGENT_FILE"
         echo "      Restored from backup"
+    else
+        echo "      No backup to restore"
     fi
 fi
 

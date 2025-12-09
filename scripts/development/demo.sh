@@ -154,16 +154,21 @@ show_prompt_library() {
   cat << EOF
 The prompt library allows different AI models to use optimized prompts:
 
+${GREEN}.opencode/agent/${NC}
+└── openagent.md        ${YELLOW}# Canonical default (Claude-optimized)${NC}
+
 ${GREEN}.opencode/prompts/openagent/${NC}
-├── default.md          ${YELLOW}# Stable version (used in PRs)${NC}
-├── sonnet-4.md         ${YELLOW}# Claude Sonnet 4 optimized${NC}
-├── grok-fast.md        ${YELLOW}# Grok Fast optimized${NC}
+├── gpt.md              ${YELLOW}# GPT-4 optimized${NC}
+├── gemini.md           ${YELLOW}# Gemini optimized${NC}
+├── grok.md             ${YELLOW}# Grok optimized${NC}
+├── llama.md            ${YELLOW}# Llama/OSS optimized${NC}
 ├── TEMPLATE.md         ${YELLOW}# Template for new variants${NC}
-└── results/            ${YELLOW}# Test results${NC}
+└── results/            ${YELLOW}# Test results (all variants)${NC}
 
 ${BLUE}Key Principles:${NC}
-  • PRs must use default prompts (enforced by CI)
-  • Variants are tested and documented
+  • Agent files are canonical defaults (source of truth)
+  • Variants are model-specific optimizations
+  • All variants tested and documented
   • Users can choose the best prompt for their model
   • Contributors can add optimized variants
 

@@ -194,15 +194,21 @@ OpenCode uses a model-specific prompt library to support different AI models whi
 ├── agent/              # Active prompts (always default in PRs)
 │   ├── openagent.md
 │   └── opencoder.md
-└── prompts/            # Prompt library (variants and experiments)
+└── prompts/            # Prompt library (model-specific variants)
     ├── openagent/
-    │   ├── default.md      # Stable version (enforced in PRs)
-    │   ├── sonnet-4.md     # Experimental variants
+    │   ├── gpt.md          # GPT-4 optimized
+    │   ├── gemini.md       # Gemini optimized
+    │   ├── grok.md         # Grok optimized
+    │   ├── llama.md        # Llama/OSS optimized
     │   ├── TEMPLATE.md     # Template for new variants
     │   ├── README.md       # Capabilities table
-    │   └── results/        # Test results
+    │   └── results/        # Test results (all variants)
     └── opencoder/
         └── ...
+
+**Architecture:**
+- Agent files (`.opencode/agent/*.md`) = Canonical defaults
+- Prompt variants (`.opencode/prompts/<agent>/<model>.md`) = Model-specific optimizations
 ```
 
 ### For Contributors
@@ -277,19 +283,20 @@ When a variant proves superior:
    cat .opencode/prompts/openagent/results/variant-results.json
    ```
 
-2. **Update default:**
+2. **Update agent file (canonical default):**
    ```bash
-   cp .opencode/prompts/openagent/variant.md .opencode/prompts/openagent/default.md
-   cp .opencode/prompts/openagent/default.md .opencode/agent/openagent.md
+   cp .opencode/prompts/openagent/variant.md .opencode/agent/openagent.md
    ```
 
 3. **Update capabilities table** in README
 
 4. **Commit with clear message:**
    ```bash
-   git add .opencode/prompts/openagent/default.md .opencode/agent/openagent.md
-   git commit -m "Promote variant to default: improved X by Y%"
+   git add .opencode/agent/openagent.md
+   git commit -m "feat(openagent): promote variant to default - improved X by Y%"
    ```
+
+**Note:** In the new architecture, agent files are the canonical defaults. There are no `default.md` files in the prompts directory.
 
 ## Pull Request Guidelines
 

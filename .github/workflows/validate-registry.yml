@@ -88,31 +88,33 @@ jobs:
           
           ./scripts/registry/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
       
-      - name: Validate prompts use defaults
+      - name: Validate prompt library structure
         id: validate_prompts
         run: |
-          echo "## 🔍 Prompt Validation" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Prompt Library Validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if ./scripts/prompts/validate-pr.sh > /tmp/prompt-validation.txt 2>&1; then
             echo "prompt_validation=passed" >> $GITHUB_OUTPUT
-            echo "✅ All agents use default prompts!" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Prompt library structure is valid!" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             cat /tmp/prompt-validation.txt >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           else
             echo "prompt_validation=failed" >> $GITHUB_OUTPUT
-            echo "❌ Prompt validation failed!" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Prompt library validation failed!" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             cat /tmp/prompt-validation.txt >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**How to fix:**" >> $GITHUB_STEP_SUMMARY
-            echo "1. Restore defaults: \`./scripts/prompts/use-prompt.sh <agent> default\`" >> $GITHUB_STEP_SUMMARY
-            echo "2. If adding a variant, add it to \`.opencode/prompts/<agent>/\` instead" >> $GITHUB_STEP_SUMMARY
-            echo "3. See [CONTRIBUTING.md](docs/contributing/CONTRIBUTING.md) for details" >> $GITHUB_STEP_SUMMARY
+            echo "**Architecture:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Agent files (.opencode/agent/*.md) = Canonical defaults" >> $GITHUB_STEP_SUMMARY
+            echo "- Prompt variants (.opencode/prompts/<agent>/<model>.md) = Model-specific" >> $GITHUB_STEP_SUMMARY
+            echo "- default.md files should NOT exist" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See [CONTRIBUTING.md](docs/contributing/CONTRIBUTING.md) for details" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
       
@@ -223,7 +225,7 @@ jobs:
           if [ "$PROMPT_VALID" = "passed" ] && [ "$REGISTRY_VALID" = "passed" ]; then
             echo "### ✅ All Validations Passed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- ✅ Prompts use defaults" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Prompt library structure is valid" >> $GITHUB_STEP_SUMMARY
             echo "- ✅ Registry paths are valid" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "This PR is ready for review!" >> $GITHUB_STEP_SUMMARY
@@ -232,9 +234,9 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             
             if [ "$PROMPT_VALID" != "passed" ]; then
-              echo "- ❌ Prompt validation failed" >> $GITHUB_STEP_SUMMARY
+              echo "- ❌ Prompt library validation failed" >> $GITHUB_STEP_SUMMARY
             else
-              echo "- ✅ Prompt validation passed" >> $GITHUB_STEP_SUMMARY
+              echo "- ✅ Prompt library validation passed" >> $GITHUB_STEP_SUMMARY
             fi
             
             if [ "$REGISTRY_VALID" != "passed" ]; then
