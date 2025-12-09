@@ -29,9 +29,45 @@ jobs:
         with:
           fetch-depth: 2
       
+      - name: Check if this was a version bump PR
+        id: check_pr_labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get the commit that triggered this workflow
+            const commit = context.sha;
+            
+            // Find PRs that were merged with this commit
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: commit
+            });
+            
+            // Check if any of these PRs had the version-bump or automated label
+            const hasVersionBumpLabel = prs.some(pr => 
+              pr.labels.some(label => 
+                label.name === 'version-bump' || 
+                label.name === 'automated'
+              )
+            );
+            
+            core.setOutput('skip_version_bump', hasVersionBumpLabel);
+            
+            if (hasVersionBumpLabel) {
+              console.log('This PR had version-bump or automated label - skipping to prevent loop');
+            }
+      
       - name: Determine if sync needed
         id: check
         run: |
+          # Skip if the merged PR was a version bump PR
+          if [ "${{ steps.check_pr_labels.outputs.skip_version_bump }}" = "true" ]; then
+            echo "should_sync=false" >> $GITHUB_OUTPUT
+            echo "Version bump PR detected - skipping to prevent loops"
+            exit 0
+          fi
+          
           COMMIT_MSG=$(git log -1 --pretty=%B)
           
           # Skip if this is an automated commit to prevent loops
