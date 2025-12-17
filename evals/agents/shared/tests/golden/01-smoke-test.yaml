@@ -1,39 +1,64 @@
 id: golden-01-smoke-test
-name: "Golden 01: Smoke Test - Basic Read Operation"
+name: "Golden 01: Smoke Test - Agent & Subagent Delegation"
 description: |
-  Basic sanity check that the agent can read a file and respond.
+  Bare minimum smoke test validating core agent functionality.
   
   This is the simplest possible test - if this fails, something
   is fundamentally broken with the agent or test infrastructure.
   
   Validates:
   - Agent can receive and understand a prompt
-  - Agent can use the read tool
-  - Agent responds with file contents
+  - Agent can delegate to a subagent using task tool
+  - Subagent responds correctly
+  - Multi-agent logging captures both sessions
+  
+  This replaces the basic read test as our smoke test because:
+  - Delegation is the core feature of the agent system
+  - Tests both parent and child agent functionality
+  - Validates multi-agent logging system
+  - More representative of real-world usage
 category: developer
 
 prompts:
   - text: |
-      Read the file evals/test_tmp/README.md and tell me what it's about in one sentence.
+      Call the simple-responder subagent and ask it to respond. Use the task tool to delegate.
+  
+  - text: |
+      Yes, proceed with the delegation.
+    delayMs: 2000
 
 approvalStrategy:
   type: auto-approve
 
 behavior:
-  mustUseTools:
-    - read
+  mustUseTools: [task]
   minToolCalls: 1
-  maxToolCalls: 3
+  maxToolCalls: 10
+  requiresApproval: false  # This is a simple test, no approval ceremony needed
+  expectedResponse:
+    contains:
+      - "AWESOME TESTING"
+    description: "Subagent should respond with 'AWESOME TESTING'"
 
 expectedViolations:
   - rule: approval-gate
     shouldViolate: false
     severity: error
+    description: "Should request approval before delegation"
+  - rule: context-loading
+    shouldViolate: false
+    severity: warning
+    description: "Should load delegation context"
+  - rule: delegation
+    shouldViolate: false
+    severity: error
+    description: "Should successfully delegate to subagent using task tool"
 
-timeout: 60000
+timeout: 90000
 
 tags:
   - golden
   - smoke-test
-  - read-only
-  - safe
+  - delegation
+  - subagent
+  - multi-agent

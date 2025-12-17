@@ -31,9 +31,11 @@ import { ReportFirstEvaluator } from '../evaluators/report-first-evaluator.js';
 import { CleanupConfirmationEvaluator } from '../evaluators/cleanup-confirmation-evaluator.js';
 import { ExecutionBalanceEvaluator } from '../evaluators/execution-balance-evaluator.js';
 import { BehaviorEvaluator } from '../evaluators/behavior-evaluator.js';
+import { PerformanceMetricsEvaluator } from '../evaluators/performance-metrics-evaluator.js';
 import { TestExecutor } from './test-executor.js';
 import { ResultValidator } from './result-validator.js';
 import { createLogger } from './event-logger.js';
+import { MultiAgentLogger } from '../logging/index.js';
 import type { TestCase } from './test-case-schema.js';
 import type { ApprovalStrategy } from './approval/approval-strategy.js';
 import type { ServerEvent } from './event-stream-handler.js';
@@ -155,6 +157,7 @@ export class TestRunner {
   private executor: TestExecutor | null = null;
   private validator: ResultValidator;
   private logger: ReturnType<typeof createLogger>;
+  private multiAgentLogger: MultiAgentLogger | null = null;
 
   constructor(config: TestRunnerConfig = {}) {
     // Find git root for agent detection
@@ -359,6 +362,13 @@ If you see this prompt during a test run, something went wrong with the test set
     this.client = new ClientManager({ baseUrl: url });
     this.eventHandler = new EventStreamHandler(url);
 
+    // Initialize multi-agent logger in debug mode
+    if (this.config.debug) {
+      this.multiAgentLogger = new MultiAgentLogger(true);
+      this.eventHandler.setMultiAgentLogger(this.multiAgentLogger);
+      console.log('[TestRunner] Multi-agent logging enabled');
+    }
+
     // Create executor
     this.executor = new TestExecutor(
       this.client,
@@ -402,6 +412,7 @@ If you see this prompt during a test run, something went wrong with the test set
         new ReportFirstEvaluator(),
         new CleanupConfirmationEvaluator(),
         new ExecutionBalanceEvaluator(),
+        new PerformanceMetricsEvaluator(),
       ],
     });
 

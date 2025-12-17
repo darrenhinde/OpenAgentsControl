@@ -1,12 +1,16 @@
 import { createOpencodeClient } from '@opencode-ai/sdk';
+import { MultiAgentLogger } from '../logging/index.js';
 
 export type EventType = 
   | 'session.created'
   | 'session.updated'
   | 'session.deleted'
+  | 'session.status'
+  | 'session.diff'
   | 'message.created'
   | 'message.updated'
   | 'message.deleted'
+  | 'message.part.updated'
   | 'part.created'
   | 'part.updated'
   | 'part.deleted'
@@ -15,7 +19,8 @@ export type EventType =
   | 'tool.call'
   | 'tool.result'
   | 'file.edited'
-  | 'command.executed';
+  | 'command.executed'
+  | 'server.connected';
 
 export interface ServerEvent {
   type: EventType;
@@ -45,9 +50,22 @@ export class EventStreamHandler {
   private abortController: AbortController | null = null;
   private handlerIds: Map<EventHandler, string> = new Map();
   private nextHandlerId = 0;
+  private multiAgentLogger: MultiAgentLogger | null = null;
+  private currentSessionId: string | null = null;
+  private pendingDelegations: Map<string, string> = new Map(); // sessionId -> delegationId
+  private activeSessions: Set<string> = new Set(); // Track all active session IDs
+  private sessionCreationTimes: Map<string, number> = new Map(); // sessionId -> timestamp
+  private lastLoggedText: Map<string, string> = new Map(); // sessionId -> last logged text (to avoid duplicates)
 
   constructor(baseUrl: string) {
     this.client = createOpencodeClient({ baseUrl });
+  }
+
+  /**
+   * Set the multi-agent logger for hierarchy tracking
+   */
+  setMultiAgentLogger(logger: MultiAgentLogger): void {
+    this.multiAgentLogger = logger;
   }
 
   /**
@@ -124,6 +142,11 @@ export class EventStreamHandler {
           properties: event.properties,
           timestamp: Date.now(),
         };
+
+        // Multi-agent logging hooks
+        if (this.multiAgentLogger) {
+          this.handleMultiAgentLogging(serverEvent);
+        }
 
         // Handle permission requests automatically if handler is registered
         if ((event.type as string) === 'permission.request' && this.permissionHandler) {
@@ -255,6 +278,149 @@ export class EventStreamHandler {
           throw error;
         }
       }
+    }
+  }
+
+  /**
+   * Handle multi-agent logging for session hierarchy tracking
+   */
+  private handleMultiAgentLogging(event: ServerEvent): void {
+    if (!this.multiAgentLogger) return;
+
+    // Debug: Log event types and properties (disabled - too noisy, use formatted output instead)
+    // if (process.env.DEBUG_VERBOSE === 'true') {
+    //   console.log(`[MultiAgentLogger] Event: ${event.type}`, JSON.stringify(event.properties).substring(0, 100));
+    // }
+
+    try {
+      switch (event.type) {
+        case 'session.created':
+          // Track session creation (properties are in 'info')
+          const info = event.properties?.info || event.properties;
+          const sessionId = info?.id || info?.sessionID;
+          const agent = info?.agent || 'OpenAgent'; // Default to OpenAgent for now
+          const parentId = info?.parentID || info?.parentId;
+          
+          if (sessionId) {
+            this.activeSessions.add(sessionId);
+            this.sessionCreationTimes.set(sessionId, Date.now());
+            this.currentSessionId = sessionId;
+            
+            // Check if this is a child session (created shortly after a delegation)
+            let detectedParentId = parentId;
+            if (!detectedParentId && this.pendingDelegations.size > 0) {
+              // Look for recent delegations (within last 10 seconds)
+              const now = Date.now();
+              for (const [parentSessId, delegationId] of this.pendingDelegations.entries()) {
+                const parentCreationTime = this.sessionCreationTimes.get(parentSessId);
+                if (parentCreationTime && (now - parentCreationTime) < 10000) {
+                  // This might be the child of this delegation
+                  detectedParentId = parentSessId;
+                  this.multiAgentLogger.logChildLinked(delegationId, sessionId);
+                  this.pendingDelegations.delete(parentSessId);
+                  break;
+                }
+              }
+            }
+            
+            this.multiAgentLogger.logSessionStart(sessionId, agent, detectedParentId);
+          }
+          break;
+
+        case 'message.updated':
+          // Log user and assistant messages (properties are in 'info')
+          const msgInfo = event.properties?.info || event.properties;
+          const msgSessionId = msgInfo?.sessionID || msgInfo?.sessionId;
+          const role = msgInfo?.role;
+          const text = msgInfo?.text;
+          
+          // Debug: Log what we're seeing (disabled - too noisy)
+          // if (process.env.DEBUG_VERBOSE === 'true' && msgSessionId && this.activeSessions.has(msgSessionId)) {
+          //   console.log(`[MultiAgentLogger] Message for ${msgSessionId.substring(0, 12)}: role=${role}, hasText=${!!text}, textLen=${text?.length || 0}`);
+          // }
+          
+          // Only log if we have session ID, role, and text
+          // AND the session is one we're tracking
+          if (msgSessionId && this.activeSessions.has(msgSessionId) && role && text && text.trim().length > 0) {
+            if (role === 'user' || role === 'assistant') {
+              this.multiAgentLogger.logMessage(msgSessionId, role, text);
+            }
+          }
+          break;
+
+        case 'message.part.updated':
+          // Handle message parts (text and tool calls)
+          const part = event.properties?.part;
+          const partSessionId = part?.sessionID;
+          
+          if (partSessionId && this.activeSessions.has(partSessionId)) {
+            if (part?.type === 'tool_use') {
+              // Handle tool calls
+              const tool = part?.name;
+              const input = part?.input;
+              
+              if (tool) {
+                // Detect task tool (delegation)
+                if (tool === 'task' && input?.subagent_type) {
+                  const delegationId = this.multiAgentLogger.logDelegation(
+                    partSessionId,
+                    input.subagent_type,
+                    input.prompt || ''
+                  );
+                  // Store delegation ID to link child session later
+                  this.pendingDelegations.set(partSessionId, delegationId);
+                } else {
+                  // Log other tool calls
+                  this.multiAgentLogger.logToolCall(partSessionId, tool, input);
+                }
+              }
+            } else if (part?.type === 'text' && part?.text) {
+              // Handle text parts - these contain the actual message content
+              const text = part.text;
+              const lastText = this.lastLoggedText.get(partSessionId) || '';
+              
+              // Only log if text is significantly different (not just incremental updates)
+              // Log if: text is much longer, or text is complete (ends with punctuation/newline)
+              if (text && text.trim().length > 0) {
+                const isComplete = /[.!?\n]$/.test(text.trim());
+                const isSignificantlyLonger = text.length > lastText.length + 20;
+                
+                if (isComplete || isSignificantlyLonger) {
+                  this.multiAgentLogger.logMessage(partSessionId, 'assistant', text);
+                  this.lastLoggedText.set(partSessionId, text);
+                }
+              }
+            }
+          }
+          break;
+
+        case 'session.status':
+          // Check if session completed
+          const statusSessionId = event.properties?.sessionID;
+          const status = event.properties?.status;
+          
+          if (statusSessionId && this.activeSessions.has(statusSessionId)) {
+            if (status?.type === 'idle') {
+              // Session went idle - mark as complete
+              this.multiAgentLogger.logSessionComplete(statusSessionId);
+              // Keep in activeSessions in case it becomes active again
+            }
+          }
+          break;
+        
+        case 'session.deleted':
+          // Session was deleted - definitely complete
+          const deletedSessionId = event.properties?.id || event.properties?.sessionID;
+          if (deletedSessionId && this.activeSessions.has(deletedSessionId)) {
+            this.multiAgentLogger.logSessionComplete(deletedSessionId);
+            this.activeSessions.delete(deletedSessionId);
+            this.sessionCreationTimes.delete(deletedSessionId);
+          }
+          break;
+      }
+    } catch (error) {
+      // Don't let logging errors break the test
+      console.error('[MultiAgentLogger] Error handling event:', error);
     }
   }
 }

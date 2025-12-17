@@ -443,7 +443,8 @@ export class TestExecutor {
     
     // Grace period after text completion with no tools - wait for tools to potentially start
     // This is shorter because if the agent is going to use tools, it usually starts quickly
-    const noToolsGracePeriod = 5000; // 5 seconds
+    // Reduced from 5s to 2s based on test analysis - most tools start within 1-2s
+    const noToolsGracePeriod = 2000; // 2 seconds (optimized from 5s)
     
     while (Date.now() - startTime < timeoutMs) {
       try {
