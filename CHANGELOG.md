@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-## [1.0.0] - 2025-12-18
+## [0.5.0] - 2025-12-18
 
 ### Changes
 - refactor(evals): consolidate documentation and enhance test infrastructure (#56)
