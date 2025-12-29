@@ -137,6 +137,186 @@ cat registry.json | jq '.profiles.full.components[] | select(. == "agent:your-ag
 
 ---
 
+## Automated Validation
+
+### Script to Check Profile Coverage
+
+```bash
+#!/bin/bash
+# Check if all agents are in appropriate profiles
+
+echo "Checking profile coverage..."
+
+# Get all agent IDs
+agents=$(cat registry.json | jq -r '.components.agents[].id')
+
+for agent in $agents; do
+  # Get agent category
+  category=$(cat registry.json | jq -r ".components.agents[] | select(.id == \"$agent\") | .category")
+  
+  # Check which profiles include this agent
+  in_developer=$(cat registry.json | jq ".profiles.developer.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
+  in_business=$(cat registry.json | jq ".profiles.business.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
+  in_full=$(cat registry.json | jq ".profiles.full.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
+  in_advanced=$(cat registry.json | jq ".profiles.advanced.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
+  
+  # Validate based on category
+  case $category in
+    "development")
+      if [[ -z "$in_developer" ]]; then
+        echo "❌ $agent (development) missing from developer profile"
+      fi
+      if [[ -z "$in_full" ]]; then
+        echo "❌ $agent (development) missing from full profile"
+      fi
+      if [[ -z "$in_advanced" ]]; then
+        echo "❌ $agent (development) missing from advanced profile"
+      fi
+      ;;
+    "content"|"data")
+      if [[ -z "$in_business" ]]; then
+        echo "❌ $agent ($category) missing from business profile"
+      fi
+      if [[ -z "$in_full" ]]; then
+        echo "❌ $agent ($category) missing from full profile"
+      fi
+      if [[ -z "$in_advanced" ]]; then
+        echo "❌ $agent ($category) missing from advanced profile"
+      fi
+      ;;
+    "meta")
+      if [[ -z "$in_advanced" ]]; then
+        echo "❌ $agent (meta) missing from advanced profile"
+      fi
+      ;;
+    "essential"|"standard")
+      if [[ -z "$in_full" ]]; then
+        echo "❌ $agent ($category) missing from full profile"
+      fi
+      if [[ -z "$in_advanced" ]]; then
+        echo "❌ $agent ($category) missing from advanced profile"
+      fi
+      ;;
+  esac
+done
+
+echo "✅ Profile coverage check complete"
+```
+
+Save this as: `scripts/registry/validate-profile-coverage.sh`
+
+---
+
+## Manual Validation Steps
+
+### After Adding a New Agent
+
+1. **Add agent to components**:
+   ```bash
+   ./scripts/registry/auto-detect-components.sh --auto-add
+   ```
+
+2. **Manually add to profiles**:
+   Edit `registry.json` and add `"agent:your-agent"` to appropriate profiles
+
+3. **Validate registry**:
+   ```bash
+   ./scripts/registry/validate-registry.sh
+   ```
+
+4. **Test local install**:
+   ```bash
+   # Test developer profile
+   REGISTRY_URL="file://$(pwd)/registry.json" ./install.sh --list
+   
+   # Verify agent appears in profile
+   REGISTRY_URL="file://$(pwd)/registry.json" ./install.sh --list | grep "your-agent"
+   ```
+
+5. **Test actual install**:
+   ```bash
+   # Install to temp directory
+   mkdir -p /tmp/test-install
+   cd /tmp/test-install
+   REGISTRY_URL="file://$(pwd)/registry.json" bash <(curl -s https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh) developer
+   
+   # Check if agent was installed
+   ls .opencode/agent/category/your-agent.md
+   ```
+
+---
+
+## Common Mistakes
+
+### ❌ Mistake 1: Only Adding to Components
+```json
+// Added to components
+"components": {
+  "agents": [
+    {"id": "new-agent", ...}
+  ]
+}
+
+// But forgot to add to profiles
+"profiles": {
+  "developer": {
+    "components": [
+      // Missing: "agent:new-agent"
+    ]
+  }
+}
+```
+
+### ❌ Mistake 2: Wrong Profile Assignment
+```json
+// Development agent added to business profile
+"business": {
+  "components": [
+    "agent:devops-specialist"  // ❌ Should be in developer
+  ]
+}
+```
+
+### ❌ Mistake 3: Inconsistent Profile Coverage
+```json
+// Added to full but not advanced
+"full": {
+  "components": ["agent:new-agent"]
+},
+"advanced": {
+  "components": [
+    // ❌ Missing: "agent:new-agent"
+  ]
+}
+```
+
+---
+
+## Best Practices
+
+✅ **Use auto-detect** - Adds to components automatically  
+✅ **Check all profiles** - Verify agent in correct profiles  
+✅ **Test locally** - Install and verify before pushing  
+✅ **Validate** - Run validation script after changes  
+✅ **Document** - Update CHANGELOG with profile changes  
+
+---
+
+## CI/CD Integration
+
+Add profile validation to CI:
+
+```yaml
+# .github/workflows/validate-registry.yml
+- name: Validate Registry
+  run: ./scripts/registry/validate-registry.sh
+
+- name: Validate Profile Coverage
+  run: ./scripts/registry/validate-profile-coverage.sh
+```
+
+---
+
 ## Quick Reference
 
 | Agent Category | Essential | Developer | Business | Full | Advanced |

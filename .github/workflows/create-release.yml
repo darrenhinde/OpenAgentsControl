@@ -1,0 +1,209 @@
+name: Create Release
+
+# This workflow creates git tags and GitHub releases after version bump PRs are merged.
+# It detects when a version bump PR (with 'version-bump' label) is merged and creates
+# the corresponding tag and release automatically.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.5.0)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  check-if-version-bump:
+    name: Check if Version Bump PR Merged
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Check if this was a version bump PR merge
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Manual trigger - use provided version
+            if (context.eventName === 'workflow_dispatch' && context.payload.inputs.version) {
+              core.setOutput('should_release', 'true');
+              core.setOutput('version', context.payload.inputs.version);
+              console.log(`Manual release triggered for version: ${context.payload.inputs.version}`);
+              return;
+            }
+            
+            // Get the commit that triggered this workflow
+            const commit = context.sha;
+            
+            // Find PRs that were merged with this commit
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: commit
+            });
+            
+            // Check if any of these PRs had the version-bump label
+            const versionBumpPR = prs.find(pr => 
+              pr.labels.some(label => label.name === 'version-bump')
+            );
+            
+            if (versionBumpPR) {
+              console.log(`Version bump PR detected: #${versionBumpPR.number}`);
+              
+              // Read VERSION file to get the new version
+              const version = fs.readFileSync('VERSION', 'utf8').trim();
+              
+              core.setOutput('should_release', 'true');
+              core.setOutput('version', version);
+              console.log(`Will create release for version: ${version}`);
+            } else {
+              console.log('Not a version bump PR - skipping release creation');
+              core.setOutput('should_release', 'false');
+            }
+
+  create-tag-and-release:
+    name: Create Git Tag and GitHub Release
+    runs-on: ubuntu-latest
+    needs: check-if-version-bump
+    if: needs.check-if-version-bump.outputs.should_release == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          VERSION="${{ needs.check-if-version-bump.outputs.version }}"
+          
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Tag v$VERSION already exists"
+          else
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Tag v$VERSION does not exist - will create"
+          fi
+      
+      - name: Create git tag
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          VERSION="${{ needs.check-if-version-bump.outputs.version }}"
+          
+          echo "Creating tag: v$VERSION"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+          
+          echo "## ✅ Git Tag Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** v$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Extract release notes from CHANGELOG
+        id: release_notes
+        run: |
+          VERSION="${{ needs.check-if-version-bump.outputs.version }}"
+          
+          if [ -f CHANGELOG.md ]; then
+            RELEASE_NOTES=$(awk '/^## \['"$VERSION"'\]/{flag=1; next} /^## \[/{flag=0} flag' CHANGELOG.md)
+            
+            if [ -z "$RELEASE_NOTES" ]; then
+              RELEASE_NOTES="Release v$VERSION
+
+          See [CHANGELOG.md](CHANGELOG.md) for details."
+            fi
+          else
+            RELEASE_NOTES="Release v$VERSION"
+          fi
+          
+          echo "$RELEASE_NOTES" > /tmp/release_notes.md
+          
+          echo "## 📝 Release Notes Preview" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat /tmp/release_notes.md >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Check if release already exists
+        id: check_release
+        run: |
+          VERSION="${{ needs.check-if-version-bump.outputs.version }}"
+          
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "release_exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Release v$VERSION already exists"
+          else
+            echo "release_exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Release v$VERSION does not exist - will create"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create GitHub release
+        if: steps.check_release.outputs.release_exists == 'false'
+        run: |
+          VERSION="${{ needs.check-if-version-bump.outputs.version }}"
+          
+          echo "Creating GitHub release: v$VERSION"
+          
+          gh release create "v$VERSION" \
+            --title "v$VERSION" \
+            --notes-file /tmp/release_notes.md \
+            --latest
+          
+          echo "## 🚀 GitHub Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release:** v$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL:** https://github.com/${{ github.repository }}/releases/tag/v$VERSION" >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Summary
+        if: always()
+        run: |
+          VERSION="${{ needs.check-if-version-bump.outputs.version }}"
+          TAG_EXISTS="${{ steps.check_tag.outputs.tag_exists }}"
+          RELEASE_EXISTS="${{ steps.check_release.outputs.release_exists }}"
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** v$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$TAG_EXISTS" = "true" ]; then
+            echo "- ⏭️ Git tag already existed (skipped)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ Git tag created" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "$RELEASE_EXISTS" = "true" ]; then
+            echo "- ⏭️ GitHub release already existed (skipped)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ GitHub release created" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎉 **Release v$VERSION is now available!**" >> $GITHUB_STEP_SUMMARY
