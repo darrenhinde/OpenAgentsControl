@@ -1,5 +1,11 @@
 ---
+id: frontend-specialist
+name: Frontend Specialist
 description: "Frontend UI design specialist using design systems, themes, and animations"
+category: development
+type: standard
+version: 1.0.0
+author: unknown
 mode: primary
 temperature: 0.2
 tools:
