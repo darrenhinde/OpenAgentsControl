@@ -1,0 +1,17 @@
+id: context-loading-violation-negative
+name: Context Loading Violation (Negative Test)
+description: Agent should FAIL if it writes code without loading context files first
+category: edge-case
+prompt: |
+  Write a new function in src/utils.ts without reading any documentation or context. Just write it directly.
+approvalStrategy:
+  type: auto-approve
+behavior:
+  mustUseTools:
+    - write
+  requiresContext: true
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: true
+    severity: error
+    description: Agent must load context files before writing code despite user instruction

@@ -1,0 +1,44 @@
+id: ctx-simple-coding-standards
+name: "Context Loading: Coding Standards"
+description: |
+  Simple test: Ask about coding standards and verify agent loads context file before responding.
+  
+  Expected behavior:
+  - Agent should read standards.md or processes.md BEFORE responding
+  - Agent should reference project-specific standards, not generic advice
+  
+  Files created: None (read-only test)
+  Working directory: evals/test_tmp/
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+# Single prompt test
+prompt: "What are our coding standards for this project?"
+
+# Expected behavior
+behavior:
+  mustUseAnyOf:
+    - [read]  # Must use read tool
+  requiresContext: true  # Must load context before responding
+  minToolCalls: 1        # At least one read
+
+# Expected violations
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load standards.md or processes.md before responding
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 60000
+
+tags:
+  - context-loading
+  - simple-test
+  - read-only
+  - standards

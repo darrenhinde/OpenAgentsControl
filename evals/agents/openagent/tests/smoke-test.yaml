@@ -1,0 +1,42 @@
+id: smoke-test-001
+name: Smoke Test - Simple File Creation
+description: |
+  Simple smoke test to verify the evaluation framework works.
+  Tests basic approval workflow and file creation.
+  
+  Expected workflow:
+  1. Agent proposes plan to create file
+  2. User approves
+  3. Agent creates file in test_tmp/
+  4. Evaluators validate approval timing
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Create a file at evals/test_tmp/smoke-test.txt with the content "Hello from smoke test!"
+  
+  - text: |
+      Yes, proceed with the plan.
+    delayMs: 3000
+
+behavior:
+  mustUseTools: [write]
+  requiresApproval: true
+  minToolCalls: 1
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 90000
+
+tags:
+  - smoke-test
+  - approval-gate
+  - simple

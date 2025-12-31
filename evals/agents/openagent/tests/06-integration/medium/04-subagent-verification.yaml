@@ -1,0 +1,59 @@
+id: int-subagent-001
+name: Subagent Verification Integration Test
+description: |
+  Test that verifies subagent delegation works correctly with the new
+  SubagentEvaluator. Ensures task tool is called and subagent executes properly.
+
+category: business
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompts:
+  - text: |
+      Create a simple utility module with a greet function that takes a name and returns "Hello, {name}!".
+      Save it to evals/test_tmp/greet-utils.ts
+      
+      Delegate this to the coder agent to save time.
+    expectContext: false
+  
+  - text: |
+      Yes, delegate to the coder agent.
+    delayMs: 2000
+
+# Expected behavior with delegation verification
+behavior:
+  mustUseTools: [task]
+  shouldDelegate: true
+  minToolCalls: 1
+  
+  # NEW - Delegation/Subagent verification
+  delegationExpectations:
+    subagentType: "subagents/code/coder-agent"
+    subagentMustUseTools: [write]
+    subagentMinToolCalls: 1
+    subagentMustComplete: true
+  
+  # NEW - Content validation for what the subagent writes
+  contentExpectations:
+    - filePath: "evals/test_tmp/greet-utils.ts"
+      mustContain:
+        - "greet"
+        - "name"
+        - "Hello"
+      mustNotContain:
+        - "console.log"
+      minLength: 30
+
+# No expected violations - this is a positive test
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 120000
+
+tags:
+  - integration
+  - subagent-verification
+  - delegation
+  - v2-schema

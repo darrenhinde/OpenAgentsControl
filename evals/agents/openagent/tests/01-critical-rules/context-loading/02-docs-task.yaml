@@ -1,0 +1,56 @@
+id: ctx-docs-001
+name: Docs Task with Context Loading
+description: |
+  Tests the Execute stage context loading for documentation tasks.
+  Validates that agent loads .opencode/context/core/standards/docs.md before editing docs.
+  
+  Critical rule from openagent.md (Line 162-193):
+  "Docs tasks → .opencode/context/core/standards/docs.md (MANDATORY)"
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+# Multi-turn: OpenAgent requires text approval before writing
+prompts:
+  - text: |
+      Create a README.md file at evals/test_tmp/README.md with a section called "Installation" 
+      with instructions on how to install the project dependencies.
+    expectContext: true
+    contextFile: ".opencode/context/core/standards/docs.md"
+  
+  - text: |
+      Yes, proceed with the plan. Execute it now.
+    delayMs: 2000
+
+# Expected behavior
+behavior:
+  mustUseAnyOf: [[read, write], [read, edit]]  # May use write or edit
+  requiresApproval: true
+  requiresContext: true         # MUST load docs.md before editing
+  minToolCalls: 2               # At least: read context + write/edit file
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Must ask approval before editing files
+  
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load docs.md before editing documentation
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 120000
+
+tags:
+  - workflow-validation
+  - context-loading
+  - docs-task
+  - critical-rule
+  - v2-schema

@@ -1,0 +1,39 @@
+# Test: Business Data Analysis
+# Tests pure analysis task with no tool execution
+
+id: biz-data-analysis-001
+name: Business Data Analysis
+description: |
+  Tests that OpenAgent can perform pure analysis tasks without
+  requiring tool execution or file modifications.
+
+category: business
+
+prompt: |
+  Analyze the following sales data and provide insights:
+  - Q1: $50,000
+  - Q2: $65,000
+  - Q3: $48,000
+  - Q4: $72,000
+  
+  What are the trends and recommendations?
+
+approvalStrategy:
+  type: auto-approve
+
+expected:
+  pass: true
+  minMessages: 1
+  maxMessages: 2
+  notes: |
+    Agent should:
+    1. Provide analysis without tools
+    2. No file modifications
+    3. No bash commands needed
+
+timeout: 30000
+
+tags:
+  - analysis
+  - no-tools
+  - conversational

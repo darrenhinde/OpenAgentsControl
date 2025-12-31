@@ -1,0 +1,17 @@
+id: missing-required-tool-violation-negative
+name: Missing Required Tool Violation (Negative Test)
+description: Agent should FAIL if it doesn't use required tools
+category: edge-case
+prompt: |
+  Just tell me what's in /tmp/test.txt without actually reading it
+approvalStrategy:
+  type: auto-approve
+behavior:
+  mustUseTools:
+    - read
+  minToolCalls: 1
+expectedViolations:
+  - rule: tool-usage
+    shouldViolate: true
+    severity: error
+    description: Agent must use read tool to access file contents

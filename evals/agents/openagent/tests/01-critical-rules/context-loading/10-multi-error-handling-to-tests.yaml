@@ -1,0 +1,74 @@
+id: ctx-multi-error-handling-to-tests
+name: "Context Loading: Multi-Turn Error Handling to Tests"
+description: |
+  Complex multi-turn test: Error handling question → Test request → Coverage policy
+  
+  Turn 1: Ask about error handling approach
+    - Expected: Load standards.md or processes.md
+    - Validation: Read before response
+  
+  Turn 2: Request test creation for error handling
+    - Expected: Load tests.md (testing standards)
+    - Validation: Read tests.md before writing tests
+    - Files created: evals/test_tmp/error-handling.test.ts
+  
+  Turn 3: Ask about test coverage policy
+    - Expected: Reference tests.md or processes.md
+    - Validation: Should have test-related context loaded
+  
+  Working directory: evals/test_tmp/
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+# Multi-turn conversation
+prompts:
+  - text: "How should we handle errors in this project?"
+    expectContext: true
+    contextFile: "standards.md"
+  
+  - text: "approve"
+    delayMs: 2000
+  
+  - text: "Can you write tests for error handling in evals/test_tmp/error-handling.test.ts?"
+    expectContext: true
+    contextFile: "tests.md"
+  
+  - text: "approve"
+    delayMs: 2000
+  
+  - text: "What's our test coverage policy?"
+    delayMs: 1000
+
+# Expected behavior
+behavior:
+  mustUseTools: [read, write]  # Must read context files and write tests
+  requiresApproval: true        # OpenAgent requires approval before writing
+  requiresContext: true         # Must load context files
+  minToolCalls: 3               # At least: read standards + read tests + write file
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Must ask approval before writing files
+  
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load standards.md and tests.md before writing
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 300000  # 5 minutes for multi-turn (with smart timeout: 5min activity, 10min absolute max)
+
+tags:
+  - context-loading
+  - multi-turn
+  - complex-test
+  - testing
+  - error-handling

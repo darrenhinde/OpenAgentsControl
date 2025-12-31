@@ -1,0 +1,49 @@
+id: neg-wrong-context-001
+name: Wrong Context File Loaded (Negative Test)
+description: |
+  NEGATIVE TEST: Validates that loading the WRONG context file is detected.
+  
+  This test asks for a CODE task but expects the agent to load code.md.
+  If the agent loads docs.md instead, it should be flagged as a violation.
+  
+  The evaluator should:
+  1. Classify the task as 'code' (based on "Create a function")
+  2. Expect code.md to be loaded
+  3. Detect if wrong context file (docs.md, tests.md, etc.) is loaded
+  4. Flag as violation if wrong context file is used
+
+category: edge-case
+agent: openagent
+
+prompts:
+  - text: |
+      Create a TypeScript function called 'multiply' that takes two numbers and returns their product.
+      Save it to evals/test_tmp/multiply.ts
+      
+      IMPORTANT: This is a CODE task - you should load the code.md context file.
+  
+  - text: |
+      Yes, proceed with the plan.
+    delayMs: 3000
+
+behavior:
+  mustUseTools: [read, write]
+  requiresContext: true
+  minToolCalls: 2
+
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false  # Should NOT violate if correct context loaded
+    severity: error
+    description: Must load code.md for code tasks, not docs.md or tests.md
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 120000
+
+tags:
+  - context-loading
+  - context-file-mapping
+  - code-task
+  - critical

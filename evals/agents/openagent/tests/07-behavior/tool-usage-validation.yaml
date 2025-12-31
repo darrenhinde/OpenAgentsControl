@@ -1,0 +1,20 @@
+id: tool-usage-validation
+name: Tool Usage Validation (Positive Test)
+description: Agent should use required tools and avoid forbidden tools
+category: developer
+prompt: |
+  Read the file /tmp/test.txt and write its contents to /tmp/output.txt
+approvalStrategy:
+  type: auto-approve
+behavior:
+  mustUseTools:
+    - read
+    - write
+  mustNotUseTools:
+    - bash
+  minToolCalls: 2
+  maxToolCalls: 5
+expectedViolations:
+  - rule: tool-usage
+    shouldViolate: false
+    severity: error

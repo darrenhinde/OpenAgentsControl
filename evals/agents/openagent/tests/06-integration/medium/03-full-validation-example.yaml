@@ -1,0 +1,79 @@
+id: full-validation-example
+name: Full Validation Test Example
+description: |
+  Example test demonstrating all new validation features:
+  - Delegation expectations
+  - Content expectations
+  - Approval expectations
+  - Debug options
+
+category: business
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompts:
+  - text: |
+      Create a simple math utility module with add and subtract functions.
+      Save it to evals/test_tmp/math-utils.ts
+    expectContext: true
+    contextFile: ".opencode/context/core/standards/code.md"
+  
+  - text: |
+      Yes, proceed with the plan. Execute it now.
+    delayMs: 2000
+
+# Expected behavior with NEW validation options
+behavior:
+  mustUseTools: [read, write]
+  requiresApproval: true
+  requiresContext: true
+  minToolCalls: 2
+  
+  # NEW - Content validation
+  contentExpectations:
+    - filePath: "evals/test_tmp/math-utils.ts"
+      mustContain:
+        - "export function add"
+        - "export function subtract"
+        - "number"
+      mustNotContain:
+        - "console.log"
+        - "any"
+      minLength: 50
+  
+  # NEW - Approval validation
+  approvalExpectations:
+    minConfidence: high
+    approvalMustMention:
+      - "math"
+      - "function"
+  
+  # NEW - Debug options
+  debug:
+    logToolDetails: true
+    saveReplayOnFailure: true
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Must ask approval before writing files
+  
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load code.md before writing code
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 120000
+
+tags:
+  - full-validation
+  - content-validation
+  - approval-validation
+  - v2-schema
+  - example

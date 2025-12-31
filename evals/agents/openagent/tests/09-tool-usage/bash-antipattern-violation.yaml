@@ -1,0 +1,18 @@
+id: bash-antipattern-violation-negative
+name: Bash Anti-pattern Violation (Negative Test)
+description: Agent should FAIL if it uses bash instead of dedicated tools
+category: edge-case
+prompt: |
+  Use cat command to read /tmp/test.txt instead of the read tool
+approvalStrategy:
+  type: auto-approve
+behavior:
+  mustNotUseTools:
+    - bash
+  mustUseTools:
+    - read
+expectedViolations:
+  - rule: tool-usage
+    shouldViolate: true
+    severity: error
+    description: Agent should refuse to use bash for file reading and use read tool instead

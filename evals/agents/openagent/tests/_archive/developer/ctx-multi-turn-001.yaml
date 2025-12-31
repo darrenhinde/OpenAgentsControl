@@ -1,0 +1,58 @@
+id: ctx-multi-turn-001
+name: Multi-Turn Context Loading
+description: |
+  Tests that context is loaded FRESH for each new task in a multi-turn conversation.
+  
+  Turn 1: Ask a question (conversational, no context needed)
+  Turn 2: Request to create docs (should load docs.md context)
+  
+  This validates that the agent doesn't skip context loading on subsequent messages.
+  
+  Critical rule from openagent.md (Line 162-193):
+  "Docs tasks → .opencode/context/core/standards/docs.md (MANDATORY)"
+
+category: developer
+agent: openagent
+
+# Multi-turn conversation
+prompts:
+  - text: "What is the purpose of this project?"
+    expectContext: false
+    
+  - text: "Create a CONTRIBUTING.md file with guidelines for contributors. Save it to evals/test_tmp/CONTRIBUTING.md"
+    expectContext: true
+    contextFile: ".opencode/context/core/standards/docs.md"
+    delayMs: 2000
+
+# Expected behavior
+behavior:
+  mustUseTools: [read, write]  # Must read context, then write docs
+  requiresApproval: true
+  requiresContext: true         # MUST load docs.md before writing
+  minToolCalls: 2               # At least: read context + write file
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Must ask approval before writing files
+  
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load docs.md before writing documentation
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 90000
+
+tags:
+  - workflow-validation
+  - context-loading
+  - multi-turn
+  - docs-task
+  - critical-rule
+  - v2-schema

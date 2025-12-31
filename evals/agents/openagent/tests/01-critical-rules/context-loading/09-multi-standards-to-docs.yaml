@@ -1,0 +1,74 @@
+id: ctx-multi-standards-to-docs
+name: "Context Loading: Multi-Turn Standards to Documentation"
+description: |
+  Complex multi-turn test: Standards question → Documentation request → Format question
+  
+  Turn 1: Ask about coding standards
+    - Expected: Load standards.md or processes.md
+    - Validation: Read before response
+  
+  Turn 2: Request documentation creation about standards
+    - Expected: Load docs.md (documentation format/template)
+    - Validation: Read docs.md before planning/writing
+    - Files created: evals/test_tmp/coding-standards-doc.md
+  
+  Turn 3: Ask about documentation structure
+    - Expected: Reference both standards.md and docs.md
+    - Validation: Should have both files in context
+  
+  Working directory: evals/test_tmp/
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+# Multi-turn conversation
+prompts:
+  - text: "What are our coding standards?"
+    expectContext: true
+    contextFile: "standards.md"
+  
+  - text: "approve"
+    delayMs: 2000
+  
+  - text: "Can you create documentation about these standards in evals/test_tmp/coding-standards-doc.md?"
+    expectContext: true
+    contextFile: "docs.md"
+  
+  - text: "approve"
+    delayMs: 2000
+  
+  - text: "What will the documentation structure look like?"
+    delayMs: 1000
+
+# Expected behavior
+behavior:
+  mustUseTools: [read, write]  # Must read context files and write documentation
+  requiresApproval: true        # OpenAgent requires approval before writing
+  requiresContext: true         # Must load context files
+  minToolCalls: 3               # At least: read standards + read docs + write file
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Must ask approval before writing files
+  
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load standards.md and docs.md before writing
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 300000  # 5 minutes for multi-turn (with smart timeout: 5min activity, 10min absolute max)
+
+tags:
+  - context-loading
+  - multi-turn
+  - complex-test
+  - documentation
+  - standards

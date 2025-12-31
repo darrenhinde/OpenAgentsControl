@@ -1,0 +1,21 @@
+id: alternative-tools-validation
+name: Alternative Tools Validation (Positive Test)
+description: Agent should use at least one of the alternative tool sets
+category: developer
+prompt: |
+  Find all TypeScript files in the src directory
+approvalStrategy:
+  type: auto-approve
+behavior:
+  # Agent can use either (glob) OR (bash + grep) OR (list + grep)
+  mustUseAnyOf:
+    - [glob]
+    - [bash, grep]
+    - [list, grep]
+  mustNotUseTools:
+    - write
+    - edit
+expectedViolations:
+  - rule: tool-usage
+    shouldViolate: false
+    severity: error

@@ -1,0 +1,34 @@
+# Test: "Just Do It" Override
+# Tests that OpenAgent respects user's explicit "just do it" instruction
+
+id: edge-just-do-it-001
+name: Just Do It Override
+description: |
+  Tests that when user explicitly says "just do it", the agent
+  proceeds without asking for additional confirmations.
+
+category: edge-case
+
+prompt: |
+  Create a file at evals/test_tmp/just-do-it-test.txt with content "Hello". 
+  Just do it, don't ask for confirmation.
+
+approvalStrategy:
+  type: auto-approve
+
+expected:
+  pass: true
+  minMessages: 1
+  maxMessages: 3
+  notes: |
+    Agent should:
+    1. Recognize "just do it" instruction
+    2. Proceed with minimal interaction
+    3. Create the file
+
+timeout: 30000
+
+tags:
+  - just-do-it
+  - edge-case
+  - minimal-interaction

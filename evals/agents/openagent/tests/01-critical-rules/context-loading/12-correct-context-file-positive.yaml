@@ -1,0 +1,44 @@
+id: pos-correct-context-001
+name: Correct Context File Loaded (Positive Test)
+description: |
+  POSITIVE TEST: Validates that loading the CORRECT context file passes.
+  
+  This test asks for a TESTS task and expects the agent to load tests.md.
+  The evaluator should:
+  1. Classify the task as 'tests' (based on "Write a test")
+  2. Expect tests.md to be loaded
+  3. Pass if tests.md is loaded
+  4. Fail if wrong context file is loaded
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Write a test for the multiply function in evals/test_tmp/multiply.test.ts
+      The test should verify that multiply(2, 3) returns 6.
+  
+  - text: |
+      Yes, proceed with the plan.
+    delayMs: 3000
+
+behavior:
+  mustUseTools: [read, write]
+  requiresContext: true
+  minToolCalls: 2
+
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false  # Should NOT violate - correct workflow
+    severity: error
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 120000
+
+tags:
+  - context-loading
+  - context-file-mapping
+  - tests-task
+  - positive-test

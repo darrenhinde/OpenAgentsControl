@@ -1,0 +1,49 @@
+id: ctx-review-001
+name: Review Task with Context Loading
+description: |
+  Tests the Execute stage context loading for code review tasks.
+  Validates that agent loads .opencode/context/core/workflows/review.md before reviewing code.
+  
+  Critical rule from openagent.md (Line 162-193):
+  "Review tasks → .opencode/context/core/workflows/review.md (MANDATORY)"
+
+category: developer
+agent: openagent
+
+prompt: |
+  Review the code in src/utils/math.ts and provide feedback on:
+  - Code quality
+  - Best practices
+  - Potential improvements
+
+# Expected behavior
+behavior:
+  mustUseTools: [read]          # Must read context + code file
+  requiresApproval: false       # Review is read-only, no approval needed
+  requiresContext: true         # MUST load review.md before reviewing
+  minToolCalls: 1               # At least: read context
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Review is read-only, no approval needed
+  
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load review.md before reviewing code
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 60000
+
+tags:
+  - workflow-validation
+  - context-loading
+  - review-task
+  - critical-rule
+  - v2-schema

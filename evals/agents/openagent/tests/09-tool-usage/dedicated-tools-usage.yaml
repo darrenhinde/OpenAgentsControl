@@ -1,0 +1,20 @@
+id: dedicated-tools-usage
+name: Dedicated Tools Usage (Positive Test)
+description: Agent should use dedicated tools instead of bash alternatives
+category: developer
+prompt: |
+  Read the contents of /tmp/test.txt and write them to /tmp/output.txt
+approvalStrategy:
+  type: auto-approve
+behavior:
+  mustUseTools:
+    - read
+    - write
+  mustNotUseTools:
+    - bash
+  mustUseDedicatedTools: true
+expectedViolations:
+  - rule: tool-usage
+    shouldViolate: false
+    severity: error
+    description: Agent should use dedicated read/write tools instead of bash

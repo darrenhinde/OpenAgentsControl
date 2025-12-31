@@ -1,0 +1,54 @@
+id: int-perf-001
+name: Performance Baseline Test
+description: |
+  Simple test to establish performance baseline for the enhanced eval framework.
+  Measures execution time with all new features enabled.
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompts:
+  - text: |
+      Create a simple hello world function in evals/test_tmp/hello.ts
+  
+  - text: |
+      Yes, proceed.
+    delayMs: 1000
+
+# Minimal behavior to test performance
+behavior:
+  mustUseTools: [write]
+  requiresApproval: true
+  minToolCalls: 1
+  
+  # Content validation (lightweight)
+  contentExpectations:
+    - filePath: "evals/test_tmp/hello.ts"
+      mustContain:
+        - "hello"
+      minLength: 10
+  
+  # Debug options
+  debug:
+    logToolDetails: true
+    saveReplayOnFailure: false
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Must ask approval before writing
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 60000
+
+tags:
+  - integration
+  - performance
+  - baseline
+  - v2-schema

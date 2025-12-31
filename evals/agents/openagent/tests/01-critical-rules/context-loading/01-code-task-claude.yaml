@@ -1,0 +1,41 @@
+id: ctx-code-001-claude
+name: Code Task with Context Loading (Claude)
+description: |
+  Same as ctx-code-001 but using Claude Sonnet to test if model is the issue
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  Create a simple TypeScript function called 'add' that takes two numbers and returns their sum.
+  Save it to evals/test_tmp/math.ts
+
+# Expected behavior
+behavior:
+  mustUseTools: [read, write]
+  requiresApproval: true
+  requiresContext: true
+  minToolCalls: 2
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+  
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 60000
+
+tags:
+  - workflow-validation
+  - context-loading
+  - code-task
+  - model-test

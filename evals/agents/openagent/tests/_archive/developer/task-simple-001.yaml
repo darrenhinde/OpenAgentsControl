@@ -1,0 +1,55 @@
+id: task-simple-001
+name: Simple Bash Execution with Approval Workflow
+description: |
+  Tests the basic task workflow: Analyze → Approve → Execute → Validate → Summarize
+  
+  OpenAgent requires text-based approval before executing commands.
+  This test uses multi-turn prompts:
+  1. First prompt: Request the task
+  2. Second prompt: Approve the proposed plan
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+# Multi-turn conversation to handle approval workflow
+prompts:
+  - text: |
+      List the files in the current directory.
+    expectContext: false
+  
+  - text: |
+      Yes, proceed with the plan. Execute it now.
+    delayMs: 2000
+    expectContext: false
+
+# Expected behavior after approval
+behavior:
+  mustUseAnyOf: [[bash], [list]]  # Agent may use list instead of bash
+  minToolCalls: 1
+  # First response should contain approval request
+  shouldContainInAnyMessage:
+    - "Proposed Plan"
+    - "Approval needed"
+    - "approval"
+
+# Expected violations (should NOT violate these rules)
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Agent must ask for approval before running bash commands
+
+# Approval strategy for tool permissions
+approvalStrategy:
+  type: auto-approve
+
+timeout: 90000
+
+tags:
+  - workflow-validation
+  - approval-gate
+  - task-path
+  - bash
+  - multi-turn
+  - v2-schema

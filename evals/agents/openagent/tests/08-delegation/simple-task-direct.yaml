@@ -1,0 +1,20 @@
+id: simple-task-direct
+name: Simple Task Direct Execution (Positive Test)
+description: Agent should execute simple tasks directly without delegation
+category: developer
+prompt: |
+  Create a single utility function in src/utils/format.ts
+approvalStrategy:
+  type: auto-approve
+behavior:
+  mustUseTools:
+    - write
+  mustNotUseTools:
+    - task
+  shouldDelegate: false
+  maxToolCalls: 3
+expectedViolations:
+  - rule: delegation
+    shouldViolate: false
+    severity: error
+    description: Simple single-file tasks should be executed directly

@@ -513,6 +513,7 @@
         "type": "command",
         "path": ".opencode/command/commit-openagents.md",
         "description": "Smart commit command for opencode-agents repository with automatic validation and conventional commits",
+        "description": "description: Smart commit command for opencode-agents repository with automatic validation and conventional commits",
         "tags": [],
         "dependencies": [],
         "category": "standard"

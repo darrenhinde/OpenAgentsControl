@@ -1,0 +1,22 @@
+id: complex-task-delegation
+name: Complex Task Delegation (Positive Test)
+description: Agent should delegate complex tasks with high complexity score
+category: developer
+prompt: |
+  Create a full-stack feature with:
+  - Frontend component in src/components/UserProfile.tsx
+  - Backend API in src/api/users.ts
+  - Tests in tests/UserProfile.test.tsx
+  - Configuration in config/api.json
+approvalStrategy:
+  type: auto-approve
+behavior:
+  mustUseTools:
+    - task
+  shouldDelegate: true
+  minToolCalls: 1
+expectedViolations:
+  - rule: delegation
+    shouldViolate: false
+    severity: error
+    description: Complex multi-file tasks should be delegated to specialized agents

@@ -1,0 +1,48 @@
+id: conv-simple-001
+name: Conversational Path (No Approval Needed)
+description: |
+  Tests the conversational execution path for pure questions.
+  Validates that agent answers directly WITHOUT requesting approval.
+  
+  From openagent.md (Line 136-139):
+  "Conversational path: Answer directly, naturally - no approval needed"
+  "Examples: 'What does this code do?' (read) | 'How use git rebase?' (info)"
+  
+  Expected workflow:
+  1. Analyze → Detect conversational path (no execution needed)
+  2. Read file (allowed without approval)
+  3. Answer directly
+  4. Skip approval stage
+
+category: business
+agent: openagent
+
+prompt: |
+  What does the main function in src/index.ts do?
+
+# Expected behavior
+behavior:
+  mustUseTools: [read]          # Can use read without approval
+  requiresApproval: false       # NO approval needed for conversational
+  requiresContext: false        # Analysis doesn't need context
+  minToolCalls: 1               # At least read the file
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should NOT ask for approval (conversational path)
+
+# Approval strategy (shouldn't be used, but set for safety)
+approvalStrategy:
+  type: auto-approve
+
+timeout: 60000
+
+tags:
+  - workflow-validation
+  - conversational-path
+  - no-approval
+  - read-only
+  - v2-schema

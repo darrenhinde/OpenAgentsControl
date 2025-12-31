@@ -1,0 +1,65 @@
+id: int-content-001
+name: Content Validation Integration Test
+description: |
+  Test that verifies content validation works correctly with the new
+  ContentEvaluator. Ensures written files contain expected content.
+
+category: business
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompts:
+  - text: |
+      Create a TypeScript function called 'multiply' that multiplies two numbers.
+      It should take two parameters of type number and return a number.
+      Save it to evals/test_tmp/multiply.ts
+      
+      Make sure to use proper TypeScript types, no 'any' types allowed.
+    expectContext: true
+    contextFile: ".opencode/context/core/standards/code.md"
+  
+  - text: |
+      Yes, create the file.
+    delayMs: 2000
+
+# Expected behavior with content validation
+behavior:
+  mustUseTools: [read, write]
+  requiresApproval: true
+  requiresContext: true
+  minToolCalls: 2
+  
+  # NEW - Content validation
+  contentExpectations:
+    - filePath: "evals/test_tmp/multiply.ts"
+      mustContain:
+        - "function multiply"
+        - "number"
+        - "return"
+        - "*"
+      mustNotContain:
+        - "any"
+        - "console.log"
+        - "debugger"
+      minLength: 50
+      maxLength: 500
+      mustMatch: "function\\s+multiply\\s*\\("
+
+# Expected violations
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load code.md before writing code
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 120000
+
+tags:
+  - integration
+  - content-validation
+  - typescript
+  - v2-schema

@@ -1,0 +1,57 @@
+id: ctx-delegation-001
+name: Delegation Task with Context Loading
+description: |
+  Tests the Execute stage context loading for delegation tasks.
+  Validates that agent loads .opencode/context/core/workflows/delegation.md before delegating.
+  
+  Critical rule from openagent.md (Line 162-193):
+  "Delegation → .opencode/context/core/workflows/delegation.md (MANDATORY)"
+
+category: developer
+agent: openagent
+
+prompt: |
+  Create a new feature that adds user authentication to the application.
+  This will require changes to multiple files including:
+  - src/auth/login.ts
+  - src/auth/register.ts
+  - src/auth/middleware.ts
+  - src/models/user.ts
+  - tests/auth.test.ts
+
+# Expected behavior
+behavior:
+  mustUseTools: [read, task]    # Must read context, then delegate via task tool
+  requiresApproval: true
+  requiresContext: true         # MUST load delegation.md before delegating
+  minToolCalls: 2               # At least: read context + task delegation
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Must ask approval before delegating tasks
+  
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load delegation.md before delegating
+  
+  - rule: delegation
+    shouldViolate: false
+    severity: error
+    description: Should delegate when 4+ files involved
+
+# Approval strategy
+approvalStrategy:
+  type: auto-approve
+
+timeout: 90000
+
+tags:
+  - workflow-validation
+  - context-loading
+  - delegation-task
+  - critical-rule
+  - v2-schema
