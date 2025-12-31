@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.5.2] - 2025-12-31
+
+### Changes
+- fixing some typos (#74)
+
 ## [0.5.0] - 2025-12-18
 
 ### Changes
