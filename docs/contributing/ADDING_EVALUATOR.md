@@ -258,7 +258,7 @@ cd evals/framework
 npm run eval:sdk -- --agent=openagent --pattern="10-execution-balance/*.yaml" --debug
 ```
 
-If you want add more metricts to dashboard, add the meta (`ratio`, `readBeforeExec`) in your external metrics reports system.
+If you want to add more metrics to dashboard, add the meta (`ratio`, `readBeforeExec`) in your external metrics reports system.
 
 ---
 **End of the guide.**

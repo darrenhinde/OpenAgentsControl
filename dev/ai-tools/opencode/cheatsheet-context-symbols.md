@@ -555,7 +555,7 @@ Reference these when setting up tools or CI/CD:
 
 1. **Simple commands**: Use `run_terminal_cmd`
 2. **Complex workflows**: Create shell scripts first
-3. **Multi-step tasks**: Use sub-agents with `task` tool
+3. **Multistep tasks**: Use sub-agents with `task` tool
 
 ---
 

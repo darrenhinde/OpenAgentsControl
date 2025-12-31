@@ -319,7 +319,7 @@ function VirtualList({ items }) {
 - ❌ **Using index as key** - Use stable, unique identifiers
 - ❌ **Unnecessary useEffect** - Derive state when possible
 - ❌ **Ignoring ESLint warnings** - React hooks rules prevent bugs
-- ❌ **Not memoizing context values** - Causes unnecessary re-renders
+- ❌ **Not memorizing context values** - Causes unnecessary re-renders
 
 ## References
 

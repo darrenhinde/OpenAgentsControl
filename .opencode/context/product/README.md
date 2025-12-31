@@ -15,4 +15,4 @@ This directory contains context files for product management, strategy, and user
 
 ## Usage
 
-These context files will be referenced by product-focused agents to ensure consistent product strategy, user research methodologies, and data-driven decision making.
+These context files will be referenced by product-focused agents to ensure consistent product strategy, user research methodologies, and data-driven decision-making.

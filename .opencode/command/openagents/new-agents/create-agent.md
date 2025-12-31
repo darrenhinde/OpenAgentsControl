@@ -424,7 +424,7 @@ Create a new agent with minimal, high-signal prompts following "right altitude" 
 <anti_patterns>
   **Don't**:
   - Create sub-agents for dependent tasks (code is sequential)
-  - Pre-load entire codebase into context (use just-in-time retrieval)
+  - Preload entire codebase into context (use just-in-time retrieval)
   - Write exhaustive edge case lists in prompts (brittle, hard to maintain)
   - Give vague tool descriptions (major failure mode)
   - Use multi-agent if you could use single agent + tools

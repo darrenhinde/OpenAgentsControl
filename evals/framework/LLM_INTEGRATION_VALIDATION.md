@@ -330,7 +330,7 @@ No mocking at the integration level.
 
 1. ❌ **Deterministic LLM behavior** - LLMs are non-deterministic
 2. ❌ **Forced violations** - Can't reliably make LLMs violate standards
-3. ❌ **100% test stability** - LLM tests may occasionally timeout
+3. ❌ **100% test stability** - LLM tests may occasionally time out
 
 ### Mitigation Strategies
 
