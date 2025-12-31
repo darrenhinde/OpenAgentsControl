@@ -2,36 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [Unreleased]
-## [0.5.0] - 2025-12-18
 
-### Changes
-- refactor(evals): consolidate documentation and enhance test infrastructure (#56)
+## [0.5.1] - 2025-12-31
 
+### Fixed
+- **Install Script Non-Interactive Bug**: Fixed critical bug where `curl | bash -s <profile>` would fail with "Installation cancelled by user" when existing files were present
+  - Root cause: Collision handling prompted for user input even in non-interactive mode
+  - Solution: Auto-detect non-interactive mode and use "skip" strategy by default
 
 ### Added
-- **Explicit Context File Validation**: New `expectedContextFiles` field in test YAML files allows explicit specification of which context files the agent must read
+- **Installer CI Workflow**: New `.github/workflows/installer-checks.yml` runs on install.sh changes
+  - ShellCheck static analysis
+  - Bash syntax validation
+  - Non-interactive mode tests
+  - End-to-end installation tests
+  - Profile smoke tests on Ubuntu and macOS
+- **Non-Interactive Tests**: New `scripts/tests/test-non-interactive.sh` validates piped execution
+- **E2E Installation Tests**: New `scripts/tests/test-e2e-install.sh` validates full installation workflow
+
+### Changed
+- Updated `scripts/tests/README.md` with new test documentation
+
+## [0.5.0] - 2025-12-18
+
+### Added
+- **Explicit Context File Validation**: New `expectedContextFiles` field in test YAML files
   - Overrides auto-detection when specified
   - Uses flexible pattern matching (`includes()` or `endsWith()`)
   - Supports partial paths (e.g., `standards/code.md`) or full paths
-  - See `evals/agents/shared/tests/EXPLICIT_CONTEXT_FILES.md` for detailed guide
-  - Example test: `evals/agents/shared/tests/golden/02-context-loading-explicit.yaml`
 
 ### Changed
-- **Context Loading Evaluator**: Now accepts optional `BehaviorExpectation` config to support explicit file validation
+- **Context Loading Evaluator**: Now accepts optional `BehaviorExpectation` config
   - Shows detection mode in evidence: "Explicit (from YAML test)" or "Auto-detect (from user message)"
   - Backward compatible - existing tests work unchanged
 
 ### Documentation
 - Added `evals/agents/shared/tests/EXPLICIT_CONTEXT_FILES.md` - Complete feature guide
 - Added `evals/PATTERN_MATCHING_GUIDE.md` - Pattern matching reference
-- Updated `evals/CREATING_TESTS.md` - Added `expectedContextFiles` documentation
-- Updated `evals/README.md` - Added new feature section
+- Updated `evals/CREATING_TESTS.md` and `evals/README.md`
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [0.5.0] - 2025-12-10
+## [0.4.0] - 2025-12-10
 
 ### Added
 - **Category-Based Agent Organization**: Agents now organized by domain in subdirectories
@@ -114,6 +128,8 @@ v0.X.Y
 ```
 
 ### Version History
-- **0.5.0** - Category-based agent organization system
+- **0.5.1** - Install script bug fix, CI improvements for installer
+- **0.5.0** - Explicit context file validation in evals
+- **0.4.0** - Category-based agent organization system
 - **0.3.1** - CI improvements
 - **0.0.2** - Execution balance evaluator

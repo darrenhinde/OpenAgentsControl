@@ -868,12 +868,19 @@ perform_installation() {
     local install_strategy="fresh"
     
     if [ ${#collisions[@]} -gt 0 ]; then
-        show_collision_report ${#collisions[@]} "${collisions[@]}"
-        install_strategy=$(get_install_strategy)
-        
-        if [ "$install_strategy" = "cancel" ]; then
-            print_info "Installation cancelled by user"
-            cleanup_and_exit 0
+        # In non-interactive mode, use default strategy (skip existing files)
+        if [ "$NON_INTERACTIVE" = true ]; then
+            print_info "Found ${#collisions[@]} existing file(s) - using 'skip' strategy (non-interactive mode)"
+            print_info "To overwrite, download script and run interactively, or delete existing files first"
+            install_strategy="skip"
+        else
+            show_collision_report ${#collisions[@]} "${collisions[@]}"
+            install_strategy=$(get_install_strategy)
+            
+            if [ "$install_strategy" = "cancel" ]; then
+                print_info "Installation cancelled by user"
+                cleanup_and_exit 0
+            fi
         fi
         
         # Handle backup strategy

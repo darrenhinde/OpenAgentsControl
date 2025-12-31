@@ -2,6 +2,18 @@
 
 This directory contains test scripts for validating the OpenCode installer functionality and compatibility.
 
+**CI Integration:** These tests run automatically via `.github/workflows/installer-checks.yml` on any PR that modifies `install.sh`, `update.sh`, or `registry.json`.
+
+## Quick Start
+
+```bash
+# Run all installer tests
+for test in scripts/tests/test-*.sh; do bash "$test"; done
+
+# Run specific test
+bash scripts/tests/test-non-interactive.sh
+```
+
 ## Available Tests
 
 ### 1. Compatibility Test (`test-compatibility.sh`)
@@ -51,7 +63,49 @@ System Information:
 
 ---
 
-### 2. Collision Detection Test (`test-collision-detection.sh`)
+### 2. Non-Interactive Mode Test (`test-non-interactive.sh`)
+
+**Critical test** - validates piped execution (`curl | bash`) scenarios.
+
+**Run locally:**
+```bash
+bash scripts/tests/test-non-interactive.sh
+```
+
+**What it tests:**
+- ✅ Fresh install via pipe (simulates `curl | bash -s profile`)
+- ✅ Collision handling in non-interactive mode
+- ✅ All profiles work non-interactively
+- ✅ stdin detection and TTY handling
+- ✅ NON_INTERACTIVE flag behavior
+- ✅ Error handling without user input
+
+**Why this matters:** Catches bugs where interactive prompts fail silently when stdin is not a terminal.
+
+---
+
+### 3. End-to-End Installation Test (`test-e2e-install.sh`)
+
+Full installation workflow validation.
+
+**Run locally:**
+```bash
+bash scripts/tests/test-e2e-install.sh
+```
+
+**What it tests:**
+- ✅ Essential profile installs expected files
+- ✅ Developer profile installs expected files
+- ✅ Custom installation directory works
+- ✅ Skip existing files strategy preserves user content
+- ✅ File content validity (not empty/corrupted)
+- ✅ Directory structure correctness
+- ✅ Registry consistency
+- ✅ Help and list commands
+
+---
+
+### 4. Collision Detection Test (`test-collision-detection.sh`)
 
 Tests the installer's file collision detection and handling strategies.
 
@@ -67,8 +121,6 @@ bash scripts/tests/test-collision-detection.sh
 - ✅ Backup & overwrite strategy
 - ✅ Collision reporting
 - ✅ File grouping by type
-
-**Note:** This test creates temporary files and directories for testing collision scenarios.
 
 ---
 
@@ -198,13 +250,15 @@ Current test coverage:
 - ✅ File collision handling
 - ✅ Network operations
 - ✅ File system operations
+- ✅ Non-interactive/piped execution
+- ✅ Profile installation end-to-end
+- ✅ Registry validation
+- ✅ Error handling scenarios
 
 Future test additions:
-- [ ] Profile installation end-to-end
 - [ ] Component dependency resolution
-- [ ] Registry validation
-- [ ] Error handling scenarios
 - [ ] Rollback functionality
+- [ ] Windows (Git Bash) specific tests
 
 ---
 

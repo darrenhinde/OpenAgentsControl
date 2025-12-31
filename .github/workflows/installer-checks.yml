@@ -1,0 +1,253 @@
+name: Installer Checks
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'install.sh'
+      - 'update.sh'
+      - 'registry.json'
+      - 'scripts/tests/test-*.sh'
+  push:
+    branches: [main]
+    paths:
+      - 'install.sh'
+      - 'update.sh'
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    name: ShellCheck Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run ShellCheck on install.sh
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          additional_files: 'install.sh update.sh'
+          severity: warning
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✅ ShellCheck Passed" >> $GITHUB_STEP_SUMMARY
+          echo "No shell script issues found in install.sh or update.sh" >> $GITHUB_STEP_SUMMARY
+
+  syntax-check:
+    name: Bash Syntax Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check install.sh syntax
+        run: bash -n install.sh
+      
+      - name: Check update.sh syntax
+        run: bash -n update.sh
+      
+      - name: Check test scripts syntax
+        run: |
+          for script in scripts/tests/test-*.sh; do
+            echo "Checking $script..."
+            bash -n "$script"
+          done
+      
+      - name: Summary
+        run: |
+          echo "## ✅ Syntax Check Passed" >> $GITHUB_STEP_SUMMARY
+          echo "All shell scripts have valid syntax" >> $GITHUB_STEP_SUMMARY
+
+  non-interactive-tests:
+    name: Non-Interactive Mode Tests
+    runs-on: ${{ matrix.os }}
+    needs: [shellcheck, syntax-check]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install jq (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y jq
+      
+      - name: Install jq (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install jq || true
+      
+      - name: Run non-interactive tests
+        run: bash scripts/tests/test-non-interactive.sh
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✅ Non-Interactive Tests Passed (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
+          echo "All piped execution scenarios work correctly" >> $GITHUB_STEP_SUMMARY
+
+  e2e-tests:
+    name: End-to-End Installation Tests
+    runs-on: ${{ matrix.os }}
+    needs: [shellcheck, syntax-check]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install jq (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y jq
+      
+      - name: Install jq (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install jq || true
+      
+      - name: Run E2E tests
+        run: bash scripts/tests/test-e2e-install.sh
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✅ E2E Tests Passed (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
+          echo "Full installation workflow validated" >> $GITHUB_STEP_SUMMARY
+
+  compatibility-tests:
+    name: Compatibility Tests
+    runs-on: ${{ matrix.os }}
+    needs: [shellcheck, syntax-check]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install jq (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y jq
+      
+      - name: Install jq (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install jq || true
+      
+      - name: Run compatibility tests
+        run: bash scripts/tests/test-compatibility.sh
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✅ Compatibility Tests Passed (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
+          echo "Platform compatibility validated" >> $GITHUB_STEP_SUMMARY
+
+  profile-smoke-test:
+    name: Profile Installation Smoke Test
+    runs-on: ubuntu-latest
+    needs: [non-interactive-tests]
+    strategy:
+      matrix:
+        profile: [essential, developer, business, full]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: sudo apt-get install -y jq curl
+      
+      - name: Test ${{ matrix.profile }} profile
+        run: |
+          TEST_DIR="/tmp/profile-test-${{ matrix.profile }}"
+          mkdir -p "$TEST_DIR"
+          
+          echo "Installing ${{ matrix.profile }} profile..."
+          bash install.sh ${{ matrix.profile }} --install-dir="$TEST_DIR/.opencode"
+          
+          if [ -d "$TEST_DIR/.opencode/agent" ]; then
+            echo "✅ Profile ${{ matrix.profile }} installed successfully"
+            echo "Files installed:"
+            find "$TEST_DIR/.opencode" -type f -name "*.md" | head -10
+          else
+            echo "❌ Profile ${{ matrix.profile }} failed"
+            exit 1
+          fi
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✅ Profile Test: ${{ matrix.profile }}" >> $GITHUB_STEP_SUMMARY
+          echo "Profile installed successfully via non-interactive mode" >> $GITHUB_STEP_SUMMARY
+
+  summary:
+    name: Installer Checks Summary
+    runs-on: ubuntu-latest
+    needs: [shellcheck, syntax-check, non-interactive-tests, e2e-tests, compatibility-tests, profile-smoke-test]
+    if: always()
+    
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 📊 Installer Checks Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.shellcheck.result }}" == "success" ]; then
+            echo "✅ **ShellCheck:** Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **ShellCheck:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.syntax-check.result }}" == "success" ]; then
+            echo "✅ **Syntax Check:** Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Syntax Check:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.non-interactive-tests.result }}" == "success" ]; then
+            echo "✅ **Non-Interactive Tests:** Passed (Ubuntu & macOS)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Non-Interactive Tests:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.e2e-tests.result }}" == "success" ]; then
+            echo "✅ **E2E Tests:** Passed (Ubuntu & macOS)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **E2E Tests:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.compatibility-tests.result }}" == "success" ]; then
+            echo "✅ **Compatibility Tests:** Passed (Ubuntu & macOS)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Compatibility Tests:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.profile-smoke-test.result }}" == "success" ]; then
+            echo "✅ **Profile Smoke Tests:** All profiles work" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Profile Smoke Tests:** Some profiles failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          FAILED=0
+          [ "${{ needs.shellcheck.result }}" != "success" ] && FAILED=1
+          [ "${{ needs.syntax-check.result }}" != "success" ] && FAILED=1
+          [ "${{ needs.non-interactive-tests.result }}" != "success" ] && FAILED=1
+          [ "${{ needs.e2e-tests.result }}" != "success" ] && FAILED=1
+          
+          if [ $FAILED -eq 0 ]; then
+            echo "### ✅ All Installer Checks Passed!" >> $GITHUB_STEP_SUMMARY
+            echo "The installer is safe to merge." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Some Checks Failed" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix failing checks before merging." >> $GITHUB_STEP_SUMMARY
+          fi
