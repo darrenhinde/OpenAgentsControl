@@ -252,8 +252,6 @@ Tests are evaluated by multiple evaluators:
 ## 📚 Additional Resources
 
 - [README.md](README.md) - Project overview
-- [evals/GETTING_STARTED.md](evals/GETTING_STARTED.md) - Detailed evaluation guide
-- [evals/ARCHITECTURE.md](evals/ARCHITECTURE.md) - System architecture
 - [evals/framework/SDK_EVAL_README.md](evals/framework/SDK_EVAL_README.md) - SDK documentation
 - [CHANGELOG.md](CHANGELOG.md) - Version history
 
@@ -292,7 +290,6 @@ npm run version > VERSION
 
 ## 🎉 Getting Help
 
-- Check [evals/GETTING_STARTED.md](evals/GETTING_STARTED.md) for detailed guides
 - Review test examples in `evals/agents/*/tests/`
 - Run tests in debug mode: `npm run test:debug`
 - View results dashboard: `npm run dashboard:open`
