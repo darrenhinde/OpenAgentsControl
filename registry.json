@@ -362,8 +362,21 @@
         "path": ".opencode/agent/subagents/core/context-retriever.md",
         "description": "Generic context search and retrieval specialist for finding relevant context files, standards, and guides in any repository",
         "tags": [],
-        "dependencies": [],
+        "dependencies": [
+          "command:check-context-deps",
+          "context:openagents-repo/quality/registry-dependencies"
+        ],
         "category": "core"
+      },
+      {
+        "id": "simple-responder",
+        "name": "Simple Responder",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/test/simple-responder.md",
+        "description": "Test agent that responds with 'AWESOME TESTING' - for eval framework testing",
+        "tags": [],
+        "dependencies": [],
+        "category": "test"
       }
     ],
     "commands": [
@@ -400,13 +413,16 @@
         "name": "Context Manager",
         "type": "command",
         "path": ".opencode/command/context.md",
-        "description": "Manage project context and documentation",
+        "description": "Context system manager - harvest summaries, extract knowledge, organize context",
         "tags": [
           "context",
-          "documentation",
-          "management"
+          "knowledge-management",
+          "harvest"
         ],
-        "dependencies": [],
+        "dependencies": [
+          "subagent:context-organizer",
+          "subagent:context-retriever"
+        ],
         "category": "essential"
       },
       {
@@ -512,7 +528,6 @@
         "name": "Commit Openagents",
         "type": "command",
         "path": ".opencode/command/commit-openagents.md",
-        "description": "Smart commit command for opencode-agents repository with automatic validation and conventional commits",
         "description": "description: Smart commit command for opencode-agents repository with automatic validation and conventional commits",
         "tags": [],
         "dependencies": [],
@@ -546,6 +561,23 @@
         "description": "description: \\\"Create new OpenCode agents following research-backed best practices (Anthropic 2025)\\\"",
         "tags": [],
         "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "check-context-deps",
+        "name": "Check Context Deps",
+        "type": "command",
+        "path": ".opencode/command/openagents-repo/check-context-deps.md",
+        "description": "Analyze context file usage across agents and validate registry dependencies",
+        "tags": [
+          "registry",
+          "validation",
+          "context",
+          "dependencies"
+        ],
+        "dependencies": [
+          "subagent:codebase-pattern-analyst"
+        ],
         "category": "standard"
       }
     ],
@@ -582,20 +614,6 @@
       }
     ],
     "plugins": [
-      {
-        "id": "telegram-bot",
-        "name": "Telegram Bot Library",
-        "type": "plugin",
-        "path": ".opencode/plugin/lib/telegram-bot.ts",
-        "description": "Simple Telegram Bot wrapper for sending notifications",
-        "tags": [
-          "telegram",
-          "bot",
-          "library"
-        ],
-        "dependencies": [],
-        "category": "specialized"
-      },
       {
         "id": "telegram-notify",
         "name": "Telegram Notifications",
@@ -1055,6 +1073,231 @@
         "tags": [],
         "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "harvest",
+        "name": "Harvest",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/harvest.md",
+        "description": "Context Harvest Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "extract",
+        "name": "Extract",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/extract.md",
+        "description": "Extract Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "error",
+        "name": "Error",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/error.md",
+        "description": "Error Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "organize",
+        "name": "Organize",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/organize.md",
+        "description": "Organize Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "update",
+        "name": "Update",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/update.md",
+        "description": "Update Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows",
+        "name": "Workflows",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/guides/workflows.md",
+        "description": "Context Operation Workflows",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "creation",
+        "name": "Creation",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/guides/creation.md",
+        "description": "Context File Creation Standards",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "compact",
+        "name": "Compact",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/guides/compact.md",
+        "description": "Context Compaction (Minimization)",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "mvi",
+        "name": "Mvi",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/standards/mvi.md",
+        "description": "MVI Principle (Minimal Viable Information)",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "structure",
+        "name": "Structure",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/standards/structure.md",
+        "description": "Context Structure",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "context-system",
+        "name": "Context System",
+        "type": "context",
+        "path": ".opencode/context/core/context-system.md",
+        "description": "Context System",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "agents",
+        "name": "Agents",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/capabilities/agents.md",
+        "description": "Custom Agents in OpenCode",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "events_skills",
+        "name": "Events_skills",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/capabilities/events_skills.md",
+        "description": "OpenCode Events: Skills Plugin Implementation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "events",
+        "name": "Events",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/capabilities/events.md",
+        "description": "OpenCode Plugin Events",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "tools",
+        "name": "Tools",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/capabilities/tools.md",
+        "description": "Building Custom Tools",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "lifecycle",
+        "name": "Lifecycle",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/architecture/lifecycle.md",
+        "description": "Plugin Lifecycle & Packaging",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "overview",
+        "name": "Overview",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/architecture/overview.md",
+        "description": "OpenCode Plugins Overview",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "context-overview",
+        "name": "Context Overview",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/context-overview.md",
+        "description": "OpenCode Plugin Context Library",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "best-practices",
+        "name": "Best Practices",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/reference/best-practices.md",
+        "description": "Best Practices & Limitations",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "subagent-invocation",
+        "name": "Subagent Invocation",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/subagent-invocation.md",
+        "description": "Guide: Subagent Invocation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "profile-validation",
+        "name": "Profile Validation",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/profile-validation.md",
+        "description": "Guide: Profile Validation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "registry-dependencies",
+        "name": "Registry Dependencies",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/quality/registry-dependencies.md",
+        "description": "Maintain registry quality through dependency validation and consistency checks",
+        "tags": [
+          "registry",
+          "quality",
+          "validation",
+          "dependencies"
+        ],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "config": [
@@ -1287,7 +1530,7 @@
     }
   },
   "metadata": {
-    "lastUpdated": "2025-12-31",
+    "lastUpdated": "2026-01-06",
     "schemaVersion": "1.0.0"
   },
   "subagents": {
