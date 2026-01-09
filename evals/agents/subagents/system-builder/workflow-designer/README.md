@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/system-builder/workflow-designer`  
+**Agent:** `WorkflowDesigner`  
 **Parent Agent:** `system-builder`  
 **Description:** Designs complete workflow definitions with context dependencies
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/system-builder/workflow-designer.md)
+- [Agent Source](.opencode/agent/WorkflowDesigner.md)
 

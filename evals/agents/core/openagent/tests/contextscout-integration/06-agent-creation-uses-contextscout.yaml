@@ -1,0 +1,65 @@
+id: openagent-agent-creation-contextscout
+name: "OpenAgent: Uses ContextScout for Agent Creation"
+description: |
+  Tests that OpenAgent delegates to ContextScout when asked to create an agent,
+  since this is an unfamiliar domain that requires discovering context files.
+  
+  This validates:
+  - OpenAgent recognizes agent-creation as requiring context discovery
+  - OpenAgent delegates to ContextScout via task tool
+  - OpenAgent uses ContextScout's findings to load context
+  - OpenAgent follows the discovered context standards
+  
+  Expected Behavior:
+  1. OpenAgent receives request to create agent
+  2. OpenAgent delegates to ContextScout to find relevant context
+  3. ContextScout returns: agents.md, adding-agent.md, code-quality.md
+  4. OpenAgent loads those files
+  5. OpenAgent creates agent following discovered standards
+  
+  This test SHOULD FAIL if:
+  - OpenAgent doesn't use ContextScout
+  - OpenAgent uses grep/read directly without ContextScout
+  - OpenAgent doesn't load discovered context files
+
+category: developer
+agent: core/openagent
+
+prompts:
+  - text: |
+      Create a new agent called "email-writer" in the content category.
+      
+      This agent should help users write professional emails.
+      
+      Make sure to follow all repository standards for agent creation.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - task   # Must delegate to ContextScout
+    - read   # Must read discovered context files
+  minToolCalls: 3
+  maxToolCalls: 30
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 120000
+
+tags:
+  - openagent
+  - contextscout-integration
+  - agent-creation
+  - delegation
+  - critical
+
+# Expected outcome:
+# - OpenAgent uses task tool to delegate to ContextScout
+# - Task prompt includes: "Search for context files related to: agent creation"
+# - OpenAgent receives ContextScout's findings
+# - OpenAgent uses read tool to load discovered files
+# - OpenAgent creates agent following standards from loaded context

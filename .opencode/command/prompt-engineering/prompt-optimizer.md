@@ -203,13 +203,13 @@ description: "Advanced prompt optimizer: Research patterns + token efficiency + 
           <pattern>key→value | key2→value2 | key3→value3</pattern>
           <before>
             Task-to-Context Mapping:
-            - Writing docs → .opencode/context/core/standards/docs.md
-            - Writing code → .opencode/context/core/standards/code.md
-            - Writing tests → .opencode/context/core/standards/tests.md
+            - Writing docs → .opencode/context/core/standards/documentation.md
+            - Writing code → .opencode/context/core/standards/code-quality.md
+            - Writing tests → .opencode/context/core/standards/test-coverage.md
           </before>
           <after>
             Task→Context Map:
-            docs→standards/docs.md | code→standards/code.md | tests→standards/tests.md
+            docs→standards/documentation.md | code→standards/code-quality.md | tests→standards/test-coverage.md
           </after>
           <savings>~70%</savings>
           <limits>Max 3-4 mappings per line for readability</limits>
@@ -593,13 +593,13 @@ description: "Advanced prompt optimizer: Research patterns + token efficiency + 
   <example id="2" category="inline_mapping">
     <before>
       Task-to-Context Mapping:
-      - Writing docs → .opencode/context/core/standards/docs.md
-      - Writing code → .opencode/context/core/standards/code.md
-      - Writing tests → .opencode/context/core/standards/tests.md
+      - Writing docs → .opencode/context/core/standards/documentation.md
+      - Writing code → .opencode/context/core/standards/code-quality.md
+      - Writing tests → .opencode/context/core/standards/test-coverage.md
     </before>
     <after>
       Task→Context Map:
-      docs→standards/docs.md | code→standards/code.md | tests→standards/tests.md
+      docs→standards/documentation.md | code→standards/code-quality.md | tests→standards/test-coverage.md
     </after>
     <token_reduction>70%</token_reduction>
   </example>

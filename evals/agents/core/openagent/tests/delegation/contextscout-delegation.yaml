@@ -1,0 +1,40 @@
+id: openagent-contextscout-delegation
+name: "OpenAgent: ContextScout Delegation Test"
+description: |
+  Tests OpenAgent's ability to delegate to ContextScout.
+  
+  This tests the delegation workflow, not ContextScout's logic.
+
+category: developer
+
+prompts:
+  - text: |
+      I need to find context files for eval framework testing patterns. Can you help?
+  - text: |
+      Approved. Please proceed with ContextScout.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - task  # OpenAgent MUST use task tool to delegate
+  minToolCalls: 1
+  maxToolCalls: 10
+
+# Verify OpenAgent delegates to ContextScout
+assertions:
+  - type: tool_called
+    tool: "task"
+    with_args:
+      subagent_type: "ContextScout"
+  - type: output_contains
+    value: ".opencode/context/openagents-repo/core-concepts/evals.md"
+
+timeout: 300000
+
+tags:
+  - openagent
+  - delegation
+  - contextscout
+  - integration-test

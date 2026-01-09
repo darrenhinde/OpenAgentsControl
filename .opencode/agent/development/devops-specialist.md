@@ -1,6 +1,6 @@
 ---
 id: devops-specialist
-name: DevOps Specialist
+name: OpenDevopsSpecialist
 description: "Expert in CI/CD, infrastructure as code, and deployment automation"
 category: development
 type: standard

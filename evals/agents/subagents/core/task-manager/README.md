@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/core/task-manager`  
+**Agent:** `TaskManager`  
 **Parent Agent:** `openagent`  
 **Description:** Context-aware task breakdown with dependency tracking
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/core/task-manager.md)
+- [Agent Source](.opencode/agent/TaskManager.md)
 

@@ -1,6 +1,6 @@
 ---
 id: domain-analyzer
-name: Domain Analyzer
+name: DomainAnalyzer
 description: "Analyzes user domains to identify core concepts, recommended agents, and context structure"
 category: subagents/system-builder
 type: subagent

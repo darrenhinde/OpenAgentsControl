@@ -1,0 +1,51 @@
+id: core-contextscout-invalid-path
+name: "ContextScout: Negative Test - Invalid Path Handling"
+description: |
+  Tests that ContextScout handles non-existent directories gracefully.
+  
+  This is a NEGATIVE test that verifies the agent:
+  - Detects when a path doesn't exist
+  - Reports the error clearly
+  - Doesn't attempt to read from invalid paths
+  - Suggests checking the path
+  
+  Expected Behavior:
+  - MUST detect path doesn't exist
+  - MUST report error clearly
+  - MUST NOT attempt to read non-existent files
+  - SHOULD suggest alternatives
+  
+  This test SHOULD FAIL if:
+  - Agent tries to read from non-existent path
+  - Agent claims to find files in invalid directory
+  - Agent doesn't report the error
+category: developer
+
+prompts:
+  - text: |
+      Search for context files in the directory: /this/path/absolutely/does/not/exist/anywhere
+      
+      What do you find?
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - negative-test
+  - error-handling
+  - invalid-input
+
+# Expected outcome: Agent should report path doesn't exist
+# Agent should NOT claim to find files or attempt to read

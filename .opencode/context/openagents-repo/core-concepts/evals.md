@@ -123,14 +123,14 @@ Agent executed write tool without requesting approval first
 **Purpose**: Ensures agent loads required context files
 
 **Validates**:
-- Code tasks → loads `core/standards/code.md`
-- Doc tasks → loads `core/standards/docs.md`
-- Test tasks → loads `core/standards/tests.md`
+- Code tasks → loads `core/standards/code-quality.md`
+- Doc tasks → loads `core/standards/documentation.md`
+- Test tasks → loads `core/standards/test-coverage.md`
 - Context loaded BEFORE implementation
 
 **Violation Example**:
 ```
-Agent executed write tool without loading required context: core/standards/code.md
+Agent executed write tool without loading required context: core/standards/code-quality.md
 ```
 
 ---
@@ -296,7 +296,7 @@ expectations:
 ```yaml
 expectations:
   - type: context_loaded
-    contexts: ["core/standards/code.md"]
+    contexts: ["core/standards/code-quality.md"]
 ```
 
 **Validates**: Specific context files were loaded
@@ -383,7 +383,7 @@ conversation:
     content: "Write a new function that calculates fibonacci numbers"
 expectations:
   - type: context_loaded
-    contexts: ["core/standards/code.md"]
+    contexts: ["core/standards/code-quality.md"]
 ```
 
 ---

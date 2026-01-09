@@ -1,6 +1,6 @@
 ---
 id: task-manager
-name: Task Manager
+name: TaskManager
 description: "Context-aware task breakdown specialist transforming complex features into atomic, verifiable subtasks with dependency tracking"
 category: subagents/core
 type: subagent

@@ -1,6 +1,6 @@
 ---
 id: command-creator
-name: Command Creator
+name: CommandCreator
 description: "Creates custom slash commands that route to appropriate agents with clear syntax and examples"
 category: subagents/system-builder
 type: subagent

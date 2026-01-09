@@ -1,6 +1,6 @@
 ---
 id: coder-agent
-name: Coder Agent
+name: CoderAgent
 description: "Executes coding subtasks in sequence, ensuring completion as specified"
 category: subagents/code
 type: subagent

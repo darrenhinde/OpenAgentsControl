@@ -1,0 +1,68 @@
+id: opencoder-ui-patterns-contextscout
+name: "OpenCoder: Uses ContextScout for UI Pattern Discovery"
+description: |
+  Tests that OpenCoder delegates to ContextScout when asked about UI patterns,
+  design systems, or React components (unfamiliar domain for a coder).
+  
+  This validates:
+  - OpenCoder recognizes UI/design as requiring context discovery
+  - OpenCoder delegates to ContextScout via task tool
+  - OpenCoder uses discovered ui/web context files
+  - OpenCoder applies design patterns from loaded context
+  
+  Expected Behavior:
+  1. OpenCoder receives UI component request
+  2. OpenCoder delegates to ContextScout for UI patterns
+  3. ContextScout returns: react-patterns.md, design-systems.md
+  4. OpenCoder loads those files
+  5. OpenCoder implements component following discovered patterns
+  
+  This test SHOULD FAIL if:
+  - OpenCoder doesn't use ContextScout
+  - OpenCoder implements without loading UI context
+  - OpenCoder doesn't follow discovered design patterns
+
+category: developer
+agent: core/opencoder
+
+prompts:
+  - text: |
+      Create a React button component that follows modern design system patterns.
+      
+      The button should support:
+      - Multiple variants (primary, secondary, danger)
+      - Different sizes (small, medium, large)
+      - Loading state
+      - Disabled state
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - task   # Must delegate to ContextScout
+    - read   # Must read discovered context files
+  minToolCalls: 3
+  maxToolCalls: 25
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 120000
+
+tags:
+  - opencoder
+  - contextscout-integration
+  - ui-patterns
+  - react
+  - critical
+
+# Expected outcome:
+# - OpenCoder uses task tool to delegate to ContextScout
+# - Task prompt includes: "Search for context files related to: React patterns and design systems"
+# - OpenCoder receives ContextScout's findings
+# - OpenCoder uses read tool to load ui/web context
+# - OpenCoder implements button following patterns from loaded context
+# - Component uses design system patterns (variants, sizes, states)

@@ -57,18 +57,18 @@ NEVER proceed with code/docs/tests without loading standards first.
 AUTO-STOP if you find yourself executing without context loaded.
 
 WHY THIS MATTERS:
-- Code without standards/code.md → Inconsistent patterns, wrong architecture
-- Docs without standards/docs.md → Wrong tone, missing sections, poor structure  
-- Tests without standards/tests.md → Wrong framework, incomplete coverage
-- Review without workflows/review.md → Missed quality checks, incomplete analysis
-- Delegation without workflows/delegation.md → Wrong context passed to subagents
+- Code without standards/code-quality.md → Inconsistent patterns, wrong architecture
+- Docs without standards/documentation.md → Wrong tone, missing sections, poor structure  
+- Tests without standards/test-coverage.md → Wrong framework, incomplete coverage
+- Review without workflows/code-review.md → Missed quality checks, incomplete analysis
+- Delegation without workflows/task-delegation.md → Wrong context passed to subagents
 
 Required context files:
-- Code tasks → .opencode/context/core/standards/code.md
-- Docs tasks → .opencode/context/core/standards/docs.md  
-- Tests tasks → .opencode/context/core/standards/tests.md
-- Review tasks → .opencode/context/core/workflows/review.md
-- Delegation → .opencode/context/core/workflows/delegation.md
+- Code tasks → .opencode/context/core/standards/code-quality.md
+- Docs tasks → .opencode/context/core/standards/documentation.md  
+- Tests tasks → .opencode/context/core/standards/test-coverage.md
+- Review tasks → .opencode/context/core/workflows/code-review.md
+- Delegation → .opencode/context/core/workflows/task-delegation.md
 
 CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effort + rework
 </critical_context_requirement>
@@ -124,23 +124,23 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 
 | Subagent | Path | Use When |
 |----------|------|----------|
-| **task-manager** | `subagents/core/task-manager` | 4+ files, >60 min, complex features |
-| **coder-agent** | `subagents/code/coder-agent` | 1-3 files, simple implementation |
-| **tester** | `subagents/code/tester` | After code changes, need tests |
-| **build-agent** | `subagents/code/build-agent` | Type check, build validation |
-| **documentation** | `subagents/core/documentation` | Generate docs, README |
-| **reviewer** | `subagents/code/reviewer` | Code review, security audit |
+| **task-manager** | `TaskManager` | 4+ files, >60 min, complex features |
+| **coder-agent** | `CoderAgent` | 1-3 files, simple implementation |
+| **tester** | `TestEngineer` | After code changes, need tests |
+| **build-agent** | `BuildAgent` | Type check, build validation |
+| **documentation** | `DocWriter` | Generate docs, README |
+| **reviewer** | `CodeReviewer` | Code review, security audit |
 
 ### Core Subagents
 
-**subagents/core/task-manager** - Complex feature breakdown
-- **Path**: `subagents/core/task-manager`
+**TaskManager** - Complex feature breakdown
+- **Path**: `TaskManager`
 - **Capabilities**: Feature planning, task breakdown, dependency analysis
 - **Auto-invoke when**: Task has 4+ components OR estimated >60 minutes OR complex dependencies
 - **Example invocation**:
   ```javascript
   task(
-    subagent_type="subagents/core/task-manager",
+    subagent_type="TaskManager",
     description="Break down feature",
     prompt="Analyze and break down [feature] into atomic subtasks with dependencies and acceptance criteria"
   )
@@ -148,40 +148,40 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 
 ### Code Subagents
 
-**subagents/code/coder-agent** - Focused implementation
-- **Path**: `subagents/code/coder-agent`
+**CoderAgent** - Focused implementation
+- **Path**: `CoderAgent`
 - **Capabilities**: Code implementation, refactoring, bug fixes
 - **Auto-invoke when**: Simple 1-3 file implementation OR focused code changes
 - **Example invocation**:
   ```javascript
   task(
-    subagent_type="subagents/code/coder-agent",
+    subagent_type="CoderAgent",
     description="Implement feature",
-    prompt="Implement [feature] following standards in @.opencode/context/core/standards/code.md"
+    prompt="Implement [feature] following standards in @.opencode/context/core/standards/code-quality.md"
   )
   ```
 
-**subagents/code/tester** - Test generation and execution
-- **Path**: `subagents/code/tester`
+**TestEngineer** - Test generation and execution
+- **Path**: `TestEngineer`
 - **Capabilities**: Unit tests, integration tests, test execution, coverage analysis
 - **Auto-invoke when**: After code implementation OR user requests testing
 - **Example invocation**:
   ```javascript
   task(
-    subagent_type="subagents/code/tester",
+    subagent_type="TestEngineer",
     description="Test feature",
-    prompt="Write comprehensive tests for [feature] following @.opencode/context/core/standards/tests.md. Ensure >80% coverage. Run tests and report results."
+    prompt="Write comprehensive tests for [feature] following @.opencode/context/core/standards/test-coverage.md. Ensure >80% coverage. Run tests and report results."
   )
   ```
 
-**subagents/code/build-agent** - Build and type checking
-- **Path**: `subagents/code/build-agent`
+**BuildAgent** - Build and type checking
+- **Path**: `BuildAgent`
 - **Capabilities**: Type checking, build validation, compilation
 - **Auto-invoke when**: After code changes OR before deployment
 - **Example invocation**:
   ```javascript
   task(
-    subagent_type="subagents/code/build-agent",
+    subagent_type="BuildAgent",
     description="Validate build",
     prompt="Run type checks and build validation. Report any errors."
   )
@@ -189,31 +189,31 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 
 ### Documentation Subagents
 
-**subagents/core/documentation** - Documentation generation
-- **Path**: `subagents/core/documentation`
+**DocWriter** - Documentation generation
+- **Path**: `DocWriter`
 - **Capabilities**: README, API docs, code documentation
 - **Auto-invoke when**: User requests documentation OR after major feature completion
 - **Example invocation**:
   ```javascript
   task(
-    subagent_type="subagents/core/documentation",
+    subagent_type="DocWriter",
     description="Document feature",
-    prompt="Generate comprehensive documentation for [feature] following @.opencode/context/core/standards/docs.md"
+    prompt="Generate comprehensive documentation for [feature] following @.opencode/context/core/standards/documentation.md"
   )
   ```
 
 ### Review Subagents
 
-**subagents/code/reviewer** - Code review and quality checks
-- **Path**: `subagents/code/reviewer`
+**CodeReviewer** - Code review and quality checks
+- **Path**: `CodeReviewer`
 - **Capabilities**: Code review, security audit, quality analysis
 - **Auto-invoke when**: After code implementation OR user requests review
 - **Example invocation**:
   ```javascript
   task(
-    subagent_type="subagents/code/reviewer",
+    subagent_type="CodeReviewer",
     description="Review code",
-    prompt="Review [files] for code quality, security, and adherence to @.opencode/context/core/standards/code.md"
+    prompt="Review [files] for code quality, security, and adherence to @.opencode/context/core/standards/code-quality.md"
   )
   ```
 
@@ -229,7 +229,7 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
     **Complex Features → task-manager**
     
     IF (task has 4+ components) OR (estimated effort >60 min) OR (complex dependencies)
-    THEN invoke subagents/core/task-manager FIRST
+    THEN invoke TaskManager FIRST
     
     Examples: "Build auth system", "Add payment flow", "Implement dashboard"
   </rule>
@@ -238,7 +238,7 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
     **Code Implementation → coder-agent**
     
     IF (simple 1-3 file implementation) AND (focused changes)
-    THEN invoke subagents/code/coder-agent
+    THEN invoke CoderAgent
     
     Examples: "Add login form", "Fix validation bug", "Update API endpoint"
   </rule>
@@ -248,8 +248,8 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
     
     IF (code was written or modified)
     THEN:
-      1. Invoke subagents/code/tester (write and run tests)
-      2. Invoke subagents/code/reviewer (quality check)
+      1. Invoke TestEngineer (write and run tests)
+      2. Invoke CodeReviewer (quality check)
       3. Report results to user
     
     Examples: After implementing any feature, automatically test and review
@@ -259,7 +259,7 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
     **Documentation Requests → documentation**
     
     IF (user requests docs) OR (major feature completed)
-    THEN invoke subagents/core/documentation
+    THEN invoke DocWriter
     
     Examples: "Document the API", "Add README", after completing major feature
   </rule>
@@ -268,7 +268,7 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
     **Build Validation → build-agent**
     
     IF (code changes made) AND (TypeScript/compiled language)
-    THEN invoke subagents/code/build-agent
+    THEN invoke BuildAgent
     
     Examples: After TypeScript changes, before deployment
   </rule>
@@ -355,7 +355,7 @@ THEN:
          - Rule 5: Build validation needed?
       4. If ANY rule matches:
          - Prepare subagent invocation
-         - Load delegation context: @.opencode/context/core/workflows/delegation.md
+         - Load delegation context: @.opencode/context/core/workflows/task-delegation.md
          - Include in approval plan: "Will delegate to [subagent-name] (Rule X matched)"
       5. If NO rules match:
          - Proceed with direct execution
@@ -408,11 +408,11 @@ THEN:
       
       1. Classify task: docs|code|tests|delegate|review|patterns|bash-only
       2. Map to context file:
-         - code (write/edit code) → Read @.opencode/context/core/standards/code.md NOW
-         - docs (write/edit docs) → Read @.opencode/context/core/standards/docs.md NOW
-         - tests (write/edit tests) → Read @.opencode/context/core/standards/tests.md NOW
-         - review (code review) → Read @.opencode/context/core/workflows/review.md NOW
-         - delegate (using task tool) → Read @.opencode/context/core/workflows/delegation.md NOW
+         - code (write/edit code) → Read @.opencode/context/core/standards/code-quality.md NOW
+         - docs (write/edit docs) → Read @.opencode/context/core/standards/documentation.md NOW
+         - tests (write/edit tests) → Read @.opencode/context/core/standards/test-coverage.md NOW
+         - review (code review) → Read @.opencode/context/core/workflows/code-review.md NOW
+         - delegate (using task tool) → Read @.opencode/context/core/workflows/task-delegation.md NOW
          - bash-only → No context needed, proceed to 3.2
       
       3. Apply context:
@@ -420,16 +420,16 @@ THEN:
          IF direct: Use Read tool to load context file, then proceed to 3.2
       
       <automatic_loading>
-        IF code task → @.opencode/context/core/standards/code.md (MANDATORY)
-        IF docs task → @.opencode/context/core/standards/docs.md (MANDATORY)
-        IF tests task → @.opencode/context/core/standards/tests.md (MANDATORY)
-        IF review task → @.opencode/context/core/workflows/review.md (MANDATORY)
-        IF delegation → @.opencode/context/core/workflows/delegation.md (MANDATORY)
+        IF code task → @.opencode/context/core/standards/code-quality.md (MANDATORY)
+        IF docs task → @.opencode/context/core/standards/documentation.md (MANDATORY)
+        IF tests task → @.opencode/context/core/standards/test-coverage.md (MANDATORY)
+        IF review task → @.opencode/context/core/workflows/code-review.md (MANDATORY)
+        IF delegation → @.opencode/context/core/workflows/task-delegation.md (MANDATORY)
         IF bash-only → No context required
         
         WHEN DELEGATING TO SUBAGENTS:
         - Include context file path in subagent prompt
-        - Example: "Load @.opencode/context/core/standards/code.md before implementing"
+        - Example: "Load @.opencode/context/core/standards/code-quality.md before implementing"
         - Subagent will load context using read tool
       </automatic_loading>
     </step>
@@ -477,86 +477,86 @@ THEN:
     
     <handoff_recommendations>
       IF code written AND tests not run:
-        - Recommend: "Invoke subagents/code/tester to write and run tests"
+        - Recommend: "Invoke TestEngineer to write and run tests"
       
       IF code written AND not reviewed:
-        - Recommend: "Invoke subagents/code/reviewer for quality check"
+        - Recommend: "Invoke CodeReviewer for quality check"
       
       IF major feature completed AND no docs:
-        - Recommend: "Invoke subagents/core/documentation to generate docs"
+        - Recommend: "Invoke DocWriter to generate docs"
     </handoff_recommendations>
   </stage>
 </workflow>
 
 <delegation_criteria>
-  <route agent="subagents/core/task-manager" category="features">
+  <route agent="TaskManager" category="features">
     <when>Feature spans 4+ files | effort >60 min | complex dependencies</when>
-    <context_inheritance>Load @.opencode/context/core/workflows/delegation.md</context_inheritance>
+    <context_inheritance>Load @.opencode/context/core/workflows/task-delegation.md</context_inheritance>
     <invocation>
       task(
-        subagent_type="subagents/core/task-manager",
+        subagent_type="TaskManager",
         description="Break down [feature]",
-        prompt="Analyze and break down [feature] into atomic subtasks. Load @.opencode/context/core/workflows/delegation.md for process."
+        prompt="Analyze and break down [feature] into atomic subtasks. Load @.opencode/context/core/workflows/task-delegation.md for process."
       )
     </invocation>
   </route>
   
-  <route agent="subagents/code/coder-agent" category="implementation">
+  <route agent="CoderAgent" category="implementation">
     <when>Simple 1-3 file implementation | focused code changes</when>
-    <context_inheritance>Load @.opencode/context/core/standards/code.md</context_inheritance>
+    <context_inheritance>Load @.opencode/context/core/standards/code-quality.md</context_inheritance>
     <invocation>
       task(
-        subagent_type="subagents/code/coder-agent",
+        subagent_type="CoderAgent",
         description="Implement [feature]",
-        prompt="Implement [feature] following @.opencode/context/core/standards/code.md. Use modular, functional patterns."
+        prompt="Implement [feature] following @.opencode/context/core/standards/code-quality.md. Use modular, functional patterns."
       )
     </invocation>
   </route>
   
-  <route agent="subagents/code/tester" category="testing">
+  <route agent="TestEngineer" category="testing">
     <when>After code implementation | user requests tests</when>
-    <context_inheritance>Load @.opencode/context/core/standards/tests.md</context_inheritance>
+    <context_inheritance>Load @.opencode/context/core/standards/test-coverage.md</context_inheritance>
     <invocation>
       task(
-        subagent_type="subagents/code/tester",
+        subagent_type="TestEngineer",
         description="Test [feature]",
-        prompt="Write comprehensive tests for [feature] following @.opencode/context/core/standards/tests.md. Ensure >80% coverage. Run tests and report results."
+        prompt="Write comprehensive tests for [feature] following @.opencode/context/core/standards/test-coverage.md. Ensure >80% coverage. Run tests and report results."
       )
     </invocation>
   </route>
   
-  <route agent="subagents/code/reviewer" category="review">
+  <route agent="CodeReviewer" category="review">
     <when>After code implementation | user requests review</when>
-    <context_inheritance>Load @.opencode/context/core/workflows/review.md</context_inheritance>
+    <context_inheritance>Load @.opencode/context/core/workflows/code-review.md</context_inheritance>
     <invocation>
       task(
-        subagent_type="subagents/code/reviewer",
+        subagent_type="CodeReviewer",
         description="Review [feature]",
-        prompt="Review [files] for code quality, security, and adherence to @.opencode/context/core/standards/code.md"
+        prompt="Review [files] for code quality, security, and adherence to @.opencode/context/core/standards/code-quality.md"
       )
     </invocation>
   </route>
   
-  <route agent="subagents/core/documentation" category="docs">
+  <route agent="DocWriter" category="docs">
     <when>User requests docs | major feature completed</when>
-    <context_inheritance>Load @.opencode/context/core/standards/docs.md</context_inheritance>
+    <context_inheritance>Load @.opencode/context/core/standards/documentation.md</context_inheritance>
     <invocation>
       task(
-        subagent_type="subagents/core/documentation",
+        subagent_type="DocWriter",
         description="Document [feature]",
-        prompt="Generate comprehensive documentation for [feature] following @.opencode/context/core/standards/docs.md"
+        prompt="Generate comprehensive documentation for [feature] following @.opencode/context/core/standards/documentation.md"
       )
     </invocation>
   </route>
   
-  <route agent="subagents/code/build-agent" category="validation">
+  <route agent="BuildAgent" category="validation">
     <when>After code changes | TypeScript/compiled language | before deployment</when>
-    <context_inheritance>Load @.opencode/context/core/standards/code.md</context_inheritance>
+    <context_inheritance>Load @.opencode/context/core/standards/code-quality.md</context_inheritance>
     <invocation>
       task(
-        subagent_type="subagents/code/build-agent",
+        subagent_type="BuildAgent",
         description="Validate build",
-        prompt="Run type checks and build validation for [files/project]. Report any errors. Follow @.opencode/context/core/standards/code.md for standards."
+        prompt="Run type checks and build validation for [files/project]. Report any errors. Follow @.opencode/context/core/standards/code-quality.md for standards."
       )
     </invocation>
   </route>

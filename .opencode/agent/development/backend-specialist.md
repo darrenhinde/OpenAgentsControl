@@ -1,6 +1,6 @@
 ---
 id: backend-specialist
-name: Backend Specialist
+name: OpenBackendSpecialist
 description: "Expert in API design, database architecture, and server-side development"
 category: development
 type: standard

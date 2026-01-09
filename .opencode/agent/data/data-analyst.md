@@ -1,6 +1,6 @@
 ---
 id: data-analyst
-name: Data Analyst
+name: OpenDataAnalyst
 description: "Expert in data analysis, visualization, and statistical insights"
 category: data
 type: standard

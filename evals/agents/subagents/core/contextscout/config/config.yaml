@@ -1,0 +1,26 @@
+# ContextScout - Intelligent context discovery and retrieval Test Configuration
+# Subagent path format
+
+agent: subagents/core/contextscout
+model: anthropic/claude-sonnet-4-5
+timeout: 90000
+
+# Test suite configuration
+suites:
+  - smoke
+  - discovery
+  - search
+  - extraction
+  - tool-usage
+  - error-handling
+  - multi-domain
+
+description: |
+  ContextScout evaluation suite validates:
+  - Correct file discovery using glob/read/grep
+  - Accurate context file identification
+  - Proper priority ratings and line ranges
+  - Read-only constraint enforcement
+  - Graceful handling of bad requests
+  - Multi-domain comprehensive discovery
+

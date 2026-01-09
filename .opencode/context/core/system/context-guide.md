@@ -33,24 +33,24 @@ The index provides:
 All files are in `.opencode/context/core/` with organized subfolders:
 
 ### Standards (Quality Guidelines + Analysis)
-- `standards/code.md` - Modular, functional code principles [critical]
-- `standards/docs.md` - Documentation standards [critical]
-- `standards/tests.md` - Testing standards [critical]
-- `standards/patterns.md` - Core patterns (error handling, security) [high]
-- `standards/analysis.md` - Analysis framework [high]
+- `standards/code-quality.md` - Modular, functional code principles [critical]
+- `standards/documentation.md` - Documentation standards [critical]
+- `standards/test-coverage.md` - Testing standards [critical]
+- `standards/security-patterns.md` - Core patterns (error handling, security) [high]
+- `standards/code-analysis.md` - Analysis framework [high]
 
 ### Workflows (Process Templates + Review)
-- `workflows/delegation.md` - Delegation template [high]
-- `workflows/task-breakdown.md` - Complex task breakdown [high]
-- `workflows/sessions.md` - Session lifecycle [medium]
-- `workflows/review.md` - Code review guidelines [high]
+- `workflows/task-delegation.md` - Delegation template [high]
+- `workflows/feature-breakdown.md` - Complex task breakdown [high]
+- `workflows/session-management.md` - Session lifecycle [medium]
+- `workflows/code-review.md` - Code review guidelines [high]
 
 ## How to Use the Index
 
 **Step 1: Check Quick Map** (for common tasks)
-- Code task? → Load `standards/code.md`
-- Docs task? → Load `standards/docs.md`
-- Review task? → Load `workflows/review.md`
+- Code task? → Load `standards/code-quality.md`
+- Docs task? → Load `standards/documentation.md`
+- Review task? → Load `workflows/code-review.md`
 
 **Step 2: Load Index** (for keyword matching)
 - Load `.opencode/context/index.md`
@@ -69,48 +69,48 @@ All files are in `.opencode/context/core/` with organized subfolders:
 
 ## When to Use Each File
 
-### .opencode/context/core/standards/code.md
+### .opencode/context/core/standards/code-quality.md
 - Writing new code
 - Modifying existing code
 - Following modular/functional patterns
 - Making architectural decisions
 
-### .opencode/context/core/standards/docs.md
+### .opencode/context/core/standards/documentation.md
 - Writing README files
 - Creating API documentation
 - Adding code comments
 
-### .opencode/context/core/standards/tests.md
+### .opencode/context/core/standards/test-coverage.md
 - Writing new tests
 - Running test suites
 - Debugging test failures
 
-### .opencode/context/core/standards/patterns.md
+### .opencode/context/core/standards/security-patterns.md
 - Error handling
 - Security patterns
 - Common code patterns
 
-### .opencode/context/core/standards/analysis.md
+### .opencode/context/core/standards/code-analysis.md
 - Analyzing codebase patterns
 - Investigating bugs
 - Evaluating architecture
 
-### .opencode/context/core/workflows/delegation.md
+### .opencode/context/core/workflows/task-delegation.md
 - Delegating to general agent
 - Creating task context
 - Multi-file coordination
 
-### .opencode/context/core/workflows/task-breakdown.md
+### .opencode/context/core/workflows/feature-breakdown.md
 - Tasks with 4+ files
 - Estimated effort >60 minutes
 - Complex dependencies
 
-### .opencode/context/core/workflows/sessions.md
+### .opencode/context/core/workflows/session-management.md
 - Session lifecycle
 - Cleanup procedures
 - Session isolation
 
-### .opencode/context/core/workflows/review.md
+### .opencode/context/core/workflows/code-review.md
 - Reviewing code
 - Conducting code audits
 - Providing PR feedback
@@ -143,8 +143,8 @@ Status: in_progress
 - {file 1} - {purpose}
 
 ## Static Context Available
-- .opencode/context/core/standards/code.md
-- .opencode/context/core/standards/tests.md
+- .opencode/context/core/standards/code-quality.md
+- .opencode/context/core/standards/test-coverage.md
 
 ## Constraints/Notes
 {Important context}

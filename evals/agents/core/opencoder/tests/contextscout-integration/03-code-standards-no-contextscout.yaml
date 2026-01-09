@@ -1,0 +1,65 @@
+id: opencoder-code-standards-no-contextscout
+name: "OpenCoder: Doesn't Use ContextScout for Code Standards"
+description: |
+  Tests that OpenCoder does NOT delegate to ContextScout for familiar domains
+  like code standards, testing, or general development patterns.
+  
+  This validates:
+  - OpenCoder recognizes code standards as known domain
+  - OpenCoder loads context directly without ContextScout
+  - OpenCoder uses read tool directly
+  - OpenCoder doesn't add unnecessary delegation overhead
+  
+  Expected Behavior:
+  1. OpenCoder receives code implementation request
+  2. OpenCoder recognizes this as known domain (code standards)
+  3. OpenCoder loads .opencode/context/core/standards/code-quality.md directly
+  4. OpenCoder does NOT delegate to ContextScout
+  
+  This test SHOULD FAIL if:
+  - OpenCoder delegates to ContextScout for known domains
+  - OpenCoder doesn't load context at all
+  - OpenCoder loads wrong context files
+
+category: developer
+agent: core/opencoder
+
+prompts:
+  - text: |
+      Implement a function that validates user email addresses.
+      
+      Requirements:
+      - Pure function
+      - Proper error handling
+      - Return structured result (success/error)
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read   # Must read code-quality.md directly
+  forbiddenTools:
+    - task   # Should NOT delegate to ContextScout for known domain
+  minToolCalls: 1
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - opencoder
+  - contextscout-integration
+  - known-domain
+  - direct-loading
+  - medium
+
+# Expected outcome:
+# - OpenCoder uses read tool to load code-quality.md directly
+# - OpenCoder does NOT use task tool to delegate to ContextScout
+# - OpenCoder implements pure function following code standards
+# - Function returns { success: boolean, data/error } structure

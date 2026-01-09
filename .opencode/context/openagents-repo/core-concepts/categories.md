@@ -129,7 +129,7 @@ evals/agents/{category}/        # Tests by category
 └── codebase-agent.md
 
 .opencode/context/development/
-├── README.md
+├── navigation.md
 ├── clean-code.md
 ├── react-patterns.md
 └── api-design.md
@@ -212,7 +212,7 @@ The system resolves agent paths flexibly:
 "development/frontend-specialist" → ".opencode/agent/development/frontend-specialist.md"
 
 # Subagent path
-"subagents/code/tester" → ".opencode/agent/subagents/code/tester.md"
+"TestEngineer" → ".opencode/agent/TestEngineer.md"
 ```
 
 ---
@@ -249,7 +249,7 @@ EOF
 ### Step 3: Add Context README
 
 ```bash
-cat > .opencode/context/{category}/README.md << 'EOF'
+cat > .opencode/context/{category}/navigation.md << 'EOF'
 # Category Name Context
 
 Context files for {category} specialists.
@@ -316,7 +316,7 @@ EOF
 
 ```
 .opencode/context/{category}/
-├── README.md               # Overview
+├── navigation.md               # Overview
 ├── {topic-1}.md           # Specific topic
 ├── {topic-2}.md           # Specific topic
 └── {topic-3}.md           # Specific topic
@@ -412,7 +412,7 @@ development/
 
 ```
 context/development/
-├── README.md
+├── navigation.md
 ├── clean-code.md
 ├── react-patterns.md
 └── api-design.md

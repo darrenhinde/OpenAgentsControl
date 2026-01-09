@@ -1,16 +1,16 @@
 {
   "meta": {
-    "timestamp": "2025-12-18T00:26:11.563Z",
-    "agent": "core/openagent",
+    "timestamp": "2026-01-09T13:10:17.718Z",
+    "agent": "ContextScout",
     "model": "opencode/grok-code-fast",
     "framework_version": "0.1.0",
-    "git_commit": "4f778c8"
+    "git_commit": "41c5917"
   },
   "summary": {
     "total": 1,
     "passed": 1,
     "failed": 0,
-    "duration_ms": 28002,
+    "duration_ms": 15339,
     "pass_rate": 1
   },
   "by_category": {
@@ -21,23 +21,16 @@
   },
   "tests": [
     {
-      "id": "golden-02-delegation-test",
+      "id": "core-contextscout-smoke-test",
       "category": "developer",
       "passed": true,
-      "duration_ms": 28002,
-      "events": 62,
+      "duration_ms": 15339,
+      "events": 18,
       "approvals": 0,
       "violations": {
-        "total": 1,
+        "total": 0,
         "errors": 0,
-        "warnings": 1,
-        "details": [
-          {
-            "type": "insufficient-read",
-            "severity": "warning",
-            "message": "Read/execution ratio < 1 (0.67)"
-          }
-        ]
+        "warnings": 0
       }
     }
   ]

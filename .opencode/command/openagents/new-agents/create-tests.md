@@ -589,7 +589,7 @@ description: "Generate comprehensive test suites for OpenCode agents with 8 esse
     <action>Generate test suite documentation</action>
     <prerequisites>All 8 tests created</prerequisites>
     <process>
-      Create `evals/agents/{agent-name}/tests/README.md`:
+      Create `evals/agents/{agent-name}/tests/navigation.md`:
       
       ```markdown
       # {Agent Name} Test Suite
@@ -773,7 +773,7 @@ description: "Generate comprehensive test suites for OpenCode agents with 8 esse
       │   │   └── stop-on-failure-001.yaml
       │   ├── completion/
       │   │   └── handoff-001.yaml
-      │   └── README.md
+      │   └── navigation.md
       ```
       
       ### Running Tests
@@ -803,7 +803,7 @@ description: "Generate comprehensive test suites for OpenCode agents with 8 esse
       ### Test Adaptations Applied
       {List any agent-specific adaptations made}
       
-      See `evals/agents/{agent-name}/tests/README.md` for detailed documentation.
+      See `evals/agents/{agent-name}/tests/navigation.md` for detailed documentation.
     </output_format>
   </stage>
 </workflow_execution>

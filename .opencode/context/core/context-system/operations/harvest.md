@@ -163,7 +163,7 @@ Found 3 summary documents:
    - Add to target file (create if needed)
    - Add cross-references
    - Update related files
-2. Update README.md navigation maps
+2. Update navigation.md navigation maps
 3. Validate file sizes (<200 lines)
 
 **Output**: List of created/updated files
@@ -209,8 +209,8 @@ Found 3 summary documents:
    - Deleted: .tmp/IMPLEMENTATION-NOTES.md (no valuable content)
 
 📊 Updated navigation maps:
-   - .opencode/context/core/README.md
-   - .opencode/context/development/README.md
+   - .opencode/context/core/navigation.md
+   - .opencode/context/development/navigation.md
 
 💾 Disk space freed: 6.8 KB
 ```
@@ -276,7 +276,7 @@ After harvest operation:
 - [ ] Valuable knowledge extracted to permanent context?
 - [ ] All extracted files <200 lines?
 - [ ] Files in correct function folders?
-- [ ] README.md navigation updated?
+- [ ] navigation.md navigation updated?
 - [ ] Summary files archived/deleted?
 - [ ] Workspace cleaner than before?
 - [ ] No knowledge lost?

@@ -1,0 +1,44 @@
+id: core-contextscout-no-context
+name: "ContextScout: Edge Case - No Context Found"
+description: |
+  Tests ContextScout's ability to handle repositories without
+  formal context structure gracefully.
+  
+  Validates:
+  - Searches multiple common context locations
+  - Reports when no context is found
+  - Suggests alternatives (README, CONTRIBUTING)
+  - Provides helpful recommendations
+  - Doesn't fabricate non-existent context
+  
+  Critical Behavior:
+  - MUST search multiple locations
+  - MUST report honestly when nothing found
+  - MUST suggest alternatives
+  - MUST NOT claim files exist that don't
+category: developer
+
+prompts:
+  - text: |
+      Search for API design guidelines in the .tmp/test-fixtures/contextscout
+      directory (which is empty). How do you handle this?
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - contextscout
+  - edge-case
+  - error-handling
+  - core-subagent

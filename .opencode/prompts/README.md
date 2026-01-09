@@ -40,14 +40,14 @@ open ../results/index.html
 │   ├── openagent.md            # OpenAgent default (Claude-optimized)
 │   └── opencoder.md            # OpenCoder default
 └── prompts/                     # Model-specific variants
-    ├── README.md               # This file
+    ├── navigation.md               # This file
     ├── openagent/              # OpenAgent variants
     │   ├── gpt.md             # GPT-4 optimized
     │   ├── gemini.md          # Gemini optimized
     │   ├── grok.md            # Grok optimized
     │   ├── llama.md           # Llama/OSS optimized
     │   ├── TEMPLATE.md        # Template for new variants
-    │   ├── README.md          # Variant documentation
+    │   ├── navigation.md          # Variant documentation
     │   └── results/           # Per-variant test results
     │       ├── default-results.json  # Default (agent file) results
     │       ├── gpt-results.json
@@ -155,7 +155,7 @@ open ../results/index.html
 
 ### Step 6: Document Results
 
-Update `.opencode/prompts/openagent/README.md` with:
+Update `.opencode/prompts/openagent/navigation.md` with:
 - Test results (pass rate, timing)
 - Known issues or limitations
 - Recommended use cases
@@ -174,7 +174,7 @@ Update `.opencode/prompts/openagent/README.md` with:
 | `grok` | Grok | ✅ Stable | Grok models (free tier) |
 | `llama` | Llama/OSS | ✅ Stable | Llama, Qwen, DeepSeek, other OSS |
 
-See [openagent/README.md](openagent/README.md) for detailed test results.
+See [openagent/navigation.md](openagent/navigation.md) for detailed test results.
 
 ### OpenCoder
 
@@ -324,7 +324,7 @@ npm run eval:sdk -- --agent=openagent --prompt-variant=your-variant --suite=core
 
 - [Eval Framework Guide](../../evals/EVAL_FRAMEWORK_GUIDE.md) - How to run tests
 - [Test Suite Validation](../../evals/TEST_SUITE_VALIDATION.md) - Creating test suites
-- [OpenAgent Variants](openagent/README.md) - OpenAgent-specific docs
+- [OpenAgent Variants](openagent/navigation.md) - OpenAgent-specific docs
 - [Contributing Guide](../../docs/contributing/CONTRIBUTING.md) - Contribution guidelines
 
 ---
@@ -381,4 +381,4 @@ npm run eval:sdk -- --agent=openagent --prompt-variant=llama --model=ollama/llam
 
 ---
 
-**Questions?** See [openagent/README.md](openagent/README.md) or open an issue.
+**Questions?** See [openagent/navigation.md](openagent/navigation.md) or open an issue.

@@ -189,7 +189,7 @@ conversation:
     content: "Write a new function"
 expectations:
   - type: context_loaded
-    contexts: ["core/standards/code.md"]
+    contexts: ["core/standards/code-quality.md"]
 EOF
 ```
 

@@ -239,7 +239,7 @@ behavior:
   shouldDelegate: true
   
   delegationExpectations:
-    subagentType: "subagents/code/coder-agent"
+    subagentType: "CoderAgent"
     subagentMustUseTools: [write, read]
     subagentMinToolCalls: 2
     subagentMustComplete: true

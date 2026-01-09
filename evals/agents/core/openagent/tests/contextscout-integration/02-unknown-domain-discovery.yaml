@@ -1,0 +1,60 @@
+id: openagent-contextscout-unknown-domain
+name: "OpenAgent: Unknown Domain - Should Use ContextScout for Discovery"
+description: |
+  Tests that OpenAgent DOES use ContextScout when dealing with unfamiliar
+  or domain-specific topics where context files need to be discovered.
+  
+  This validates:
+  - Agent recognizes unfamiliar domain (eval framework)
+  - Agent delegates to ContextScout to discover relevant files
+  - Agent loads discovered context files
+  - Finds domain-specific context (not just generic standards)
+  
+  Expected Behavior:
+  - SHOULD delegate to ContextScout for discovery
+  - MUST load discovered context files
+  - SHOULD find eval-specific context files
+  - MAY take longer due to discovery phase (acceptable)
+  
+  This test SHOULD FAIL if:
+  - Agent doesn't use ContextScout (misses domain context)
+  - Agent only loads generic standards (incomplete context)
+  - Agent fabricates context without discovery
+
+category: developer
+
+prompts:
+  - text: |
+      I need to understand how the eval framework works in this repository.
+      Find all relevant context files about eval testing, test structure,
+      and how to write eval tests.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - task  # Must delegate to ContextScout
+    - read  # Must read discovered files
+  minToolCalls: 3
+  maxToolCalls: 20
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000  # Discovery takes longer, that's OK
+
+tags:
+  - openagent
+  - contextscout-integration
+  - unknown-domain
+  - discovery
+  - critical
+
+# Expected outcome:
+# - Agent delegates to ContextScout
+# - ContextScout finds .opencode/context/openagents-repo/core-concepts/evals.md
+# - Agent loads discovered files
+# - Agent provides comprehensive answer about eval framework

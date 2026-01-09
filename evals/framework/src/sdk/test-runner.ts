@@ -33,6 +33,7 @@ import { ExecutionBalanceEvaluator } from '../evaluators/execution-balance-evalu
 import { BehaviorEvaluator } from '../evaluators/behavior-evaluator.js';
 import { PerformanceMetricsEvaluator } from '../evaluators/performance-metrics-evaluator.js';
 import { AgentModelEvaluator } from '../evaluators/agent-model-evaluator.js';
+import { ErrorHandlingEvaluator } from '../evaluators/error-handling-evaluator.js';
 import { TestExecutor } from './test-executor.js';
 import { ResultValidator } from './result-validator.js';
 import { createLogger } from './event-logger.js';
@@ -221,33 +222,66 @@ export class TestRunner {
     const agentMap: Record<string, string> = {
       // Main agents
       'openagent': 'core/openagent.md',
+      'OpenAgent': 'core/openagent.md',
       'opencoder': 'core/opencoder.md',
+      'OpenCoder': 'core/opencoder.md',
       'core/openagent': 'core/openagent.md',
       'core/opencoder': 'core/opencoder.md',
       'system-builder': 'meta/system-builder.md',
+      'OpenSystemBuilder': 'meta/system-builder.md',
       'meta/system-builder': 'meta/system-builder.md',
+      'codebase-agent': 'development/codebase-agent.md',
+      'OpenCodebaseAgent': 'development/codebase-agent.md',
+      'devops-specialist': 'development/devops-specialist.md',
+      'OpenDevopsSpecialist': 'development/devops-specialist.md',
+      'frontend-specialist': 'development/frontend-specialist.md',
+      'OpenFrontendSpecialist': 'development/frontend-specialist.md',
+      'backend-specialist': 'development/backend-specialist.md',
+      'OpenBackendSpecialist': 'development/backend-specialist.md',
+      'technical-writer': 'content/technical-writer.md',
+      'OpenTechnicalWriter': 'content/technical-writer.md',
+      'copywriter': 'content/copywriter.md',
+      'OpenCopywriter': 'content/copywriter.md',
+      'data-analyst': 'data/data-analyst.md',
+      'OpenDataAnalyst': 'data/data-analyst.md',
+      'repo-manager': 'meta/repo-manager.md',
+      'OpenRepoManager': 'meta/repo-manager.md',
       
       // Subagents - code
       'coder-agent': 'subagents/code/coder-agent.md',
+      'CoderAgent': 'subagents/code/coder-agent.md',
       'tester': 'subagents/code/tester.md',
+      'TestEngineer': 'subagents/code/tester.md',
       'reviewer': 'subagents/code/reviewer.md',
+      'CodeReviewer': 'subagents/code/reviewer.md',
       'build-agent': 'subagents/code/build-agent.md',
+      'BuildAgent': 'subagents/code/build-agent.md',
       'codebase-pattern-analyst': 'subagents/code/codebase-pattern-analyst.md',
+      'PatternAnalyst': 'subagents/code/codebase-pattern-analyst.md',
       
       // Subagents - core
       'task-manager': 'subagents/core/task-manager.md',
+      'TaskManager': 'subagents/core/task-manager.md',
       'documentation': 'subagents/core/documentation.md',
-      'context-retriever': 'subagents/core/context-retriever.md',
+      'DocWriter': 'subagents/core/documentation.md',
+      'contextscout': 'subagents/core/contextscout.md',
+      'ContextScout': 'subagents/core/contextscout.md',
       
       // Subagents - system-builder
       'agent-generator': 'subagents/system-builder/agent-generator.md',
+      'AgentGenerator': 'subagents/system-builder/agent-generator.md',
       'command-creator': 'subagents/system-builder/command-creator.md',
+      'CommandCreator': 'subagents/system-builder/command-creator.md',
       'context-organizer': 'subagents/system-builder/context-organizer.md',
+      'ContextOrganizer': 'subagents/system-builder/context-organizer.md',
       'domain-analyzer': 'subagents/system-builder/domain-analyzer.md',
+      'DomainAnalyzer': 'subagents/system-builder/domain-analyzer.md',
       'workflow-designer': 'subagents/system-builder/workflow-designer.md',
+      'WorkflowDesigner': 'subagents/system-builder/workflow-designer.md',
       
       // Subagents - utils
       'image-specialist': 'subagents/utils/image-specialist.md',
+      'ImageSpecialist': 'subagents/utils/image-specialist.md',
     };
     
     // Support full paths (e.g., "subagents/code/coder-agent") or just names (e.g., "coder-agent")
@@ -361,7 +395,7 @@ If you see this prompt during a test run, something went wrong with the test set
     this.logger.log(`Server started at ${url}`);
 
     this.client = new ClientManager({ baseUrl: url });
-    this.eventHandler = new EventStreamHandler(url);
+    this.eventHandler = new EventStreamHandler(url, this.config.projectPath);
 
     // Initialize multi-agent logger (always enabled, verbose only in debug mode)
     this.multiAgentLogger = new MultiAgentLogger(true, this.config.debug);
@@ -414,6 +448,7 @@ If you see this prompt during a test run, something went wrong with the test set
         new CleanupConfirmationEvaluator(),
         new ExecutionBalanceEvaluator(),
         new PerformanceMetricsEvaluator(),
+        new ErrorHandlingEvaluator(),
         new AgentModelEvaluator({ projectPath: this.config.projectPath }), // Logs agent/model info
       ],
     });

@@ -1,0 +1,60 @@
+id: openagent-contextscout-accuracy
+name: "OpenAgent: ContextScout Accuracy - Finds Correct Files"
+description: |
+  Tests that when OpenAgent uses ContextScout, it finds the CORRECT
+  context files (not random or irrelevant files).
+  
+  This validates:
+  - ContextScout search accuracy
+  - Agent loads files returned by ContextScout
+  - Files are actually relevant to the query
+  - No false positives (irrelevant files)
+  
+  Expected Behavior:
+  - SHOULD use ContextScout to find MVI-related context
+  - MUST find .opencode/context/core/context-system/standards/mvi.md
+  - SHOULD NOT load irrelevant files
+  - MUST provide accurate information about MVI
+  
+  This test SHOULD FAIL if:
+  - ContextScout returns wrong files
+  - Agent loads files not related to MVI
+  - Agent provides incorrect MVI information
+
+category: developer
+
+prompts:
+  - text: |
+      What are the MVI (Minimal Viable Information) principles in this project?
+      Find the relevant context files and explain the key concepts.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - task  # Should use ContextScout
+    - read  # Must read discovered files
+  minToolCalls: 2
+  maxToolCalls: 15
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - openagent
+  - contextscout-integration
+  - accuracy
+  - search-quality
+  - critical
+
+# Expected outcome:
+# - Agent uses ContextScout to search for "MVI"
+# - ContextScout finds .opencode/context/core/context-system/standards/mvi.md
+# - Agent reads the file
+# - Agent explains MVI principles accurately
+# - NO irrelevant files loaded

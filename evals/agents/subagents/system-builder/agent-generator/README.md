@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/system-builder/agent-generator`  
+**Agent:** `AgentGenerator`  
 **Parent Agent:** `system-builder`  
 **Description:** Generates XML-optimized agent files following research-backed patterns
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/system-builder/agent-generator.md)
+- [Agent Source](.opencode/agent/AgentGenerator.md)
 

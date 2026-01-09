@@ -1,0 +1,79 @@
+id: contextscout-domain-specific
+name: "ContextScout: Domain-Specific Discovery (Eval Framework)"
+description: |
+  Tests that ContextScout correctly discovers domain-specific context
+  when asked about specialized topics like eval framework, registry, etc.
+  
+  This validates:
+  - ContextScout searches in domain-specific directories
+  - ContextScout finds openagents-repo context
+  - ContextScout prioritizes domain files over generic ones
+  - ContextScout checks navigation.md first
+  - ContextScout returns comprehensive results
+  
+  Expected Behavior:
+  - SHOULD check .opencode/context/openagents-repo/navigation.md first
+  - MUST find .opencode/context/openagents-repo/core-concepts/evals.md
+  - SHOULD prioritize domain-specific over generic files
+  - MUST return exact paths with priorities
+  - SHOULD include related files (guides, examples)
+  
+  This test SHOULD FAIL if:
+  - ContextScout only finds generic context (misses domain-specific)
+  - ContextScout doesn't check navigation.md
+  - ContextScout returns incomplete results
+  - ContextScout prioritizes wrong files
+
+category: developer
+agent: subagents/core/contextscout
+
+prompts:
+  - text: |
+      Search for context files related to: eval framework testing patterns
+      
+      Task type: testing
+      Domain: eval framework
+      
+      Return:
+      - Exact file paths with line ranges
+      - Priority order (critical, high, medium)
+      - Key findings from each file
+      - Loading strategy
+      
+      Focus on:
+      - Eval framework structure
+      - Test patterns
+      - How to write eval tests
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  forbiddenTools:
+    - task
+    - bash
+    - write
+    - edit
+  minToolCalls: 1
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - discovery
+  - domain-specific
+  - eval-framework
+  - critical
+
+# Expected outcome:
+# - Checks .opencode/context/openagents-repo/navigation.md
+# - Finds .opencode/context/openagents-repo/core-concepts/evals.md (⭐⭐⭐⭐⭐)
+# - May also find guides/testing-agent.md (⭐⭐⭐⭐)
+# - Returns structured response with exact paths and priorities
+# - Provides loading strategy (load concepts first, then guides)

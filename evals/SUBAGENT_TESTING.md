@@ -65,7 +65,7 @@ make test-subagent-delegate SUBAGENT=coder-agent
 ```bash
 --subagent=task-manager             # Feature breakdown
 --subagent=documentation            # Doc generation
---subagent=context-retriever        # Context search
+--subagent=contextscout        # Context search
 ```
 
 ### System-Builder Subagents (Parent: system-builder)
@@ -157,7 +157,7 @@ $ npm run eval:sdk -- --subagent=unknown-agent
     - coder-agent, tester, reviewer, build-agent, codebase-pattern-analyst
 
   Core subagents (parent: openagent):
-    - task-manager, documentation, context-retriever
+    - task-manager, documentation, contextscout
 
   System-builder subagents (parent: system-builder):
     - agent-generator, command-creator, context-organizer

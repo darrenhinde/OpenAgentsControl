@@ -200,58 +200,98 @@
 
 ---
 
-## 6. README Template
+## 6. Navigation Template (Replaces README.md)
+
+**Note**: Use `navigation.md` instead of `README.md` for better discoverability
+
+**Target**: 200-300 tokens
 
 ```markdown
-# {Category} Context
+# {Category} Navigation
 
-**Purpose**: [1-2 sentences]
-**Last Updated**: {YYYY-MM-DD}
+**Purpose**: [1 sentence]
 
-## Quick Navigation
+---
 
-### Concepts
-| File | Description | Priority |
-|------|-------------|----------|
-| [x.md](concepts/x.md) | desc | critical |
+## Structure
 
-### Examples
-| File | Description | Priority |
-|------|-------------|----------|
-| [y.md](examples/y.md) | desc | high |
+```
+{category}/
+├── navigation.md
+├── {subcategory}/
+│   ├── navigation.md
+│   └── {files}.md
+```
 
-### Guides
-| File | Description | Priority |
-|------|-------------|----------|
-| [z.md](guides/z.md) | desc | high |
+---
 
-### Lookup
-| File | Description | Priority |
-|------|-------------|----------|
-| [a.md](lookup/a.md) | desc | medium |
+## Quick Routes
 
-### Errors
-| File | Description | Priority |
-|------|-------------|----------|
-| [b.md](errors/b.md) | desc | medium |
+| Task | Path |
+|------|------|
+| **{Task 1}** | `{path}` |
+| **{Task 2}** | `{path}` |
+| **{Task 3}** | `{path}` |
 
-## Loading Strategy
+---
 
-**For {task}**:
-1. Load concepts/x.md
-2. Load examples/y.md
+## By {Concern/Type}
 
-**For troubleshooting**:
-1. Load errors/z.md
+**{Section 1}** → {description}
+**{Section 2}** → {description}
+**{Section 3}** → {description}
 
-## Used By
-**Agents**: {list}
-**Commands**: {list}
+---
 
-## Statistics
-- Concepts: {count}
-- Examples: {count}
-- Total: {count}
+## Related Context
+
+- **{Category}** → `../{category}/navigation.md`
+```
+
+---
+
+## 7. Specialized Navigation Template
+
+**Use for**: Cross-cutting concerns (e.g., `ui-navigation.md`)
+
+**Target**: 250-300 tokens
+
+```markdown
+# {Domain} Navigation
+
+**Scope**: [What this covers]
+
+---
+
+## Structure
+
+```
+{Relevant directories across multiple categories}
+```
+
+---
+
+## Quick Routes
+
+| Task | Path |
+|------|------|
+| **{Task 1}** | `{path}` |
+| **{Task 2}** | `{path}` |
+
+---
+
+## By {Framework/Approach}
+
+**{Tech 1}** → `{path}`
+**{Tech 2}** → `{path}`
+
+---
+
+## Common Workflows
+
+**{Workflow 1}**:
+1. `{file1}` ({purpose})
+2. `{file2}` ({purpose})
 ```
 
 ---

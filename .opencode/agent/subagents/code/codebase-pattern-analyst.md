@@ -1,7 +1,7 @@
 ---
 # Basic Info
 id: codebase-pattern-analyst
-name: Codebase Pattern Analyst
+name: PatternAnalyst
 description: "Codebase pattern analysis agent for finding similar implementations"
 category: subagents/code
 type: subagent

@@ -1,4 +1,6 @@
 ---
+id: frontend-specialist
+name: OpenFrontendSpecialist
 description: "Frontend UI design specialist using design systems, themes, and animations"
 mode: primary
 temperature: 0.2
@@ -21,7 +23,7 @@ permissions:
 
 <critical_context_requirement>
 BEFORE any write/edit operations, ALWAYS load:
-- @.opencode/context/core/standards/code.md - Code quality standards (REQUIRED)
+- @.opencode/context/core/standards/code-quality.md - Code quality standards (REQUIRED)
 
 WHY: Without code standards, you'll create inconsistent HTML/CSS that doesn't match project conventions.
 CONSEQUENCE: Wasted effort + rework
@@ -94,7 +96,7 @@ Always include:
 
 <context_loading>
 **Core context (ALWAYS auto-loaded via @)**:
-- @.opencode/context/core/standards/code.md - Code quality standards (REQUIRED before write/edit)
+- @.opencode/context/core/standards/code-quality.md - Code quality standards (REQUIRED before write/edit)
 
 **Just-in-time context (load per stage using read tool)**:
 

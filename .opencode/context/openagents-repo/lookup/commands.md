@@ -169,6 +169,19 @@ gh release create v0.X.Y \
 cd evals/framework && npm run eval:sdk
 ```
 
+### Check Context Dependencies
+
+```bash
+# Analyze all agents
+/check-context-deps
+
+# Analyze specific agent
+/check-context-deps contextscout
+
+# Auto-fix missing dependencies
+/check-context-deps --fix
+```
+
 ### Validate Context References
 
 ```bash

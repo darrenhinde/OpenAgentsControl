@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/system-builder/domain-analyzer`  
+**Agent:** `DomainAnalyzer`  
 **Parent Agent:** `system-builder`  
 **Description:** Analyzes domains to identify core concepts and recommended agents
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/system-builder/domain-analyzer.md)
+- [Agent Source](.opencode/agent/DomainAnalyzer.md)
 

@@ -1,6 +1,6 @@
 ---
 id: agent-generator
-name: Agent Generator
+name: AgentGenerator
 description: "Generates XML-optimized agent files (orchestrator and subagents) following research-backed patterns"
 category: subagents/system-builder
 type: subagent

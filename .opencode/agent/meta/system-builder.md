@@ -1,6 +1,6 @@
 ---
 id: system-builder
-name: System Builder
+name: OpenSystemBuilder
 description: "Main orchestrator for building complete context-aware AI systems from user requirements"
 category: core
 type: core
@@ -83,10 +83,10 @@ tools:
   </stage>
 
   <stage id="2" name="RouteToDomainAnalyzer">
-    <action>Route to domain-analyzer for deep domain analysis and agent identification</action>
+    <action>Route to DomainAnalyzer for deep domain analysis and agent identification</action>
     <prerequisites>Requirements document complete</prerequisites>
     <routing>
-      <route to="@subagents/system-builder/domain-analyzer">
+      <route to="DomainAnalyzer">
         <context_level>Level 1 - Complete Isolation</context_level>
         <pass_data>
           - domain_profile (name, industry, purpose, users)
@@ -206,10 +206,10 @@ tools:
   </stage>
 
   <stage id="4" name="GenerateAgents">
-    <action>Route to agent-generator to create all agent files with XML optimization</action>
+    <action>Route to AgentGenerator to create all agent files with XML optimization</action>
     <prerequisites>Architecture plan complete</prerequisites>
     <routing>
-      <route to="@subagents/system-builder/agent-generator">
+      <route to="AgentGenerator">
         <context_level>Level 2 - Filtered Context</context_level>
         <pass_data>
           - architecture_plan.agents (orchestrator + subagents specs)
@@ -235,10 +235,10 @@ tools:
   </stage>
 
   <stage id="5" name="OrganizeContext">
-    <action>Route to context-organizer to create all context files</action>
+    <action>Route to ContextOrganizer to create all context files</action>
     <prerequisites>Architecture plan complete</prerequisites>
     <routing>
-      <route to="@subagents/system-builder/context-organizer">
+      <route to="ContextOrganizer">
         <context_level>Level 2 - Filtered Context</context_level>
         <pass_data>
           - architecture_plan.context_files (file structure)
@@ -265,10 +265,10 @@ tools:
   </stage>
 
   <stage id="6" name="DesignWorkflows">
-    <action>Route to workflow-designer to create workflow definitions</action>
+    <action>Route to WorkflowDesigner to create workflow definitions</action>
     <prerequisites>Architecture plan and context files complete</prerequisites>
     <routing>
-      <route to="@subagents/system-builder/workflow-designer">
+      <route to="WorkflowDesigner">
         <context_level>Level 2 - Filtered Context</context_level>
         <pass_data>
           - workflow_definitions (from architecture plan)
@@ -296,10 +296,10 @@ tools:
   </stage>
 
   <stage id="7" name="CreateCommands">
-    <action>Route to command-creator to generate custom slash commands</action>
+    <action>Route to CommandCreator to generate custom slash commands</action>
     <prerequisites>Agents and workflows complete</prerequisites>
     <routing>
-      <route to="@subagents/system-builder/command-creator">
+      <route to="CommandCreator">
         <context_level>Level 1 - Complete Isolation</context_level>
         <pass_data>
           - command_specifications (from architecture plan)
@@ -331,10 +331,10 @@ tools:
     <action>Create comprehensive documentation for the system</action>
     <prerequisites>All components generated</prerequisites>
     <process>
-      1. Create main README.md with system overview
+      1. Create main navigation.md with system overview
       2. Create ARCHITECTURE.md with component relationships
-      3. Create context/README.md with context organization guide
-      4. Create workflows/README.md with workflow selection guide
+      3. Create context/navigation.md with context organization guide
+      4. Create workflows/navigation.md with workflow selection guide
       5. Create TESTING.md with testing checklist
       6. Create QUICK-START.md with usage examples
       7. Generate component index with all files
@@ -472,15 +472,15 @@ tools:
       │   ├── templates/                        # Reusable patterns
       │   │   ├── output-formats.md
       │   │   └── common-patterns.md
-      │   └── README.md                         # Context guide
+      │   └── navigation.md                         # Context guide
       ├── workflows/
       │   ├── {workflow-1}.md
       │   ├── {workflow-2}.md
-      │   └── README.md                         # Workflow guide
+      │   └── navigation.md                         # Workflow guide
       ├── command/
       │   ├── {command-1}.md
       │   └── {command-2}.md
-      ├── README.md                             # System overview
+      ├── navigation.md                             # System overview
       ├── ARCHITECTURE.md                       # Architecture guide
       ├── TESTING.md                            # Testing checklist
       └── QUICK-START.md                        # Usage examples
@@ -519,7 +519,7 @@ tools:
       **1. Review Your System**:
       ```bash
       # Read the main README
-      cat .opencode/README.md
+      cat .opencode/navigation.md
       
       # Review your orchestrator
       cat .opencode/agent/{domain}-orchestrator.md
@@ -550,12 +550,12 @@ tools:
       
       ### 📚 Documentation
       
-      - **System Overview**: `.opencode/README.md`
+      - **System Overview**: `.opencode/navigation.md`
       - **Architecture Guide**: `.opencode/ARCHITECTURE.md`
       - **Quick Start**: `.opencode/QUICK-START.md`
       - **Testing Guide**: `.opencode/TESTING.md`
-      - **Context Organization**: `.opencode/context/README.md`
-      - **Workflow Guide**: `.opencode/workflows/README.md`
+      - **Context Organization**: `.opencode/context/navigation.md`
+      - **Workflow Guide**: `.opencode/workflows/navigation.md`
       
       ### 💡 Optimization Tips
       
@@ -637,19 +637,19 @@ tools:
 <context_engineering>
   <determine_context_level>
     function(task_type, subagent_target) {
-      if (subagent_target === "@subagents/system-builder/domain-analyzer") {
+      if (subagent_target === "DomainAnalyzer") {
         return "Level 1"; // Isolated analysis
       }
-      if (subagent_target === "@subagents/system-builder/agent-generator") {
+      if (subagent_target === "AgentGenerator") {
         return "Level 2"; // Needs architecture + domain analysis
       }
-      if (subagent_target === "@subagents/system-builder/context-organizer") {
+      if (subagent_target === "ContextOrganizer") {
         return "Level 2"; // Needs domain analysis + use cases
       }
-      if (subagent_target === "@subagents/system-builder/workflow-designer") {
+      if (subagent_target === "WorkflowDesigner") {
         return "Level 2"; // Needs agents + context files
       }
-      if (subagent_target === "@subagents/system-builder/command-creator") {
+      if (subagent_target === "CommandCreator") {
         return "Level 1"; // Just needs command specs
       }
       return "Level 1"; // Default to isolation

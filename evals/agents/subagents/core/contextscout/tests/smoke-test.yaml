@@ -1,0 +1,37 @@
+id: core-contextscout-smoke-test
+name: "ContextScout: Smoke Test - Basic Operation"
+description: |
+  Basic sanity check that the ContextScout subagent can respond to a simple request.
+  
+  This validates the subagent is properly configured and can execute basic operations.
+  
+  Validates:
+  - Subagent can receive and understand a prompt
+  - Subagent can use basic tools
+  - Subagent responds appropriately
+category: developer
+
+prompts:
+  - text: |
+      What context files exist in the .opencode/context/core/ directory?
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - smoke-test
+  - subagent
+  - contextscout
+  - safe
+

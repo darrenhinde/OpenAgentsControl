@@ -1,0 +1,76 @@
+id: contextscout-testing-standards
+name: "ContextScout: Testing Standards Discovery"
+description: |
+  Tests that ContextScout correctly discovers testing-related context files
+  when asked about writing tests, test coverage, or TDD.
+  
+  This validates:
+  - ContextScout finds test-coverage.md in core/standards
+  - ContextScout finds testing guides in openagents-repo
+  - ContextScout prioritizes standards over guides
+  - ContextScout includes security testing if relevant
+  
+  Expected Files (in priority order):
+  1. .opencode/context/core/standards/test-coverage.md (CRITICAL)
+  2. .opencode/context/openagents-repo/guides/testing-agent.md (HIGH)
+  3. .opencode/context/core/standards/code-quality.md (MEDIUM)
+  
+  This test SHOULD FAIL if:
+  - ContextScout doesn't find test-coverage.md
+  - ContextScout returns unrelated files
+  - ContextScout doesn't prioritize standards
+
+category: developer
+agent: subagents/core/contextscout
+
+prompts:
+  - text: |
+      Search for context files related to: writing comprehensive tests with good coverage
+      
+      Task type: testing
+      
+      Search intent: I need to write tests following TDD principles with proper coverage
+      
+      Return:
+      - Exact file paths to relevant context files
+      - Brief summary of what each file contains
+      - Priority order (critical, high, medium)
+      
+      Focus on:
+      - Test coverage requirements
+      - Testing best practices
+      - TDD workflows
+      - Test structure and patterns
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  forbiddenTools:
+    - task
+    - bash
+    - write  # Read-only agent
+    - edit   # Read-only agent
+  minToolCalls: 1
+  maxToolCalls: 10
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - discovery
+  - testing
+  - test-coverage
+  - tdd
+  - critical
+
+# Expected outcome:
+# - Uses glob to find files matching "test" in core/standards
+# - Uses read to load:
+#   * .opencode/context/core/standards/test-coverage.md
+#   * .opencode/context/openagents-repo/guides/testing-agent.md
+#   * .opencode/context/core/standards/code-quality.md
+# - Returns structured response with:
+#   * Priority 1 (CRITICAL): test-coverage.md - Coverage requirements
+#   * Priority 2 (HIGH): testing-agent.md - Testing workflows
+#   * Priority 3 (MEDIUM): code-quality.md - Code standards

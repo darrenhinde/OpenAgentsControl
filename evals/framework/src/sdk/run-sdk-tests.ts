@@ -328,25 +328,39 @@ async function main() {
     const subagentParentMap: Record<string, string> = {
       // Code subagents → opencoder
       'coder-agent': 'opencoder',
+      'CoderAgent': 'opencoder',
       'tester': 'opencoder',
+      'TestEngineer': 'opencoder',
       'reviewer': 'opencoder',
+      'CodeReviewer': 'opencoder',
       'build-agent': 'opencoder',
+      'BuildAgent': 'opencoder',
       'codebase-pattern-analyst': 'opencoder',
+      'PatternAnalyst': 'opencoder',
       
       // Core subagents → openagent
       'task-manager': 'openagent',
+      'TaskManager': 'openagent',
       'documentation': 'openagent',
-      'context-retriever': 'openagent',
+      'DocWriter': 'openagent',
+      'contextscout': 'openagent',
+      'ContextScout': 'openagent',
       
       // System-builder subagents → system-builder
       'agent-generator': 'system-builder',
+      'AgentGenerator': 'system-builder',
       'command-creator': 'system-builder',
+      'CommandCreator': 'system-builder',
       'context-organizer': 'system-builder',
+      'ContextOrganizer': 'system-builder',
       'domain-analyzer': 'system-builder',
+      'DomainAnalyzer': 'system-builder',
       'workflow-designer': 'system-builder',
+      'WorkflowDesigner': 'system-builder',
       
       // Utils → openagent
       'image-specialist': 'openagent',
+      'ImageSpecialist': 'openagent',
     };
     
     if (isDelegationTest) {
@@ -357,14 +371,14 @@ async function main() {
         console.error(`❌ Error: Unknown subagent '${args.subagent}'`);
         console.error('\n📋 Available subagents:');
         console.error('\n  Code subagents (parent: opencoder):');
-        console.error('    - coder-agent, tester, reviewer, build-agent, codebase-pattern-analyst');
+        console.error('    - CoderAgent, TestEngineer, CodeReviewer, BuildAgent, PatternAnalyst');
         console.error('\n  Core subagents (parent: openagent):');
-        console.error('    - task-manager, documentation, context-retriever');
+        console.error('    - TaskManager, DocWriter, ContextScout');
         console.error('\n  System-builder subagents (parent: system-builder):');
-        console.error('    - agent-generator, command-creator, context-organizer');
-        console.error('    - domain-analyzer, workflow-designer');
+        console.error('    - AgentGenerator, CommandCreator, ContextOrganizer');
+        console.error('    - DomainAnalyzer, WorkflowDesigner');
         console.error('\n  Utils subagents (parent: openagent):');
-        console.error('    - image-specialist\n');
+        console.error('    - ImageSpecialist\n');
         process.exit(1);
       }
       
@@ -399,30 +413,63 @@ async function main() {
     // Map old agent names to new category-based paths
     const agentCategoryMap: Record<string, string> = {
       'openagent': 'core/openagent',
+      'OpenAgent': 'core/openagent',
       'opencoder': 'core/opencoder',
+      'OpenCoder': 'core/opencoder',
       'system-builder': 'meta/system-builder',
+      'OpenSystemBuilder': 'meta/system-builder',
+      'codebase-agent': 'development/codebase-agent',
+      'OpenCodebaseAgent': 'development/codebase-agent',
+      'devops-specialist': 'development/devops-specialist',
+      'OpenDevopsSpecialist': 'development/devops-specialist',
+      'frontend-specialist': 'development/frontend-specialist',
+      'OpenFrontendSpecialist': 'development/frontend-specialist',
+      'backend-specialist': 'development/backend-specialist',
+      'OpenBackendSpecialist': 'development/backend-specialist',
+      'technical-writer': 'content/technical-writer',
+      'OpenTechnicalWriter': 'content/technical-writer',
+      'copywriter': 'content/copywriter',
+      'OpenCopywriter': 'content/copywriter',
+      'data-analyst': 'data/data-analyst',
+      'OpenDataAnalyst': 'data/data-analyst',
+      'repo-manager': 'meta/repo-manager',
+      'OpenRepoManager': 'meta/repo-manager',
     };
     
     // Map subagent names to their full paths
     const subagentPathMap: Record<string, string> = {
       // Code subagents
       'coder-agent': 'subagents/code/coder-agent',
+      'CoderAgent': 'subagents/code/coder-agent',
       'tester': 'subagents/code/tester',
+      'TestEngineer': 'subagents/code/tester',
       'reviewer': 'subagents/code/reviewer',
+      'CodeReviewer': 'subagents/code/reviewer',
       'build-agent': 'subagents/code/build-agent',
+      'BuildAgent': 'subagents/code/build-agent',
       'codebase-pattern-analyst': 'subagents/code/codebase-pattern-analyst',
+      'PatternAnalyst': 'subagents/code/codebase-pattern-analyst',
       // Core subagents
       'task-manager': 'subagents/core/task-manager',
+      'TaskManager': 'subagents/core/task-manager',
       'documentation': 'subagents/core/documentation',
-      'context-retriever': 'subagents/core/context-retriever',
+      'DocWriter': 'subagents/core/documentation',
+      'contextscout': 'subagents/core/contextscout',
+      'ContextScout': 'subagents/core/contextscout',
       // System-builder subagents
       'agent-generator': 'subagents/system-builder/agent-generator',
+      'AgentGenerator': 'subagents/system-builder/agent-generator',
       'command-creator': 'subagents/system-builder/command-creator',
+      'CommandCreator': 'subagents/system-builder/command-creator',
       'context-organizer': 'subagents/system-builder/context-organizer',
+      'ContextOrganizer': 'subagents/system-builder/context-organizer',
       'domain-analyzer': 'subagents/system-builder/domain-analyzer',
+      'DomainAnalyzer': 'subagents/system-builder/domain-analyzer',
       'workflow-designer': 'subagents/system-builder/workflow-designer',
+      'WorkflowDesigner': 'subagents/system-builder/workflow-designer',
       // Utils subagents
       'image-specialist': 'subagents/utils/image-specialist',
+      'ImageSpecialist': 'subagents/utils/image-specialist',
     };
     
     // Check if it's a subagent first
@@ -657,8 +704,27 @@ async function main() {
       // Normalize to category-based format if needed
       const agentCategoryMap: Record<string, string> = {
         'openagent': 'core/openagent',
+        'OpenAgent': 'core/openagent',
         'opencoder': 'core/opencoder',
+        'OpenCoder': 'core/opencoder',
         'system-builder': 'meta/system-builder',
+        'OpenSystemBuilder': 'meta/system-builder',
+        'codebase-agent': 'development/codebase-agent',
+        'OpenCodebaseAgent': 'development/codebase-agent',
+        'devops-specialist': 'development/devops-specialist',
+        'OpenDevopsSpecialist': 'development/devops-specialist',
+        'frontend-specialist': 'development/frontend-specialist',
+        'OpenFrontendSpecialist': 'development/frontend-specialist',
+        'backend-specialist': 'development/backend-specialist',
+        'OpenBackendSpecialist': 'development/backend-specialist',
+        'technical-writer': 'content/technical-writer',
+        'OpenTechnicalWriter': 'content/technical-writer',
+        'copywriter': 'content/copywriter',
+        'OpenCopywriter': 'content/copywriter',
+        'data-analyst': 'data/data-analyst',
+        'OpenDataAnalyst': 'data/data-analyst',
+        'repo-manager': 'meta/repo-manager',
+        'OpenRepoManager': 'meta/repo-manager',
       };
       
       if (!agent.includes('/') && agentCategoryMap[agent]) {

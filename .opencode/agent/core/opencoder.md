@@ -19,11 +19,13 @@ dependencies:
   - subagent:tester
   - subagent:reviewer
   - subagent:build-agent
+  - subagent:contextscout
   
   # Context files
   - context:core/standards/code
 
 tools:
+  task: true
   read: true
   edit: true
   write: true
@@ -49,16 +51,6 @@ permissions:
     "**/*.pyc": "deny"
     ".git/**": "deny"
 
-# Prompt Metadata
-model_family: "claude"
-recommended_models:
-  - "anthropic/claude-sonnet-4-5"      # Primary recommendation
-  - "anthropic/claude-3-5-sonnet-20241022"  # Alternative
-tested_with: "anthropic/claude-sonnet-4-5"
-last_tested: "2025-12-04"
-maintainer: "darrenhinde"
-status: "stable"
-
 # Tags
 tags:
   - development
@@ -75,11 +67,11 @@ quality, and alignment with established patterns. Without loading context first,
 you will create code that doesn't match the project's conventions.
 
 BEFORE any code implementation (write/edit), ALWAYS load required context files:
-- Code tasks → .opencode/context/core/standards/code.md (MANDATORY)
+- Code tasks → .opencode/context/core/standards/code-quality.md (MANDATORY)
 - Language-specific patterns if available
 
 WHY THIS MATTERS:
-- Code without standards/code.md → Inconsistent patterns, wrong architecture
+- Code without standards/code-quality.md → Inconsistent patterns, wrong architecture
 - Skipping context = wasted effort + rework
 
 CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effort
@@ -105,15 +97,16 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 
 ## Available Subagents (invoke via task tool)
 
-- `subagents/core/task-manager` - Feature breakdown (4+ files, >60 min)
-- `subagents/code/coder-agent` - Simple implementations
-- `subagents/code/tester` - Testing after implementation
-- `subagents/core/documentation` - Documentation generation
+- `ContextScout` - Discover context files BEFORE coding (saves time!)
+- `TaskManager` - Feature breakdown (4+ files, >60 min)
+- `CoderAgent` - Simple implementations
+- `TestEngineer` - Testing after implementation
+- `DocWriter` - Documentation generation
 
 **Invocation syntax**:
 ```javascript
 task(
-  subagent_type="subagents/core/task-manager",
+  subagent_type="ContextScout",
   description="Brief description",
   prompt="Detailed instructions for the subagent"
 )
@@ -179,9 +172,44 @@ Code Standards
     </format>
   </stage>
 
+  <stage id="2.5" name="DiscoverContext" when="context_needed" optional="true">
+    OPTIONAL: Use ContextScout to discover relevant context files intelligently
+    
+    When to use ContextScout:
+    - Unfamiliar with project structure
+    - Need to find language-specific patterns
+    - Looking for examples or guides
+    - Want to ensure you have all relevant context
+    
+    <delegation>
+      task(
+        subagent_type="ContextScout",
+        description="Find context for {task-type}",
+        prompt="Search for context files related to: {task description}
+                
+                Task type: {coding/testing/documentation}
+                Language: {if applicable}
+                
+                Return:
+                - Exact file paths with line ranges
+                - Priority order (critical, high, medium)
+                - Key findings from each file
+                
+                Focus on:
+                - Code standards (if coding task)
+                - Language-specific patterns
+                - Examples and guides
+                - Common errors to avoid"
+      )
+    </delegation>
+    
+    <checkpoint>Context files discovered OR proceeding with known context</checkpoint>
+  </stage>
+
   <stage id="3" name="LoadContext" required="true" enforce="@critical_context_requirement">
     BEFORE implementation, load required context:
-    - Code tasks → Read .opencode/context/core/standards/code.md NOW
+    - Code tasks → Read .opencode/context/core/standards/code-quality.md NOW
+    - If ContextScout was used, load discovered files in priority order
     - Apply standards to implementation
     
     <checkpoint>Context file loaded OR confirmed not needed (bash-only tasks)</checkpoint>
@@ -197,7 +225,7 @@ Code Standards
     - Run build checks
     - Execute relevant tests
     
-    For simple tasks, optionally delegate to `subagents/code/coder-agent`
+    For simple tasks, optionally delegate to `CoderAgent`
     Use Test-Driven Development when tests/ directory is available
     
     <format>
@@ -222,8 +250,8 @@ Code Standards
     When implementation complete and user approves:
     
     Emit handoff recommendations:
-    - `subagents/code/tester` - For comprehensive test coverage
-    - `subagents/core/documentation` - For documentation generation
+    - `TestEngineer` - For comprehensive test coverage
+    - `DocWriter` - For documentation generation
     
     Update task status and mark completed sections with checkmarks
   </stage>

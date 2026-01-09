@@ -1,6 +1,6 @@
 ---
 id: workflow-designer
-name: Workflow Designer
+name: WorkflowDesigner
 description: "Designs complete workflow definitions with context dependencies and success criteria"
 category: subagents/system-builder
 type: subagent

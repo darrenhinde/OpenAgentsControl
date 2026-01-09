@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/system-builder/context-organizer`  
+**Agent:** `ContextOrganizer`  
 **Parent Agent:** `system-builder`  
 **Description:** Organizes and generates context files for knowledge management
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/system-builder/context-organizer.md)
+- [Agent Source](.opencode/agent/ContextOrganizer.md)
 

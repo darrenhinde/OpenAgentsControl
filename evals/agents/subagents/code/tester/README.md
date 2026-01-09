@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/code/tester`  
+**Agent:** `TestEngineer`  
 **Parent Agent:** `opencoder`  
 **Description:** Test authoring and TDD specialist
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/code/tester.md)
+- [Agent Source](.opencode/agent/TestEngineer.md)
 

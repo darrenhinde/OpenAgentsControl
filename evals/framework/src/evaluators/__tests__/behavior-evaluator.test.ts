@@ -350,7 +350,7 @@ describe('BehaviorEvaluator', () => {
 
       const timeline: TimelineEvent[] = [
         createToolCallEvent('task', { 
-          subagent_type: 'subagents/code/coder-agent',
+          subagent_type: 'CoderAgent',
           prompt: 'Implement the feature',
         }),
       ];

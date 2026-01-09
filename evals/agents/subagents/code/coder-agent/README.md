@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/code/coder-agent`  
+**Agent:** `CoderAgent`  
 **Parent Agent:** `opencoder`  
 **Description:** Executes focused coding subtasks in sequence
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/code/coder-agent.md)
+- [Agent Source](.opencode/agent/CoderAgent.md)
 

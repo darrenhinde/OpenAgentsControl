@@ -1,0 +1,53 @@
+id: core-contextscout-ambiguous-query
+name: "ContextScout: Negative Test - Ambiguous Query Handling"
+description: |
+  Tests that ContextScout handles vague/ambiguous queries appropriately.
+  
+  This is a NEGATIVE test that verifies the agent:
+  - Recognizes when a query is too vague
+  - Asks for clarification or provides guidance
+  - Doesn't return random/irrelevant files
+  - Suggests specific search terms
+  
+  Expected Behavior:
+  - SHOULD recognize query is vague
+  - SHOULD ask for clarification OR make reasonable assumptions
+  - MUST NOT return completely irrelevant files
+  - SHOULD suggest more specific queries
+  
+  This test SHOULD FAIL if:
+  - Agent returns random unrelated files
+  - Agent doesn't acknowledge ambiguity
+  - Agent provides unhelpful results
+category: developer
+
+prompts:
+  - text: |
+      Find stuff.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - negative-test
+  - ambiguous-input
+  - user-guidance
+
+# Expected outcome: Agent should either:
+# 1. Ask for clarification ("What kind of stuff?")
+# 2. Provide general overview of available context
+# 3. Suggest specific search terms
+# 
+# Agent should NOT just return random files

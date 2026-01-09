@@ -1,0 +1,72 @@
+id: openagent-known-domain-no-contextscout
+name: "OpenAgent: Doesn't Use ContextScout for Known Domains"
+description: |
+  Tests that OpenAgent does NOT delegate to ContextScout for familiar domains
+  like code, docs, or tests where it knows the context paths.
+  
+  This validates:
+  - OpenAgent recognizes code/docs/tests as known domains
+  - OpenAgent loads context directly without ContextScout
+  - OpenAgent uses read/glob tools directly
+  - OpenAgent doesn't add unnecessary delegation overhead
+  
+  Expected Behavior:
+  1. OpenAgent receives code-related request
+  2. OpenAgent recognizes this as known domain (code standards)
+  3. OpenAgent loads .opencode/context/core/standards/code-quality.md directly
+  4. OpenAgent does NOT delegate to ContextScout
+  
+  This test SHOULD FAIL if:
+  - OpenAgent delegates to ContextScout for known domains
+  - OpenAgent doesn't load context at all
+  - OpenAgent loads wrong context files
+
+category: developer
+agent: core/openagent
+
+prompts:
+  - text: |
+      Review this code and suggest improvements:
+      
+      ```javascript
+      function processUsers(users) {
+        let result = [];
+        for (let i = 0; i < users.length; i++) {
+          if (users[i].active) {
+            result.push(users[i].name);
+          }
+        }
+        return result;
+      }
+      ```
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read   # Must read code-quality.md directly
+  forbiddenTools:
+    - task   # Should NOT delegate to ContextScout for known domain
+  minToolCalls: 1
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - openagent
+  - contextscout-integration
+  - known-domain
+  - direct-loading
+  - medium
+
+# Expected outcome:
+# - OpenAgent uses read tool to load code-quality.md directly
+# - OpenAgent does NOT use task tool to delegate to ContextScout
+# - OpenAgent applies code standards from loaded context
+# - Response suggests functional patterns (map/filter) from code-quality.md

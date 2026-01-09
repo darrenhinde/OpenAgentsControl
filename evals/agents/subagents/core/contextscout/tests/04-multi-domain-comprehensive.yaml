@@ -1,0 +1,87 @@
+id: contextscout-multi-domain
+name: "ContextScout: Multi-Domain Discovery - Find All Relevant Files"
+description: |
+  Tests that ContextScout can discover multiple relevant files across
+  different domains when given a complex, multi-faceted query.
+  
+  This validates:
+  - ContextScout searches multiple directories
+  - ContextScout finds files from different categories
+  - ContextScout prioritizes correctly (critical first)
+  - ContextScout doesn't miss important files
+  - ContextScout provides comprehensive results
+  
+  Expected Behavior:
+  - MUST find multiple relevant files:
+    * Agent creation guide
+    * Code standards
+    * Test standards
+    * Eval framework concepts
+  - MUST prioritize correctly (critical > high > medium)
+  - SHOULD provide loading strategy
+  - SHOULD include line ranges for each file
+  - MUST NOT miss critical files
+  
+  This test SHOULD FAIL if:
+  - ContextScout only finds partial results
+  - ContextScout prioritizes incorrectly
+  - ContextScout misses critical files
+  - ContextScout returns files in wrong order
+
+category: developer
+agent: subagents/core/contextscout
+
+prompts:
+  - text: |
+      Search for context files related to: creating a new agent with tests
+      
+      Task type: agent-creation
+      
+      Return:
+      - Exact file paths with line ranges
+      - Priority order (critical, high, medium)
+      - Key findings from each file
+      - Loading strategy
+      
+      Focus on:
+      - Agent creation process
+      - Code standards
+      - Test standards
+      - Eval framework
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  forbiddenTools:
+    - task
+    - bash
+    - write
+    - edit
+  minToolCalls: 1  # Multiple discoveries and reads
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - contextscout
+  - multi-domain
+  - comprehensive
+  - discovery
+  - critical
+
+# Expected outcome:
+# - Finds multiple files across domains:
+#   1. ⭐⭐⭐⭐⭐ .opencode/context/openagents-repo/guides/adding-agent.md
+#   2. ⭐⭐⭐⭐⭐ .opencode/context/openagents-repo/core-concepts/agents.md
+#   3. ⭐⭐⭐⭐ .opencode/context/core/standards/code-quality.md
+#   4. ⭐⭐⭐⭐ .opencode/context/core/standards/test-coverage.md
+#   5. ⭐⭐⭐⭐ .opencode/context/openagents-repo/core-concepts/evals.md
+# - Returns structured response with all files
+# - Provides loading strategy: "Load guides first, then standards, then concepts"
+# - Includes line ranges for key sections in each file

@@ -17,6 +17,8 @@ import { getModelBehavior } from './model-behaviors.js';
 import type { TestCase } from './test-case-schema.js';
 import type { ApprovalStrategy } from './approval/approval-strategy.js';
 import type { ServerEvent, EventHandler } from './event-stream-handler.js';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 /**
  * Configuration for test execution
@@ -95,10 +97,37 @@ export class TestExecutor {
       const agentDisplayMap: Record<string, string> = {
         'openagent': 'OpenAgent',
         'core/openagent': 'OpenAgent',
+        'OpenAgent': 'OpenAgent',
         'opencoder': 'OpenCoder',
         'core/opencoder': 'OpenCoder',
-        'system-builder': 'System Builder',
-        'meta/system-builder': 'System Builder',
+        'OpenCoder': 'OpenCoder',
+        'system-builder': 'OpenSystemBuilder',
+        'meta/system-builder': 'OpenSystemBuilder',
+        'OpenSystemBuilder': 'OpenSystemBuilder',
+        'codebase-agent': 'OpenCodebaseAgent',
+        'development/codebase-agent': 'OpenCodebaseAgent',
+        'OpenCodebaseAgent': 'OpenCodebaseAgent',
+        'devops-specialist': 'OpenDevopsSpecialist',
+        'development/devops-specialist': 'OpenDevopsSpecialist',
+        'OpenDevopsSpecialist': 'OpenDevopsSpecialist',
+        'frontend-specialist': 'OpenFrontendSpecialist',
+        'development/frontend-specialist': 'OpenFrontendSpecialist',
+        'OpenFrontendSpecialist': 'OpenFrontendSpecialist',
+        'backend-specialist': 'OpenBackendSpecialist',
+        'development/backend-specialist': 'OpenBackendSpecialist',
+        'OpenBackendSpecialist': 'OpenBackendSpecialist',
+        'technical-writer': 'OpenTechnicalWriter',
+        'content/technical-writer': 'OpenTechnicalWriter',
+        'OpenTechnicalWriter': 'OpenTechnicalWriter',
+        'copywriter': 'OpenCopywriter',
+        'content/copywriter': 'OpenCopywriter',
+        'OpenCopywriter': 'OpenCopywriter',
+        'data-analyst': 'OpenDataAnalyst',
+        'data/data-analyst': 'OpenDataAnalyst',
+        'OpenDataAnalyst': 'OpenDataAnalyst',
+        'repo-manager': 'OpenRepoManager',
+        'meta/repo-manager': 'OpenRepoManager',
+        'OpenRepoManager': 'OpenRepoManager',
       };
       const agentToUse = agentDisplayMap[testCase.agent || 'openagent'] || testCase.agent || 'OpenAgent';
       
@@ -154,6 +183,11 @@ export class TestExecutor {
 
       // Wait for event stream connection confirmation
       await this.waitForEventStreamConnection();
+
+      // Show eval-runner.md content in verbose mode
+      if (this.config.debug) {
+        this.showEvalRunnerContent();
+      }
 
       // Create session
       this.logger.log('Creating session...');
@@ -375,6 +409,67 @@ export class TestExecutor {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Show eval-runner.md content for verification
+   */
+  private showEvalRunnerContent(): void {
+    try {
+      const evalRunnerPath = join(this.config.projectPath, '.opencode/agent/eval-runner.md');
+      const content = readFileSync(evalRunnerPath, 'utf-8');
+      const lines = content.split('\n');
+      
+      // Extract frontmatter
+      let frontmatterEnd = -1;
+      let frontmatterStart = -1;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].trim() === '---') {
+          if (frontmatterStart === -1) {
+            frontmatterStart = i;
+          } else {
+            frontmatterEnd = i;
+            break;
+          }
+        }
+      }
+      
+      this.logger.log('\n' + '═'.repeat(70));
+      this.logger.log('📋 EVAL-RUNNER.MD CONTENT (System Prompt Being Tested)');
+      this.logger.log('═'.repeat(70));
+      
+      if (frontmatterStart !== -1 && frontmatterEnd !== -1) {
+        // Show frontmatter
+        this.logger.log('\n🔧 FRONTMATTER:');
+        this.logger.log('─'.repeat(70));
+        for (let i = frontmatterStart; i <= frontmatterEnd; i++) {
+          this.logger.log(lines[i]);
+        }
+        
+        // Show first 50 lines of prompt content
+        this.logger.log('\n📝 SYSTEM PROMPT (first 50 lines):');
+        this.logger.log('─'.repeat(70));
+        const promptStart = frontmatterEnd + 1;
+        const promptEnd = Math.min(promptStart + 50, lines.length);
+        for (let i = promptStart; i < promptEnd; i++) {
+          this.logger.log(lines[i]);
+        }
+        
+        if (lines.length > promptEnd) {
+          this.logger.log(`\n... (${lines.length - promptEnd} more lines)`);
+        }
+      } else {
+        this.logger.log('⚠️  Could not parse frontmatter');
+        // Show first 50 lines anyway
+        for (let i = 0; i < Math.min(50, lines.length); i++) {
+          this.logger.log(lines[i]);
+        }
+      }
+      
+      this.logger.log('═'.repeat(70) + '\n');
+    } catch (error) {
+      this.logger.log(`⚠️  Could not read eval-runner.md: ${(error as Error).message}`);
+    }
   }
 
   /**

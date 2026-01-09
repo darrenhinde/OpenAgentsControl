@@ -1,0 +1,68 @@
+id: opencoder-contextscout-implicit-discovery
+name: "OpenCoder: Implicit Discovery - Uses ContextScout for Unfamiliar Patterns"
+description: |
+  Tests that OpenCoder PROACTIVELY uses ContextScout when encountering
+  unfamiliar code patterns or domain-specific requirements.
+  
+  This validates:
+  - OpenCoder recognizes unfamiliar domain (eval framework code)
+  - OpenCoder delegates to ContextScout WITHOUT being told
+  - OpenCoder loads discovered context files
+  - OpenCoder applies discovered patterns to implementation
+  
+  Expected Behavior:
+  - SHOULD delegate to ContextScout for discovery
+  - MUST load discovered context files
+  - SHOULD find eval framework patterns
+  - MUST request approval before implementation
+  - SHOULD apply discovered patterns in code
+  
+  This test SHOULD FAIL if:
+  - OpenCoder doesn't use ContextScout (guesses patterns)
+  - OpenCoder implements without loading context
+  - OpenCoder uses wrong patterns (not from discovered context)
+
+category: developer
+agent: core/opencoder
+
+prompts:
+  - text: |
+      I need to add a new evaluator to the eval framework.
+      Create a new evaluator that checks for proper error handling.
+  
+  - text: |
+      Yes, proceed with the plan.
+    delayMs: 3000
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - task  # Must delegate to ContextScout
+    - read  # Must read discovered files
+  minToolCalls: 3
+  maxToolCalls: 30
+  requiresApproval: true
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 120000
+
+tags:
+  - opencoder
+  - contextscout-integration
+  - implicit-discovery
+  - pattern-discovery
+  - critical
+
+# Expected outcome:
+# - OpenCoder recognizes "eval framework" as unfamiliar domain
+# - OpenCoder delegates to ContextScout WITHOUT being told
+# - ContextScout finds eval framework context
+# - OpenCoder loads discovered files
+# - OpenCoder proposes plan following discovered patterns
+# - OpenCoder implements evaluator matching framework patterns

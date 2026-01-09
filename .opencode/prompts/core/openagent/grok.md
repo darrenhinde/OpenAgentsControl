@@ -55,18 +55,18 @@ NEVER proceed with code/docs/tests without loading standards first.
 AUTO-STOP if you find yourself executing without context loaded.
 
 WHY THIS MATTERS:
-- Code without standards/code.md → Inconsistent patterns, wrong architecture
-- Docs without standards/docs.md → Wrong tone, missing sections, poor structure  
-- Tests without standards/tests.md → Wrong framework, incomplete coverage
-- Review without workflows/review.md → Missed quality checks, incomplete analysis
-- Delegation without workflows/delegation.md → Wrong context passed to subagents
+- Code without standards/code-quality.md → Inconsistent patterns, wrong architecture
+- Docs without standards/documentation.md → Wrong tone, missing sections, poor structure  
+- Tests without standards/test-coverage.md → Wrong framework, incomplete coverage
+- Review without workflows/code-review.md → Missed quality checks, incomplete analysis
+- Delegation without workflows/task-delegation.md → Wrong context passed to subagents
 
 Required context files:
-- Code tasks → .opencode/context/core/standards/code.md
-- Docs tasks → .opencode/context/core/standards/docs.md  
-- Tests tasks → .opencode/context/core/standards/tests.md
-- Review tasks → .opencode/context/core/workflows/review.md
-- Delegation → .opencode/context/core/workflows/delegation.md
+- Code tasks → .opencode/context/core/standards/code-quality.md
+- Docs tasks → .opencode/context/core/standards/documentation.md  
+- Tests tasks → .opencode/context/core/standards/test-coverage.md
+- Review tasks → .opencode/context/core/workflows/code-review.md
+- Delegation → .opencode/context/core/workflows/task-delegation.md
 
 CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effort + rework
 </critical_context_requirement>
@@ -138,7 +138,7 @@ task(
     - @critical_context_requirement (Tier 1) ALWAYS overrides minimal overhead (Tier 3)
     - Context files (.opencode/context/core/*.md) MANDATORY, not optional
     - Session files (.tmp/sessions/*) created only when needed
-    - Ex: "Write docs" → MUST load standards/docs.md (Tier 1 override)
+    - Ex: "Write docs" → MUST load standards/documentation.md (Tier 1 override)
     - Ex: "Write docs" → Skip ctx for efficiency (VIOLATION)
   </conflict_resolution>
 </execution_priority>
@@ -175,11 +175,11 @@ task(
       
       1. Classify task: docs|code|tests|delegate|review|patterns|bash-only
       2. Map to context file:
-         - code (write/edit code) → Read .opencode/context/core/standards/code.md NOW
-         - docs (write/edit docs) → Read .opencode/context/core/standards/docs.md NOW
-         - tests (write/edit tests) → Read .opencode/context/core/standards/tests.md NOW
-         - review (code review) → Read .opencode/context/core/workflows/review.md NOW
-         - delegate (using task tool) → Read .opencode/context/core/workflows/delegation.md NOW
+         - code (write/edit code) → Read .opencode/context/core/standards/code-quality.md NOW
+         - docs (write/edit docs) → Read .opencode/context/core/standards/documentation.md NOW
+         - tests (write/edit tests) → Read .opencode/context/core/standards/test-coverage.md NOW
+         - review (code review) → Read .opencode/context/core/workflows/code-review.md NOW
+         - delegate (using task tool) → Read .opencode/context/core/workflows/task-delegation.md NOW
          - bash-only → No context needed, proceed to 3.2
       
       3. Apply context:
@@ -187,11 +187,11 @@ task(
          IF direct: Use Read tool to load context file, then proceed to 3.2
       
       <automatic_loading>
-        IF code task → .opencode/context/core/standards/code.md (MANDATORY)
-        IF docs task → .opencode/context/core/standards/docs.md (MANDATORY)
-        IF tests task → .opencode/context/core/standards/tests.md (MANDATORY)
-        IF review task → .opencode/context/core/workflows/review.md (MANDATORY)
-        IF delegation → .opencode/context/core/workflows/delegation.md (MANDATORY)
+        IF code task → .opencode/context/core/standards/code-quality.md (MANDATORY)
+        IF docs task → .opencode/context/core/standards/documentation.md (MANDATORY)
+        IF tests task → .opencode/context/core/standards/test-coverage.md (MANDATORY)
+        IF review task → .opencode/context/core/workflows/code-review.md (MANDATORY)
+        IF delegation → .opencode/context/core/workflows/task-delegation.md (MANDATORY)
         IF bash-only → No context required
         
         WHEN DELEGATING TO SUBAGENTS:
@@ -280,7 +280,7 @@ task(
   </execute_directly_when>
   
   <specialized_routing>
-    <route to="subagents/core/task-manager" when="complex_feature_breakdown">
+    <route to="TaskManager" when="complex_feature_breakdown">
       <trigger>Complex feature requiring task breakdown OR multi-step dependencies OR user requests task planning</trigger>
       <context_bundle>
         Create .tmp/context/{session-id}/bundle.md containing:
@@ -302,7 +302,7 @@ task(
     </route>
   </specialized_routing>
   
-  <process ref=".opencode/context/core/workflows/delegation.md">Full delegation template & process</process>
+  <process ref=".opencode/context/core/workflows/task-delegation.md">Full delegation template & process</process>
 </delegation_rules>
 
 <principles>
@@ -318,11 +318,11 @@ task(
   Context index: .opencode/context/index.md
   
   Load index when discovering contexts by keywords. For common tasks:
-  - Code tasks → .opencode/context/core/standards/code.md
-  - Docs tasks → .opencode/context/core/standards/docs.md  
-  - Tests tasks → .opencode/context/core/standards/tests.md
-  - Review tasks → .opencode/context/core/workflows/review.md
-  - Delegation → .opencode/context/core/workflows/delegation.md
+  - Code tasks → .opencode/context/core/standards/code-quality.md
+  - Docs tasks → .opencode/context/core/standards/documentation.md  
+  - Tests tasks → .opencode/context/core/standards/test-coverage.md
+  - Review tasks → .opencode/context/core/workflows/code-review.md
+  - Delegation → .opencode/context/core/workflows/task-delegation.md
   
   Full index includes all contexts with triggers and dependencies.
   Context files loaded per @critical_context_requirement.

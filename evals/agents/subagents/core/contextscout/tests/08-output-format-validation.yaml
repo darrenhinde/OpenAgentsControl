@@ -1,0 +1,77 @@
+id: core-contextscout-output-format
+name: "ContextScout: Positive Test - Output Format Validation"
+description: |
+  CRITICAL: Tests that ContextScout returns properly formatted output with all required fields.
+  
+  This is a POSITIVE test that verifies the agent:
+  - Returns exact file paths (full path from repo root)
+  - Includes line ranges for relevant sections
+  - Provides priority ratings (⭐⭐⭐⭐⭐ format)
+  - Identifies function type (Concept/Example/Guide/Lookup/Error)
+  - Extracts key findings (3-5 actionable points)
+  - Suggests loading order
+  
+  Expected Output Format:
+  ```
+  ⭐⭐⭐⭐⭐ Code Standards (CRITICAL)
+  **Path**: `.opencode/context/core/standards/code.md`
+  **Type**: Guide
+  **Lines**: 
+    - 22-27 (Core Philosophy)
+    - 97-102 (Naming Conventions)
+  
+  **Key Findings**:
+  - Use modular, functional programming
+  - Functions should be pure when possible
+  - Keep functions under 50 lines
+  
+  **Action**: Load this file NOW before writing code
+  ```
+  
+  This test SHOULD FAIL if:
+  - No file paths provided
+  - No line ranges included
+  - No priority ratings
+  - No key findings extracted
+category: developer
+
+prompts:
+  - text: |
+      Search for context files related to: code standards
+      
+      Task type: coding
+      
+      Return:
+      - Exact file paths with line ranges
+      - Priority order (critical, high, medium)
+      - Key findings from each file
+      
+      Use the format specified in your prompt.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 120000
+
+tags:
+  - contextscout
+  - positive-test
+  - output-validation
+  - format-check
+  - critical
+
+# Expected outcome: Agent should return properly formatted output with:
+# - File path: .opencode/context/core/standards/code.md
+# - Line ranges: "lines X-Y"
+# - Priority: ⭐⭐⭐⭐⭐
+# - Key findings: 3-5 bullet points
+# - Loading order: "Load this file NOW" or similar

@@ -1,0 +1,79 @@
+id: contextscout-response-validation
+name: "ContextScout: Response Validation - Returns Correct File Paths"
+description: |
+  Tests that ContextScout not only uses the right tools, but also RETURNS
+  the correct file paths in its final response to the user.
+  
+  This validates:
+  - ContextScout discovers the right files (via tool usage)
+  - ContextScout includes exact file paths in its response
+  - ContextScout provides the expected files for agent creation
+  
+  Expected Files in Response:
+  - .opencode/context/openagents-repo/core-concepts/agents.md
+  - .opencode/context/openagents-repo/guides/adding-agent.md
+  - .opencode/context/core/standards/code-quality.md
+  
+  This test SHOULD FAIL if:
+  - ContextScout doesn't mention the expected files in its response
+  - ContextScout returns wrong file paths
+  - ContextScout doesn't provide exact paths (just descriptions)
+
+category: developer
+agent: subagents/core/contextscout
+
+prompts:
+  - text: |
+      Find context files about creating a new agent.
+      
+      Topic: agent-creation
+      
+      I need to understand how to create a new agent in the OpenAgents repository.
+      
+      Return:
+      - Exact file paths to relevant context files
+      - Brief summary of what each file contains
+      - Priority order (critical, high, medium)
+      
+      Focus on:
+      - Agent structure and format
+      - Step-by-step creation guides
+      - Code standards for agents
+      - Testing requirements
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  forbiddenTools:
+    - task
+    - bash
+    - write  # Read-only agent
+    - edit   # Read-only agent
+  minToolCalls: 1
+  maxToolCalls: 10
+  
+  # Validate response content
+  expectedResponse:
+    contains:
+      - ".opencode/context/openagents-repo/core-concepts/agents.md"
+      - ".opencode/context/openagents-repo/guides/adding-agent.md"
+      - ".opencode/context/core/standards/code-quality.md"
+    description: "Response must include exact file paths for agent creation context"
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - discovery
+  - response-validation
+  - agent-creation
+  - critical
+
+# Expected outcome:
+# - ContextScout uses glob/read to discover files
+# - ContextScout's final response includes:
+#   * .opencode/context/openagents-repo/core-concepts/agents.md
+#   * .opencode/context/openagents-repo/guides/adding-agent.md
+#   * .opencode/context/core/standards/code-quality.md
+# - Response provides priority ratings and summaries

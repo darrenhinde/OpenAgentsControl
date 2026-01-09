@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/system-builder/command-creator`  
+**Agent:** `CommandCreator`  
 **Parent Agent:** `system-builder`  
 **Description:** Creates custom slash commands with clear syntax
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/system-builder/command-creator.md)
+- [Agent Source](.opencode/agent/CommandCreator.md)
 

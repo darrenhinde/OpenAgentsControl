@@ -11,7 +11,7 @@
 
 **Error**:
 ```
-Unknown agent type: subagents/core/context-retriever is not a valid agent type
+Unknown agent type: ContextScout is not a valid agent type
 ```
 
 **Root Cause**: The `subagent_type` parameter in the task tool must match the registered agent type in the OpenCode CLI, not the file path.
@@ -27,7 +27,7 @@ Based on the OpenCode CLI registration, use these exact strings for `subagent_ty
 **Core Subagents**:
 - `"Task Manager"` - Task breakdown and planning
 - `"Documentation"` - Documentation generation
-- `"Context Retriever"` - Context file discovery
+- `"ContextScout"` - Context file discovery
 
 **Code Subagents**:
 - `"Coder Agent"` - Code implementation
@@ -65,7 +65,7 @@ task(
 ```javascript
 // ❌ Using file path
 task(
-  subagent_type="subagents/core/task-manager",
+  subagent_type="TaskManager",
   ...
 )
 
@@ -77,7 +77,7 @@ task(
 
 // ❌ Using registry path
 task(
-  subagent_type=".opencode/agent/subagents/core/task-manager.md",
+  subagent_type=".opencode/agent/TaskManager.md",
   ...
 )
 ```
@@ -108,7 +108,7 @@ Agent Generator
 Context Organizer
 Workflow Designer
 Command Creator
-Context Retriever
+ContextScout
 ```
 
 ### Method 2: Check OpenCode CLI
@@ -229,20 +229,20 @@ task(
 
 ---
 
-## Context Retriever Special Case
+## ContextScout Special Case
 
 **Status**: ⚠️ May not be registered in OpenCode CLI yet
 
-The `Context Retriever` subagent exists in the repository but may not be registered in the OpenCode CLI's available agent types.
+The `ContextScout` subagent exists in the repository but may not be registered in the OpenCode CLI's available agent types.
 
 ### Workaround
 
-Until Context Retriever is properly registered, use direct file operations instead:
+Until ContextScout is properly registered, use direct file operations instead:
 
 ```javascript
 // ❌ This may fail
 task(
-  subagent_type="Context Retriever",
+  subagent_type="ContextScout",
   description="Find context files",
   prompt="Search for context related to {topic}"
 )
@@ -264,7 +264,7 @@ read(filePath=".opencode/context/openagents-repo/core-concepts/registry.md")
 
 ### Agents That Need Fixing
 
-1. **repo-manager.md** - Uses `subagents/core/context-retriever`
+1. **repo-manager.md** - Uses `ContextScout`
 2. **opencoder.md** - Check if uses incorrect format
 3. **codebase-agent.md** - Check if uses incorrect format
 
@@ -278,7 +278,7 @@ read(filePath=".opencode/context/openagents-repo/core-concepts/registry.md")
 2. **Replace with correct format**:
    ```bash
    # Example: Fix task-manager invocation
-   # Old: subagent_type="subagents/core/task-manager"
+   # Old: subagent_type="TaskManager"
    # New: subagent_type="Task Manager"
    ```
 

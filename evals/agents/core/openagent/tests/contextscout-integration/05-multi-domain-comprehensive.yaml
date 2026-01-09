@@ -1,0 +1,71 @@
+id: openagent-contextscout-multi-domain
+name: "OpenAgent: Multi-Domain - ContextScout Finds All Relevant Context"
+description: |
+  Tests that OpenAgent uses ContextScout for complex, multi-domain tasks
+  that require multiple context files from different areas.
+  
+  This validates:
+  - Agent recognizes multi-domain complexity
+  - Agent delegates to ContextScout for comprehensive discovery
+  - ContextScout finds ALL relevant files (not just one)
+  - Agent loads multiple context files in priority order
+  - Agent synthesizes information from multiple sources
+  
+  Expected Behavior:
+  - SHOULD delegate to ContextScout
+  - MUST find multiple relevant context files:
+    * Agent creation guide
+    * Code standards
+    * Test standards
+    * Eval framework concepts
+  - SHOULD load files in priority order
+  - SHOULD provide comprehensive answer
+  
+  This test SHOULD FAIL if:
+  - Agent doesn't use ContextScout
+  - ContextScout only finds partial context (misses key files)
+  - Agent loads files in wrong order (low priority first)
+  - Agent provides incomplete answer
+
+category: developer
+agent: core/openagent
+
+prompts:
+  - text: |
+      I want to create a new agent with proper tests and documentation.
+      What do I need to know? What files should I look at?
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - task  # Must delegate to ContextScout
+    - read  # Must read multiple discovered files
+  minToolCalls: 5  # ContextScout + multiple reads
+  maxToolCalls: 30
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 120000  # Multi-domain discovery takes longer
+
+tags:
+  - openagent
+  - contextscout-integration
+  - multi-domain
+  - comprehensive
+  - critical
+
+# Expected outcome:
+# - Agent delegates to ContextScout
+# - ContextScout finds multiple files:
+#   * .opencode/context/openagents-repo/guides/adding-agent.md
+#   * .opencode/context/openagents-repo/core-concepts/agents.md
+#   * .opencode/context/core/standards/code-quality.md
+#   * .opencode/context/core/standards/test-coverage.md
+#   * .opencode/context/openagents-repo/core-concepts/evals.md
+# - Agent loads all discovered files
+# - Agent provides comprehensive guide with all necessary information

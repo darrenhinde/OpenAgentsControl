@@ -2,7 +2,7 @@
 
 Session: 20250121-143022-a4f2
 Created: 2025-01-21T14:30:22Z
-For: subagents/core/task-manager
+For: TaskManager
 Status: in_progress
 
 ## Task Overview
@@ -16,12 +16,12 @@ Create a new data analyst agent for the OpenAgents repository. This agent will s
 ## Relevant Standards (Load These Before Starting)
 
 **Core Standards**:
-- `.opencode/context/core/standards/code.md` → Modular, functional code patterns
-- `.opencode/context/core/standards/tests.md` → Testing requirements and TDD
-- `.opencode/context/core/standards/docs.md` → Documentation standards
+- `.opencode/context/core/standards/code-quality.md` → Modular, functional code patterns
+- `.opencode/context/core/standards/test-coverage.md` → Testing requirements and TDD
+- `.opencode/context/core/standards/documentation.md` → Documentation standards
 
 **Core Workflows**:
-- `.opencode/context/core/workflows/task-breakdown.md` → Task breakdown methodology
+- `.opencode/context/core/workflows/feature-breakdown.md` → Task breakdown methodology
 
 ## Repository-Specific Context (Load These Before Starting)
 
@@ -166,7 +166,7 @@ Create a complete data analyst agent for the OpenAgents repository following all
 1. **Load Context**: Read all context files listed above to understand:
    - How agents are structured (core-concepts/agents.md)
    - How to add an agent (guides/adding-agent.md)
-   - Code standards (standards/code.md)
+   - Code standards (standards/code-quality.md)
    - Testing requirements (core-concepts/evals.md)
 
 2. **Create Agent File**:

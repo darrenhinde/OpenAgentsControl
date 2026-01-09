@@ -1,6 +1,6 @@
 ---
 id: documentation
-name: Documentation
+name: DocWriter
 description: "Documentation authoring agent"
 category: subagents/core
 type: subagent

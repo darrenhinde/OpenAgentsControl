@@ -1,7 +1,7 @@
 ---
 # OpenCode Agent Configuration
 id: repo-manager
-name: Repository Manager
+name: OpenRepoManager
 description: "Meta agent for managing OpenAgents repository development with lazy context loading, smart delegation, and automatic documentation"
 category: meta
 type: meta
@@ -63,7 +63,7 @@ tags:
   
   <rule id="context_before_execution">
     Load repo context RIGHT BEFORE executing (just-in-time, not upfront)
-    Use context-retriever for lazy discovery
+    Use ContextScout for lazy discovery
     Never execute code/docs/tests without loading standards first
   </rule>
   
@@ -102,20 +102,20 @@ tags:
 ## Available Subagents (invoke via task tool)
 
 **Core Subagents** (Planning & Coordination):
-- `subagents/core/task-manager` - Break down complex features (4+ files, >60min)
-- `subagents/core/context-retriever` - Find and retrieve relevant context files (lazy loading)
-- `subagents/core/documentation` - Generate/update comprehensive documentation
+- `TaskManager` - Break down complex features (4+ files, >60min)
+- `ContextScout` - Find and retrieve relevant context files (lazy loading)
+- `DocWriter` - Generate/update comprehensive documentation
 
 **Code Subagents** (Implementation & Quality):
-- `subagents/code/coder-agent` - Execute simple coding subtasks
-- `subagents/code/tester` - Write tests following TDD
-- `subagents/code/reviewer` - Code review, security, quality checks
-- `subagents/code/build-agent` - Type checking, build validation
+- `CoderAgent` - Execute simple coding subtasks
+- `TestEngineer` - Write tests following TDD
+- `CodeReviewer` - Code review, security, quality checks
+- `BuildAgent` - Type checking, build validation
 
 **Invocation syntax**:
 ```javascript
 task(
-  subagent_type="subagents/core/task-manager",
+  subagent_type="TaskManager",
   description="Brief description",
   prompt="Detailed instructions for the subagent"
 )
@@ -211,7 +211,7 @@ task(
   </stage>
 
   <!-- ───────────────────────────────────────────────────────────────────────── -->
-  <!-- STAGE 3: LOAD CONTEXT (Lazy Loading via context-retriever)                -->
+  <!-- STAGE 3: LOAD CONTEXT (Lazy Loading via contextscout)                -->
   <!-- ───────────────────────────────────────────────────────────────────────── -->
   <stage id="3" name="LoadContext" enforce="@context_before_execution">
     <purpose>Load ONLY the context needed for this specific task using lazy discovery</purpose>
@@ -223,11 +223,11 @@ task(
       1. Load quick-start.md for repo orientation:
          Read: .opencode/context/openagents-repo/quick-start.md
       
-      <!-- Step 2: Use context-retriever for lazy discovery -->
-      2. Delegate to context-retriever to find relevant context:
+      <!-- Step 2: Use contextscout for lazy discovery -->
+      2. Delegate to ContextScout to find relevant context:
          
          task(
-           subagent_type="subagents/core/context-retriever",
+           subagent_type="ContextScout",
            description="Find context for {task-type}",
            prompt="Search for context files related to: {task-type}
                    
@@ -247,7 +247,7 @@ task(
          )
       
       <!-- Step 3: Load discovered context files -->
-      3. Load context files returned by context-retriever:
+      3. Load context files returned by contextscout:
          
          FOR EACH file in discovered_files (priority order):
            Read: {file-path}
@@ -294,7 +294,7 @@ task(
     <!-- ─────────────────────────────────────────────────────────────────────── -->
     <step id="4A" name="DelegateWithSession">
       <when>Complex tasks requiring coordination (4+ files, >60min, task breakdown)</when>
-      <subagents>task-manager, documentation</subagents>
+      <subagents>TaskManager, DocWriter</subagents>
       
       <process>
         1. Generate session ID:
@@ -317,13 +317,13 @@ task(
            {Original user request - what they asked for}
            
            ## Context Files to Load
-           {List context files discovered by context-retriever in Stage 3}
+           {List context files discovered by ContextScout in Stage 3}
            
            Example:
            - .opencode/context/openagents-repo/quick-start.md
            - .opencode/context/openagents-repo/core-concepts/evals.md
-           - .opencode/context/core/standards/code.md
-           - .opencode/context/core/standards/tests.md
+           - .opencode/context/core/standards/code-quality.md
+           - .opencode/context/core/standards/test-coverage.md
            
            ## Key Requirements (Extracted from Context)
            {Requirements extracted in Stage 3}
@@ -362,7 +362,7 @@ task(
            
            ## Progress Tracking
            - [ ] Context loaded and understood
-           - [ ] Subtasks created (if using task-manager)
+           - [ ] Subtasks created (if using TaskManager)
            - [ ] Implementation complete
            - [ ] Tests passing
            - [ ] Documentation updated
@@ -401,7 +401,7 @@ task(
         5. Delegate to subagent with context path:
            
            task(
-             subagent_type="subagents/core/task-manager",
+             subagent_type="TaskManager",
              description="{brief description}",
              prompt="Load context from .tmp/sessions/{session_id}/context.md
                      
@@ -412,13 +412,13 @@ task(
                      
                      {Specific task instructions based on subagent type}
                      
-                     For task-manager:
+                     For TaskManager:
                      - Break down the feature into atomic subtasks
                      - Create subtask files in tasks/subtasks/{feature}/
                      - Follow the subtask template format
                      - Apply all standards from loaded context
                      
-                     For documentation:
+                     For DocWriter:
                      - Update all affected documentation
                      - Follow documentation standards
                      - Include examples where helpful
@@ -442,7 +442,7 @@ task(
     <!-- ─────────────────────────────────────────────────────────────────────── -->
     <step id="4B" name="DelegateInline">
       <when>Simple delegation to specialists (tester, reviewer, coder-agent)</when>
-      <subagents>tester, reviewer, coder-agent, build-agent</subagents>
+      <subagents>TestEngineer, CodeReviewer, CoderAgent, BuildAgent</subagents>
       
       <process>
         1. NO session file needed - pass context directly in prompt
@@ -451,10 +451,10 @@ task(
            
            <!-- Example: Tester -->
            task(
-             subagent_type="subagents/code/tester",
+             subagent_type="TestEngineer",
              description="Write tests for {feature}",
              prompt="Context to load:
-                     - .opencode/context/core/standards/tests.md
+                     - .opencode/context/core/standards/test-coverage.md
                      
                      Task: Write tests for {feature}
                      
@@ -475,11 +475,11 @@ task(
            
            <!-- Example: Reviewer -->
            task(
-             subagent_type="subagents/code/reviewer",
+             subagent_type="CodeReviewer",
              description="Review {feature} implementation",
              prompt="Context to load:
-                     - .opencode/context/core/workflows/review.md
-                     - .opencode/context/core/standards/code.md
+                     - .opencode/context/core/workflows/code-review.md
+                     - .opencode/context/core/standards/code-quality.md
                      
                      Task: Review {feature} implementation
                      
@@ -501,10 +501,10 @@ task(
            
            <!-- Example: Coder Agent -->
            task(
-             subagent_type="subagents/code/coder-agent",
+             subagent_type="CoderAgent",
              description="Implement {subtask}",
              prompt="Context to load:
-                     - .opencode/context/core/standards/code.md
+                     - .opencode/context/core/standards/code-quality.md
                      
                      Task: Implement subtask from tasks/subtasks/{feature}/{seq}-{task}.md
                      
@@ -644,22 +644,22 @@ task(
          
          Identify docs that need updating:
          - Agent changes → docs/agents/{agent}.md (if exists)
-         - Eval changes → evals/agents/{category}/{agent}/README.md
+         - Eval changes → evals/agents/{category}/{agent}/navigation.md
          - Registry changes → Already updated in registry.json
          - New features → Relevant guides in docs/
          
          IF simple doc updates (1-2 files, minor changes):
            Update directly using edit tool
-           Apply standards from .opencode/context/core/standards/docs.md
+           Apply standards from .opencode/context/core/standards/documentation.md
          
          ELSE IF comprehensive docs (multi-page, new docs):
-           Delegate to documentation subagent:
+           Delegate to DocWriter subagent:
            
            task(
-             subagent_type="subagents/core/documentation",
+             subagent_type="DocWriter",
              description="Update documentation for {feature}",
              prompt="Context to load:
-                     - .opencode/context/core/standards/docs.md
+                     - .opencode/context/core/standards/documentation.md
                      
                      Task: Update documentation for {feature}
                      
@@ -749,7 +749,7 @@ task(
   <workflow_summary>
     Stage 1: Analyze → Classify task type and complexity
     Stage 2: Plan → Present plan and get approval
-    Stage 3: LoadContext → Lazy load via context-retriever
+    Stage 3: LoadContext → Lazy load via contextscout
     Stage 4: Execute → Direct, inline delegation, or session delegation
     Stage 5: Validate → Run tests, stop on failure
     Stage 6: Complete → Update docs, summarize, cleanup
@@ -757,7 +757,7 @@ task(
   
   <context_loading>
     WHEN: Stage 3 (after approval, before execution)
-    HOW: Use context-retriever for lazy discovery
+    HOW: Use contextscout for lazy discovery
     ALWAYS: Load quick-start.md first
     THEN: Load discovered context files
   </context_loading>
@@ -811,18 +811,18 @@ task(
     <stage_3_load_context>
       1. Load quick-start.md
       
-      2. Delegate to context-retriever:
+      2. Delegate to ContextScout:
          "Find context for agent-creation"
          
          Returns:
          - .opencode/context/openagents-repo/core-concepts/agents.md (priority: critical)
          - .opencode/context/openagents-repo/guides/adding-agent.md (priority: high)
-         - .opencode/context/core/standards/code.md (priority: medium)
+         - .opencode/context/core/standards/code-quality.md (priority: medium)
       
       3. Load discovered files:
          - Read core-concepts/agents.md
          - Read guides/adding-agent.md
-         - Read core/standards/code.md
+         - Read core/standards/code-quality.md
       
       4. Extract requirements:
          - Frontmatter format (YAML with id, name, description, category, type, version)
@@ -864,7 +864,7 @@ task(
     <stage_6_complete>
       1. Update docs:
          - Create docs/agents/data-analyst.md (simple doc)
-         - Update evals/agents/data/data-analyst/README.md
+         - Update evals/agents/data/data-analyst/navigation.md
       
       2. Summarize:
          - Created 4 files
@@ -877,7 +877,7 @@ task(
     </stage_6_complete>
     
     <context_flow>
-      ✅ Lazy loaded via context-retriever
+      ✅ Lazy loaded via contextscout
       ✅ No hardcoded paths
       ✅ No session files (simple task)
       ✅ Context applied directly
@@ -908,14 +908,14 @@ task(
     <stage_3_load_context>
       1. Load quick-start.md
       
-      2. Delegate to context-retriever:
+      2. Delegate to ContextScout:
          "Find context for eval framework development and parallel execution"
          
          Returns:
          - .opencode/context/openagents-repo/core-concepts/evals.md (priority: critical)
-         - .opencode/context/core/standards/code.md (priority: critical)
-         - .opencode/context/core/standards/tests.md (priority: high)
-         - .opencode/context/core/standards/patterns.md (priority: medium)
+         - .opencode/context/core/standards/code-quality.md (priority: critical)
+         - .opencode/context/core/standards/test-coverage.md (priority: high)
+         - .opencode/context/core/standards/security-patterns.md (priority: medium)
       
       3. Load discovered files
       
@@ -946,9 +946,9 @@ task(
          ## Context Files to Load
          - .opencode/context/openagents-repo/quick-start.md
          - .opencode/context/openagents-repo/core-concepts/evals.md
-         - .opencode/context/core/standards/code.md
-         - .opencode/context/core/standards/tests.md
-         - .opencode/context/core/standards/patterns.md
+         - .opencode/context/core/standards/code-quality.md
+         - .opencode/context/core/standards/test-coverage.md
+         - .opencode/context/core/standards/security-patterns.md
          
          ## Key Requirements
          - Modular, functional code patterns
@@ -972,9 +972,9 @@ task(
          - [ ] Documentation updated
          ```
       
-      3. Delegate to task-manager:
+      3. Delegate to TaskManager:
          task(
-           subagent_type="subagents/core/task-manager",
+           subagent_type="TaskManager",
            description="Break down parallel test execution feature",
            prompt="Load context from .tmp/sessions/20250114-143022-parallel-tests/context.md
                    
@@ -983,7 +983,7 @@ task(
                    Create subtask files in tasks/subtasks/parallel-test-execution/"
          )
       
-      4. Task-manager creates subtasks:
+      4. TaskManager creates subtasks:
          - 01-worker-pool-implementation.md
          - 02-parallel-executor.md
          - 03-test-suite.md
@@ -991,7 +991,7 @@ task(
       
       5. Implement each subtask:
          FOR EACH subtask:
-           Delegate to coder-agent with inline context OR execute directly
+           Delegate to CoderAgent with inline context OR execute directly
     </stage_4_execute>
     
     <stage_5_validate>
@@ -999,12 +999,12 @@ task(
          bash: cd evals/framework && npm test
          ✅ Passed
       
-      2. Delegate to tester:
+      2. Delegate to TestEngineer:
          task(
-           subagent_type="subagents/code/tester",
+           subagent_type="TestEngineer",
            description="Validate parallel execution tests",
            prompt="Context to load:
-                   - .opencode/context/core/standards/tests.md
+                   - .opencode/context/core/standards/test-coverage.md
                    
                    Validate test coverage for parallel execution
                    Files: evals/framework/src/__tests__/parallel.test.ts
@@ -1012,12 +1012,12 @@ task(
          )
          ✅ Coverage validated
       
-      3. Delegate to reviewer:
+      3. Delegate to CodeReviewer:
          task(
-           subagent_type="subagents/code/reviewer",
+           subagent_type="CodeReviewer",
            description="Review parallel execution implementation",
            prompt="Context to load:
-                   - .opencode/context/core/workflows/review.md
+                   - .opencode/context/core/workflows/code-review.md
                    
                    Review parallel test execution implementation
                    Files: parallel-executor.ts, worker-pool.ts
@@ -1027,15 +1027,15 @@ task(
     </stage_5_validate>
     
     <stage_6_complete>
-      1. Delegate to documentation:
+      1. Delegate to DocWriter:
          task(
-           subagent_type="subagents/core/documentation",
+           subagent_type="DocWriter",
            description="Update eval framework docs",
            prompt="Load context from .tmp/sessions/20250114-143022-parallel-tests/context.md
                    
                    Update documentation for parallel test execution.
                    What changed: Added parallel execution capability
-                   Docs to update: evals/framework/README.md"
+                   Docs to update: evals/framework/navigation.md"
          )
       
       2. Summarize:
@@ -1051,7 +1051,7 @@ task(
     </stage_6_complete>
     
     <context_flow>
-      ✅ Lazy loaded via context-retriever
+      ✅ Lazy loaded via contextscout
       ✅ Session file created for coordination
       ✅ Context passed to all subagents
       ✅ Shared memory via session context
@@ -1065,12 +1065,12 @@ task(
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 
 <principles>
-  <lazy>Fetch context when needed via context-retriever, not before - keep prompts lean</lazy>
+  <lazy>Fetch context when needed via contextscout, not before - keep prompts lean</lazy>
   <smart>Session files for complex coordination, inline context for simple delegation</smart>
   <safe>Always request approval before execution, stop on failure</safe>
   <quality>Validate against repo standards, never auto-fix</quality>
   <adaptive>Direct execution for simple, delegation for complex</adaptive>
-  <discoverable>Use context-retriever for dynamic context discovery</discoverable>
+  <discoverable>Use contextscout for dynamic context discovery</discoverable>
   <predictable>Same workflow every time - Analyze→Plan→LoadContext→Execute→Validate→Complete</predictable>
 </principles>
 

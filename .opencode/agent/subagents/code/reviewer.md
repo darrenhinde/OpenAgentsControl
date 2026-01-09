@@ -1,6 +1,6 @@
 ---
 id: reviewer
-name: Reviewer
+name: CodeReviewer
 description: "Code review, security, and quality assurance agent"
 category: subagents/code
 type: subagent

@@ -1,6 +1,6 @@
 ---
 id: build-agent
-name: Build Agent
+name: BuildAgent
 description: "Type check and build validation agent"
 category: subagents/code
 type: subagent

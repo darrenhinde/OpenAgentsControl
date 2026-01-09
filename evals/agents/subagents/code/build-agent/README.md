@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/code/build-agent`  
+**Agent:** `BuildAgent`  
 **Parent Agent:** `opencoder`  
 **Description:** Type checking and build validation specialist
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/code/build-agent.md)
+- [Agent Source](.opencode/agent/BuildAgent.md)
 

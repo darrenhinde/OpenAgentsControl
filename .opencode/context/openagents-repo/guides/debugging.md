@@ -139,7 +139,7 @@ cat .tmp/sessions/{session-id}/events.json | jq '.[] | select(.type == "context_
 Add context loading in agent prompt:
 ```markdown
 Before implementing:
-1. Load core/standards/code.md
+1. Load core/standards/code-quality.md
 2. Apply standards to implementation
 ```
 

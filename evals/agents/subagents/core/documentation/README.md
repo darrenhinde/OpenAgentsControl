@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/core/documentation`  
+**Agent:** `DocWriter`  
 **Parent Agent:** `openagent`  
 **Description:** Documentation authoring specialist
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/core/documentation.md)
+- [Agent Source](.opencode/agent/DocWriter.md)
 

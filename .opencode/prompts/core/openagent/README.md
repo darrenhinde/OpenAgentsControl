@@ -417,7 +417,7 @@ Maintainers will review test results and community feedback before promoting.
 
 ## 📚 Related Documentation
 
-- [Main Prompts README](../README.md) - Prompt library overview
+- [Main Prompts README](../navigation.md) - Prompt library overview
 - [Eval Framework Guide](../../../evals/EVAL_FRAMEWORK_GUIDE.md) - How to run tests
 - [Test Suite Validation](../../../evals/TEST_SUITE_VALIDATION.md) - Creating test suites
 - [Contributing Guide](../../../docs/contributing/CONTRIBUTING.md) - Contribution guidelines
@@ -462,4 +462,4 @@ npm run eval:sdk -- --agent=openagent --prompt-variant=your-variant --suite=smok
 
 ---
 
-**Questions?** See [main README](../README.md) or open an issue.
+**Questions?** See [main README](../navigation.md) or open an issue.

@@ -1,0 +1,79 @@
+id: contextscout-unfamiliar-domain
+name: "ContextScout: Unfamiliar Domain Discovery"
+description: |
+  Tests that ContextScout correctly handles requests for domains it hasn't seen before
+  or domains with limited context files.
+  
+  This validates:
+  - ContextScout searches thoroughly even for unfamiliar terms
+  - ContextScout returns related files if exact match not found
+  - ContextScout suggests alternative search terms
+  - ContextScout doesn't fabricate files
+  
+  Expected Behavior:
+  - Search for "blockchain" or "machine learning" (not in our context)
+  - Return: "No exact matches found for 'blockchain'"
+  - Suggest: "Found related files in development/ or core/standards/"
+  - Provide: General code standards as fallback
+  
+  This test SHOULD FAIL if:
+  - ContextScout fabricates non-existent files
+  - ContextScout returns empty response without suggestions
+  - ContextScout doesn't search thoroughly
+
+category: developer
+agent: subagents/core/contextscout
+
+prompts:
+  - text: |
+      Search for context files related to: blockchain smart contract development
+      
+      Task type: blockchain-development
+      
+      Search intent: I need to understand how to develop blockchain smart contracts
+      
+      Return:
+      - Exact file paths to relevant context files
+      - Brief summary of what each file contains
+      - Priority order (critical, high, medium)
+      
+      Focus on:
+      - Blockchain development patterns
+      - Smart contract best practices
+      - Security considerations
+      - Testing strategies
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  forbiddenTools:
+    - task
+    - bash
+    - write  # Read-only agent
+    - edit   # Read-only agent
+  minToolCalls: 1
+  maxToolCalls: 10
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - discovery
+  - unfamiliar-domain
+  - error-handling
+  - medium
+
+# Expected outcome:
+# - Uses glob to search for "blockchain", "smart", "contract"
+# - Finds no exact matches
+# - Returns response like:
+#   "No specific blockchain context files found.
+#    
+#    However, these general files may be helpful:
+#    - .opencode/context/core/standards/code-quality.md (MEDIUM) - General code standards
+#    - .opencode/context/core/standards/security-patterns.md (HIGH) - Security best practices
+#    
+#    Suggestion: Consider adding blockchain-specific context files to:
+#    - .opencode/context/development/blockchain/
+#    - .opencode/context/development/principles/smart-contracts.md"

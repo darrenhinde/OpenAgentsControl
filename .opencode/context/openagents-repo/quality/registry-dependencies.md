@@ -85,7 +85,7 @@ Agents reference context files in their prompts but often don't declare them as 
 ```markdown
 <!-- In agent prompt -->
 BEFORE any code implementation, ALWAYS load:
-- Code tasks → .opencode/context/core/standards/code.md (MANDATORY)
+- Code tasks → .opencode/context/core/standards/code-quality.md (MANDATORY)
 ```
 
 **Without dependency declaration**:
@@ -116,7 +116,7 @@ dependencies:
 
 **Path normalization**:
 ```
-File path:     .opencode/context/core/standards/code.md
+File path:     .opencode/context/core/standards/code-quality.md
 Dependency:    context:core/standards/code
                ^^^^^^^ ^^^^^^^^^^^^^^^^^^^
                type    path (no .opencode/, no .md)
@@ -125,9 +125,9 @@ Dependency:    context:core/standards/code
 **Examples**:
 ```
 dependencies:
-  - context:core/standards/code           # .opencode/context/core/standards/code.md
-  - context:core/standards/docs           # .opencode/context/core/standards/docs.md
-  - context:core/workflows/delegation     # .opencode/context/core/workflows/delegation.md
+  - context:core/standards/code           # .opencode/context/core/standards/code-quality.md
+  - context:core/standards/docs           # .opencode/context/core/standards/documentation.md
+  - context:core/workflows/delegation     # .opencode/context/core/workflows/task-delegation.md
   - context:openagents-repo/guides/adding-agent  # Project-specific context
 ```
 
@@ -212,7 +212,7 @@ Before committing changes to agents, commands, or context files:
 ### opencoder
 Uses but not declared:
 - context:core/standards/code (referenced 3 times)
-  - Line 64: "Code tasks → .opencode/context/core/standards/code.md"
+  - Line 64: "Code tasks → .opencode/context/core/standards/code-quality.md"
   
 Recommended fix:
 dependencies:
@@ -352,7 +352,7 @@ jq '.components[] | .[] | select(.dependencies[]? | contains("context:core/stand
 **2. Update context file**:
 ```bash
 # Make your changes
-vim .opencode/context/core/standards/code.md
+vim .opencode/context/core/standards/code-quality.md
 ```
 
 **3. Validate no broken references**:
@@ -441,7 +441,7 @@ dependencies:
 **Fix**:
 ```bash
 # Check if file exists
-ls -la .opencode/context/core/standards/code.md
+ls -la .opencode/context/core/standards/code-quality.md
 
 # If exists, add to registry
 ./scripts/registry/auto-detect-components.sh --auto-add
@@ -463,7 +463,7 @@ ls -la .opencode/context/core/standards/code.md
 # Edit agent frontmatter to add dependency
 
 # Option 2: Remove if truly unused
-rm .opencode/context/core/standards/analysis.md
+rm .opencode/context/core/standards/code-analysis.md
 ./scripts/registry/auto-detect-components.sh --auto-add
 ```
 

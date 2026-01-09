@@ -1,6 +1,6 @@
 ---
 id: copywriter
-name: Copywriter
+name: OpenCopywriter
 description: "Expert in persuasive writing, marketing copy, and brand messaging"
 category: content
 type: standard

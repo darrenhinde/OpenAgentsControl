@@ -1,8 +1,8 @@
 # Context System
 
-**Purpose**: Minimal, function-based knowledge organization for AI agents
+**Purpose**: Minimal, concern-based knowledge organization for AI agents
 
-**Last Updated**: 2026-01-06
+**Last Updated**: 2026-01-08
 
 ---
 
@@ -12,32 +12,284 @@
 Extract only core concepts (1-3 sentences), key points (3-5 bullets), minimal example, and reference link. 
 **Goal**: Scannable in <30 seconds. Reference full docs, don't duplicate them.
 
-### 2. Function-Based Structure
-Organize by what info does, not just topic:
-- `concepts/` - Core ideas, "what is it?"
-- `examples/` - Minimal working code
-- `guides/` - Step-by-step workflows
-- `lookup/` - Quick reference tables
-- `errors/` - Common issues + fixes
+### 2. Concern-Based Structure
+Organize by **what you're doing** (concern), then by **how you're doing it** (approach/tech):
 
-### 3. Easy Navigation
-Every directory has `README.md` with navigation map. Think: table of contents with priority levels.
+**Two organizational patterns**:
 
-### 4. Knowledge Harvesting
-Extract valuable context from AI summaries/overviews, then delete them. Workspace stays clean, knowledge persists.
-
----
-
-## Directory Structure
-
+#### Pattern A: Function-Based (for repository-specific context)
 ```
-.opencode/context/{category}/
-├── README.md              # Navigation map
+category/
+├── navigation.md
 ├── concepts/              # What it is
 ├── examples/              # Working code
 ├── guides/                # How to do it
 ├── lookup/                # Quick reference
 └── errors/                # Common issues
+```
+
+**Use when**: Content is repository-specific (e.g., `openagents-repo/`)
+
+#### Pattern B: Concern-Based (for development context)
+```
+category/
+├── navigation.md
+├── {concern}/             # Organize by what you're doing
+│   ├── navigation.md
+│   ├── {approach}/        # Then by approach/tech
+│   │   ├── navigation.md
+│   │   └── {files}.md
+```
+
+**Use when**: Content spans multiple technologies (e.g., `development/`)
+
+**Examples**:
+- `development/backend/api-patterns/` - Concern: backend, Approach: API patterns
+- `development/backend/nodejs/` - Concern: backend, Tech: Node.js
+- `development/frontend/react/` - Concern: frontend, Tech: React
+
+### 3. Token-Efficient Navigation
+Every category/subcategory has `navigation.md` with:
+- **ASCII tree** for quick structure scan (~50 tokens)
+- **Quick routes table** for common tasks (~100 tokens)
+- **By concern/type** sections (~50 tokens)
+- **Total**: ~200-300 tokens per navigation file
+
+**Why**: Faster loading, less cost, quicker AI decisions
+
+### 4. Specialized Navigation Files
+For cross-cutting concerns, create specialized navigation:
+- `development/ui-navigation.md` - Spans frontend/ + ui/
+- `development/backend-navigation.md` - Covers APIs, auth, middleware
+- `development/fullstack-navigation.md` - Common tech stacks
+
+**Why**: Real workflows don't fit neat categories
+
+### 5. Self-Describing Filenames
+Filenames should tell you what's inside:
+- ❌ `code.md` → ✅ `code-quality.md`
+- ❌ `tests.md` → ✅ `test-coverage.md`
+- ❌ `review.md` → ✅ `code-review.md`
+
+**Why**: No need to open files to understand content
+
+### 6. Knowledge Harvesting
+Extract valuable context from AI summaries/overviews, then delete them. Workspace stays clean, knowledge persists.
+
+---
+
+## Directory Patterns
+
+### Pattern A: Function-Based (Repository-Specific)
+
+**Use for**: Repository-specific context (e.g., `openagents-repo/`)
+
+```
+.opencode/context/{category}/
+├── navigation.md              # Fast, token-efficient navigation
+├── quick-start.md             # Optional: 2-minute orientation
+│
+├── core-concepts/             # Foundational concepts (optional)
+│   ├── navigation.md
+│   └── {concept}.md
+│
+├── concepts/                  # What it is
+│   ├── navigation.md
+│   └── {concept}.md
+│
+├── examples/                  # Working code
+│   ├── navigation.md
+│   └── {example}.md
+│
+├── guides/                    # How to do it
+│   ├── navigation.md
+│   └── {guide}.md
+│
+├── lookup/                    # Quick reference
+│   ├── navigation.md
+│   └── {lookup}.md
+│
+└── errors/                    # Common issues
+    ├── navigation.md
+    └── {error}.md
+```
+
+---
+
+### Pattern B: Concern-Based (Development Context)
+
+**Use for**: Multi-technology development context (e.g., `development/`)
+
+```
+.opencode/context/{category}/
+├── navigation.md                       # Main navigation
+├── {concern}-navigation.md             # Specialized navigation (optional)
+│
+├── principles/                         # Universal principles (optional)
+│   ├── navigation.md
+│   └── {principle}.md
+│
+├── {concern}/                          # Organize by concern
+│   ├── navigation.md
+│   │
+│   ├── {approach}/                     # Then by approach
+│   │   ├── navigation.md
+│   │   └── {pattern}.md
+│   │
+│   └── {tech}/                         # Or by tech
+│       ├── navigation.md
+│       └── {pattern}.md
+```
+
+**Example**:
+```
+development/
+├── navigation.md
+├── ui-navigation.md                    # Specialized
+├── backend-navigation.md               # Specialized
+├── fullstack-navigation.md             # Specialized
+│
+├── principles/                         # Universal
+│   ├── clean-code.md
+│   └── api-design.md
+│
+├── frontend/                           # Concern
+│   ├── react/                          # Tech
+│   │   ├── hooks-patterns.md
+│   │   └── tanstack/                   # Sub-tech
+│   │       ├── query-patterns.md
+│   │       └── router-patterns.md
+│   └── vue/                            # Tech
+│
+├── backend/                            # Concern
+│   ├── api-patterns/                   # Approach
+│   │   ├── rest-design.md
+│   │   └── graphql-design.md
+│   ├── nodejs/                         # Tech
+│   └── authentication/                 # Functional concern
+│
+└── data/                               # Concern
+    ├── sql-patterns/                   # Approach
+    └── orm-patterns/                   # Approach
+```
+
+---
+
+## Navigation File Format
+
+### Token-Efficient Template
+
+```markdown
+# {Category} Navigation
+
+**Purpose**: [1 sentence]
+
+---
+
+## Structure
+
+```
+{category}/
+├── navigation.md
+├── {subcategory}/
+│   ├── navigation.md
+│   └── {files}.md
+```
+
+---
+
+## Quick Routes
+
+| Task | Path |
+|------|------|
+| **{Task 1}** | `{path}` |
+| **{Task 2}** | `{path}` |
+
+---
+
+## By {Concern/Type}
+
+**{Section 1}** → {description}
+**{Section 2}** → {description}
+```
+
+**Target**: 200-300 tokens
+
+---
+
+## Organizing Principles
+
+### 1. Core Standards (Universal)
+
+Location: `.opencode/context/core/standards/`
+
+**Purpose**: Universal standards that apply to ALL development
+
+**Content**:
+- Code quality principles (all languages)
+- Test coverage standards
+- Documentation standards
+- Security patterns
+- Code analysis approaches
+
+**Used by**: All agents, all projects
+
+**Effect on other categories**: 
+- Other categories can reference these standards
+- Users can edit core standards to affect context flow globally
+- Development-specific standards go in `development/principles/`
+
+---
+
+### 2. Development Principles vs Core Standards
+
+| Location | Scope | Examples |
+|----------|-------|----------|
+| `core/standards/` | **Universal** (all projects, all languages) | Code quality, testing, docs, security |
+| `development/principles/` | **Development-specific** (software engineering) | Clean code, API design, error handling |
+
+**Both exist**: Core standards are universal, development principles are domain-specific
+
+---
+
+### 3. Data Context Location
+
+**Decision**: Data patterns live in `development/data/` (not top-level)
+
+**Rationale**: Data layer is part of development workflow
+
+**Structure**:
+```
+development/data/
+├── navigation.md
+├── sql-patterns/
+├── nosql-patterns/
+└── orm-patterns/
+```
+
+**Top-level `data/` category**: Reserved for data engineering/analytics (different concern)
+
+---
+
+### 4. Specialized Navigation Strategy
+
+**Full-stack navigation includes**:
+- Quick routes (table format)
+- Common stack patterns (MERN, T3, etc.)
+
+**Example**:
+```markdown
+## Quick Routes
+| Task | Path |
+|------|------|
+| **Frontend** | `ui-navigation.md` |
+
+## Common Stacks
+
+### MERN Stack
+Frontend: development/frontend/react/
+Backend:  development/backend/nodejs/
+Data:     development/data/nosql-patterns/mongodb.md
 ```
 
 ---
@@ -61,16 +313,6 @@ Extract valuable context from AI summaries/overviews, then delete them. Workspac
 5. Archive/delete summaries
 6. Report results
 
-**Approval Format**:
-```
-Found: AUTH-WORK.md
-✓ [A] Error: JWT expiration → errors/auth-errors.md
-✓ [B] Example: Refresh flow → examples/jwt-refresh.md
-✗ Skip: Planning notes
-
-Type 'A B' or 'all':
-```
-
 ---
 
 ### Extract (`/context extract`)
@@ -86,20 +328,20 @@ Type 'A B' or 'all':
 6. Capture errors/gotchas
 7. Create references
 
-**Output**: Follow MVI template below.
+**Output**: Follow MVI template
 
 ---
 
 ### Organize (`/context organize`)
 
-**Purpose**: Restructure existing files into function-based folders.
+**Purpose**: Restructure existing files into appropriate pattern.
 
 **Process**:
 1. Scan category
-2. Categorize by function (concept/example/guide/lookup/error)
+2. Determine pattern (function-based or concern-based)
 3. Create missing directories
 4. Move/refactor files
-5. Update README.md
+5. Update navigation.md
 6. Fix references
 
 ---
@@ -117,74 +359,16 @@ Type 'A B' or 'all':
 
 ---
 
-## File Templates
+## File Naming Conventions
 
-### Concept File (max 100 lines)
-```markdown
-# Concept: {Name}
+### Navigation Files
+- `navigation.md` - Main navigation for category/subcategory
+- `{domain}-navigation.md` - Specialized cross-cutting navigation
 
-**Core Idea**: [1-3 sentences]
-
-**Key Points**:
-- Point 1
-- Point 2
-- Point 3
-
-**Quick Example**:
-[Minimal code snippet]
-
-**Reference**: [Link to docs]
-
-**Related**: concepts/x.md, examples/y.md
-```
-
-### Error File (max 150 lines)
-```markdown
-# Errors: {Framework}
-
-## Error: {Name}
-
-**Symptom**: [What you see]
-
-**Cause**: [Why - 1 sentence]
-
-**Solution**:
-1. Step 1
-2. Step 2
-
-**Prevention**: [How to avoid]
-
-**Reference**: [Link]
-```
-
-### README.md (directory root, max 100 lines)
-```markdown
-# {Category} Context
-
-**Purpose**: [1-2 sentences]
-
----
-
-## Quick Navigation
-
-### Concepts
-| File | Description | Priority |
-|------|-------------|----------|
-| [topic.md](concepts/topic.md) | Core idea | critical |
-
-### Examples
-| File | Description | Priority |
-|------|-------------|----------|
-| [example.md](examples/example.md) | Working code | high |
-
-[Repeat for guides/, lookup/, errors/]
-
----
-
-## Loading Strategy
-
-**For {task}**: Load concepts/x.md → examples/y.md → guides/z.md
-```
+### Content Files
+- Use descriptive names: `code-quality.md` not `code.md`
+- Include type when helpful: `rest-design.md`, `jwt-patterns.md`
+- Use kebab-case: `scroll-linked-animations.md`
 
 ---
 
@@ -211,11 +395,22 @@ Type 'A B' or 'all':
 ## Success Criteria
 
 ✅ **Minimal** - Core info only, <200 lines per file
-✅ **Navigable** - README.md at every root
-✅ **Organized** - Function-based folders
+✅ **Navigable** - navigation.md at every level
+✅ **Organized** - Appropriate pattern (function-based or concern-based)
+✅ **Token-efficient** - Navigation files ~200-300 tokens
+✅ **Self-describing** - Filenames tell you what's inside
 ✅ **Referenceable** - Links to full docs
-✅ **Searchable** - Errors easily findable
+✅ **Searchable** - Easy to find via navigation
 ✅ **Maintainable** - Easy to update
+
+---
+
+## Related Documentation
+
+- `context-system/guides/navigation-design.md` - How to create navigation files
+- `context-system/guides/organizing-context.md` - How to choose organizational pattern
+- `context-system/examples/navigation-examples.md` - Good navigation examples
+- `context-system/standards/templates.md` - File templates
 
 ---
 

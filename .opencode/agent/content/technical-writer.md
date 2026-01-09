@@ -1,6 +1,6 @@
 ---
 id: technical-writer
-name: Technical Writer
+name: OpenTechnicalWriter
 description: "Expert in documentation, API docs, and technical communication"
 category: content
 type: standard

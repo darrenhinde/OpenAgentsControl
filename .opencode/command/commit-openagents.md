@@ -149,7 +149,7 @@ cd evals/framework && npm run eval:sdk -- --agent=core/opencoder --pattern="**/s
 - `agents/data` - Data category agents (data-analyst)
 - `agents/learning` - Learning category agents
 - `agents/product` - Product category agents
-- `subagents/core` - Core subagents (task-manager, documentation, context-retriever)
+- `subagents/core` - Core subagents (task-manager, documentation, contextscout)
 - `subagents/code` - Code subagents (coder-agent, tester, reviewer, build-agent, codebase-pattern-analyst)
 - `subagents/system-builder` - System builder subagents (domain-analyzer, agent-generator, context-organizer, workflow-designer, command-creator)
 - `subagents/utils` - Utility subagents (image-specialist)
@@ -326,7 +326,7 @@ When new workflows are added, offer to update documentation:
 
 Would you like to:
 1. Add entry to .github/workflows/WORKFLOW_AUDIT.md
-2. Update README.md with workflow info
+2. Update navigation.md with workflow info
 3. Skip documentation (do it later)
 ```
 

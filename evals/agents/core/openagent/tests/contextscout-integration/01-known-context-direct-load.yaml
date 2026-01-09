@@ -1,0 +1,58 @@
+id: openagent-contextscout-known-context
+name: "OpenAgent: Known Context - Should Load Directly (No ContextScout)"
+description: |
+  Tests that OpenAgent DOES NOT use ContextScout for standard tasks where
+  the context path is well-known and hardcoded.
+  
+  This validates:
+  - Agent loads .opencode/context/core/standards/code.md directly
+  - Agent does NOT delegate to ContextScout (unnecessary overhead)
+  - Fast execution without discovery phase
+  
+  Expected Behavior:
+  - MUST load code.md before writing code
+  - MUST NOT use task tool to call ContextScout
+  - SHOULD complete in <30 seconds
+  
+  This test SHOULD FAIL if:
+  - Agent uses ContextScout for known context (inefficient)
+  - Agent doesn't load code.md at all (violates standards)
+  - Agent takes >30s (discovery overhead detected)
+
+category: developer
+
+prompts:
+  - text: |
+      Write a new function called `fibonacci` that calculates the nth fibonacci number.
+      Use TypeScript and follow the project's code standards.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read  # Must read code.md
+  mustNotUseTools:
+    - task  # Should NOT delegate to ContextScout
+  minToolCalls: 2
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 30000  # Should be fast without discovery
+
+tags:
+  - openagent
+  - contextscout-integration
+  - known-context
+  - performance
+  - critical
+
+# Expected outcome:
+# - Agent reads .opencode/context/core/standards/code.md
+# - Agent writes fibonacci function following standards
+# - NO delegation to ContextScout
+# - Completes in <30s

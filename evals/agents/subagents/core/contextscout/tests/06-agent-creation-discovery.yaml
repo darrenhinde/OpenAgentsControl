@@ -1,0 +1,77 @@
+id: contextscout-agent-creation
+name: "ContextScout: Agent Creation Context Discovery"
+description: |
+  Tests that ContextScout correctly discovers agent-related context files
+  when asked about creating or modifying agents.
+  
+  This validates:
+  - ContextScout finds openagents-repo/core-concepts/agents.md
+  - ContextScout finds openagents-repo/guides/adding-agent.md
+  - ContextScout prioritizes correctly (concepts before guides)
+  - ContextScout returns exact file paths
+  - ContextScout provides actionable line ranges
+  
+  Expected Files (in priority order):
+  1. .opencode/context/openagents-repo/core-concepts/agents.md (CRITICAL)
+  2. .opencode/context/openagents-repo/guides/adding-agent.md (HIGH)
+  3. .opencode/context/core/standards/code-quality.md (MEDIUM)
+  
+  This test SHOULD FAIL if:
+  - ContextScout doesn't find agents.md
+  - ContextScout doesn't find adding-agent.md
+  - ContextScout returns wrong priority order
+  - ContextScout fabricates paths
+
+category: developer
+agent: subagents/core/contextscout
+
+prompts:
+  - text: |
+      Search for context files related to: creating a new agent
+      
+      Task type: agent-creation
+      
+      Search intent: I need to understand how to create a new agent in the OpenAgents repository
+      
+      Return:
+      - Exact file paths to relevant context files
+      - Brief summary of what each file contains
+      - Priority order (critical, high, medium)
+      
+      Focus on:
+      - Agent structure and format
+      - Step-by-step creation guides
+      - Code standards for agents
+      - Testing requirements
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  forbiddenTools:
+    - task
+    - bash
+    - write  # Read-only agent
+    - edit   # Read-only agent
+  minToolCalls: 1
+  maxToolCalls: 10
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - discovery
+  - agent-creation
+  - openagents-repo
+  - critical
+
+# Expected outcome:
+# - Uses glob to find files matching "agent" in openagents-repo
+# - Uses read to load:
+#   * .opencode/context/openagents-repo/core-concepts/agents.md
+#   * .opencode/context/openagents-repo/guides/adding-agent.md
+#   * .opencode/context/core/standards/code-quality.md
+# - Returns structured response with:
+#   * Priority 1 (CRITICAL): agents.md - Understanding agent structure
+#   * Priority 2 (HIGH): adding-agent.md - Step-by-step creation guide
+#   * Priority 3 (MEDIUM): code-quality.md - Code standards to follow

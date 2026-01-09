@@ -1,6 +1,6 @@
 ---
 id: context-organizer
-name: Context Organizer
+name: ContextOrganizer
 description: "Organizes and generates context files (domain, processes, standards, templates) for optimal knowledge management"
 category: subagents/system-builder
 type: subagent
@@ -336,7 +336,7 @@ tags:
       3. Map dependencies
       4. Provide usage guidance
     </process>
-    <output>context/README.md with complete guide</output>
+    <output>context/navigation.md with complete guide</output>
   </step_5>
 
   <step_6>
@@ -423,7 +423,7 @@ tags:
           dependencies: []
       
       context_readme:
-        filename: "README.md"
+        filename: "navigation.md"
         content: |
           {context organization guide}
       

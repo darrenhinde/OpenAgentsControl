@@ -217,7 +217,7 @@ To actually **run** an agent and execute tasks:
 ```javascript
 // AI must explicitly call the task tool
 task(
-  subagent_type="reviewer",
+  subagent_type="CodeReviewer",
   description="Review code",
   prompt="Review the auth implementation for security issues"
 )
@@ -274,7 +274,7 @@ Review with @taskmanager agent
 **Agent: `reviewer`** - Code review agent
 - Purpose: Review code for quality and security
 - When: After implementing features
-- Invoke with: task(subagent_type="reviewer", description="Review X", prompt="Review Y for Z issues")
+- Invoke with: task(subagent_type="CodeReviewer", description="Review X", prompt="Review Y for Z issues")
 
 **DO NOT use @reviewer** - This loads metadata, not invocation
 **ALWAYS use task tool** - This actually runs the agent
@@ -297,7 +297,7 @@ Review with @taskmanager agent
 - **Tool call**: 
   ```javascript
   task(
-    subagent_type="tester",
+    subagent_type="TestEngineer",
     description="Test auth",
     prompt="Write comprehensive tests for auth module with >80% coverage"
   )
@@ -309,7 +309,7 @@ Review with @taskmanager agent
 - **Tool call**: 
   ```javascript
   task(
-    subagent_type="reviewer",
+    subagent_type="CodeReviewer",
     description="Review changes",
     prompt="Review the authentication implementation for security vulnerabilities, code quality, and best practices"
   )
@@ -349,11 +349,11 @@ To make the AI **automatically** invoke sub-agents at appropriate times:
 2. You implement the code
 3. Automatically call: 
    ```javascript
-   task(subagent_type="tester", description="Test feature", prompt="Write tests for X")
+   task(subagent_type="TestEngineer", description="Test feature", prompt="Write tests for X")
    ```
 4. Automatically call: 
    ```javascript
-   task(subagent_type="reviewer", description="Review feature", prompt="Review X for quality")
+   task(subagent_type="CodeReviewer", description="Review feature", prompt="Review X for quality")
    ```
 5. Summarize results for user
 
@@ -447,19 +447,19 @@ task(
 )
 ```
 
-**@subagents/code/tester** - Test generation and execution
+**@TestEngineer** - Test generation and execution
 ```javascript
 task(
-  subagent_type="tester", 
+  subagent_type="TestEngineer", 
   description="Test auth system",
   prompt="Write comprehensive unit and integration tests for the authentication module. Ensure >80% coverage. Run tests and report results."
 )
 ```
 
-**@subagents/code/reviewer** - Code quality and security review
+**@CodeReviewer** - Code quality and security review
 ```javascript
 task(
-  subagent_type="reviewer",
+  subagent_type="CodeReviewer",
   description="Review auth code",
   prompt="Review the authentication implementation for security vulnerabilities, code quality, and adherence to @docs/CODING_STANDARDS.md. Provide specific improvement suggestions."
 )
@@ -495,8 +495,8 @@ task(
 
 **ALWAYS execute this workflow:**
 
-1. **Test** - Invoke `@subagents/code/tester` to validate implementation
-2. **Review** - Invoke `@subagents/code/reviewer` for quality check
+1. **Test** - Invoke `@TestEngineer` to validate implementation
+2. **Review** - Invoke `@CodeReviewer` for quality check
 3. **Document** - Update relevant documentation
 4. **Report** - Summarize results to user with:
    - What was implemented
@@ -590,7 +590,7 @@ Use @agent-name to run the agent
 ```markdown
 # Good: Explicit tool call for agent invocation
 **Agent: `tester`** - Invoke ONLY via task tool:
-task(subagent_type="tester", description="Test feature", prompt="Write comprehensive tests for X")
+task(subagent_type="TestEngineer", description="Test feature", prompt="Write comprehensive tests for X")
 
 # Good: Clear separation of concerns
 **File**: @docs/testing-guide.md - Load with read_file
@@ -604,7 +604,7 @@ Use the `codebase_search` tool to find authentication logic
 
 # Good: Proactive invocation instruction
 After implementing code, ALWAYS invoke the tester agent:
-task(subagent_type="tester", description="Test X", prompt="Write and run tests for X")
+task(subagent_type="TestEngineer", description="Test X", prompt="Write and run tests for X")
 ```
 
 ---
@@ -725,7 +725,7 @@ Dependencies: !`npm list --depth=0 | grep auth`
 ## Sub-Agents Available
 
 **@subagents/code/implementer** - Use for implementation
-**@subagents/code/tester** - Use for testing
+**@TestEngineer** - Use for testing
 
 ## Task
 Implement the authentication flow following @docs/auth-spec.md
@@ -911,9 +911,9 @@ Test files in project:
 - Use when: Implementing new auth flows
 - Example: `task(subagent_type="implementer", description="OAuth flow", prompt="Implement OAuth2 flow with Google, following patterns in @docs/AUTH_ARCHITECTURE.md")`
 
-**@subagents/code/tester** - Test creation
+**@TestEngineer** - Test creation
 - Use when: After implementing auth features  
-- Example: `task(subagent_type="tester", description="Test OAuth", prompt="Write integration tests for OAuth2 flow with >90% coverage")`
+- Example: `task(subagent_type="TestEngineer", description="Test OAuth", prompt="Write integration tests for OAuth2 flow with >90% coverage")`
 
 **@subagents/security/auditor** - Security review
 - Use when: Before deploying auth changes
@@ -934,7 +934,7 @@ Test files in project:
 ### Step 3: Testing
 1. Invoke tester agent via `task` tool for test creation
    ```javascript
-   task(subagent_type="tester", description="Test auth", prompt="Write tests for auth module")
+   task(subagent_type="TestEngineer", description="Test auth", prompt="Write tests for auth module")
    ```
 2. Run tests: Use `run_terminal_cmd` for `npm test`
 3. Verify coverage meets requirements
@@ -1010,8 +1010,8 @@ Test files in project:
 **Structure Example:**
 ```
 Files (use @):          Agents (use task):
-@docs/guide.md          task(subagent_type="reviewer", ...)
-@src/types.ts           task(subagent_type="tester", ...)
+@docs/guide.md          task(subagent_type="CodeReviewer", ...)
+@src/types.ts           task(subagent_type="TestEngineer", ...)
 @.opencode/agents/      [agent name without @]
   taskmanager.md        
 ```
@@ -1071,7 +1071,7 @@ task(
 **How to invoke**:
 ```javascript
 task(
-  subagent_type="tester",
+  subagent_type="TestEngineer",
   description="Test feature X",
   prompt="Write comprehensive tests for X with >80% coverage. Run tests and report results."
 )
@@ -1083,7 +1083,7 @@ task(
 **How to invoke**:
 ```javascript
 task(
-  subagent_type="reviewer",
+  subagent_type="CodeReviewer",
   description="Review feature X",
   prompt="Review the implementation of X for code quality, security vulnerabilities, and adherence to @docs/coding-standards.md"
 )
@@ -1163,7 +1163,7 @@ Purpose: Test creation
 Invoke with:
 ```javascript
 task(
-  subagent_type="tester",
+  subagent_type="TestEngineer",
   description="Test auth system",
   prompt="Write unit and integration tests for authentication module. Cover login, logout, token refresh, and session management. Ensure >85% coverage. Run tests and report results."
 )
@@ -1174,7 +1174,7 @@ Purpose: Security and quality review
 Invoke with:
 ```javascript
 task(
-  subagent_type="reviewer",
+  subagent_type="CodeReviewer",
   description="Review auth implementation",
   prompt="Review authentication implementation for security vulnerabilities (SQL injection, XSS, CSRF), proper token handling, password security, and adherence to @docs/CODING_STANDARDS.md"
 )
@@ -1248,10 +1248,10 @@ Follow @guidelines and implement authentication.
 
 ## Agents
 **Agent: `tester`** - Invoke with task tool:
-task(subagent_type="tester", description="Test auth", prompt="...")
+task(subagent_type="TestEngineer", description="Test auth", prompt="...")
 
 **Agent: `reviewer`** - Invoke with task tool:
-task(subagent_type="reviewer", description="Review auth", prompt="...")
+task(subagent_type="CodeReviewer", description="Review auth", prompt="...")
 
 ## Workflow
 1. Read @docs/guidelines.md
@@ -1298,7 +1298,7 @@ Git status: !`git status --short`
 Invoke: task(subagent_type="implementer", description="...", prompt="...")
 
 **Agent: `tester`**
-Invoke: task(subagent_type="tester", description="...", prompt="...")
+Invoke: task(subagent_type="TestEngineer", description="...", prompt="...")
 
 ## Workflow
 1. Read context files
@@ -1323,7 +1323,7 @@ Recent changes:
 **Agent: `reviewer`**
 Invoke immediately:
 task(
-  subagent_type="reviewer",
+  subagent_type="CodeReviewer",
   description="Review recent changes",
   prompt="Review all changes in current branch for code quality, security, and adherence to standards"
 )
@@ -1377,7 +1377,7 @@ Based on your actual agent configurations (task-manager subagent + orchestration
   agent/                          # All agents as markdown files
     subagents/
       core/
-        task-manager.md           # Agent name: "subagents/core/task-manager"
+        task-manager.md           # Agent name: "TaskManager"
     orchestration-agent.md        # Agent name: "orchestration-agent"
     code/
       reviewer.md                 # Agent name: "code/reviewer"
@@ -1417,7 +1417,7 @@ All the markdown content becomes the agent's system prompt.
 
 **Examples:**
 - File: `.opencode/agent/task-manager.md` → Name: `task-manager`
-- File: `.opencode/agent/subagents/core/task-manager.md` → Name: `subagents/core/task-manager`
+- File: `.opencode/agent/TaskManager.md` → Name: `TaskManager`
 - File: `.opencode/agent/code/reviewer.md` → Name: `code/reviewer`
 
 **No opencode.json needed!** Everything is in markdown.
@@ -1432,7 +1432,7 @@ Have @orchestration-agent coordinate the work
 **Problems:**
 - Using `@` for agent invocation (only loads metadata)
 - AI won't actually invoke the agents
-- Wrong agent name - should include full path: `subagents/core/task-manager`
+- Wrong agent name - should include full path: `TaskManager`
 - Confusing agent files with agent invocation
 
 ### ✅ CORRECT: Clear Prompt
@@ -1444,7 +1444,7 @@ Have @orchestration-agent coordinate the work
 
 **Agent Documentation** (optional - only if you need to understand agent capabilities):
 - @.opencode/agent/orchestration-agent.md - Main agent guidelines
-- @.opencode/agent/subagents/core/task-manager.md - Task breakdown process
+- @.opencode/agent/TaskManager.md - Task breakdown process
 
 **Project Documentation**:
 - @docs/coding-standards.md
@@ -1458,12 +1458,12 @@ Files: !`find src/dashboard -name "*.ts"`
 
 ## 🤖 Available Agents
 
-### Agent: `subagents/core/task-manager` (Subagent)
+### Agent: `TaskManager` (Subagent)
 
 **IMPORTANT**: Agent is defined in a MARKDOWN file. The agent name comes from the file path!
 
-**File location**: `.opencode/agent/subagents/core/task-manager.md`
-**Agent name**: `subagents/core/task-manager` (path from `agent/` directory)
+**File location**: `.opencode/agent/TaskManager.md`
+**Agent name**: `TaskManager` (path from `agent/` directory)
 **Format**: Markdown with YAML frontmatter
 
 **File structure:**
@@ -1489,7 +1489,7 @@ tools: { read: true, write: true, ... }
 **How to invoke**:
 ```javascript
 task(
-  subagent_type="subagents/core/task-manager",
+  subagent_type="TaskManager",
   description="Break down dashboard feature",
   prompt="Break down the user dashboard feature into atomic subtasks. Feature includes: profile widget, activity feed, notification center, and settings panel. Create structured task files in /tasks/ directory following your two-phase workflow."
 )
@@ -1510,7 +1510,7 @@ task(
 1. **Invoke task-manager** to break down the feature
    ```javascript
    task(
-     subagent_type="subagents/core/task-manager",
+     subagent_type="TaskManager",
      description="Break down dashboard",
      prompt="Analyze and break down user dashboard feature with profile, activity, notifications, and settings components. Create task files with dependencies and acceptance criteria."
    )
@@ -1575,13 +1575,13 @@ Requirements:
 
 ---
 
-## 🤖 Agent: subagents/core/task-manager
+## 🤖 Agent: TaskManager
 
 **Invoke immediately for task breakdown:**
 
 ```javascript
 task(
-  subagent_type="subagents/core/task-manager",
+  subagent_type="TaskManager",
   description="Break down [feature]",
   prompt="Break down [feature description] into atomic subtasks. Include:
   - Component 1: [details]
@@ -1667,8 +1667,8 @@ This task requires coordination across multiple steps:
 
 ## 🤖 Agents Available
 
-**Agent: `subagents/core/task-manager`** - For feature breakdown
-Invoke: task(subagent_type="subagents/core/task-manager", description="...", prompt="...")
+**Agent: `TaskManager`** - For feature breakdown
+Invoke: task(subagent_type="TaskManager", description="...", prompt="...")
 
 **Agent: `general`** - For delegated complex work (if needed)
 Invoke: task(subagent_type="general", description="...", prompt="...")
@@ -1710,9 +1710,9 @@ From @.opencode/agents/orchestration-agent.md:
 
 | What | File Syntax | Agent Invocation |
 |------|-------------|------------------|
-| Load agent docs | `@.opencode/agent/subagents/core/task-manager.md` | N/A |
-| Invoke task-manager | N/A | `task(subagent_type="subagents/core/task-manager", ...)` |
-| Reference in text | "the task-manager agent" or "subagents/core/task-manager" | N/A |
+| Load agent docs | `@.opencode/agent/TaskManager.md` | N/A |
+| Invoke task-manager | N/A | `task(subagent_type="TaskManager", ...)` |
+| Reference in text | "the task-manager agent" or "TaskManager" | N/A |
 | Load project docs | `@docs/standards.md` | N/A |
 
 **KEY INSIGHT**: The agent name comes from the file path structure, NOT just the filename!
@@ -1786,8 +1786,8 @@ Available agents are documented in the task tool description.
 **Option 2: Explicit (Be Redundant)**
 ```markdown
 Available subagents via task tool:
-- subagents/core/task-manager - For feature breakdown
-- subagents/code/tester - For testing
+- TaskManager - For feature breakdown
+- TestEngineer - For testing
 
 Invoke with: task(subagent_type="...", description="...", prompt="...")
 ```

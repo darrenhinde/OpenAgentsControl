@@ -103,7 +103,7 @@ For each profile (essential, developer, business, full, advanced):
 
 ### Step 4: Cross-Reference with Documentation
 
-1. **README.md**:
+1. **navigation.md**:
    - Extract component counts from profile descriptions
    - Compare with actual registry counts
    - Check profile descriptions match registry descriptions

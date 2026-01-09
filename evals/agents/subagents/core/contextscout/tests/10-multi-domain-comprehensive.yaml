@@ -1,0 +1,80 @@
+id: contextscout-multi-domain
+name: "ContextScout: Multi-Domain Comprehensive Discovery"
+description: |
+  Tests that ContextScout correctly discovers context files across multiple domains
+  when asked about a complex task that spans multiple areas.
+  
+  This validates:
+  - ContextScout searches across multiple domains
+  - ContextScout combines relevant files from different areas
+  - ContextScout prioritizes based on task requirements
+  - ContextScout doesn't miss critical cross-domain files
+  
+  Expected Files (in priority order):
+  1. .opencode/context/openagents-repo/core-concepts/agents.md (CRITICAL)
+  2. .opencode/context/core/standards/code-quality.md (CRITICAL)
+  3. .opencode/context/core/standards/test-coverage.md (HIGH)
+  4. .opencode/context/openagents-repo/guides/adding-agent.md (HIGH)
+  5. .opencode/context/core/standards/documentation.md (MEDIUM)
+  
+  This test SHOULD FAIL if:
+  - ContextScout only searches one domain
+  - ContextScout misses critical files from other domains
+  - ContextScout doesn't combine findings effectively
+
+category: developer
+agent: subagents/core/contextscout
+
+prompts:
+  - text: |
+      Search for context files related to: creating a new agent with tests and documentation
+      
+      Task type: agent-creation, testing, documentation
+      
+      Search intent: I need to create a complete agent including implementation, tests, and docs
+      
+      Return:
+      - Exact file paths to relevant context files
+      - Brief summary of what each file contains
+      - Priority order (critical, high, medium)
+      
+      Focus on:
+      - Agent creation process
+      - Code quality standards
+      - Testing requirements
+      - Documentation standards
+      - Best practices across all areas
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  forbiddenTools:
+    - task
+    - bash
+    - write  # Read-only agent
+    - edit   # Read-only agent
+  minToolCalls: 1
+  maxToolCalls: 10
+
+timeout: 90000
+
+tags:
+  - contextscout
+  - discovery
+  - multi-domain
+  - comprehensive
+  - critical
+
+# Expected outcome:
+# - Uses glob to find files across multiple domains
+# - Uses read to load:
+#   * .opencode/context/openagents-repo/core-concepts/agents.md
+#   * .opencode/context/core/standards/code-quality.md
+#   * .opencode/context/core/standards/test-coverage.md
+#   * .opencode/context/openagents-repo/guides/adding-agent.md
+#   * .opencode/context/core/standards/documentation.md
+# - Returns structured response with:
+#   * Priority 1 (CRITICAL): agents.md + code-quality.md
+#   * Priority 2 (HIGH): test-coverage.md + adding-agent.md
+#   * Priority 3 (MEDIUM): documentation.md

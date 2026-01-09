@@ -1,0 +1,64 @@
+id: openagent-contextscout-implicit-discovery
+name: "OpenAgent: Implicit Discovery - Uses ContextScout Without Being Told"
+description: |
+  Tests that OpenAgent PROACTIVELY uses ContextScout when encountering
+  unfamiliar topics, even when NOT explicitly instructed to do so.
+  
+  This is the KEY test - agents should be smart enough to recognize
+  when they need context discovery without the user saying "use contextscout".
+  
+  This validates:
+  - Agent recognizes unfamiliar domain (registry system)
+  - Agent PROACTIVELY delegates to ContextScout (not instructed)
+  - Agent loads discovered context files
+  - Agent provides accurate answer based on discovered context
+  
+  Expected Behavior:
+  - SHOULD delegate to ContextScout automatically
+  - MUST load discovered context files
+  - SHOULD find registry-specific context
+  - SHOULD NOT guess or fabricate information
+  
+  This test SHOULD FAIL if:
+  - Agent doesn't use ContextScout (guesses instead)
+  - Agent provides generic answer without loading context
+  - Agent fabricates information without discovery
+
+category: developer
+agent: core/openagent
+
+prompts:
+  - text: |
+      How does the registry system work in this repository?
+      What's the auto-detect process?
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - task  # Must delegate to ContextScout
+    - read  # Must read discovered files
+  minToolCalls: 3
+  maxToolCalls: 25
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - openagent
+  - contextscout-integration
+  - implicit-discovery
+  - proactive
+  - critical
+
+# Expected outcome:
+# - Agent recognizes "registry system" as unfamiliar domain
+# - Agent delegates to ContextScout WITHOUT being told
+# - ContextScout finds .opencode/context/openagents-repo/core-concepts/registry.md
+# - Agent loads discovered files
+# - Agent provides accurate answer about registry and auto-detect

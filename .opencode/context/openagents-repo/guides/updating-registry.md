@@ -111,7 +111,7 @@ tags:
   - use-case
 dependencies:
   - subagent:context-organizer
-  - subagent:context-retriever
+  - subagent:contextscout
 ---
 ```
 

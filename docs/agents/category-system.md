@@ -82,7 +82,7 @@ npm run eval:sdk -- --agent=core/openagent
 npm run eval:sdk -- --agent=development/frontend-specialist
 
 # Test subagent
-npm run eval:sdk -- --agent=subagents/code/tester
+npm run eval:sdk -- --agent=TestEngineer
 ```
 
 ### Agent Invocation
@@ -103,7 +103,7 @@ opencode --agent content/copywriter
 ```javascript
 // From core or category agent
 task(
-  subagent_type="subagents/code/tester",
+  subagent_type="TestEngineer",
   description="Write tests",
   prompt="Create comprehensive tests for the authentication module"
 )
@@ -233,7 +233,7 @@ task(
 - Called via task delegation
 - Support core and category agents
 
-**Examples**: `subagents/code/tester`, `subagents/core/task-manager`
+**Examples**: `TestEngineer`, `TaskManager`
 
 ---
 
@@ -386,7 +386,7 @@ From a category agent:
 ```javascript
 // Delegate test creation to tester subagent
 task(
-  subagent_type="subagents/code/tester",
+  subagent_type="TestEngineer",
   description="Create tests",
   prompt="Write comprehensive unit tests for the UserService class"
 )

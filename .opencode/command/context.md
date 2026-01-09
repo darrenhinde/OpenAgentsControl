@@ -6,7 +6,7 @@ tags:
   - harvest
 dependencies:
   - subagent:context-organizer
-  - subagent:context-retriever
+  - subagent:contextscout
 ---
 
 # Context Manager
@@ -184,13 +184,13 @@ When invoked without arguments: `/context`
 
 <subagent_routing>
   <!-- Delegate operations to specialized subagents -->
-  <route operations="harvest|extract|organize|update|error|create" to="subagents/system-builder/context-organizer">
+  <route operations="harvest|extract|organize|update|error|create" to="ContextOrganizer">
     Pass: operation name, arguments, lazy load map
     Subagent loads: Required context files from .opencode/context/core/context-system/
     Subagent executes: Multi-stage workflow per operation
   </route>
   
-  <route operations="map|validate" to="subagents/core/context-retriever">
+  <route operations="map|validate" to="ContextScout">
     Pass: operation name, arguments
     Subagent executes: Read-only analysis and reporting
   </route>
@@ -218,7 +218,7 @@ When invoked without arguments: `/context`
 ### Function-Based Structure (Quick)
 ```
 {category}/
-├── README.md       # Navigation
+├── navigation.md       # Navigation
 ├── concepts/       # What it is
 ├── examples/       # Working code
 ├── guides/         # How to
@@ -270,7 +270,7 @@ After any operation:
 - [ ] Function-based structure used? (@critical_rules.function_structure)
 - [ ] Approval UI shown for destructive ops? (@critical_rules.approval_gate)
 - [ ] Required context loaded? (@critical_rules.lazy_load)
-- [ ] README.md updated?
+- [ ] navigation.md updated?
 - [ ] Files scannable in <30 seconds?
 
 ---

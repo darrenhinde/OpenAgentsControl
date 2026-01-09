@@ -1,5 +1,7 @@
 import { createOpencodeClient } from '@opencode-ai/sdk';
 import { MultiAgentLogger } from '../logging/index.js';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export type EventType = 
   | 'session.created'
@@ -56,9 +58,12 @@ export class EventStreamHandler {
   private activeSessions: Set<string> = new Set(); // Track all active session IDs
   private sessionCreationTimes: Map<string, number> = new Map(); // sessionId -> timestamp
   private lastLoggedText: Map<string, string> = new Map(); // sessionId -> last logged text (to avoid duplicates)
+  private cachedAgentName: string | null = null; // Cache agent name from eval-runner.md
+  private projectPath: string;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, projectPath?: string) {
     this.client = createOpencodeClient({ baseUrl });
+    this.projectPath = projectPath || process.cwd();
   }
 
   /**
@@ -282,6 +287,38 @@ export class EventStreamHandler {
   }
 
   /**
+   * Read agent name from eval-runner.md
+   */
+  private getAgentNameFromEvalRunner(): string {
+    if (this.cachedAgentName) {
+      return this.cachedAgentName;
+    }
+    
+    try {
+      const evalRunnerPath = join(this.projectPath, '.opencode/agent/eval-runner.md');
+      const content = readFileSync(evalRunnerPath, 'utf-8');
+      
+      // Extract name from frontmatter
+      const nameMatch = content.match(/^name:\s*(.+)$/m);
+      if (nameMatch) {
+        this.cachedAgentName = nameMatch[1].trim();
+        return this.cachedAgentName;
+      }
+      
+      // Fallback: extract id from frontmatter
+      const idMatch = content.match(/^id:\s*(.+)$/m);
+      if (idMatch) {
+        this.cachedAgentName = idMatch[1].trim();
+        return this.cachedAgentName;
+      }
+    } catch (error) {
+      // Ignore errors, will use default
+    }
+    
+    return 'OpenAgent'; // Final fallback
+  }
+
+  /**
    * Handle multi-agent logging for session hierarchy tracking
    */
   private handleMultiAgentLogging(event: ServerEvent): void {
@@ -298,7 +335,7 @@ export class EventStreamHandler {
           // Track session creation (properties are in 'info')
           const info = event.properties?.info || event.properties;
           const sessionId = info?.id || info?.sessionID;
-          const agent = info?.agent || 'OpenAgent'; // Default to OpenAgent for now
+          const agent = info?.agent || this.getAgentNameFromEvalRunner();
           const parentId = info?.parentID || info?.parentId;
           
           if (sessionId) {

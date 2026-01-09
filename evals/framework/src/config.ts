@@ -274,8 +274,27 @@ export const normalizeAgentId = (agent: string): string => {
   // Map old core agents to new paths
   const coreAgents: Record<string, string> = {
     'openagent': 'core/openagent',
+    'OpenAgent': 'core/openagent',
     'opencoder': 'core/opencoder',
+    'OpenCoder': 'core/opencoder',
     'system-builder': 'meta/system-builder',
+    'OpenSystemBuilder': 'meta/system-builder',
+    'codebase-agent': 'development/codebase-agent',
+    'OpenCodebaseAgent': 'development/codebase-agent',
+    'devops-specialist': 'development/devops-specialist',
+    'OpenDevopsSpecialist': 'development/devops-specialist',
+    'frontend-specialist': 'development/frontend-specialist',
+    'OpenFrontendSpecialist': 'development/frontend-specialist',
+    'backend-specialist': 'development/backend-specialist',
+    'OpenBackendSpecialist': 'development/backend-specialist',
+    'technical-writer': 'content/technical-writer',
+    'OpenTechnicalWriter': 'content/technical-writer',
+    'copywriter': 'content/copywriter',
+    'OpenCopywriter': 'content/copywriter',
+    'data-analyst': 'data/data-analyst',
+    'OpenDataAnalyst': 'data/data-analyst',
+    'repo-manager': 'meta/repo-manager',
+    'OpenRepoManager': 'meta/repo-manager',
   };
   
   return coreAgents[agent] || agent;

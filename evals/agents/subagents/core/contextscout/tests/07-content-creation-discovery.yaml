@@ -1,0 +1,75 @@
+id: contextscout-content-creation
+name: "ContextScout: Content Creation Context Discovery"
+description: |
+  Tests that ContextScout correctly discovers content-creation context files
+  when asked about writing, copywriting, or content strategy.
+  
+  This validates:
+  - ContextScout finds content-creation domain files
+  - ContextScout distinguishes between workflows, principles, and formats
+  - ContextScout prioritizes based on user intent
+  - ContextScout returns exact file paths
+  
+  Expected Files (in priority order):
+  1. .opencode/context/content-creation/workflows/content-ideas.md (CRITICAL)
+  2. .opencode/context/content-creation/principles/copywriting-frameworks.md (HIGH)
+  3. .opencode/context/content-creation/formats/written-content.md (MEDIUM)
+  
+  This test SHOULD FAIL if:
+  - ContextScout doesn't find content-creation files
+  - ContextScout returns wrong domain (e.g., development files)
+  - ContextScout doesn't prioritize workflows for ideation tasks
+
+category: creative
+agent: subagents/core/contextscout
+
+prompts:
+  - text: |
+      Search for context files related to: generating content ideas and writing engaging copy
+      
+      Task type: content-creation
+      
+      Search intent: I need to brainstorm content ideas and write compelling copy for marketing
+      
+      Return:
+      - Exact file paths to relevant context files
+      - Brief summary of what each file contains
+      - Priority order (critical, high, medium)
+      
+      Focus on:
+      - Content ideation frameworks
+      - Copywriting techniques
+      - Writing formats and structures
+      - Best practices for engaging content
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  forbiddenTools:
+    - task
+    - bash
+    - write  # Read-only agent
+    - edit   # Read-only agent
+  minToolCalls: 1
+  maxToolCalls: 10
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - discovery
+  - content-creation
+  - copywriting
+  - critical
+
+# Expected outcome:
+# - Uses glob to find files in content-creation domain
+# - Uses read to load:
+#   * .opencode/context/content-creation/workflows/content-ideas.md
+#   * .opencode/context/content-creation/principles/copywriting-frameworks.md
+#   * .opencode/context/content-creation/formats/written-content.md
+# - Returns structured response with:
+#   * Priority 1 (CRITICAL): content-ideas.md - Ideation frameworks
+#   * Priority 2 (HIGH): copywriting-frameworks.md - Writing techniques
+#   * Priority 3 (MEDIUM): written-content.md - Format guidelines

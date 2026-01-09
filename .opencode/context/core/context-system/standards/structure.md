@@ -21,7 +21,7 @@
 
 ```
 .opencode/context/{category}/
-├── README.md              # Navigation map (REQUIRED)
+├── navigation.md              # Navigation map (REQUIRED)
 ├── concepts/              # What it is
 │   └── {topic}.md
 ├── examples/              # Working code
@@ -126,10 +126,10 @@
 
 ---
 
-## README.md Requirement
+## navigation.md Requirement
 
 <rule id="readme_required" enforcement="strict">
-  Every context category MUST have README.md at its root with:
+  Every context category MUST have navigation.md at its root with:
   1. Purpose (1-2 sentences)
   2. Navigation tables for each function folder
   3. Priority levels (critical/high/medium/low)
@@ -203,7 +203,7 @@ development/
 ### ✅ Function-Based
 ```
 development/
-├── README.md
+├── navigation.md
 ├── concepts/
 │   └── authentication.md
 ├── examples/
@@ -223,7 +223,7 @@ development/
 
 Before committing context structure:
 
-- [ ] All categories have README.md?
+- [ ] All categories have navigation.md?
 - [ ] Files are in function folders (not flat)?
 - [ ] README has navigation tables?
 - [ ] Priority levels assigned?

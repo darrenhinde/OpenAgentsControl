@@ -25,7 +25,7 @@ opencode-agents/
 │   ├── context/                     # Shared knowledge
 │   │   ├── core/                    # Core standards & workflows
 │   │   ├── development/             # Dev context
-│   │   ├── content/                 # Content context
+│   │   ├── content-creation/        # Content creation context
 │   │   ├── data/                    # Data context
 │   │   ├── product/                 # Product context
 │   │   ├── learning/                # Learning context
@@ -147,22 +147,22 @@ README.md                            # Main documentation
 ### Key Subagents
 
 ```
-.opencode/agent/subagents/code/tester.md
-.opencode/agent/subagents/code/reviewer.md
-.opencode/agent/subagents/code/coder-agent.md
-.opencode/agent/subagents/core/task-manager.md
-.opencode/agent/subagents/core/documentation.md
+.opencode/agent/TestEngineer.md
+.opencode/agent/CodeReviewer.md
+.opencode/agent/CoderAgent.md
+.opencode/agent/TaskManager.md
+.opencode/agent/DocWriter.md
 ```
 
 ### Core Context
 
 ```
-.opencode/context/core/standards/code.md
-.opencode/context/core/standards/docs.md
-.opencode/context/core/standards/tests.md
-.opencode/context/core/standards/patterns.md
-.opencode/context/core/workflows/delegation.md
-.opencode/context/core/workflows/review.md
+.opencode/context/core/standards/code-quality.md
+.opencode/context/core/standards/documentation.md
+.opencode/context/core/standards/test-coverage.md
+.opencode/context/core/standards/security-patterns.md
+.opencode/context/core/workflows/task-delegation.md
+.opencode/context/core/workflows/code-review.md
 ```
 
 ### Registry Scripts
@@ -204,7 +204,7 @@ evals/framework/src/types/            # TypeScript types
 **Examples**:
 - `.opencode/agent/core/openagent.md`
 - `.opencode/agent/development/frontend-specialist.md`
-- `.opencode/agent/subagents/code/tester.md`
+- `.opencode/agent/TestEngineer.md`
 
 ### Context
 
@@ -213,9 +213,9 @@ evals/framework/src/types/            # TypeScript types
 ```
 
 **Examples**:
-- `.opencode/context/core/standards/code.md`
+- `.opencode/context/core/standards/code-quality.md`
 - `.opencode/context/development/react-patterns.md`
-- `.opencode/context/content/copywriting-frameworks.md`
+- `.opencode/context/content-creation/principles/copywriting-frameworks.md`
 
 ### Tests
 

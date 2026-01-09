@@ -175,7 +175,7 @@ The system supports multiple path formats for backward compatibility:
 "development/frontend-specialist" → resolves to → ".opencode/agent/development/frontend-specialist.md"
 
 # Subagent path
-"subagents/code/tester" → resolves to → ".opencode/agent/subagents/code/tester.md"
+"TestEngineer" → resolves to → ".opencode/agent/TestEngineer.md"
 ```
 
 ### Resolution Rules
@@ -222,7 +222,7 @@ Agents should load relevant context files based on task type:
 <!-- Context: standards/code | Priority: critical -->
 ```
 
-Loads: `.opencode/context/core/standards/code.md`
+Loads: `.opencode/context/core/standards/code-quality.md`
 
 ### Category Context
 
@@ -314,14 +314,14 @@ dependencies: ["Optional - e.g., 'subagent:tester'"]
 ```markdown
 When task requires testing:
 1. Implement feature
-2. Delegate to subagents/code/tester for test creation
+2. Delegate to TestEngineer for test creation
 ```
 
 ### Context Loading
 
 ```markdown
 Before implementing:
-1. Load core/standards/code.md
+1. Load core/standards/code-quality.md
 2. Load category-specific context if available
 3. Apply standards to implementation
 ```

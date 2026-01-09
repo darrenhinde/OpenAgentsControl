@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/code/reviewer`  
+**Agent:** `CodeReviewer`  
 **Parent Agent:** `opencoder`  
 **Description:** Code review, security, and quality assurance
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/code/reviewer.md)
+- [Agent Source](.opencode/agent/CodeReviewer.md)
 

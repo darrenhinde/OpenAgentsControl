@@ -1,6 +1,6 @@
 ---
 id: tester
-name: Tester
+name: TestEngineer
 description: "Test authoring and TDD agent"
 category: subagents/code
 type: subagent

@@ -15,7 +15,7 @@ subagents/
 │   ├── reviewer/
 │   └── tester/
 ├── core/                    # Core orchestration subagents (parent: openagent)
-│   ├── context-retriever/
+│   ├── contextscout/
 │   ├── documentation/
 │   └── task-manager/
 ├── system-builder/          # System builder subagents (parent: system-builder)
@@ -50,7 +50,7 @@ Each subagent directory contains:
 
 | Subagent | Description | Status |
 |----------|-------------|--------|
-| **context-retriever** | Context search and retrieval | ✅ Smoke test ready |
+| **contextscout** | Context search and retrieval | ✅ Smoke test ready |
 | **documentation** | Documentation authoring | ✅ Smoke test ready |
 | **task-manager** | Task breakdown with dependency tracking | ✅ Smoke test ready |
 
@@ -95,7 +95,7 @@ for agent in build-agent codebase-pattern-analyst coder-agent reviewer tester; d
 done
 
 # Run smoke tests for all core subagents
-for agent in context-retriever documentation task-manager; do
+for agent in contextscout documentation task-manager; do
   npm run eval:sdk -- --subagent=$agent --pattern="**/smoke-test.yaml"
 done
 

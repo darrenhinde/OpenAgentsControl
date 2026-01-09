@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Agent:** `subagents/code/codebase-pattern-analyst`  
+**Agent:** `PatternAnalyst`  
 **Parent Agent:** `opencoder`  
 **Description:** Finds similar implementations across the codebase
 
@@ -83,5 +83,5 @@ The `prompts/` directory is reserved for model-specific prompt variants:
 
 - [Subagent Testing Guide](../../../SUBAGENT_TESTING.md)
 - [Eval Framework Guide](../../../README.md)
-- [Agent Source](.opencode/agent/subagents/code/codebase-pattern-analyst.md)
+- [Agent Source](.opencode/agent/PatternAnalyst.md)
 

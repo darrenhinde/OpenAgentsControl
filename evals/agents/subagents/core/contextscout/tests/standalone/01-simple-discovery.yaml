@@ -1,0 +1,53 @@
+id: contextscout-standalone-simple-discovery
+name: "ContextScout Standalone: Simple Discovery Test"
+description: |
+  STANDALONE MODE TEST - Tests ContextScout directly (not via OpenAgent).
+  
+  This test forces ContextScout to run as primary agent (mode override).
+  We're testing ContextScout's logic in isolation.
+  
+  What we're testing:
+  - Can ContextScout use glob tool to find files?
+  - Can ContextScout list directory contents?
+  - Does ContextScout return file paths?
+  
+  What we're NOT testing:
+  - OpenAgent delegation (that's in delegation/ tests)
+  - Production workflow (that's integration tests)
+  
+  Expected behavior:
+  - ContextScout uses glob/list tools
+  - ContextScout returns list of .md files
+  - ContextScout provides file paths
+
+category: developer
+
+prompts:
+  - text: |
+      Use the glob tool to find all markdown files in .opencode/context/core/ directory.
+      
+      You MUST use the glob tool like this:
+      glob(pattern="*.md", path=".opencode/context/core")
+      
+      Then list the files you found.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - glob
+  minToolCalls: 1
+  maxToolCalls: 10
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - standalone
+  - unit-test
+  - discovery
+  - simple
+
+# This test should be run with:
+# npm run eval:sdk -- --subagent=contextscout --pattern="standalone/01-simple-discovery.yaml"

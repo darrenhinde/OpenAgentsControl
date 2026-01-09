@@ -462,6 +462,108 @@ export class BehaviorEvaluator extends BaseEvaluator {
       });
     }
 
+    // Check 8: expectedResponse (validate response content)
+    if (this.behavior.expectedResponse) {
+      const assistantMessages = timeline.filter(
+        e => e.type === 'message' && e.data?.role === 'assistant' && e.data?.text
+      );
+      
+      // Combine all assistant messages into one text for validation
+      const fullResponse = assistantMessages
+        .map(m => m.data?.text || '')
+        .join('\n');
+      
+      // Check contains
+      if (this.behavior.expectedResponse.contains && this.behavior.expectedResponse.contains.length > 0) {
+        const missingStrings: string[] = [];
+        
+        for (const expectedString of this.behavior.expectedResponse.contains) {
+          if (!fullResponse.includes(expectedString)) {
+            missingStrings.push(expectedString);
+          }
+        }
+        
+        if (missingStrings.length > 0) {
+          violations.push(
+            this.createViolation(
+              'missing-expected-content',
+              'error',
+              `Response missing expected content: ${missingStrings.join(', ')}`,
+              Date.now(),
+              {
+                missingStrings,
+                expectedStrings: this.behavior.expectedResponse.contains,
+              }
+            )
+          );
+        }
+        
+        checks.push({
+          name: 'expected-response-contains',
+          passed: missingStrings.length === 0,
+          weight: 100,
+          evidence: [
+            this.createEvidence(
+              'response-content',
+              missingStrings.length === 0
+                ? `Response contains all ${this.behavior.expectedResponse.contains.length} expected strings`
+                : `Response missing ${missingStrings.length} expected strings`,
+              {
+                expectedCount: this.behavior.expectedResponse.contains.length,
+                foundCount: this.behavior.expectedResponse.contains.length - missingStrings.length,
+                missingStrings,
+              }
+            )
+          ]
+        });
+      }
+      
+      // Check notContains
+      if (this.behavior.expectedResponse.notContains && this.behavior.expectedResponse.notContains.length > 0) {
+        const foundForbiddenStrings: string[] = [];
+        
+        for (const forbiddenString of this.behavior.expectedResponse.notContains) {
+          if (fullResponse.includes(forbiddenString)) {
+            foundForbiddenStrings.push(forbiddenString);
+          }
+        }
+        
+        if (foundForbiddenStrings.length > 0) {
+          violations.push(
+            this.createViolation(
+              'forbidden-content-found',
+              'error',
+              `Response contains forbidden content: ${foundForbiddenStrings.join(', ')}`,
+              Date.now(),
+              {
+                foundForbiddenStrings,
+                forbiddenStrings: this.behavior.expectedResponse.notContains,
+              }
+            )
+          );
+        }
+        
+        checks.push({
+          name: 'expected-response-not-contains',
+          passed: foundForbiddenStrings.length === 0,
+          weight: 100,
+          evidence: [
+            this.createEvidence(
+              'response-content-forbidden',
+              foundForbiddenStrings.length === 0
+                ? `Response does not contain any of ${this.behavior.expectedResponse.notContains.length} forbidden strings`
+                : `Response contains ${foundForbiddenStrings.length} forbidden strings`,
+              {
+                forbiddenCount: this.behavior.expectedResponse.notContains.length,
+                foundCount: foundForbiddenStrings.length,
+                foundForbiddenStrings,
+              }
+            )
+          ]
+        });
+      }
+    }
+
     // Add summary evidence
     evidence.push(
       this.createEvidence(

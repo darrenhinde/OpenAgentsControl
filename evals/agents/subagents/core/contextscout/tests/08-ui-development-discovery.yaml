@@ -1,0 +1,79 @@
+id: contextscout-ui-development
+name: "ContextScout: UI Development Context Discovery"
+description: |
+  Tests that ContextScout correctly discovers UI/web development context files
+  when asked about React, frontend, or web design.
+  
+  This validates:
+  - ContextScout finds ui/web domain files
+  - ContextScout finds development/frontend files
+  - ContextScout combines multiple relevant domains
+  - ContextScout prioritizes based on specificity
+  
+  Expected Files (in priority order):
+  1. .opencode/context/ui/web/react-patterns.md (CRITICAL)
+  2. .opencode/context/ui/web/design-systems.md (HIGH)
+  3. .opencode/context/development/frontend/* (MEDIUM)
+  4. .opencode/context/core/standards/code-quality.md (MEDIUM)
+  
+  This test SHOULD FAIL if:
+  - ContextScout doesn't find ui/web files
+  - ContextScout doesn't combine ui + development domains
+  - ContextScout returns backend or data files
+
+category: developer
+agent: subagents/core/contextscout
+
+prompts:
+  - text: |
+      Search for context files related to: building a React component with modern design patterns
+      
+      Task type: frontend-development
+      
+      Search intent: I need to build a React component following best practices and design system guidelines
+      
+      Return:
+      - Exact file paths to relevant context files
+      - Brief summary of what each file contains
+      - Priority order (critical, high, medium)
+      
+      Focus on:
+      - React patterns and best practices
+      - Design system guidelines
+      - Component architecture
+      - Code quality standards
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  forbiddenTools:
+    - task
+    - bash
+    - write  # Read-only agent
+    - edit   # Read-only agent
+  minToolCalls: 1
+  maxToolCalls: 10
+
+timeout: 60000
+
+tags:
+  - contextscout
+  - discovery
+  - ui-development
+  - react
+  - frontend
+  - critical
+
+# Expected outcome:
+# - Uses glob to find files in ui/web and development/frontend
+# - Uses read to load:
+#   * .opencode/context/ui/web/react-patterns.md
+#   * .opencode/context/ui/web/design-systems.md
+#   * .opencode/context/development/frontend/* (if exists)
+#   * .opencode/context/core/standards/code-quality.md
+# - Returns structured response with:
+#   * Priority 1 (CRITICAL): react-patterns.md - React-specific patterns
+#   * Priority 2 (HIGH): design-systems.md - Design guidelines
+#   * Priority 3 (MEDIUM): frontend files - General frontend practices
+#   * Priority 4 (MEDIUM): code-quality.md - General code standards

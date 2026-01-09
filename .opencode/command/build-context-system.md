@@ -678,10 +678,10 @@ description: "Interactive system builder that creates complete context-aware AI 
       
       ### 📖 Documentation
       
-      - **System Guide**: `.opencode/README.md`
+      - **System Guide**: `.opencode/navigation.md`
       - **Architecture**: `.opencode/ARCHITECTURE.md`
-      - **Context Management**: `.opencode/context/README.md`
-      - **Workflow Guide**: `.opencode/workflows/README.md`
+      - **Context Management**: `.opencode/context/navigation.md`
+      - **Workflow Guide**: `.opencode/workflows/navigation.md`
       
       ### 🎯 Next Steps
       
@@ -747,7 +747,7 @@ description: "Interactive system builder that creates complete context-aware AI 
       </expected_return>
     </route>
     
-    <route to="@subagents/system-builder/domain-analyzer" when="domain_unclear_or_complex">
+    <route to="@DomainAnalyzer" when="domain_unclear_or_complex">
       <context_level>Level 1 - Complete Isolation</context_level>
       <pass_data>
         - user_description (domain description)

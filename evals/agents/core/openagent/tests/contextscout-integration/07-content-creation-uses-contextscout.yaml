@@ -1,0 +1,64 @@
+id: openagent-content-creation-contextscout
+name: "OpenAgent: Uses ContextScout for Content Creation"
+description: |
+  Tests that OpenAgent delegates to ContextScout when asked about content creation,
+  which is outside the typical code/docs/tests domains.
+  
+  This validates:
+  - OpenAgent recognizes content-creation as unfamiliar domain
+  - OpenAgent delegates to ContextScout for discovery
+  - OpenAgent uses discovered content-creation context files
+  - OpenAgent applies copywriting frameworks from context
+  
+  Expected Behavior:
+  1. OpenAgent receives content creation request
+  2. OpenAgent delegates to ContextScout (unfamiliar domain)
+  3. ContextScout returns: content-ideas.md, copywriting-frameworks.md
+  4. OpenAgent loads those files
+  5. OpenAgent applies frameworks from loaded context
+  
+  This test SHOULD FAIL if:
+  - OpenAgent doesn't use ContextScout
+  - OpenAgent tries to answer without loading context
+  - OpenAgent doesn't apply discovered frameworks
+
+category: content
+agent: core/openagent
+
+prompts:
+  - text: |
+      Help me brainstorm 10 content ideas for a SaaS product that helps developers manage their APIs.
+      
+      Use proven ideation frameworks and make the ideas engaging.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - task   # Must delegate to ContextScout
+    - read   # Must read discovered context files
+  minToolCalls: 2
+  maxToolCalls: 20
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - openagent
+  - contextscout-integration
+  - content-creation
+  - unfamiliar-domain
+  - critical
+
+# Expected outcome:
+# - OpenAgent uses task tool to delegate to ContextScout
+# - Task prompt includes: "Search for context files related to: content ideation"
+# - OpenAgent receives ContextScout's findings
+# - OpenAgent uses read tool to load content-creation context
+# - OpenAgent applies SCAMPER or other frameworks from loaded context
+# - Response includes 10 ideas using discovered frameworks

@@ -1,0 +1,56 @@
+id: core-contextscout-mvi-detection
+name: "ContextScout: Positive Test - MVI Compliance Detection"
+description: |
+  Tests that ContextScout correctly identifies MVI-compliant context files.
+  
+  This is a POSITIVE test that verifies the agent:
+  - Detects files <200 lines (MVI compliant)
+  - Prioritizes MVI-compliant files higher
+  - Identifies files with clear section headers
+  - Recognizes function-based folder structure
+  - Notes presence of navigation README
+  
+  Expected Behavior:
+  - MUST check file size/line count
+  - SHOULD prioritize smaller, focused files
+  - SHOULD note MVI compliance in output
+  - SHOULD prefer files with clear structure
+  
+  This test SHOULD FAIL if:
+  - Agent doesn't consider file size
+  - Agent prioritizes large files over small ones
+  - Agent doesn't mention MVI compliance
+category: developer
+
+prompts:
+  - text: |
+      Find context files for testing, and tell me which ones follow MVI principles
+      (Minimal Viable Information - files under 200 lines, clear structure, focused content).
+      
+      Prioritize MVI-compliant files.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 10
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 120000
+
+tags:
+  - contextscout
+  - positive-test
+  - mvi-compliance
+  - prioritization
+
+# Expected outcome: Agent should:
+# - Find .opencode/context/core/standards/tests.md
+# - Note it's ~128 lines (MVI compliant)
+# - Prioritize it higher than larger files
+# - Mention MVI compliance in output
