@@ -1,59 +1,48 @@
 id: core-task-manager-file-creation
 name: "Task Manager: File Creation - Create Task Files"
 description: |
-  Tests the task-manager's ability to create JSON task files for a feature.
+  Tests the task-manager's ability to create the task directory structure
+  and individual task files.
   
   Validates:
-  - Creates directory: .tmp/tasks/{feature}/
-  - Creates task.json
-  - Creates subtask_NN.json files
-  - Includes required fields per schema
+  - Creates directory: .tmp/test-fixtures/task-manager/subtasks/{feature}/
+  - Creates objective.md (feature index)
+  - Creates task files: {seq}-{task-description}.md
+  - Uses correct templates
+  - Includes all required sections
   - Summarizes what was created
   
   Critical Behavior:
+  - MUST request approval before creating files
   - MUST create proper directory structure
   - MUST use correct file naming
-  - MUST include required JSON fields
+  - MUST include all template sections
 category: developer
 
 prompts:
   - text: |
-      Create JSON task files for the feature "user-profile" with these tasks:
+      Create subtask files for a simple feature "user-profile" in
+      .tmp/test-fixtures/task-manager/subtasks/user-profile/ with these tasks:
       
       1. Create profile data model
       2. Build profile UI component
       3. Add profile update API
-
-      Objective: Build a profile management feature with UI and API support.
-      Deliverables:
-      - src/profile/model.ts
-      - src/profile/components/ProfileView.tsx
-      - src/profile/api/update-profile.ts
-
-      Use the write tool to create .tmp/tasks/user-profile/task.json and subtask_NN.json files.
+      
+      Create the full task structure with objective.md and individual task files.
 
 approvalStrategy:
   type: auto-approve
 
 behavior:
   mustUseTools:
-    - read
-    - bash
     - write
-  requiresContext: true
-  expectedContextFiles:
-    - .opencode/context/core/task-management/navigation.md
-    - .opencode/context/core/task-management/standards/task-schema.md
-    - .opencode/context/core/task-management/guides/splitting-tasks.md
-    - .opencode/context/core/task-management/guides/managing-tasks.md
-  minToolCalls: 3
+  minToolCalls: 2
   maxToolCalls: 15
 
 expectedViolations:
   - rule: approval-gate
-    shouldViolate: true
+    shouldViolate: false
     severity: error
-    description: Subagents do not request approvals
 
 timeout: 120000
 
@@ -62,3 +51,4 @@ tags:
   - file-creation
   - write
   - core-subagent
+  - approval-required

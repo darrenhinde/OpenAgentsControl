@@ -18,14 +18,6 @@ development/
 │   ├── clean-code.md
 │   └── api-design.md
 │
-├── frameworks/                # Full-stack frameworks
-│   ├── navigation.md
-│   └── tanstack-start/
-│
-├── ai/                        # AI & Agents
-│   ├── navigation.md
-│   └── mastra-ai/
-│
 ├── frontend/                  # Client-side (future)
 │   ├── navigation.md
 │   ├── react/
@@ -74,8 +66,6 @@ development/
 ## By Concern
 
 **Principles** → Universal development practices
-**Frameworks** → Full-stack frameworks (Tanstack Start, Next.js)
-**AI** → AI frameworks and agent runtimes (MAStra AI)
 **Frontend** → React, Vue, state management (future)
 **Backend** → APIs, Node.js, Python, auth (future)
 **Data** → SQL, NoSQL, ORMs (future)

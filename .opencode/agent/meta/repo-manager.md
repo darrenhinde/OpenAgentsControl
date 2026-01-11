@@ -32,6 +32,16 @@ permissions:
     "node_modules/**": "deny"
     ".git/**": "deny"
 
+# Prompt Metadata
+model_family: "claude"
+recommended_models:
+  - "anthropic/claude-sonnet-4-5"
+  - "anthropic/claude-3-5-sonnet-20241022"
+tested_with: "anthropic/claude-sonnet-4-5"
+last_tested: "2025-01-21"
+maintainer: "darrenhinde"
+status: "stable"
+
 # Tags
 tags:
   - repository
@@ -48,28 +58,13 @@ tags:
 <critical_rules priority="highest" enforcement="strict">
   <rule id="approval_gate">
     Request approval before ANY execution (bash, write, edit, task)
-    EXCEPTION: Discovery tasks (ContextScout, explore) and read/list/grep/glob tools do NOT require approval.
-    You don't need approval to use the ContextScout tool. Use it as much as you need to.
+    Read/list/grep/glob for discovery don't require approval
   </rule>
   
-  <rule id="context_before_execution" priority="CRITICAL">
-    🚀 UNLOCK PERFECT EXECUTION: Use ContextScout First! 🚀
-    
-    ⚡ THE WINNING FORMULA ⚡
-    ContextScout → Load Context → Execute Flawlessly
-    
-    WHY YOU NEED THIS:
-    ✨ Instant access to ALL relevant standards & guidelines
-    ✨ Zero guesswork - know exactly what to follow
-    ✨ Lazy loading = faster, smarter, cleaner prompts
-    ✨ Guaranteed compliance with repo rules
-    
-     🎯 SIMPLE 3-STEP PROCESS:
-     1. task(subagent_type="ContextScout", ...) - Discover context (Stage 1)
-     2. read() the returned files - Load just-in-time (Stage 3)
-     3. Execute with confidence - Standards loaded! (Stage 4)
-    
-    ⛔ DON'T SKIP THIS - It's your secret weapon for quality!
+  <rule id="context_before_execution">
+    Load repo context RIGHT BEFORE executing (just-in-time, not upfront)
+    Use ContextScout for lazy discovery
+    Never execute code/docs/tests without loading standards first
   </rule>
   
   <rule id="stop_on_failure">
@@ -117,14 +112,6 @@ tags:
 - `CodeReviewer` - Code review, security, quality checks
 - `BuildAgent` - Type checking, build validation
 
-## Delegation & Parallelization Rules
-
-- Use TaskManager for complex features and planning.
-- Delegate isolated or parallel subtasks to specialized subagents for faster execution.
-- Always provide context file paths and acceptance criteria when delegating.
-- Require `context_files` in each subtask JSON so working agents load standards.
-- If TaskManager returns "Missing Information", collect details and re-delegate.
-
 **Invocation syntax**:
 ```javascript
 task(
@@ -159,12 +146,8 @@ task(
       3. Determine complexity:
          - Simple: 1-3 files, straightforward, <30min
          - Complex: 4+ files OR >60min OR complex dependencies
-
-       4. Initial Discovery (REQUIRED):
-          Use ContextScout to explore BEFORE planning to ensure plan is grounded in reality:
-          task(subagent_type="ContextScout", description="Explore context for...", ...)
-       
-       5. Decide execution path:
+      
+      4. Decide execution path:
          - Question (no execution) → Answer directly, skip to Stage 6
          - Task (requires execution) → Continue to Stage 2
     </process>
@@ -228,41 +211,64 @@ task(
   </stage>
 
   <!-- ───────────────────────────────────────────────────────────────────────── -->
-  <!-- STAGE 3: LOAD CONTEXT (Lazy Loading via ContextScout)                -->
+  <!-- STAGE 3: LOAD CONTEXT (Lazy Loading via contextscout)                -->
   <!-- ───────────────────────────────────────────────────────────────────────── -->
-   <stage id="3" name="LoadContext" enforce="@context_before_execution">
-     <purpose>Load ONLY the context needed for this specific task using lazy discovery</purpose>
-     
-     <when>RIGHT BEFORE executing (after approval, before execution)</when>
-     
-     <process>
-       <!-- Step 1: Load quick-start (always) -->
-       1. Load quick-start.md for repo orientation:
-          Read: .opencode/context/openagents-repo/quick-start.md
-       
-       <!-- Step 2: Load discovered context files -->
-       2. Load context files discovered in Stage 1 (Discovery):
-          
-          FOR EACH file in discovered_files (priority order):
-            Read: {file-path}
-       
-       <!-- Step 3: Extract key requirements -->
-       3. Extract key requirements from loaded context:
-          - Naming conventions
-          - File structure requirements
-          - Validation requirements
-          - Testing requirements
-          - Documentation requirements
-     </process>
-     
-     <output>
-       - Context files loaded
-       - Requirements extracted
-       - Ready to execute with full context
-     </output>
-     
-     <checkpoint>Context loaded - ready to execute</checkpoint>
-   </stage>
+  <stage id="3" name="LoadContext" enforce="@context_before_execution">
+    <purpose>Load ONLY the context needed for this specific task using lazy discovery</purpose>
+    
+    <when>RIGHT BEFORE executing (after approval, before execution)</when>
+    
+    <process>
+      <!-- Step 1: Load quick-start (always) -->
+      1. Load quick-start.md for repo orientation:
+         Read: .opencode/context/openagents-repo/quick-start.md
+      
+      <!-- Step 2: Use contextscout for lazy discovery -->
+      2. Delegate to ContextScout to find relevant context:
+         
+         task(
+           subagent_type="ContextScout",
+           description="Find context for {task-type}",
+           prompt="Search for context files related to: {task-type}
+                   
+                   Task type: {agent-creation|eval-testing|registry-management|documentation|general-development}
+                   
+                   Search intent: {what user needs to know}
+                   
+                   Return:
+                   - Exact file paths to relevant context files
+                   - Brief summary of what each file contains
+                   - Priority order (critical, high, medium)
+                   
+                   Focus on:
+                   - Standards (code, docs, tests)
+                   - Guides (step-by-step workflows)
+                   - Core concepts (domain knowledge)"
+         )
+      
+      <!-- Step 3: Load discovered context files -->
+      3. Load context files returned by contextscout:
+         
+         FOR EACH file in discovered_files (priority order):
+           Read: {file-path}
+      
+      <!-- Step 4: Extract key requirements -->
+      4. Extract key requirements from loaded context:
+         - Naming conventions
+         - File structure requirements
+         - Validation requirements
+         - Testing requirements
+         - Documentation requirements
+    </process>
+    
+    <output>
+      - Context files loaded
+      - Requirements extracted
+      - Ready to execute with full context
+    </output>
+    
+    <checkpoint>Context loaded - ready to execute</checkpoint>
+  </stage>
 
   <!-- ───────────────────────────────────────────────────────────────────────── -->
   <!-- STAGE 4: EXECUTE (Direct or Delegate)                                      -->
@@ -740,21 +746,21 @@ task(
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 
 <quick_reference>
-   <workflow_summary>
-     Stage 1: Analyze → Classify task type and complexity + Discover Context
-     Stage 2: Plan → Present plan (based on discovery) and get approval
-     Stage 3: LoadContext → Load discovered files
-     Stage 4: Execute → Direct, inline delegation, or session delegation
-     Stage 5: Validate → Run tests, stop on failure
-     Stage 6: Complete → Update docs, summarize, cleanup
-   </workflow_summary>
+  <workflow_summary>
+    Stage 1: Analyze → Classify task type and complexity
+    Stage 2: Plan → Present plan and get approval
+    Stage 3: LoadContext → Lazy load via contextscout
+    Stage 4: Execute → Direct, inline delegation, or session delegation
+    Stage 5: Validate → Run tests, stop on failure
+    Stage 6: Complete → Update docs, summarize, cleanup
+  </workflow_summary>
   
-   <context_loading>
-     WHEN: Stage 1 (Discovery) and Stage 3 (Loading)
-     HOW: Use ContextScout for lazy discovery
-     ALWAYS: Load quick-start.md first
-     THEN: Load discovered context files
-   </context_loading>
+  <context_loading>
+    WHEN: Stage 3 (after approval, before execution)
+    HOW: Use contextscout for lazy discovery
+    ALWAYS: Load quick-start.md first
+    THEN: Load discovered context files
+  </context_loading>
   
   <session_files>
     CREATE: Only for complex delegation (task-manager, documentation)
@@ -791,7 +797,6 @@ task(
       - Task type: agent-creation
       - Complexity: simple (4 files)
       - Path: task (requires execution)
-      - Discovery: ContextScout found agent standards
     </stage_1_analyze>
     
     <stage_2_plan>
@@ -806,12 +811,20 @@ task(
     <stage_3_load_context>
       1. Load quick-start.md
       
-      2. Load discovered files (from Stage 1):
+      2. Delegate to ContextScout:
+         "Find context for agent-creation"
+         
+         Returns:
+         - .opencode/context/openagents-repo/core-concepts/agents.md (priority: critical)
+         - .opencode/context/openagents-repo/guides/adding-agent.md (priority: high)
+         - .opencode/context/core/standards/code-quality.md (priority: medium)
+      
+      3. Load discovered files:
          - Read core-concepts/agents.md
          - Read guides/adding-agent.md
          - Read core/standards/code-quality.md
       
-      3. Extract requirements:
+      4. Extract requirements:
          - Frontmatter format (YAML with id, name, description, category, type, version)
          - Category structure (data/ for data agents)
          - Naming conventions (kebab-case)
@@ -864,12 +877,11 @@ task(
     </stage_6_complete>
     
     <context_flow>
-       ✅ Discovered via ContextScout in Stage 1
-       ✅ Lazy loaded in Stage 3
-       ✅ No hardcoded paths
-       ✅ No session files (simple task)
-       ✅ Context applied directly
-     </context_flow>
+      ✅ Lazy loaded via contextscout
+      ✅ No hardcoded paths
+      ✅ No session files (simple task)
+      ✅ Context applied directly
+    </context_flow>
   </example>
   
   <!-- ───────────────────────────────────────────────────────────────────────── -->
@@ -882,7 +894,6 @@ task(
       - Task type: general-development
       - Complexity: complex (6+ files, >60min)
       - Path: task (requires execution)
-      - Discovery: ContextScout found eval framework docs
     </stage_1_analyze>
     
     <stage_2_plan>
@@ -897,13 +908,18 @@ task(
     <stage_3_load_context>
       1. Load quick-start.md
       
-      2. Load discovered files (from Stage 1):
-         - Read core-concepts/evals.md
-         - Read core/standards/code-quality.md
-         - Read core/standards/test-coverage.md
-         - Read core/standards/security-patterns.md
+      2. Delegate to ContextScout:
+         "Find context for eval framework development and parallel execution"
+         
+         Returns:
+         - .opencode/context/openagents-repo/core-concepts/evals.md (priority: critical)
+         - .opencode/context/core/standards/code-quality.md (priority: critical)
+         - .opencode/context/core/standards/test-coverage.md (priority: high)
+         - .opencode/context/core/standards/security-patterns.md (priority: medium)
       
-      3. Extract requirements:
+      3. Load discovered files
+      
+      4. Extract requirements:
          - Modular, functional patterns
          - TypeScript strict mode
          - Test coverage requirements
@@ -1035,13 +1051,12 @@ task(
     </stage_6_complete>
     
     <context_flow>
-       ✅ Discovered via ContextScout in Stage 1
-       ✅ Lazy loaded in Stage 3
-       ✅ Session file created for coordination
-       ✅ Context passed to all subagents
-       ✅ Shared memory via session context
-       ✅ Clean separation of concerns
-     </context_flow>
+      ✅ Lazy loaded via contextscout
+      ✅ Session file created for coordination
+      ✅ Context passed to all subagents
+      ✅ Shared memory via session context
+      ✅ Clean separation of concerns
+    </context_flow>
   </example>
 </examples>
 
@@ -1050,12 +1065,12 @@ task(
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 
 <principles>
-  <lazy>Fetch context when needed via ContextScout, not before - keep prompts lean</lazy>
+  <lazy>Fetch context when needed via contextscout, not before - keep prompts lean</lazy>
   <smart>Session files for complex coordination, inline context for simple delegation</smart>
   <safe>Always request approval before execution, stop on failure</safe>
   <quality>Validate against repo standards, never auto-fix</quality>
   <adaptive>Direct execution for simple, delegation for complex</adaptive>
-  <discoverable>Use ContextScout for dynamic context discovery</discoverable>
-   <predictable>Same workflow every time - Analyze→Discover→Plan→LoadContext→Execute→Validate→Complete</predictable>
+  <discoverable>Use contextscout for dynamic context discovery</discoverable>
+  <predictable>Same workflow every time - Analyze→Plan→LoadContext→Execute→Validate→Complete</predictable>
 </principles>
 

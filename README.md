@@ -5,7 +5,6 @@
 ### AI agent framework for plan-first development workflows with approval-based execution
 
 [![GitHub stars](https://img.shields.io/github/stars/darrenhinde/OpenAgents?style=social)](https://github.com/darrenhinde/OpenAgents/stargazers)
-[![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/DarrenBuildsAI?style=social)](https://x.com/DarrenBuildsAI)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub last commit](https://img.shields.io/github/last-commit/darrenhinde/OpenAgents)](https://github.com/darrenhinde/OpenAgents/commits/main)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/contributing/CONTRIBUTING.md)
@@ -251,7 +250,7 @@ User Request
 - **/test** - Testing workflows
 - **/clean** - Cleanup operations
 - **/context** - Context management
-- **/prompt-enhancer** - Improve your prompts
+- **/prompt-enchancer** - Improve your prompts
 - **/worktrees** - Git worktree management
 - **/validate-repo** - Validate repository consistency
 
@@ -590,12 +589,11 @@ opencode --agent opencoder
 - [OpenCoder Guide](docs/agents/opencoder.md) - Specialized development work
 
 ---
-## Support & Connect
+## Support This Work
 
-If this helped you out, I'd love to hear about it!
+If this helped you out and you're feeling generous, consider funding my coffee habit ☕
 
-- **Follow on X**: [@DarrenBuildsAI](https://x.com/DarrenBuildsAI) - I post updates on AI agents and OpenCode workflows.
-- **Support the Work**: [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/darrenhinde)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/darrenhinde)
 
 Totally optional, but appreciated.
 

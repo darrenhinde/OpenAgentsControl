@@ -82,18 +82,6 @@ tools:
     <checkpoint>Requirements fully parsed and structured</checkpoint>
   </stage>
 
-  <stage id="1.5" name="DiscoverContext">
-    <action>Use ContextScout to discover relevant standards and guides</action>
-    <when>Before architecture planning or generation</when>
-    <process>
-      1. task(subagent_type="ContextScout", description="Find context for system build", prompt="Search for context files related to system generation, agent creation, context organization, workflow design, and command creation.")
-    </process>
-    <output>
-      - Relevant context file list for later loading
-    </output>
-    <checkpoint>Context discovered</checkpoint>
-  </stage>
- 
   <stage id="2" name="RouteToDomainAnalyzer">
     <action>Route to DomainAnalyzer for deep domain analysis and agent identification</action>
     <prerequisites>Requirements document complete</prerequisites>

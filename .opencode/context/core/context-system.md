@@ -76,21 +76,6 @@ Filenames should tell you what's inside:
 ### 6. Knowledge Harvesting
 Extract valuable context from AI summaries/overviews, then delete them. Workspace stays clean, knowledge persists.
 
-### 5. Technology Context Organization
-
-**Purpose**: Ensure consistent placement of new technologies (frameworks, libraries, tools) to maintain discoverability.
-
-**Frameworks vs Architectural Layers**:
-
-- **Full-Stack Frameworks** (e.g., Tanstack Start, Next.js): Add under `development/frameworks/{tech}/`. These are "meta-frameworks" that span multiple layers.
-- **Specialized Concerns** (e.g., AI, Data): Add under `development/{concern}/{tech}/`.
-- **Layer-Specific Tech** (e.g., React, Node.js): Add under `development/{frontend|backend}/{tech}/`.
-
-**Decision Process**:
-1. Is it a full-stack framework? → `development/frameworks/`
-2. Is it a specialized domain (AI, Data)? → `development/{domain}/`
-3. Is it layer-specific? → `development/{frontend|backend}/`
-
 ---
 
 ## Directory Patterns

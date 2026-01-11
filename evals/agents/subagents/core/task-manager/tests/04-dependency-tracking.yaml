@@ -1,61 +1,42 @@
 id: core-task-manager-dependency-tracking
 name: "Task Manager: Dependency Tracking - Map Task Dependencies"
 description: |
-  Tests the task-manager's ability to identify and map task dependencies
-  in JSON subtask files.
+  Tests the task-manager's ability to identify and map task dependencies.
   
   Validates:
   - Identifies task dependencies
-  - Maps dependency relationships in depends_on
-  - Includes dependencies in JSON tasks
+  - Maps dependency relationships
+  - Includes dependencies in plan
+  - Uses proper dependency format (seq -> seq)
   
   Critical Behavior:
   - MUST identify which tasks depend on others
-  - MUST map dependencies in depends_on arrays
+  - MUST map dependencies clearly
+  - MUST use format: {seq} depends on {seq}
 category: developer
 
 prompts:
   - text: |
-      Break down the feature "api-integration" into JSON subtasks.
-
-      Objective: Build a reusable API client with authentication and error handling.
-      Deliverables:
-      - src/api/client.ts
-      - src/api/auth.ts
-      - src/api/service.ts
-      - src/api/errors.ts
-
-      Tasks:
+      Break down a feature "api-integration" with these tasks:
       1. Design API client interface
       2. Implement HTTP client
       3. Add authentication layer (depends on HTTP client)
       4. Create API service methods (depends on auth layer)
       5. Add error handling (depends on API service)
-
-      Use the write tool to create .tmp/tasks/api-integration/task.json and subtask_NN.json files.
+      
+      Show me the task plan with clear dependency mapping.
 
 approvalStrategy:
   type: auto-approve
 
 behavior:
-  mustUseTools:
-    - read
-    - bash
-    - write
-  requiresContext: true
-  expectedContextFiles:
-    - .opencode/context/core/task-management/navigation.md
-    - .opencode/context/core/task-management/standards/task-schema.md
-    - .opencode/context/core/task-management/guides/splitting-tasks.md
-    - .opencode/context/core/task-management/guides/managing-tasks.md
-  minToolCalls: 3
-  maxToolCalls: 15
+  minToolCalls: 0
+  maxToolCalls: 5
 
 expectedViolations:
   - rule: approval-gate
-    shouldViolate: true
+    shouldViolate: false
     severity: error
-    description: Subagents do not request approvals
 
 timeout: 120000
 

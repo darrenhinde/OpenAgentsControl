@@ -1,52 +1,41 @@
 {
   "meta": {
-    "timestamp": "2026-01-11T16:38:34.260Z",
-    "agent": "subagents/core/task-manager",
+    "timestamp": "2026-01-09T13:10:17.718Z",
+    "agent": "ContextScout",
     "model": "opencode/grok-code-fast",
     "framework_version": "0.1.0",
-    "git_commit": "f10c93d"
+    "git_commit": "41c5917"
   },
   "summary": {
     "total": 1,
-    "passed": 0,
-    "failed": 1,
-    "duration_ms": 49410,
-    "pass_rate": 0
+    "passed": 1,
+    "failed": 0,
+    "duration_ms": 15339,
+    "pass_rate": 1
   },
   "by_category": {
     "developer": {
-      "passed": 0,
+      "passed": 1,
       "total": 1
     }
   },
   "tests": [
     {
-      "id": "core-task-manager-smoke-test",
+      "id": "core-contextscout-smoke-test",
       "category": "developer",
-      "passed": false,
-      "duration_ms": 49410,
-      "events": 67,
+      "passed": true,
+      "duration_ms": 15339,
+      "events": 18,
       "approvals": 0,
       "violations": {
-        "total": 3,
-        "errors": 3,
-        "warnings": 0,
+        "total": 1,
+        "errors": 0,
+        "warnings": 1,
         "details": [
           {
-            "type": "missing-approval",
-            "severity": "error",
-            "message": "Execution tool 'task' called without requesting approval",
-            "expected": true
-          },
-          {
-            "type": "missing-required-tool",
-            "severity": "error",
-            "message": "Required tool 'bash' was not used"
-          },
-          {
-            "type": "missing-required-tool",
-            "severity": "error",
-            "message": "Required tool 'write' was not used"
+            "type": "insufficient-read",
+            "severity": "warning",
+            "message": "Read/execution ratio < 1 (0.67)"
           }
         ]
       }

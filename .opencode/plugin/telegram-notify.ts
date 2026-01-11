@@ -1,5 +1,5 @@
 import type { Plugin } from "@opencode-ai/plugin"
-import { SimpleTelegramBot } from "../_lib/telegram-bot"
+import { SimpleTelegramBot } from "./lib/telegram-bot"
 
 // 🔧 CONFIGURATION: Set to true to enable this plugin
 const ENABLED = false

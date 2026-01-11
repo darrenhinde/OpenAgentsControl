@@ -199,9 +199,9 @@ analyze_context_reads
 
 ### Files Read:
 - **code.md** (2 reads)
-  `.opencode/context/core/standards/code-quality.md`
+  `.opencode/context/core/standards/code.md`
 - **delegation.md** (1 read)
-  `.opencode/context/core/workflows/task-delegation.md`
+  `.opencode/context/core/workflows/delegation.md`
 
 ### Timeline:
 1. [10:23:45] code.md
@@ -234,8 +234,8 @@ check_context_compliance
 - ⚠️  Non-compliant: 0
 
 ### ✅ Compliant Actions:
-- ✅ Loaded standards/code-quality.md before code writing
-- ✅ Loaded workflows/task-delegation.md before delegation
+- ✅ Loaded standards/code.md before code writing
+- ✅ Loaded workflows/delegation.md before delegation
 
 ### Context Loading Rules:
 According to OpenAgent prompt, the agent should:
@@ -247,11 +247,11 @@ According to OpenAgent prompt, the agent should:
 ```
 
 **Context loading rules:**
-- Writing code → should read `standards/code-quality.md`
-- Writing docs → should read `standards/documentation.md`
-- Writing tests → should read `standards/test-coverage.md`
-- Code review → should read `workflows/code-review.md`
-- Delegating → should read `workflows/task-delegation.md`
+- Writing code → should read `standards/code.md`
+- Writing docs → should read `standards/docs.md`
+- Writing tests → should read `standards/tests.md`
+- Code review → should read `workflows/review.md`
+- Delegating → should read `workflows/delegation.md`
 
 **When to use:**
 - To verify lazy loading is working
@@ -467,7 +467,7 @@ opencode --agent openagent
 # 3. Verify compliance
 > "check_context_compliance"
 
-# Expected: Should show standards/code-quality.md was read BEFORE writing
+# Expected: Should show standards/code.md was read BEFORE writing
 ```
 
 ---

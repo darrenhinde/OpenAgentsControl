@@ -226,7 +226,7 @@ When creating a new file:
     - [ ] Follows MVI format (1-3 sentences, 3-5 points, example, reference)?
     - [ ] In correct function folder (concepts/examples/guides/lookup/errors)?
     - [ ] Has standard metadata (Purpose, Last Updated)?
-    - [ ] Added to navigation.md navigation?
+    - [ ] Added to README.md navigation?
     - [ ] Priority assigned (critical/high/medium/low)?
     - [ ] Cross-references added?
     - [ ] Scannable in <30 seconds?

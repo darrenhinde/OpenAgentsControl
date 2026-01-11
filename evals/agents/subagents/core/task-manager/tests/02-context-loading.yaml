@@ -1,35 +1,27 @@
 id: core-task-manager-context-loading
 name: "Task Manager: Context Loading - Load Context Before Planning"
 description: |
-  Tests the task-manager's requirement to load task-management context
-  before creating JSON task files.
+  Tests the task-manager's critical requirement to load context before
+  creating task breakdowns.
   
   Validates:
-  - Loads task-management context files
+  - Checks for context bundle first
+  - Loads context files if available
   - Applies context to task planning
-  - Proceeds to JSON task creation when details are sufficient
+  - References loaded context in plan
   
   Critical Behavior:
-  - MUST load navigation + core task-management guides
-  - MUST load task schema before planning
+  - MUST check for context bundle (.tmp/context/{session}/bundle.md)
+  - MUST load project standards before planning
+  - MUST apply context to task breakdown
+  - MUST list context files used in plan
 category: developer
 
 prompts:
   - text: |
-      Break down the feature "user-authentication" into JSON subtasks.
-
-      Objective: Allow users to register, log in, and reset passwords.
-      Deliverables:
-      - auth service module
-      - user registration endpoint
-      - login endpoint
-      - password reset flow
-
-      Constraints:
-      - Use existing auth patterns
-      - Include acceptance criteria per subtask
-
-      Use the write tool to create .tmp/tasks/user-authentication/task.json and subtask_NN.json files.
+      Break down a feature for "user authentication" into subtasks. Before you
+      start planning, check if there's a context bundle at
+      .tmp/test-fixtures/task-manager/bundle.md and load it if it exists.
 
 approvalStrategy:
   type: auto-approve
@@ -37,22 +29,16 @@ approvalStrategy:
 behavior:
   mustUseTools:
     - read
-    - bash
-    - write
-  requiresContext: true
-  expectedContextFiles:
-    - .opencode/context/core/task-management/navigation.md
-    - .opencode/context/core/task-management/standards/task-schema.md
-    - .opencode/context/core/task-management/guides/splitting-tasks.md
-    - .opencode/context/core/task-management/guides/managing-tasks.md
-  minToolCalls: 3
-  maxToolCalls: 15
+  minToolCalls: 1
+  maxToolCalls: 10
 
 expectedViolations:
   - rule: approval-gate
-    shouldViolate: true
+    shouldViolate: false
     severity: error
-    description: Subagents do not request approvals
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
 
 timeout: 120000
 
