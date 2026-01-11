@@ -331,16 +331,9 @@ resolve_dependencies() {
     local registry_key
     registry_key=$(get_registry_key "$type")
     
-    local registry_exists
-    registry_exists=$(jq_exec ".components.${registry_key} != null" "$TEMP_DIR/registry.json" 2>/dev/null || echo "false")
-    if [ "$registry_exists" != "true" ]; then
-        print_warning "Component type not found in registry: ${type}"
-        return
-    fi
-    
     # Get dependencies for this component
     local deps
-    deps=$(jq_exec ".components.${registry_key}[]? | select(.id == \"${id}\") | .dependencies[]?" "$TEMP_DIR/registry.json" 2>/dev/null || echo "")
+    deps=$(jq_exec ".components.${registry_key}[] | select(.id == \"${id}\") | .dependencies[]?" "$TEMP_DIR/registry.json" 2>/dev/null || echo "")
     
     if [ -n "$deps" ]; then
         for dep in $deps; do
@@ -629,7 +622,7 @@ show_custom_menu() {
     for i in "${!categories[@]}"; do
         local cat="${categories[$i]}"
         local count
-        count=$(jq_exec "(.components.${cat} // []) | length" "$TEMP_DIR/registry.json")
+        count=$(jq_exec ".components.${cat} | length" "$TEMP_DIR/registry.json")
         local cat_display
         cat_display=$(echo "$cat" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
         echo "  $((i+1))) ${cat_display} (${count} available)"
@@ -681,14 +674,14 @@ show_component_selection() {
         echo -e "${CYAN}${BOLD}${cat_display}:${NC}"
         
         local components
-        components=$(jq_exec ".components.${category}[]? | .id" "$TEMP_DIR/registry.json")
+        components=$(jq_exec ".components.${category}[] | .id" "$TEMP_DIR/registry.json")
         
         local idx=1
         while IFS= read -r comp_id; do
             local comp_name
-            comp_name=$(jq_exec ".components.${category}[]? | select(.id == \"${comp_id}\") | .name" "$TEMP_DIR/registry.json")
+            comp_name=$(jq_exec ".components.${category}[] | select(.id == \"${comp_id}\") | .name" "$TEMP_DIR/registry.json")
             local comp_desc
-            comp_desc=$(jq_exec ".components.${category}[]? | select(.id == \"${comp_id}\") | .description" "$TEMP_DIR/registry.json")
+            comp_desc=$(jq_exec ".components.${category}[] | select(.id == \"${comp_id}\") | .description" "$TEMP_DIR/registry.json")
             
             echo "  ${idx}) ${comp_name}"
             echo "     ${comp_desc}"
@@ -915,7 +908,7 @@ perform_installation() {
         local registry_key
         registry_key=$(get_registry_key "$type")
         local path
-        path=$(jq_exec ".components.${registry_key}[]? | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
+        path=$(jq_exec ".components.${registry_key}[] | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
         
         if [ -n "$path" ] && [ "$path" != "null" ]; then
             local install_path
@@ -992,7 +985,7 @@ perform_installation() {
         
         # Get component path
         local path
-        path=$(jq_exec ".components.${registry_key}[]? | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
+        path=$(jq_exec ".components.${registry_key}[] | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
         
         if [ -z "$path" ] || [ "$path" = "null" ]; then
             print_warning "Could not find path for ${comp}"
@@ -1138,7 +1131,7 @@ list_components() {
         echo -e "${CYAN}${BOLD}${cat_display}:${NC}"
         
         local components
-        components=$(jq_exec ".components.${category}[]? | \"\(.id)|\(.name)|\(.description)\"" "$TEMP_DIR/registry.json")
+        components=$(jq_exec ".components.${category}[] | \"\(.id)|\(.name)|\(.description)\"" "$TEMP_DIR/registry.json")
         
         while IFS='|' read -r id name desc; do
             echo -e "  ${GREEN}${name}${NC} (${id})"
