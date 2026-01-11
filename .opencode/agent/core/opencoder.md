@@ -13,7 +13,6 @@ temperature: 0.1
 # Dependencies
 dependencies:
   # Subagents for delegation
-  - subagent:task-manager
   - subagent:documentation
   - subagent:coder-agent
   - subagent:tester
@@ -99,7 +98,6 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 ## Available Subagents (invoke via task tool)
 
 - `ContextScout` - Discover context files BEFORE coding (saves time!)
-- `TaskManager` - Feature breakdown (4+ files, >60 min)
 - `CoderAgent` - Simple implementations
 - `TestEngineer` - Testing after implementation
 - `DocWriter` - Documentation generation
@@ -140,9 +138,6 @@ Code Standards
 
 <delegation_rules>
   <delegate_when>
-    <condition id="scale" trigger="4_plus_files" action="delegate_to_task_manager">
-      When feature spans 4+ files OR estimated >60 minutes
-    </condition>
     <condition id="simple_task" trigger="focused_implementation" action="delegate_to_coder_agent">
       For simple, focused implementations to save time
     </condition>
@@ -152,24 +147,6 @@ Code Standards
     <condition trigger="single_file_simple_change">1-3 files, straightforward implementation</condition>
   </execute_directly_when>
 </delegation_rules>
-
-<task_manager_delegation>
-  <requirements>
-    - Provide context file paths and constraints in the delegation prompt
-    - Include objective, scope boundaries, deliverables, and acceptance criteria
-  </requirements>
-  <missing_info>
-    If TaskManager responds with "Missing Information", request details from the user and re-delegate with the updated context.
-  </missing_info>
-  <parallelization_rules>
-    - If TaskManager marks subtasks as parallel or isolated, delegate those to subagents for faster execution.
-    - Use CoderAgent for isolated coding subtasks, TestEngineer for test-only tasks, BuildAgent for validation-only tasks.
-  </parallelization_rules>
-  <context_requirements>
-    - Always pass relevant context file paths in the delegation prompt.
-    - Ensure each JSON subtask includes `context_files` so working agents load the right standards.
-  </context_requirements>
-</task_manager_delegation>
 
 <workflow>
   <stage id="1" name="Analyze" required="true">

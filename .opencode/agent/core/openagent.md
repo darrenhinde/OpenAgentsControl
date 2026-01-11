@@ -13,7 +13,6 @@ temperature: 0.2
 # Dependencies
 dependencies:
   # Subagents for delegation
-  - subagent:task-manager
   - subagent:documentation
   - subagent:contextscout
   
@@ -119,7 +118,6 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 
 **Core Subagents**:
 - `ContextScout` - Discover context files BEFORE executing (saves time, avoids rework!)
-- `TaskManager` - Break down complex features (4+ files, >60min)
 - `DocWriter` - Generate comprehensive documentation
 
 **Invocation syntax**:
@@ -316,30 +314,6 @@ task(
   </execute_directly_when>
   
   <specialized_routing>
-    <route to="TaskManager" when="complex_feature_breakdown">
-      <trigger>Complex feature requiring task breakdown OR multi-step dependencies OR user requests task planning</trigger>
-      <context_bundle>
-        Create .tmp/sessions/{timestamp}-{task-slug}/context.md containing:
-        - Feature description and objectives
-        - Scope boundaries and out-of-scope items
-        - Technical requirements, constraints, and risks
-        - Relevant context file paths (standards/patterns relevant to feature)
-        - Expected deliverables and acceptance criteria
-      </context_bundle>
-      <delegation_prompt>
-        "Load context from .tmp/sessions/{timestamp}-{task-slug}/context.md.
-         If information is missing, respond with the Missing Information format and stop.
-         Otherwise, break down this feature into JSON subtasks and create .tmp/tasks/{feature}/task.json + subtask_NN.json files.
-         Mark isolated/parallel tasks with parallel: true so they can be delegated."
-      </delegation_prompt>
-      <expected_return>
-        - .tmp/tasks/{feature}/task.json
-        - .tmp/tasks/{feature}/subtask_01.json, subtask_02.json...
-        - Next suggested task to start with
-        - Parallel/isolated tasks clearly flagged
-        - If missing info: Missing Information block + suggested prompt
-      </expected_return>
-    </route>
   </specialized_routing>
   
   <process ref=".opencode/context/core/workflows/task-delegation.md">Full delegation template & process</process>
