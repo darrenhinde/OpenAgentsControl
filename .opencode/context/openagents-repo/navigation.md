@@ -47,6 +47,7 @@
 | `guides/testing-agent.md` | How to test agents | ⭐⭐⭐⭐ |
 | `guides/updating-registry.md` | How to update registry | ⭐⭐⭐ |
 | `guides/debugging.md` | How to debug issues | ⭐⭐⭐ |
+| `guides/resolving-installer-wildcard-failures.md` | Fix wildcard context install failures | ⭐⭐⭐ |
 | `guides/creating-release.md` | How to create releases | ⭐⭐ |
 
 **When to read**: When performing specific tasks

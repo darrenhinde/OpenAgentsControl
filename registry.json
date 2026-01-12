@@ -2297,6 +2297,16 @@
         "tags": [],
         "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "resolving-installer-wildcard-failures",
+        "name": "Resolving Installer Wildcard Failures",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/resolving-installer-wildcard-failures.md",
+        "description": "Guide: Resolving Installer Wildcard Failures",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "config": [
