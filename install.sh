@@ -489,7 +489,7 @@ show_main_menu() {
     case $choice in
         1) INSTALL_MODE="profile" ;;
         2) INSTALL_MODE="custom" ;;
-        3) list_components; show_main_menu ;;
+        3) list_components; read -p "Press Enter to continue..."; show_main_menu ;;
         4) cleanup_and_exit 0 ;;
         *) print_error "Invalid choice"; sleep 2; show_main_menu ;;
     esac
@@ -1140,8 +1140,6 @@ list_components() {
         
         echo ""
     done
-    
-    read -p "Press Enter to continue..."
 }
 
 #############################################################################
