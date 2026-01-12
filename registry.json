@@ -1046,6 +1046,16 @@
         "category": "standard"
       },
       {
+        "id": "adding-skill",
+        "name": "Adding Skill",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/adding-skill.md",
+        "description": "Guide: Adding a new skill",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
         "id": "creating-release",
         "name": "Creating Release",
         "type": "context",
@@ -1629,6 +1639,9 @@
         "name": "Feature Breakdown",
         "type": "context",
         "path": ".opencode/context/core/workflows/feature-breakdown.md",
+        "aliases": [
+          "workflows-task-breakdown"
+        ],
         "description": "Task Breakdown Guidelines",
         "tags": [],
         "dependencies": [],
@@ -1639,6 +1652,9 @@
         "name": "Session Management",
         "type": "context",
         "path": ".opencode/context/core/workflows/session-management.md",
+        "aliases": [
+          "workflows-sessions"
+        ],
         "description": "Session Management",
         "tags": [],
         "dependencies": [],
@@ -2330,7 +2346,6 @@
         "context:workflows-task-breakdown",
         "context:workflows-review",
         "context:system-context-guide",
-        "context:adding-skill",
         "context:adding-skill",
         "config:env-example"
       ]

@@ -431,6 +431,50 @@ jq '.components.subagents[] | select(.id == "coder-agent")' registry.json
 # If missing, add the dependency component first
 ```
 
+### Context Not Found (Aliases)
+
+**Problem**: Error `Could not find path for context:old-name` even though file exists.
+
+**Cause**: The context file might have been renamed or the ID in registry doesn't match the requested name.
+
+**Solution**: Add an alias to the component in `registry.json`.
+
+1. Find the component in `registry.json`
+2. Add `"aliases": ["old-name", "alternative-name"]`
+3. Validate registry
+
+---
+
+## Managing Aliases
+
+Aliases allow components to be referenced by multiple names. This is useful for:
+- Backward compatibility (renamed files)
+- Shorthand references
+- Alternative naming conventions
+
+### Adding Aliases
+
+Currently, aliases must be added **manually** to `registry.json` (auto-detect does not yet support them).
+
+```json
+{
+  "id": "session-management",
+  "name": "Session Management",
+  "type": "context",
+  "path": ".opencode/context/core/workflows/session-management.md",
+  "aliases": [
+    "workflows-sessions",
+    "sessions"
+  ],
+  ...
+}
+```
+
+**Note**: Always validate the registry after manual edits:
+```bash
+./scripts/registry/validate-registry.sh
+```
+
 ---
 
 **Last Updated**: 2025-01-06  
