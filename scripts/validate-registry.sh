@@ -31,12 +31,10 @@ TOTAL_PATHS=0
 VALID_PATHS=0
 MISSING_PATHS=0
 ORPHANED_FILES=0
-PROFILE_ERRORS=0
 
 # Arrays to store results
 declare -a MISSING_FILES
 declare -a ORPHANED_COMPONENTS
-declare -a PROFILE_ISSUES
 
 #############################################################################
 # Utility Functions
@@ -182,112 +180,9 @@ suggest_fix() {
     if [ -n "$similar_files" ]; then
         echo -e "  ${YELLOW}→ Possible matches:${NC}"
         while IFS= read -r file; do
-            local rel_path="${file#$REPO_ROOT/}"
+            local rel_path="${file#"$REPO_ROOT"/}"
             echo -e "    ${CYAN}${rel_path}${NC}"
         done <<< "$similar_files"
-    fi
-}
-
-validate_profile_components() {
-    local profiles
-    profiles=$(jq -r '.profiles | keys[]' "$REGISTRY_FILE" 2>/dev/null)
-
-    while IFS= read -r profile; do
-        [ -z "$profile" ] && continue
-
-        local components
-        components=$(jq -r ".profiles.${profile}.components[]?" "$REGISTRY_FILE" 2>/dev/null)
-
-        if [ -z "$components" ]; then
-            [ "$VERBOSE" = true ] && print_warning "Profile ${profile} has no components"
-            continue
-        fi
-
-        while IFS= read -r component; do
-            [ -z "$component" ] && continue
-
-            local type
-            local id
-            type="${component%%:*}"
-            id="${component##*:}"
-
-            local registry_key
-            case "$type" in
-                config) registry_key="config" ;;
-                *) registry_key="${type}s" ;;
-            esac
-
-            if ! jq -e ".components.${registry_key}" "$REGISTRY_FILE" >/dev/null 2>&1; then
-                PROFILE_ERRORS=$((PROFILE_ERRORS + 1))
-                PROFILE_ISSUES+=("${profile}|${component}|missing component type")
-                continue
-            fi
-
-            if ! jq -e ".components.${registry_key}[]? | select(.id == \"${id}\")" "$REGISTRY_FILE" >/dev/null 2>&1; then
-                PROFILE_ERRORS=$((PROFILE_ERRORS + 1))
-                PROFILE_ISSUES+=("${profile}|${component}|missing component entry")
-            fi
-        done <<< "$components"
-    done <<< "$profiles"
-}
-
-validate_dependency_ids() {
-    [ "$VERBOSE" = true ] && echo -e "\n${BOLD}Validating dependency IDs...${NC}"
-
-    # Check all dependencies for malformed IDs (path-style IDs containing "/")
-    local malformed_deps
-    malformed_deps=$(jq -r '
-        .components | to_entries[] | .value[]? |
-        select(has("dependencies") and (.dependencies | type == "array") and (.dependencies | length > 0)) |
-        .id as $comp_id | .type as $comp_type |
-        .dependencies[] | select(contains("/")) |
-        "\($comp_type):\($comp_id)|\(.)"
-    ' "$REGISTRY_FILE" 2>/dev/null)
-
-    if [ -n "$malformed_deps" ]; then
-        while IFS='|' read -r comp_ref dep_ref; do
-            [ -z "$comp_ref" ] && continue
-            PROFILE_ERRORS=$((PROFILE_ERRORS + 1))
-            PROFILE_ISSUES+=("dependencies|${comp_ref}|malformed dependency ID: ${dep_ref}")
-            print_error "Malformed dependency in ${comp_ref}: ${dep_ref}"
-            echo "  Dependencies should use simple IDs (e.g., 'context:harvest' not 'context:path/to/harvest')"
-        done <<< "$malformed_deps"
-    fi
-
-    # Also validate that all dependencies reference existing components
-    local all_deps
-    all_deps=$(jq -r '
-        .components | to_entries[] | .value[]? |
-        select(has("dependencies") and (.dependencies | type == "array") and (.dependencies | length > 0)) |
-        .id as $comp_id | .type as $comp_type |
-        .dependencies[] |
-        "\($comp_type):\($comp_id)|\(.)"
-    ' "$REGISTRY_FILE" 2>/dev/null)
-
-    if [ -n "$all_deps" ]; then
-        while IFS='|' read -r comp_ref dep_ref; do
-            [ -z "$comp_ref" ] && continue
-            [ -z "$dep_ref" ] && continue
-
-            local dep_type="${dep_ref%%:*}"
-            local dep_id="${dep_ref##*:}"
-
-            # Skip if already identified as malformed (contains /)
-            [[ "$dep_id" == *"/"* ]] && continue
-
-            local dep_key
-            case "$dep_type" in
-                config) dep_key="config" ;;
-                *) dep_key="${dep_type}s" ;;
-            esac
-
-            # Check if the dependency exists
-            if ! jq -e ".components.${dep_key}[]? | select(.id == \"${dep_id}\")" "$REGISTRY_FILE" >/dev/null 2>&1; then
-                PROFILE_ERRORS=$((PROFILE_ERRORS + 1))
-                PROFILE_ISSUES+=("dependencies|${comp_ref}|missing dependency: ${dep_ref}")
-                [ "$VERBOSE" = true ] && print_warning "${comp_ref} depends on ${dep_ref} (not found in registry)"
-            fi
-        done <<< "$all_deps"
     fi
 }
 
@@ -299,7 +194,7 @@ scan_for_orphaned_files() {
     registry_paths=$(jq -r '.components | to_entries[] | .value[] | .path' "$REGISTRY_FILE" 2>/dev/null | sort -u)
     
     # Scan .opencode directory for markdown files
-    local categories=("agent" "command" "tool" "plugin" "skill" "context")
+    local categories=("agent" "command" "tool" "plugin" "context")
     
     for category in "${categories[@]}"; do
         local category_dir="$REPO_ROOT/.opencode/$category"
@@ -310,8 +205,8 @@ scan_for_orphaned_files() {
         
         # Find all .md and .ts files (excluding node_modules)
         while IFS= read -r file; do
-            local rel_path="${file#$REPO_ROOT/}"
-            
+            local rel_path="${file#"$REPO_ROOT"/}"
+
             # Skip node_modules
             if [[ "$rel_path" == *"/node_modules/"* ]]; then
                 continue
@@ -347,14 +242,9 @@ print_summary() {
     
     echo ""
     
-    local has_errors=false
-    if [ $MISSING_PATHS -ne 0 ] || [ $PROFILE_ERRORS -ne 0 ]; then
-        has_errors=true
-    fi
-
-    if [ "$has_errors" = false ]; then
+    if [ $MISSING_PATHS -eq 0 ]; then
         print_success "All registry paths are valid!"
-
+        
         if [ $ORPHANED_FILES -gt 0 ] && [ "$VERBOSE" = true ]; then
             echo ""
             print_warning "Found ${ORPHANED_FILES} orphaned file(s) not in registry"
@@ -366,11 +256,9 @@ print_summary() {
             echo ""
             echo "Consider adding these to registry.json or removing them."
         fi
-
+        
         return 0
-    fi
-
-    if [ $MISSING_PATHS -ne 0 ]; then
+    else
         print_error "Found ${MISSING_PATHS} missing file(s)"
         echo ""
         echo "Missing files:"
@@ -379,27 +267,15 @@ print_summary() {
             echo "  - ${path} (${cat_id})"
         done
         echo ""
+        echo "Please fix these issues before proceeding."
+        
+        if [ "$FIX_MODE" = false ]; then
+            echo ""
+            print_info "Run with --fix flag to see suggested fixes"
+        fi
+        
+        return 1
     fi
-
-    if [ $PROFILE_ERRORS -ne 0 ]; then
-        print_error "Found ${PROFILE_ERRORS} invalid profile component(s)"
-        echo ""
-        echo "Profile issues:"
-        for entry in "${PROFILE_ISSUES[@]}"; do
-            IFS='|' read -r profile component issue <<< "$entry"
-            echo "  - ${profile}: ${component} (${issue})"
-        done
-        echo ""
-    fi
-
-    echo "Please fix these issues before proceeding."
-
-    if [ "$FIX_MODE" = false ] && [ $MISSING_PATHS -ne 0 ]; then
-        echo ""
-        print_info "Run with --fix flag to see suggested fixes"
-    fi
-
-    return 1
 }
 
 #############################################################################
@@ -447,20 +323,9 @@ main() {
     validate_component_paths "commands" "Commands"
     validate_component_paths "tools" "Tools"
     validate_component_paths "plugins" "Plugins"
-    validate_component_paths "skills" "Skills"
     validate_component_paths "contexts" "Contexts"
     validate_component_paths "config" "Config"
-
-    echo ""
-    print_info "Validating profile components..."
-    echo ""
-    validate_profile_components
-
-    echo ""
-    print_info "Validating dependency IDs..."
-    echo ""
-    validate_dependency_ids
-
+    
     # Scan for orphaned files if verbose
     if [ "$VERBOSE" = true ]; then
         scan_for_orphaned_files
