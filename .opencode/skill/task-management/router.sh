@@ -15,7 +15,8 @@ fi
 
 # Find project root
 find_project_root() {
-    local dir="$(pwd)"
+    local dir
+    dir="$(pwd)"
     while [ "$dir" != "/" ]; do
         if [ -f "$dir/.git" ] || [ -f "$dir/package.json" ]; then
             echo "$dir"
@@ -23,7 +24,7 @@ find_project_root() {
         fi
         dir="$(dirname "$dir")"
     done
-    echo "$(pwd)"
+    pwd
     return 1
 }
 
