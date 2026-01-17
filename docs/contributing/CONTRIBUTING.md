@@ -1,4 +1,4 @@
-# Contributing to OpenAgents
+# Contributing to OpenAgents Control
 
 Thank you for your interest in contributing! This guide will help you add new components to the registry and understand the repository structure.
 

@@ -9,7 +9,7 @@
 ```
 .opencode/context/
 ├── core/                   # Universal standards & workflows
-├── openagents-repo/        # OpenAgents repository work
+├── openagents-repo/        # OpenAgents Control repository work
 ├── development/            # Software development (all stacks)
 ├── ui/                     # Visual design & UX
 ├── content-creation/       # Content creation (all formats)

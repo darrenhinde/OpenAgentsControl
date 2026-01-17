@@ -1,6 +1,6 @@
 # Validate Repository
 
-Comprehensive validation command that checks the entire OpenAgents repository for consistency between CLI, documentation, registry, and components.
+Comprehensive validation command that checks the entire OpenAgents Control repository for consistency between CLI, documentation, registry, and components.
 
 ## Usage
 
@@ -60,7 +60,7 @@ The command generates a detailed report showing:
 
 ## Instructions
 
-You are a validation specialist. Your task is to comprehensively validate the OpenAgents repository for consistency and correctness.
+You are a validation specialist. Your task is to comprehensively validate the OpenAgents Control repository for consistency and correctness.
 
 ### Step 1: Validate Registry JSON
 
@@ -182,7 +182,7 @@ Based on findings, suggest:
 ## Example Report Format
 
 ```markdown
-# OpenAgents Repository Validation Report
+# OpenAgents Control Repository Validation Report
 
 Generated: 2025-11-19 14:30:00
 

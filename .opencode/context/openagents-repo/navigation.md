@@ -1,6 +1,6 @@
-# OpenAgents Repository Context
+# OpenAgents Control Repository Context
 
-**Purpose**: Context files specific to the OpenAgents repository
+**Purpose**: Context files specific to the OpenAgents Control repository
 
 **Last Updated**: 2026-01-13
 

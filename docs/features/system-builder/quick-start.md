@@ -15,7 +15,7 @@ An **interactive AI system generator** that creates complete `.opencode` archite
 
 ```bash
 # Install Advanced profile (includes system builder)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s advanced
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s advanced
 ```
 
 **What you get:**
@@ -33,7 +33,7 @@ Already have `developer` or `full` profile? Add system builder:
 
 ```bash
 # Run advanced profile
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s advanced
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s advanced
 
 # When prompted about collisions:
 # Choose: 1) Skip existing
@@ -178,7 +178,7 @@ When you install **advanced** profile, you get:
 
 **Installation:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s advanced
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s advanced
 ```
 
 **Usage:**

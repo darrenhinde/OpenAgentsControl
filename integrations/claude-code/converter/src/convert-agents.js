@@ -2,7 +2,7 @@
 
 /**
  * convert-agents.js
- * Converts OpenAgents to Claude Code format
+ * Converts OpenAgents Control to Claude Code format
  *
  * Usage: node convert-agents.js [--watch]
  */
@@ -22,7 +22,7 @@ const CLAUDE_SKILLS_DIR = path.join(OUTPUT_DIR, 'skills');
 // Claude frontmatter fields (subset of OpenCode)
 const CLAUDE_FIELDS = ['name', 'description', 'tools', 'model', 'permissionMode', 'skills', 'hooks'];
 
-console.log('🚀 OpenAgents → Claude Code Converter');
+console.log('🚀 OpenAgents Control → Claude Code Converter');
 console.log(`   Source: ${SOURCE_DIR}`);
 console.log(`   Output: ${OUTPUT_DIR}\n`);
 
@@ -172,7 +172,7 @@ function convert() {
   if (fs.existsSync(CLAUDE_SKILLS_DIR)) fs.rmSync(CLAUDE_SKILLS_DIR, { recursive: true });
   
   fs.mkdirSync(CLAUDE_AGENTS_DIR, { recursive: true });
-  fs.mkdirSync(path.join(CLAUDE_SKILLS_DIR, 'openagents-standards'), { recursive: true });
+  fs.mkdirSync(path.join(CLAUDE_SKILLS_DIR, 'openagents-control-standards'), { recursive: true });
   
   console.log('📦 Converting agents...\n');
   
@@ -183,7 +183,7 @@ function convert() {
   // Create default context-scout subagent
   const contextScoutContent = `---
 name: context-scout
-description: Discovers and recommends OpenAgents context files using glob, read, and grep tools. Use when you need to find OpenAgents standards, guides, or domain knowledge in the .opencode/context directory.
+description: Discovers and recommends OpenAgents Control context files using glob, read, and grep tools. Use when you need to find OpenAgents Control standards, guides, or domain knowledge in the .opencode/context directory.
 tools: Read, Grep, Glob
 model: haiku
 permissionMode: plan
@@ -191,7 +191,7 @@ permissionMode: plan
 
 # ContextScout
 
-You discover and recommend relevant OpenAgents context files from \`.opencode/context/\` based on the user's request.
+You discover and recommend relevant OpenAgents Control context files from \`.opencode/context/\` based on the user's request.
 
 ## Your Process
 
@@ -205,23 +205,23 @@ You discover and recommend relevant OpenAgents context files from \`.opencode/co
     contextScoutContent
   );
   
-  // Create openagents-standards skill
+  // Create openagents-control-standards skill
   const skillContent = `---
-name: openagents-standards
-description: Automatically triggers before any task to ensure OpenAgents standards and context are loaded. Use when the user asks to create, modify, or analyze anything in this repository.
+name: openagents-control-standards
+description: Automatically triggers before any task to ensure OpenAgents Control standards and context are loaded. Use when the user asks to create, modify, or analyze anything in this repository.
 ---
 
-# OpenAgents Standards Loader
+# OpenAgents Control Standards Loader
 
 Before proceeding with the user's request:
 
-1. Call the \`context-scout\` subagent with the user's request to find relevant OpenAgents context files.
+1. Call the \`context-scout\` subagent with the user's request to find relevant OpenAgents Control context files.
 2. Read the returned "Critical" and "High" priority files.
-3. Apply the OpenAgents standards found to your work.
+3. Apply the OpenAgents Control standards found to your work.
 `;
 
   fs.writeFileSync(
-    path.join(CLAUDE_SKILLS_DIR, 'openagents-standards/SKILL.md'),
+    path.join(CLAUDE_SKILLS_DIR, 'openagents-control-standards/SKILL.md'),
     skillContent
   );
   

@@ -1,4 +1,4 @@
-# Guide: Adding a New Evaluator to the OpenAgents Framework
+# Guide: Adding a New Evaluator to the OpenAgents Control Framework
 
 This guide explains how to create, register, and test a new *Evaluator* inside the evaluation framework located at `evals/framework`. It focuses on validating agent behaviors without coupling to internal implementation details.
 

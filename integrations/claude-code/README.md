@@ -1,31 +1,23 @@
-# OpenAgents ↔ Claude Code Integration
+# OpenAgents Control ↔ Claude Code Integration
 
-A bridge that allows Claude Code to use OpenAgents standards and context files.
+A bridge that allows Claude Code to use OpenAgents Control standards and context files.
 
 ## Overview
 
-This integration provides two-way compatibility between OpenAgents and Claude Code:
+This integration provides two-way compatibility between OpenAgents Control and Claude Code:
 
-1. **Auto-Convert**: Convert OpenAgents to Claude Code format for distribution
+1. **Auto-Convert**: Convert OpenAgents Control to Claude Code format for distribution
 2. **Local Adapter**: Immediate context-aware behavior when using Claude in this repo
 
 ## Directory Structure
 
 ```
 integrations/claude-code/
-├── converter/           # Scripts to convert OpenAgents → Claude format
-│   └── src/
-│       └── convert-agents.js
+├── converter/           # Scripts to convert OpenAgents Control → Claude format
 ├── generated/           # Output of conversion (gitignored)
-│   ├── agents/
-│   └── skills/
 ├── plugin/              # Final plugin files for distribution
-│   ├── agents/
-│   ├── skills/
-│   └── .claude-plugin/
-│       └── plugin.json
 ├── bootstrap-install.sh # One-line installer (downloads bundle)
-└── install.sh           # Install script for distribution
+└── install-claude.sh    # Install script for distribution
 ```
 
 ## Quick Start
@@ -35,14 +27,14 @@ integrations/claude-code/
 Just run Claude in this repository:
 
 ```bash
-cd /path/to/opencode-agents
+cd OpenAgentsControl
 claude
 ```
 
 Claude will automatically:
-- Load the `openagents-standards` Skill
+- Load the `openagents-control-standards` Skill
 - Use `context-scout` to find relevant context in `.opencode/context/`
-- Apply OpenAgents standards to any task
+- Apply OpenAgents Control standards to any task
 
 <details>
 <summary><strong>⚠️ Claude CLI Workaround</strong></summary>
@@ -52,20 +44,21 @@ If Claude doesn't auto-load the local adapter when run in this repository:
 1. **Restart Claude Code** after any changes to `.claude/`
 2. **Explicitly reference the context** in your request:
    ```
-   "Load context from .claude/skills/openagents-standards/SKILL.md and .claude/agents/context-scout.md, then help me create a new agent"
+   "Load context from .claude/skills/openagents-control-standards/SKILL.md and .claude/agents/context-scout.md, then help me create a new agent"
    ```
 3. **Manual trigger** - if the Skill doesn't auto-trigger, start your request with:
    ```
-   [Use OpenAgents standards]
+   [Use OpenAgents Control standards]
    ```
    This will activate the context loading workflow.
 
 **Known Issue**: Skills auto-trigger based on Claude's heuristic. If it doesn't trigger:
 - The `context-scout` subagent will still be available
 - You can call it manually: `task(subagent_type="context-scout", ...)`
-- Claude will still follow OpenAgents patterns if you reference `.opencode/context/` files in your prompt
+- Claude will still follow OpenAgents Control patterns if you reference `.opencode/context/` files in your prompt
 
 </details>
+
 
 ### Install Claude CLI (if needed)
 
@@ -89,7 +82,7 @@ claude --version
 ### One-Line Install (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/integrations/claude-code/bootstrap-install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/integrations/claude-code/bootstrap-install.sh | bash
 ```
 
 **Prereqs**: `git`, `bash`
@@ -114,22 +107,22 @@ This generates Claude-ready files in `integrations/claude-code/generated/`.
 
 ```bash
 cd integrations/claude-code
-./install.sh
+./install-claude.sh
 ```
 
-This copies the plugin to `~/.claude/plugins/openagents-bridge/`.
+This copies the plugin to `~/.claude/plugins/openagents-control-bridge/`.
 
 ### Step 3: Use with Claude Code
 
 **With plugin (recommended for distributed use)**:
 ```bash
-claude --plugin-dir ~/.claude/plugins/openagents-bridge
+claude --plugin-dir ~/.claude/plugins/openagents-control-bridge
 ```
 
 **Without plugin (manual mode)**:
 ```bash
 # Set environment variable to load context files
-export OPENAGENTS_CONTEXT_PATH=.opencode/context
+export OPENAGENTS_CONTROL_CONTEXT_PATH=.opencode/context
 
 # Run Claude with context loaded from your prompt
 claude
@@ -149,15 +142,15 @@ claude
 
 ### Context Discovery
 
-1. **Skill Triggers**: The `openagents-standards` Skill automatically activates when you ask Claude to do anything.
+1. **Skill Triggers**: The `openagents-control-standards` Skill automatically activates when you ask Claude to do anything.
 2. **Subagent Call**: Claude calls `context-scout` to find relevant files in `.opencode/context/`.
-3. **Standards Loading**: Claude reads the discovered files and applies OpenAgents standards.
+3. **Standards Loading**: Claude reads the discovered files and applies OpenAgents Control standards.
 
 ### Agent Conversion
 
-The converter maps OpenAgents frontmatter to Claude format:
+The converter maps OpenAgents Control frontmatter to Claude format:
 
-| OpenAgents Field | Claude Field |
+| OpenAgents Control Field | Claude Field |
 |------------------|--------------|
 | `id` | `name` |
 | `description` | `description` |
@@ -181,7 +174,7 @@ Add to `.opencode/agent/{category}/{agent}.md`. The local adapter in `.claude/` 
 
 - `.claude/` - Local adapter (committed)
 - `integrations/claude-code/converter/src/convert-agents.js` - Converter script (committed)
-- `integrations/claude-code/install.sh` - Install script (committed)
+- `integrations/claude-code/install-claude.sh` - Install script (committed)
 
 ## Files to GitIgnore
 
@@ -199,7 +192,7 @@ Add to `.opencode/agent/{category}/{agent}.md`. The local adapter in `.claude/` 
 |---------|-------------|
 | `claude` | Start interactive session |
 | `claude "request"` | One-shot request |
-| `claude --plugin-dir ~/.claude/plugins/openagents-bridge` | Load with plugin |
+| `claude --plugin-dir ~/.claude/plugins/openagents-control-bridge` | Load with plugin |
 | `claude --print-plugins` | Show loaded plugins |
 | `claude --debug` | Debug mode |
 | `claude --version` | Show version |

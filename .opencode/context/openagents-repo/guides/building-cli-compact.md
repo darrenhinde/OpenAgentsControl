@@ -1,7 +1,7 @@
-# Building CLIs in OpenAgents: Compact Guide
+# Building CLIs in OpenAgents Control: Compact Guide
 
 **Category**: guide  
-**Purpose**: Rapidly build, register, and deploy CLI tools for OpenAgents skills  
+**Purpose**: Rapidly build, register, and deploy CLI tools for OpenAgents Control skills  
 **Framework**: FAB (Features, Advantages, Benefits)
 
 ---

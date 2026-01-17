@@ -1,8 +1,8 @@
-# OpenAgents Roadmap
+# OpenAgents Control Roadmap
 
-> **Interactive Board:** [GitHub Project - OpenAgents Roadmap & Tasks](https://github.com/users/darrenhinde/projects/2)
+> **Interactive Board:** [GitHub Project - OpenAgents Control Roadmap & Tasks](https://github.com/users/darrenhinde/projects/2)
 
-This roadmap tracks the evolution of OpenAgents - an AI agent framework for plan-first development workflows with approval-based execution.
+This roadmap tracks the evolution of OpenAgents Control - an AI agent framework for plan-first development workflows with approval-based execution.
 
 ---
 
@@ -52,7 +52,7 @@ Visit the [GitHub Project](https://github.com/users/darrenhinde/projects/2) to s
 Create an issue with the `idea` label:
 ```bash
 gh issue create \
-  --repo darrenhinde/OpenAgents \
+  --repo darrenhinde/OpenAgentsControl \
   --title "Your idea title" \
   --body "Description of your idea..." \
   --label "idea"
@@ -61,10 +61,10 @@ gh issue create \
 ### Track Progress
 ```bash
 # List all ideas
-gh issue list --repo darrenhinde/OpenAgents --label idea
+gh issue list --repo darrenhinde/OpenAgentsControl --label idea
 
 # View specific issue
-gh issue view 123 --repo darrenhinde/OpenAgents
+gh issue view 123 --repo darrenhinde/OpenAgentsControl
 ```
 
 ---

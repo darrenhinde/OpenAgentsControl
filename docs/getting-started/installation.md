@@ -1,6 +1,6 @@
-# OpenAgents Installation Guide
+# OpenAgents Control Installation Guide
 
-Complete guide to installing OpenAgents components using the automated installer script.
+Complete guide to installing OpenAgents Control components using the automated installer script.
 
 ---
 
@@ -10,10 +10,10 @@ Complete guide to installing OpenAgents components using the automated installer
 
 ```bash
 # Interactive mode - choose components
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh)
 
 # Quick install with profile
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh) developer
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) developer
 ```
 
 Installs to `.opencode/` in your current directory.
@@ -27,7 +27,7 @@ Installs to `.opencode/` in your current directory.
 Run the installer without arguments to get an interactive experience:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash
 ```
 
 **Interactive Flow:**
@@ -55,26 +55,26 @@ Install a pre-configured set of components:
 
 ```bash
 # Essential - Minimal setup with core agents
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh) essential
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) essential
 
 # Developer - Code-focused development tools
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh) developer
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) developer
 
 # Business - Content and business-focused tools
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh) business
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) business
 
 # Full - Everything except system-builder
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh) full
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) full
 
 # Advanced - Complete system with all components
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh) advanced
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) advanced
 ```
 
 ### 3. Download & Run (For Offline or Repeated Use)
 
 ```bash
 # Download the installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
 
 # Make it executable
 chmod +x install.sh
@@ -239,7 +239,7 @@ Installation directory is determined by (highest to lowest priority):
 
 ```bash
 # Standard installation
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
 
 # Global installation
 ./install.sh developer --install-dir ~/.config/opencode
@@ -252,7 +252,7 @@ sudo ./install.sh developer --install-dir /opt/opencode
 
 ```bash
 # Standard installation
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
 
 # Global installation (XDG standard)
 ./install.sh developer --install-dir ~/.config/opencode
@@ -265,7 +265,7 @@ curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install
 
 ```bash
 # Standard installation
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
 
 # Global installation
 ./install.sh developer --install-dir ~/.config/opencode
@@ -278,7 +278,7 @@ curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install
 
 ```bash
 # Same as Linux
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
 
 # Global installation
 ./install.sh developer --install-dir ~/.config/opencode
@@ -580,7 +580,7 @@ export OPENCODE_BRANCH=main
 ### Example 1: First-Time Local Installation
 ```bash
 # Download and run installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
 
 # Result: Installs to .opencode/ in current directory
 ```
@@ -656,14 +656,14 @@ After installation:
 
 - **View installer help:** `./install.sh --help`
 - **List components:** `./install.sh --list`
-- **Documentation:** [GitHub Repository](https://github.com/darrenhinde/OpenAgents)
-- **Report issues:** [GitHub Issues](https://github.com/darrenhinde/OpenAgents/issues)
+- **Documentation:** [GitHub Repository](https://github.com/darrenhinde/OpenAgentsControl)
+- **Report issues:** [GitHub Issues](https://github.com/darrenhinde/OpenAgentsControl/issues)
 
 ---
 
 ## Summary
 
-The OpenAgents installer provides:
+The OpenAgents Control installer provides:
 
 ✅ **Flexible installation locations** - Local, global, or custom  
 ✅ **Multiple installation methods** - Interactive, profile-based, or custom  
@@ -671,4 +671,4 @@ The OpenAgents installer provides:
 ✅ **Safe updates** - Collision detection and backup options  
 ✅ **Easy to use** - Simple commands, clear prompts  
 
-Choose the installation method that fits your needs and get started with OpenAgents!
+Choose the installation method that fits your needs and get started with OpenAgents Control!

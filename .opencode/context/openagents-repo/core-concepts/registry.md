@@ -7,7 +7,7 @@
 
 ## What Is the Registry?
 
-The registry is a centralized catalog (`registry.json`) that tracks all components in OpenAgents:
+The registry is a centralized catalog (`registry.json`) that tracks all components in OpenAgents Control:
 - **Agents** - AI agent prompts
 - **Subagents** - Delegated specialists
 - **Commands** - Slash commands

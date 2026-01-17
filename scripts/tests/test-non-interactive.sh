@@ -4,7 +4,7 @@
 # Non-Interactive Mode Test Script
 # Tests the installer behavior when run via pipe (curl | bash)
 # 
-# This test catches bugs like: https://github.com/darrenhinde/OpenAgents/issues/XX
+# This test catches bugs like: https://github.com/darrenhinde/OpenAgentsControl/issues/XX
 # where interactive prompts fail silently in piped execution.
 #############################################################################
 

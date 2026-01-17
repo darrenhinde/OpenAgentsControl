@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "schema_version": "2.0.0",
-  "repository": "https://github.com/darrenhinde/OpenAgents",
+  "repository": "https://github.com/darrenhinde/OpenAgentsControl",
   "categories": {
     "essential": "Minimal components for basic functionality",
     "standard": "Standard components for typical use",
@@ -172,7 +172,7 @@
         "name": "OpenRepoManager",
         "type": "agent",
         "path": ".opencode/agent/meta/repo-manager.md",
-        "description": "Meta agent for managing OpenAgents repository development with context-aware planning, task breakdown, and automatic documentation",
+        "description": "Meta agent for managing OpenAgents Control repository development with context-aware planning, task breakdown, and automatic documentation",
         "tags": [],
         "dependencies": [],
         "category": "meta"
@@ -570,7 +570,7 @@
       },
       {
         "id": "commit-openagents",
-        "name": "Commit Openagents",
+        "name": "Commit OpenAgents Control",
         "type": "command",
         "path": ".opencode/command/commit-openagents.md",
         "description": "description: Smart commit command for opencode-agents repository with automatic validation and conventional commits",
@@ -1010,7 +1010,7 @@
         "name": "Quick Start",
         "type": "context",
         "path": ".opencode/context/openagents-repo/quick-start.md",
-        "description": "OpenAgents Repository - Quick Start",
+        "description": "OpenAgents Control Repository - Quick Start",
         "tags": [],
         "dependencies": [],
         "category": "standard"
@@ -1915,7 +1915,7 @@
         "name": "Navigation",
         "type": "context",
         "path": ".opencode/context/openagents-repo/navigation.md",
-        "description": "OpenAgents Repository Context",
+        "description": "OpenAgents Control Repository Context",
         "tags": [],
         "dependencies": [],
         "category": "standard"
@@ -2273,7 +2273,7 @@
         "name": "Building Cli Compact",
         "type": "context",
         "path": ".opencode/context/openagents-repo/guides/building-cli-compact.md",
-        "description": "Building CLIs in OpenAgents: Compact Guide",
+        "description": "Building CLIs in OpenAgents Control: Compact Guide",
         "tags": [],
         "dependencies": [],
         "category": "standard"

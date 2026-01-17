@@ -1,6 +1,6 @@
 # Scripts
 
-This directory contains utility scripts for the OpenAgents system, organized by function.
+This directory contains utility scripts for the OpenAgents Control system, organized by function.
 
 ## Directory Structure
 

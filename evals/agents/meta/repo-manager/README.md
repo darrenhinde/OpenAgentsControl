@@ -9,7 +9,7 @@
 
 ## Overview
 
-Eval tests for the Repository Manager meta agent. This agent orchestrates OpenAgents repository development with context-aware planning, task breakdown, and automatic documentation.
+Eval tests for the Repository Manager meta agent. This agent orchestrates OpenAgents Control repository development with context-aware planning, task breakdown, and automatic documentation.
 
 ## Test Suites
 

@@ -1,4 +1,4 @@
-# OpenAgents Repository - Quick Start
+# OpenAgents Control Repository - Quick Start
 
 **Purpose**: Get oriented in this repo in 2 minutes
 
@@ -6,7 +6,7 @@
 
 ## What Is This Repo?
 
-OpenAgents is an AI agent framework with:
+OpenAgents Control is an AI agent framework with:
 - **Category-based agents** (core, development, content, data, product, learning)
 - **Eval framework** for testing agent behavior
 - **Registry system** for component distribution

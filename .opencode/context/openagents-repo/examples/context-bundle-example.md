@@ -7,7 +7,7 @@ Status: in_progress
 
 ## Task Overview
 
-Create a new data analyst agent for the OpenAgents repository. This agent will specialize in data analysis tasks including data visualization, statistical analysis, and data transformation.
+Create a new data analyst agent for the OpenAgents Control repository. This agent will specialize in data analysis tasks including data visualization, statistical analysis, and data transformation.
 
 ## User Request
 
@@ -160,7 +160,7 @@ Create a new data analyst agent for the OpenAgents repository. This agent will s
 5. Update progress tracking as you complete steps
 
 **Your Task**:
-Create a complete data analyst agent for the OpenAgents repository following all established conventions and standards.
+Create a complete data analyst agent for the OpenAgents Control repository following all established conventions and standards.
 
 **Approach**:
 1. **Load Context**: Read all context files listed above to understand:

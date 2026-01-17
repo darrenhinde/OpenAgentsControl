@@ -1,6 +1,6 @@
 # Core Concept: Agents
 
-**Purpose**: Understanding how agents work in OpenAgents  
+**Purpose**: Understanding how agents work in OpenAgents Control  
 **Priority**: CRITICAL - Load this before working with agents
 
 ---
@@ -160,14 +160,14 @@ Agents:
 
 ## Claude Code Interop (Optional)
 
-OpenAgents can pair with Claude Code for local workflows and distribution:
+OpenAgents Control can pair with Claude Code for local workflows and distribution:
 
 - **Subagents**: Project helpers in `.claude/agents/`
 - **Skills**: Auto-invoked guidance in `.claude/skills/`
 - **Hooks**: Shell commands on lifecycle events (use sparingly)
 - **Plugins**: Share agents/skills/hooks across projects
 
-Use this when you want Claude Code to follow OpenAgents standards or to ship reusable helpers.
+Use this when you want Claude Code to follow OpenAgents Control standards or to ship reusable helpers.
 
 ---
 

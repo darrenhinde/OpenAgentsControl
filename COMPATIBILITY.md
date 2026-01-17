@@ -14,24 +14,24 @@
 
 ### macOS / Linux
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s essential
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s essential
 ```
 
 ### Windows (Git Bash)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s essential
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s essential
 ```
 
 ### Windows (PowerShell)
 ```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh" -OutFile "install.sh"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh" -OutFile "install.sh"
 & "C:\Program Files\Git\bin\bash.exe" install.sh essential
 ```
 
 ## Test Your System
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/scripts/tests/test-compatibility.sh | bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/scripts/tests/test-compatibility.sh | bash
 ```
 
 ## Key Compatibility Features
@@ -61,4 +61,4 @@ See [Platform Compatibility Guide](docs/getting-started/platform-compatibility.m
 
 1. Run compatibility test: `bash scripts/tests/test-compatibility.sh`
 2. Check bash version: `bash --version`
-3. Report issues: [GitHub Issues](https://github.com/darrenhinde/OpenAgents/issues)
+3. Report issues: [GitHub Issues](https://github.com/darrenhinde/OpenAgentsControl/issues)

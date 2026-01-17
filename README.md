@@ -1,13 +1,13 @@
 <div align="center">
 
-# OpenAgents
+# OpenAgents Control
 
 ### AI agent framework for plan-first development workflows with approval-based execution
 
-[![GitHub stars](https://img.shields.io/github/stars/darrenhinde/OpenAgents?style=social)](https://github.com/darrenhinde/OpenAgents/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/darrenhinde/OpenAgentsControl?style=social)](https://github.com/darrenhinde/OpenAgentsControl/stargazers)
 [![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/DarrenBuildsAI?style=social)](https://x.com/DarrenBuildsAI)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub last commit](https://img.shields.io/github/last-commit/darrenhinde/OpenAgents)](https://github.com/darrenhinde/OpenAgents/commits/main)
+[![GitHub last commit](https://img.shields.io/github/last-commit/darrenhinde/OpenAgentsControl)](https://github.com/darrenhinde/OpenAgentsControl/commits/main)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/contributing/CONTRIBUTING.md)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/darrenhinde)
 
@@ -22,7 +22,7 @@
 
 > **Note:** This repository has evolved since the demo video with continuous improvements to make it easier for others to use in their projects. The core concepts remain the same, but installation and component organization have been streamlined.
 
-> 📹 **Following along with the video?** The simplified structure shown in the tutorial is available on the [`video-simple`](https://github.com/darrenhinde/OpenAgents/tree/video-simple) branch.
+> 📹 **Following along with the video?** The simplified structure shown in the tutorial is available on the [`video-simple`](https://github.com/darrenhinde/OpenAgentsControl/tree/video-simple) branch.
 
 
 ## Why Use This?
@@ -52,7 +52,7 @@ https://opencode.ai/docs#
 
 ```bash
 # Download the installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
 
 # Run interactively
 bash install.sh
@@ -64,7 +64,7 @@ bash install.sh
 
 ```bash
 # Download the installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
 
 # Run interactively
 bash install.sh
@@ -76,7 +76,7 @@ bash install.sh
 
 ```powershell
 # Download the script
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh" -OutFile "install.sh"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh" -OutFile "install.sh"
 
 # Run with Git Bash
 & "C:\Program Files\Git\bin\bash.exe" install.sh
@@ -107,19 +107,19 @@ The installer offers:
 
 ```bash
 # Essential - Minimal essentials (9 components)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s essential
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s essential
 
 # Developer - Recommended for daily work (19 components)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
 
 # Business - Business automation and content creation (15 components)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s business
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s business
 
 # Full - Everything included (25 components)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s full
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s full
 
 # Advanced - Full + System Builder (32 components)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s advanced
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s advanced
 ```
 </details>
 
@@ -128,7 +128,7 @@ curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install
 
 ```powershell
 # Download script
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh" -OutFile "install.sh"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh" -OutFile "install.sh"
 
 # Essential profile
 & "C:\Program Files\Git\bin\bash.exe" install.sh essential
@@ -152,8 +152,8 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/darrenhinde/OpenAgents
 **Option C: Manual Install**
 ```bash
 # Clone this repository
-git clone https://github.com/darrenhinde/OpenAgents.git
-cd OpenAgents
+git clone https://github.com/darrenhinde/OpenAgentsControl.git
+cd OpenAgentsControl
 
 # Install to OpenCode directory (global)
 mkdir -p ~/.opencode
@@ -316,7 +316,7 @@ The System Builder is an interactive tool that generates complete `.opencode` ar
 ### Quick Start
 ```bash
 # Install advanced profile (includes system builder)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash -s advanced
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s advanced
 
 # Run the interactive builder
 /build-context-system
@@ -363,7 +363,7 @@ cd ~/.opencode/plugin
 npm install
 
 # Configure
-cd ~/OpenAgents
+cd ~/OpenAgentsControl
 cp env.example .env
 # Edit .env with TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID
 ```
@@ -384,7 +384,7 @@ cd ~/.opencode/tool
 npm install
 
 # Configure
-cd ~/OpenAgents
+cd ~/OpenAgentsControl
 cp env.example .env
 # Edit .env with GEMINI_API_KEY
 ```
@@ -393,14 +393,14 @@ cp env.example .env
 
 ### 🤖 Use with Claude Code (Beta)
 
-> **⚠️ Beta Feature** - This integration allows Claude Code to understand and use OpenAgents standards. Works with Claude Code v2.1.6+
+> **⚠️ Beta Feature** - This integration allows Claude Code to understand and use OpenAgents Control standards. Works with Claude Code v2.1.6+
 
-OpenAgents includes a bridge that makes Claude Code automatically load context files and follow your coding patterns.
+OpenAgents Control includes a bridge that makes Claude Code automatically load context files and follow your coding patterns.
 
 <details>
 <summary><b>For This Repository (Contributors)</b></summary>
 
-If you're working **on** this repository and want Claude Code to understand OpenAgents:
+If you're working **on** this repository and want Claude Code to understand OpenAgents Control:
 
 ```bash
 cd /path/to/opencode-agents
@@ -410,23 +410,23 @@ claude
 Claude will automatically:
 - Load the `openagents-standards` Skill
 - Use `context-scout` to find relevant context files
-- Apply OpenAgents standards to any task
+- Apply OpenAgents Control standards to any task
 
 **If it doesn't auto-trigger**, restart Claude Code and start your request with:
 ```
-[Use OpenAgents standards]
+[Use OpenAgents Control standards]
 ```
 
 </details>
 
 <details>
-<summary><b>For Your Own OpenAgents Projects</b></summary>
+<summary><b>For Your Own OpenAgents Control Projects</b></summary>
 
-If you've set up OpenAgents in your own project and want Claude Code support:
+If you've set up OpenAgents Control in your own project and want Claude Code support:
 
 ```bash
 # One-line installer (recommended)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/integrations/claude-code/install-claude.sh | bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/integrations/claude-code/install-claude.sh | bash
 
 # Use with Claude Code
 claude --plugin-dir ~/.claude/plugins/openagents-bridge
@@ -449,7 +449,7 @@ cd /path/to/opencode-agents/integrations/claude-code
 - The installer automatically converts your `.opencode/` files to Claude format
 - Converts agents, subagents, and creates context-scout skill
 - Claude automatically discovers and follows your patterns
-- No duplication - works with your existing OpenAgents setup
+- No duplication - works with your existing OpenAgents Control setup
 
 </details>
 
@@ -460,7 +460,7 @@ cd /path/to/opencode-agents/integrations/claude-code
 |---------|-------------|
 | `claude` | Start interactive session |
 | `claude "request"` | One-shot request |
-| `claude --plugin-dir ~/.claude/plugins/openagents-bridge` | Load with OpenAgents plugin |
+| `claude --plugin-dir ~/.claude/plugins/openagents-bridge` | Load with OpenAgents Control plugin |
 | `claude --print-plugins` | Show loaded plugins |
 | `claude --debug` | Debug mode (shows plugin loading) |
 
@@ -511,7 +511,7 @@ mkdir -p ~/.opencode/agent/core
 
 # Download specific agent
 curl -o ~/.opencode/agent/core/opencoder.md \
-  https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/.opencode/agent/core/opencoder.md
+  https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/.opencode/agent/core/opencoder.md
 ```
 
 ---
@@ -574,7 +574,7 @@ Keep your components up to date:
 ./update.sh
 
 # Or re-run the installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash
 ```
 
 ---

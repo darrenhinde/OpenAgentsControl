@@ -109,7 +109,7 @@ Runs a shell command deterministically.
 
 ### Agent
 
-Calls an OpenAgents agent.
+Calls an OpenAgents Control agent.
 
 ```yaml
 - id: review

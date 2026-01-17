@@ -1,7 +1,7 @@
 # Abilities System - Implementation Plan
 
 > **Status:** Planning Complete - Ready for Implementation  
-> **Issue:** [#33](https://github.com/darrenhinde/OpenAgents/issues/33)  
+> **Issue:** [#33](https://github.com/darrenhinde/OpenAgentsControl/issues/33)  
 > **Date:** December 31, 2025
 
 ---
@@ -37,7 +37,7 @@ Abilities solve the fundamental problem with Skills: **LLMs ignore them**. With 
 | Hook enforcement | AI **cannot** skip steps |
 | Script steps | Deterministic execution |
 | Validation rules | Guaranteed completion |
-| Multi-agent support | Coordinate any OpenAgents agent |
+| Multi-agent support | Coordinate any OpenAgents Control agent |
 | Approval gates | Human-in-the-loop where needed |
 
 ---
@@ -258,7 +258,7 @@ settings:
 ```yaml
 - id: review
   type: agent
-  agent: reviewer                    # Agent name (from OpenAgents)
+  agent: reviewer                    # Agent name (from OpenAgents Control)
   prompt: "Review this code..."      # Task for agent
   context:                           # Additional context (optional)
     - ./src/
@@ -733,7 +733,7 @@ steps:
 | Abilities load correctly | All YAML files parse without error |
 | Validation catches errors | Invalid YAMLs rejected with clear messages |
 | Scripts execute | Exit codes captured, validation works |
-| Agents integrate | Can call any OpenAgents agent |
+| Agents integrate | Can call any OpenAgents Control agent |
 | Enforcement works | Cannot skip steps when strict |
 | Approvals work | Human gate blocks until approved |
 | Context passes | Prior step outputs available to next |
@@ -742,7 +742,7 @@ steps:
 
 ## References
 
-- [Issue #33](https://github.com/darrenhinde/OpenAgents/issues/33) - Original proposal
+- [Issue #33](https://github.com/darrenhinde/OpenAgentsControl/issues/33) - Original proposal
 - [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode) - Plugin patterns
 - [OpenCode Skills](https://opencode.ai/docs/skills/) - Current skill system
 - [Scott Spence - Making Skills Reliable](https://scottspence.com/posts/how-to-make-claude-code-skills-activate-reliably)

@@ -15,9 +15,9 @@
 **Token count**: ~250 tokens
 
 ```markdown
-# OpenAgents Repository Navigation
+# OpenAgents Control Repository Navigation
 
-**Purpose**: Navigate OpenAgents repository context
+**Purpose**: Navigate OpenAgents Control repository context
 
 ---
 

@@ -37,7 +37,7 @@
     "workflows",
     "agents"
   ],
-  "author": "OpenAgents",
+  "author": "OpenAgents Control",
   "license": "MIT",
   "dependencies": {
     "@opencode-ai/plugin": "^1.0.223",

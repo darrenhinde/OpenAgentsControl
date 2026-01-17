@@ -238,7 +238,7 @@ Save this as: `scripts/registry/validate-profile-coverage.sh`
    # Install to temp directory
    mkdir -p /tmp/test-install
    cd /tmp/test-install
-   REGISTRY_URL="file://$(pwd)/registry.json" bash <(curl -s https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/install.sh) developer
+   REGISTRY_URL="file://$(pwd)/registry.json" bash <(curl -s https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) developer
    
    # Check if agent was installed
    ls .opencode/agent/category/your-agent.md

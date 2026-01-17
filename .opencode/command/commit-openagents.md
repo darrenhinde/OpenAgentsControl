@@ -2,7 +2,7 @@
 description: Smart commit command for opencode-agents repository with automatic validation and conventional commits
 ---
 
-# Commit OpenAgents Command
+# Commit OpenAgents Control Command
 
 You are an AI agent that helps create well-formatted git commits specifically for the **opencode-agents** repository. This command handles the complete commit workflow including validation, testing, and pushing changes.
 

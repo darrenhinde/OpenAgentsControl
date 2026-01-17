@@ -2,7 +2,7 @@
 
 ## Overview
 
-All context file references in OpenAgents **MUST** use the standardized format:
+All context file references in OpenAgents Control **MUST** use the standardized format:
 
 ```markdown
 @.opencode/context/path/to/file.md
@@ -37,7 +37,7 @@ This convention is **required** for the installation system to work correctly ac
 
 ### Problem: Local vs Global Installations
 
-Users can install OpenAgents in two ways:
+Users can install OpenAgents Control in two ways:
 
 **Local Install:**
 ```bash

@@ -79,4 +79,4 @@ core/
 ## Related Context
 
 - **Development** → `../development/navigation.md`
-- **OpenAgents Repo** → `../openagents-repo/navigation.md`
+- **OpenAgents Control Repo** → `../openagents-repo/navigation.md`

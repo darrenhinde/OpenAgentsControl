@@ -51,7 +51,7 @@
 **YES** → Use **Pattern A (Function-Based)**
 
 Examples:
-- `openagents-repo/` - OpenAgents repository work
+- `openagents-repo/` - OpenAgents Control repository work
 - `myproject-repo/` - Your project's repository
 
 **NO** → Continue to Step 2

@@ -10,7 +10,7 @@
 
 ## Overview
 
-The Repository Manager is a meta agent specifically designed for managing development work on the OpenAgents repository itself. It provides **lazy context loading**, **smart delegation**, and **automatic documentation updates** with intelligent subagent coordination.
+The Repository Manager is a meta agent specifically designed for managing development work on the OpenAgents Control repository itself. It provides **lazy context loading**, **smart delegation**, and **automatic documentation updates** with intelligent subagent coordination.
 
 ### What's New in v2.0
 
@@ -24,7 +24,7 @@ The Repository Manager is a meta agent specifically designed for managing develo
 
 ## Purpose
 
-While `openagent` is a universal agent for any project, `repo-manager` is specialized for OpenAgents repository development. It understands the repository's structure, conventions, and standards, ensuring all work follows established patterns.
+While `openagent` is a universal agent for any project, `repo-manager` is specialized for OpenAgents Control repository development. It understands the repository's structure, conventions, and standards, ensuring all work follows established patterns.
 
 ---
 
@@ -72,7 +72,7 @@ Use `repo-manager` for:
 - ✅ Updating the registry
 - ✅ Managing context files
 - ✅ Updating documentation
-- ✅ Any OpenAgents repository development
+- ✅ Any OpenAgents Control repository development
 
 Don't use `repo-manager` for:
 - ❌ Working on user projects (use `openagent` instead)

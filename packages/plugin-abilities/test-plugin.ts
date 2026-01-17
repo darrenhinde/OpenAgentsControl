@@ -53,7 +53,7 @@ async function main() {
   console.log('\n🚀 Testing ability.run tool...\n')
   const runResult = await tools['ability.run'].execute({ 
     name: 'hello-world',
-    inputs: { name: 'OpenAgents' }
+    inputs: { name: 'OpenAgents Control' }
   })
   console.log(JSON.stringify(runResult, null, 2))
 

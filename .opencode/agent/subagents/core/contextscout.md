@@ -79,7 +79,7 @@ You recommend relevant context files from `.opencode/context/` based on the user
 - `.opencode/context/core/workflows/code-review.md`
 - `.opencode/context/core/workflows/delegation.md`
 
-**OpenAgents Repo:**
+**OpenAgents Control Repo:**
 - `.opencode/context/openagents-repo/quick-start.md`
 - `.opencode/context/openagents-repo/core-concepts/agents.md`
 - `.opencode/context/openagents-repo/core-concepts/evals.md`
