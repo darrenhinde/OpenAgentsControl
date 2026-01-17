@@ -2269,26 +2269,6 @@
         "category": "standard"
       },
       {
-        "id": "copywriting-frameworks",
-        "name": "Copywriting Frameworks",
-        "type": "context",
-        "path": ".opencode/context/content/copywriting-frameworks.md",
-        "description": "Copywriting Frameworks",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "tone-voice",
-        "name": "Tone Voice",
-        "type": "context",
-        "path": ".opencode/context/content/tone-voice.md",
-        "description": "Tone & Voice Guidelines",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
         "id": "building-cli-compact",
         "name": "Building Cli Compact",
         "type": "context",
