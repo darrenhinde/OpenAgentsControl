@@ -1,7 +1,11 @@
+---
+description: "Overview of available templates for generating context-aware AI systems"
+---
+
 # System Builder Templates
 
 This directory contains reusable templates for generating context-aware AI systems.
-
+---
 ## Template Categories
 
 ### Agent Templates

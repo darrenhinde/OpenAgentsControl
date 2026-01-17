@@ -1,3 +1,7 @@
+---
+description: "Advanced web UI patterns - scroll animations, visual effects, and interactive design"
+---
+
 # Web Design Patterns
 
 **Purpose**: Advanced web UI patterns - scroll animations, visual effects, and interactive design

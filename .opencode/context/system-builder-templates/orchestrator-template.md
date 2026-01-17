@@ -1,3 +1,7 @@
+---
+description: "Template for generating main orchestrator agents for context-aware AI systems"
+---
+
 # Orchestrator Agent Template
 
 This template is used to generate main orchestrator agents for context-aware AI systems.

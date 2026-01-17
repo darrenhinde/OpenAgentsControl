@@ -1,3 +1,7 @@
+---
+description: "Template for generating specialized subagent files for context-aware AI systems"
+---
+
 # Subagent Template
 
 This template is used to generate specialized subagent files.

@@ -1,3 +1,7 @@
+---
+description: "AI prompts for generating start/end frames and video sequences for scrollytelling"
+---
+
 # Lookup: Scroll Animation Image Generation Prompts
 
 **Purpose**: AI prompts for generating start/end frames and video sequences for scrollytelling

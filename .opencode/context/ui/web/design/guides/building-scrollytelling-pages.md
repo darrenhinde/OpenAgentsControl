@@ -1,3 +1,7 @@
+---
+description: "Step-by-step implementation of scroll-linked image sequence animations"
+---
+
 # Guide: Building Scrollytelling Pages
 
 **Purpose**: Step-by-step implementation of scroll-linked image sequence animations

@@ -1,3 +1,7 @@
+---
+description: "Full Next.js implementation of scroll-linked image sequence animation"
+---
+
 # Example: Scrollytelling Headphone Animation
 
 **Purpose**: Full Next.js implementation of scroll-linked image sequence animation

@@ -1,3 +1,7 @@
+---
+description: "Complete guide for using the /build-context-system command to create custom context-aware AI systems"
+---
+
 # System Builder Guide
 
 Complete guide for using the `/build-context-system` command to create custom context-aware AI systems.
@@ -5,6 +9,7 @@ Complete guide for using the `/build-context-system` command to create custom co
 ## Overview
 
 The system builder creates complete `.opencode` folder architectures tailored to your domain and use cases. It follows research-backed patterns from Stanford and Anthropic for optimal AI agent performance.
+---
 
 ## Quick Start
 
