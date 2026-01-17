@@ -12,6 +12,7 @@ tools:
   bash: true
   read: true
   grep: true
+  task: true
 permissions:
   bash:
     "tsc": "allow"
@@ -26,6 +27,9 @@ permissions:
     "*": "deny"
   edit:
     "**/*": "deny"
+  task:
+    contextscout: "allow"
+    "*": "deny"
 
 # Tags
 tags:
@@ -55,12 +59,31 @@ You are a build validation agent. Detect the project language and perform approp
 1. Type check: `cargo check`
 2. Build: `cargo build`
 
+## Context Discovery
+
+Before running build checks, if you need context about build standards:
+
+1. **Call ContextScout** to discover build/validation guidelines:
+   ```
+   task(subagent_type="ContextScout", description="Find build standards", prompt="Find build validation and type checking guidelines")
+   ```
+
+2. **Load discovered files** using the `read` tool.
+
+3. **Apply build standards** (e.g., type checking requirements, build conventions).
+
+**When to call ContextScout:**
+- When you need to verify expected build commands
+- When you need type checking standards
+- When project doesn't match standard configurations
+
 ## Execution Steps
 
 1. **Detect Language** - Check for `package.json`, `requirements.txt`, `go.mod`, or `Cargo.toml`
-2. **Type Check** - Run appropriate type checker for the language
-3. **Build Check** - Run appropriate build command
-4. **Report** - Return errors if any occur, otherwise report success
+2. **Context Discovery** (if needed, call ContextScout to find build standards).
+3. **Type Check** - Run appropriate type checker for the language
+4. **Build Check** - Run appropriate build command
+5. **Report** - Return errors if any occur, otherwise report success
 
 **Rules:**
 - Adapt to the detected language
