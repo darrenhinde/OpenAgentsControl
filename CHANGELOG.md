@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.5.3] - 2026-01-17
+
+### Changes
+- fix(context): Add frontmatter to context files with missing metadata (#97)
+
 ## [0.5.2] - 2026-01-13
 
 ### Changes
