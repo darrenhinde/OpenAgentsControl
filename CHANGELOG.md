@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.5.3] - 2026-01-18
+
+### Changes
+- fix: make admin bypass work properly for bot PRs (#113)
+
 ## [0.5.2] - 2026-01-13
 
 ### Changes
