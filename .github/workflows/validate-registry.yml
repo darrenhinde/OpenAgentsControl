@@ -18,6 +18,11 @@ on:
       - dev
     # Removed paths filter - this check is required by repository ruleset
     # so it must run on ALL PRs to prevent blocking merges
+  pull_request_target:
+    branches:
+      - main
+      - dev
+    # pull_request_target allows workflows to run on bot-created PRs
   workflow_dispatch:
     inputs:
       pr_number:
