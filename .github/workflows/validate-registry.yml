@@ -44,15 +44,24 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Admin bypass check
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.skip_validation == 'true'
+        run: |
+          echo "## ✅ Validation Bypassed (Admin Override)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Validation checks skipped by maintainer." >> $GITHUB_STEP_SUMMARY
+          echo "PR: #${{ github.event.inputs.pr_number }}" >> $GITHUB_STEP_SUMMARY
+          exit 0
+      
       - name: Checkout repository (for manual runs)
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.skip_validation != 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Get PR details (for manual runs)
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != ''
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' && github.event.inputs.skip_validation != 'true'
         id: get_pr
         run: |
           PR_DATA=$(gh pr view ${{ github.event.inputs.pr_number }} --json headRefName,headRepository,headRepositoryOwner)
@@ -62,6 +71,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Checkout PR branch
+        if: github.event.inputs.skip_validation != 'true'
         uses: actions/checkout@v4
         with:
           # For manual runs: use PR details from get_pr step
