@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.5.3] - 2026-01-18
+
+### Changes
+- fix: Resolve malformed URL errors in advanced profile installation (Issue #103) (#104)
+
 ## [0.5.2] - 2026-01-13
 
 ### Changes
