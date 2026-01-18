@@ -158,7 +158,7 @@ jobs:
     needs: [non-interactive-tests]
     strategy:
       matrix:
-        profile: [essential, developer, business, full]
+        profile: [essential, developer, business, full, advanced]
     
     steps:
       - name: Checkout code
