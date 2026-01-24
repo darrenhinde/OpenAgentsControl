@@ -345,6 +345,8 @@ async function main() {
       'DocWriter': 'openagent',
       'contextscout': 'openagent',
       'ContextScout': 'openagent',
+      'delegation-controller': 'openagent',
+      'DelegationController': 'openagent',
       
       // System-builder subagents → system-builder
       'agent-generator': 'system-builder',
@@ -456,6 +458,8 @@ async function main() {
       'DocWriter': 'subagents/core/documentation',
       'contextscout': 'subagents/core/contextscout',
       'ContextScout': 'subagents/core/contextscout',
+      'delegation-controller': 'subagents/core/delegation-controller',
+      'DelegationController': 'subagents/core/delegation-controller',
       // System-builder subagents
       'agent-generator': 'subagents/system-builder/agent-generator',
       'AgentGenerator': 'subagents/system-builder/agent-generator',

@@ -266,6 +266,8 @@ export class TestRunner {
       'DocWriter': 'subagents/core/documentation.md',
       'contextscout': 'subagents/core/contextscout.md',
       'ContextScout': 'subagents/core/contextscout.md',
+      'delegation-controller': 'subagents/core/delegation-controller.md',
+      'DelegationController': 'subagents/core/delegation-controller.md',
       
       // Subagents - system-builder
       'agent-generator': 'subagents/system-builder/agent-generator.md',

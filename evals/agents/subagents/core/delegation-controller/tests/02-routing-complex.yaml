@@ -1,0 +1,59 @@
+id: delegation-controller-routing-complex
+name: "Routing: Complex feature delegation"
+description: |
+  Test Phase 1 routing decision for complex multi-file feature.
+  
+  Validates:
+  - Loads delegation context files
+  - Identifies complex multi-file pattern
+  - Returns delegate_taskmanager routing decision
+  - Suggests appropriate pre-actions
+category: developer
+
+prompts:
+  - text: |
+      Phase: routing
+      
+      User request: Add authentication system with JWT, middleware, and tests
+      Discovered context: [".opencode/context/core/standards/code-quality.md"]
+      Files involved: 6
+      Existing tasks: None
+      
+      Determine routing decision.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 2
+  maxToolCalls: 5
+
+expectedOutput:
+  - type: contains
+    text: '"phase": "routing"'
+  - type: contains
+    text: '"routing": "delegate_taskmanager"'
+  - type: contains
+    text: '"confidence": "high"'
+  - type: contains
+    text: 'load_task_management_context'
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 30000
+
+tags:
+  - routing
+  - phase-1
+  - complex
+  - delegation-controller
+  - subagent
+
+metadata:
+  test_type: positive
+  phase: routing
+  complexity: complex
+  expected_routing: delegate_taskmanager

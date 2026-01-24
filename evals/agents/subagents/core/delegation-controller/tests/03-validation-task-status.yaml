@@ -1,0 +1,58 @@
+id: delegation-controller-validation-task-status
+name: "Validation: Task created but not started"
+description: |
+  Test Phase 2 validation detecting tasks created but not marked in_progress.
+  
+  Validates:
+  - Loads validation context files
+  - Detects tasks created but not started
+  - Returns appropriate validation status
+  - Suggests corrective actions
+category: developer
+
+prompts:
+  - text: |
+      Phase: validation
+      
+      Execution summary: TaskManager created 5 subtasks for auth-system
+      Task files: .tmp/tasks/auth-system/task.json, subtask_01.json-05.json
+      Delegation used: yes
+      Context loaded: code-quality.md, task-management/navigation.md
+      Files modified: 0 (planning only)
+      Tools used: task, write
+      
+      Validate execution was correct.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 2
+  maxToolCalls: 5
+
+expectedOutput:
+  - type: contains
+    text: '"phase": "validation"'
+  - type: contains
+    text: '"status":'
+  - type: contains
+    text: '"severity":'
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 30000
+
+tags:
+  - validation
+  - phase-2
+  - task-status
+  - delegation-controller
+  - subagent
+
+metadata:
+  test_type: positive
+  phase: validation
+  issue_type: task_status

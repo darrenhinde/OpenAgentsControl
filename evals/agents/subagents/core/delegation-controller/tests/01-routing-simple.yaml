@@ -1,0 +1,57 @@
+id: delegation-controller-routing-simple
+name: "Routing: Simple direct execution"
+description: |
+  Test Phase 1 routing decision for simple single-file change.
+  
+  Validates:
+  - Loads delegation context files
+  - Identifies simple single-file pattern
+  - Returns execute_direct routing decision
+  - Provides high confidence level
+category: developer
+
+prompts:
+  - text: |
+      Phase: routing
+      
+      User request: Fix typo in README.md
+      Discovered context: []
+      Files involved: 1
+      Existing tasks: None
+      
+      Determine routing decision.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 2
+  maxToolCalls: 5
+
+expectedOutput:
+  - type: contains
+    text: '"phase": "routing"'
+  - type: contains
+    text: '"routing": "execute_direct"'
+  - type: contains
+    text: '"confidence": "high"'
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 30000
+
+tags:
+  - routing
+  - phase-1
+  - simple
+  - delegation-controller
+  - subagent
+
+metadata:
+  test_type: positive
+  phase: routing
+  complexity: simple
+  expected_routing: execute_direct
