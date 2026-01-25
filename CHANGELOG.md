@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.5.4] - 2026-01-25
+
+### Changes
+- docs: fix agent name casing in documentation (#117)
+
 ## [0.5.3] - 2026-01-18
 
 ### Changes
