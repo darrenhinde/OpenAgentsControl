@@ -30,7 +30,7 @@ Welcome to the OpenAgents Control documentation! This directory contains all doc
 ### For New Users
 - Start with the main [README](../README.md) in the repository root
 - Follow the [Installation Guide](getting-started/installation.md)
-- Use `opencode --agent openagent` to start building
+- Use `opencode --agent OpenAgent` to start building
 - Read the [OpenAgent Guide](agents/openagent.md) to understand the workflow
 
 ### For Contributors

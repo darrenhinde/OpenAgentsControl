@@ -165,7 +165,7 @@ cp -r .opencode/context ~/.opencode/
 ### Step 3: Start Building
 ```bash
 # Start the universal agent (recommended for new users)
-opencode --agent openagent
+opencode --agent OpenAgent
 
 # Ask questions or request tasks
 > "Create a React todo list with TypeScript"
@@ -265,7 +265,7 @@ User Request
 
 ### Build a Feature
 ```bash
-opencode --agent openagent
+opencode --agent OpenAgent
 > "Create a user authentication system with email/password"
 
 # OpenAgent will:
@@ -476,7 +476,7 @@ cd /path/to/opencode-agents/integrations/claude-code
 ## Common Questions
 
 **Q: What's the main way to use this?**  
-A: Use `opencode --agent openagent` as your default for general tasks and questions. For complex multi-file coding work, use `opencode --agent opencoder`. Both coordinate with specialists as needed.
+A: Use `opencode --agent OpenAgent` as your default for general tasks and questions. For complex multi-file coding work, use `opencode --agent OpenCoder`. Both coordinate with specialists as needed.
 
 **Q: Does this work on Windows?**  
 A: Yes! Use Git Bash (recommended) or WSL. See [Platform Compatibility Guide](docs/getting-started/platform-compatibility.md) for details.
@@ -646,10 +646,10 @@ This project is licensed under the MIT License.
 
 ## Recommended for New Users
 
-**Start with `openagent`** - your universal coordinator for general tasks, questions, and workflows. It follows a systematic 6-stage workflow (Analyze → Approve → Execute → Validate → Summarize → Confirm) and automatically delegates to specialized subagents when needed.
+**Start with `OpenAgent`** - your universal coordinator for general tasks, questions, and workflows. It follows a systematic 6-stage workflow (Analyze → Approve → Execute → Validate → Summarize → Confirm) and automatically delegates to specialized subagents when needed.
 
 ```bash
-opencode --agent openagent
+opencode --agent OpenAgent
 > "How do I implement authentication in Next.js?"  # Questions
 > "Create a user authentication system"            # Simple tasks
 > "Create a README for this project"               # Documentation
@@ -657,10 +657,10 @@ opencode --agent openagent
 
 OpenAgent will guide you through with a plan-first, approval-based approach. For questions, you get direct answers. For tasks, you see the plan before execution.
 
-**For complex coding work**, use `opencoder`:
+**For complex coding work**, use `OpenCoder`:
 
 ```bash
-opencode --agent opencoder
+opencode --agent OpenCoder
 > "Refactor this codebase to use dependency injection"  # Multi-file refactoring
 > "Analyze the architecture and suggest improvements"   # Architecture analysis
 ```

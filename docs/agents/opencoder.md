@@ -264,7 +264,7 @@ OpenCoder coordinates with specialized subagents:
 ### Example 1: Multi-File Refactoring
 
 ```bash
-opencode --agent opencoder
+opencode --agent OpenCoder
 > "Refactor the authentication module to use dependency injection across all 8 files"
 
 # OpenCoder will:
@@ -282,7 +282,7 @@ opencode --agent opencoder
 ### Example 2: Architecture Analysis
 
 ```bash
-opencode --agent opencoder
+opencode --agent OpenCoder
 > "Analyze the architecture of this codebase and suggest improvements"
 
 # OpenCoder will:
@@ -299,7 +299,7 @@ opencode --agent opencoder
 ### Example 3: Pattern Implementation
 
 ```bash
-opencode --agent opencoder
+opencode --agent OpenCoder
 > "Implement the repository pattern for all database access across the data layer"
 
 # OpenCoder will:
@@ -319,7 +319,7 @@ opencode --agent opencoder
 ### Example 4: Complex Feature
 
 ```bash
-opencode --agent opencoder
+opencode --agent OpenCoder
 > "Implement user authentication with JWT, refresh tokens, and role-based access control"
 
 # OpenCoder will:
@@ -429,7 +429,7 @@ OpenCoder is your **specialized development partner** for:
 
 **Start here:**
 ```bash
-opencode --agent opencoder
+opencode --agent OpenCoder
 > "Your complex coding task..."
 ```
 

@@ -21,7 +21,7 @@ _Build Intelligent Workflow Systems with Context-Aware AI_
 ## ⚡ TL;DR - Quick Reference
 
 **For New Users:**
-- Start with `opencode --agent openagent` for all questions and tasks
+- Start with `opencode --agent OpenAgent` for all questions and tasks
 - The agent handles planning, implementation, testing, and review automatically
 - Add your coding patterns to `.opencode/context/project/project-context.md`
 - Let the agent delegate to specialized subagents when needed
