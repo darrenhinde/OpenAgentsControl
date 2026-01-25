@@ -147,7 +147,7 @@ description: What this test validates
 
 category: developer  # developer, business, creative, edge-case
 agent: openagent     # openagent, opencoder
-model: opencode/grok-code  # Optional, defaults to free tier
+model: opencode/big-pickle  # Optional, defaults to free tier
 
 # Single prompt (simple tests)
 prompt: |

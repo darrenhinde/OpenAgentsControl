@@ -7,7 +7,6 @@ category: subagents/core
 type: subagent
 version: 4.0.0
 author: darrenhinde
-model: "opencode/grok-code"
 
 # Agent Configuration£
 mode: subagent

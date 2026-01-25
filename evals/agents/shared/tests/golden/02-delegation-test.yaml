@@ -35,7 +35,7 @@ behavior:
   maxToolCalls: 10
   requiresApproval: false  # This is a simple test, no approval ceremony needed
   expectedAgent: "openagent"  # Validate correct agent is loaded
-  expectedModel: "opencode/grok-code"  # Validate correct model is used
+  expectedModel: "opencode/big-pickle"  # Validate correct model is used
   expectedResponse:
     contains:
       - "AWESOME TESTING"

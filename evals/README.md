@@ -159,7 +159,7 @@ Options:
   --debug                Enable debug output, keep sessions for inspection
   --verbose              Show full conversation (prompts + responses) after each test
                          (automatically enables --debug)
-  --model=PROVIDER/MODEL Override model (default: opencode/grok-code-fast)
+  --model=PROVIDER/MODEL Override model (default: opencode/big-pickle)
   --timeout=MS           Test timeout (default: 60000)
   --prompt-variant=NAME  Use specific prompt variant (gpt, gemini, grok, llama)
                          Auto-detects recommended model from prompt metadata

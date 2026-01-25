@@ -34,7 +34,7 @@ behavior:
   maxToolCalls: 0
   requiresApproval: false
   expectedAgent: "openagent"
-  expectedModel: "opencode/grok-code"
+  expectedModel: "opencode/big-pickle"
   expectedResponse:
     contains:
       - "Test infrastructure is working correctly"
