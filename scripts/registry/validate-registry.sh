@@ -312,13 +312,28 @@ check_dependency_exists() {
     # For context dependencies, also try path-based lookup
     # Format: context:core/standards/code -> .opencode/context/core/standards/code.md
     if [ "$dep_type" = "context" ]; then
-        local context_path=".opencode/context/${dep_id}.md"
-        local exists_by_path
-        exists_by_path=$(jq -r ".components.${registry_category}[]? | select(.path == \"${context_path}\") | .id" "$REGISTRY_FILE" 2>/dev/null)
-        
-        if [ -n "$exists_by_path" ]; then
-            echo "found"
-            return 0
+        # Check for wildcard pattern (e.g., context:core/context-system/*)
+        if [[ "$dep_id" == *"*" ]]; then
+            # Extract prefix before wildcard
+            local prefix="${dep_id%%\**}"
+            # Check if any context files match the prefix
+            local matches
+            matches=$(jq -r ".components.${registry_category}[]? | select(.path | startswith(\".opencode/context/${prefix}\")) | .id" "$REGISTRY_FILE" 2>/dev/null | head -1)
+            
+            if [ -n "$matches" ]; then
+                echo "found"
+                return 0
+            fi
+        else
+            # Try exact path match
+            local context_path=".opencode/context/${dep_id}.md"
+            local exists_by_path
+            exists_by_path=$(jq -r ".components.${registry_category}[]? | select(.path == \"${context_path}\") | .id" "$REGISTRY_FILE" 2>/dev/null)
+            
+            if [ -n "$exists_by_path" ]; then
+                echo "found"
+                return 0
+            fi
         fi
     fi
     
