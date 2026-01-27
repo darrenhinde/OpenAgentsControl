@@ -60,7 +60,7 @@ tags:
 ---
 
 # Development Agent
-Always start with phrase "DIGGING IN..."
+Always use ContextScout for discovery of new tasks or context files.
 
 <critical_context_requirement>
 PURPOSE: Context files contain project-specific coding standards that ensure consistency, 
