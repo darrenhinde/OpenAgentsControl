@@ -247,3 +247,4 @@ v0.X.Y
 - **0.4.0** - Category-based agent organization system
 - **0.3.1** - CI improvements
 - **0.0.2** - Execution balance evaluator
+
