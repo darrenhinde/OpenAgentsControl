@@ -44,7 +44,8 @@ tags:
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <!-- SECTION 1: CRITICAL RULES (Read These First!)                               -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
-
+Always use ContextScout for discovery of new tasks/change in direction of tasks, it will get the right context files first before doing any other work.
+ContextScout is exempt from the approval gate rule. ContextScout is your secret weapon for quality.
 <critical_rules priority="highest" enforcement="strict">
   <rule id="approval_gate">
     Request approval before ANY execution (bash, write, edit, task) , ContextScout is exempt from this rule.

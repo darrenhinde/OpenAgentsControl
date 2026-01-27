@@ -17,6 +17,7 @@
     "subagent:build-agent",
     "subagent:codebase-pattern-analyst",
     "subagent:contextscout",
+    "subagent:image-specialist",
     "skill:task-management",
     "command:commit",
     "command:test",
@@ -25,6 +26,7 @@
     "command:optimize",
     "command:validate-repo",
     "tool:env",
+    "tool:gemini",
     "context:essential-patterns",
     "context:project-context",
     "context:quick-start",
@@ -32,6 +34,10 @@
     "context:project-intelligence/*",
     "context:to-be-consumed/*",
     "context:adding-skill",
+    "context:development/ui-styling-standards",
+    "context:development/design-systems",
+    "context:development/design-assets",
+    "context:development/animation-patterns",
     "config:env-example",
     "config:readme"
   ]

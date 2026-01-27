@@ -132,9 +132,9 @@ tools:
     <prerequisites>Domain analysis complete</prerequisites>
     <process>
       1. Merge user requirements with domain-analyzer recommendations
-      2. Finalize agent list (orchestrator + subagents)
-      3. Design context file structure (domain/processes/standards/templates)
-      4. Plan workflow definitions with context dependencies
+       2. Finalize agent list (orchestrator + subagents)
+       3. Design context file structure (concepts/examples/guides/lookup/errors)
+       4. Plan workflow definitions with context dependencies
       5. Design custom command interfaces
       6. Map routing patterns and context allocation strategy
       7. Define validation gates and quality standards
@@ -164,32 +164,42 @@ tools:
       </agents>
       
       <context_files>
-        <domain>
+        <navigation>
+          <file path="context/navigation.md">Context organization index (REQUIRED)</file>
+        </navigation>
+        <concepts>
           {for each domain_concept:
             <file>
-              <path>context/domain/{concept.name}.md</path>
-              <content_type>Core concepts, terminology, business rules</content_type>
-              <estimated_lines>{50-200}</estimated_lines>
+              <path>context/concepts/{concept.name}.md</path>
+              <content_type>Core concepts, terminology, business rules, data models</content_type>
+              <estimated_lines>{50-100}</estimated_lines>
             </file>
           }
-        </domain>
-        <processes>
+        </concepts>
+        <guides>
           {for each workflow:
             <file>
-              <path>context/processes/{workflow.name}.md</path>
-              <content_type>Step-by-step procedures, integration patterns</content_type>
+              <path>context/guides/{workflow.name}.md</path>
+              <content_type>Step-by-step procedures, integration patterns, workflows</content_type>
+              <estimated_lines>{50-150}</estimated_lines>
             </file>
           }
-        </processes>
-        <standards>
-          <file path="context/standards/quality-criteria.md">Quality standards</file>
-          <file path="context/standards/validation-rules.md">Validation logic</file>
-          <file path="context/standards/error-handling.md">Error handling patterns</file>
-        </standards>
-        <templates>
-          <file path="context/templates/output-formats.md">Standard output formats</file>
-          <file path="context/templates/common-patterns.md">Reusable patterns</file>
-        </templates>
+        </guides>
+        <lookup>
+          <file path="context/lookup/quality-criteria.md">Quality standards quick reference</file>
+          <file path="context/lookup/validation-rules.md">Validation logic cheat sheet</file>
+          <estimated_lines>{50-100}</estimated_lines>
+        </lookup>
+        <examples>
+          <file path="context/examples/output-formats.md">Standard output format examples</file>
+          <file path="context/examples/common-patterns.md">Reusable code patterns</file>
+          <estimated_lines>{50-80}</estimated_lines>
+        </examples>
+        <errors>
+          <file path="context/errors/common-issues.md">Troubleshooting guide</file>
+          <file path="context/errors/error-handling.md">Error handling patterns</file>
+          <estimated_lines>{50-150}</estimated_lines>
+        </errors>
       </context_files>
       
       <workflows>
@@ -259,11 +269,12 @@ tools:
           - standards_requirements (quality, validation, error handling)
         </pass_data>
         <expected_return>
-          - domain_files[] (core concepts, business rules, data models, terminology)
-          - process_files[] (workflows, procedures, integrations, escalations)
-          - standards_files[] (quality criteria, validation rules, error handling)
-          - template_files[] (output formats, common patterns)
-          - context_readme (guide to context organization)
+          - navigation_file (context organization index - REQUIRED)
+          - concept_files[] (core concepts, business rules, data models, terminology)
+          - guide_files[] (workflows, procedures, integrations, step-by-step instructions)
+          - lookup_files[] (quality criteria, validation rules, quick reference cheat sheets)
+          - example_files[] (output formats, common patterns, sample implementations)
+          - error_files[] (troubleshooting guides, error handling patterns, common issues)
         </expected_return>
         <integration>
           Write context files to .opencode/context/ directory structure
@@ -396,10 +407,14 @@ tools:
       </agent_validation>
       
       <context_validation>
-        - Files are 50-200 lines each
-        - Clear separation of concerns
+        - navigation.md exists and is complete
+        - Files follow function-based organization (concepts/examples/guides/lookup/errors)
+        - File sizes follow MVI limits (concepts <100, guides <150, examples <80, lookup <100, errors <150)
+        - Clear separation of concerns (what vs how vs reference vs troubleshooting)
         - No duplication across files
         - Dependencies documented
+        - All files include HTML frontmatter
+        - Codebase references included where applicable
       </context_validation>
       
       <workflow_validation>
@@ -448,7 +463,7 @@ tools:
       
       **Files Created**: {total_files}
       - Agent Files: {agent_count} (1 orchestrator + {subagent_count} subagents)
-      - Context Files: {context_count} ({domain_files} domain + {process_files} processes + {standards_files} standards + {template_files} templates)
+      - Context Files: {context_count} (1 navigation + {concept_files} concepts + {guide_files} guides + {lookup_files} lookup + {example_files} examples + {error_files} errors)
       - Workflow Files: {workflow_count}
       - Command Files: {command_count}
       - Documentation Files: {doc_count}
@@ -471,20 +486,22 @@ tools:
       │       ├── {subagent-2}.md
       │       └── {subagent-3}.md
       ├── context/
-      │   ├── domain/                           # Core knowledge
-      │   │   ├── {domain-file-1}.md
-      │   │   └── {domain-file-2}.md
-      │   ├── processes/                        # Workflows
-      │   │   ├── {process-1}.md
-      │   │   └── {process-2}.md
-      │   ├── standards/                        # Quality rules
+      │   ├── navigation.md                     # Context index (REQUIRED)
+      │   ├── concepts/                         # What it is
+      │   │   ├── {concept-1}.md
+      │   │   └── {concept-2}.md
+      │   ├── guides/                           # How to do it
+      │   │   ├── {guide-1}.md
+      │   │   └── {guide-2}.md
+      │   ├── lookup/                           # Quick reference
       │   │   ├── quality-criteria.md
-      │   │   ├── validation-rules.md
-      │   │   └── error-handling.md
-      │   ├── templates/                        # Reusable patterns
+      │   │   └── validation-rules.md
+      │   ├── examples/                         # Working code
       │   │   ├── output-formats.md
       │   │   └── common-patterns.md
-      │   └── navigation.md                         # Context guide
+      │   └── errors/                           # Common issues
+      │       ├── troubleshooting.md
+      │       └── error-handling.md
       ├── workflows/
       │   ├── {workflow-1}.md
       │   ├── {workflow-2}.md

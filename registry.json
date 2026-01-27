@@ -333,17 +333,7 @@
           "knowledge-management"
         ],
         "dependencies": [
-          "context:harvest",
-          "context:extract",
-          "context:organize",
-          "context:update",
-          "context:error",
-          "context:mvi",
-          "context:structure",
-          "context:templates",
-          "context:workflows",
-          "context:compact",
-          "context:creation"
+          "context:core/context-system/*"
         ],
         "category": "meta"
       },
@@ -1380,6 +1370,37 @@
           "context-system",
           "standards",
           "templates"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "frontmatter",
+        "name": "Frontmatter Standard",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/standards/frontmatter.md",
+        "description": "HTML comment frontmatter format for all context files",
+        "tags": [
+          "context-system",
+          "standards",
+          "frontmatter",
+          "metadata"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "codebase-references",
+        "name": "Codebase References Standard",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/standards/codebase-references.md",
+        "description": "How to link context files to actual code implementation",
+        "tags": [
+          "context-system",
+          "standards",
+          "codebase",
+          "references",
+          "documentation"
         ],
         "dependencies": [],
         "category": "standard"

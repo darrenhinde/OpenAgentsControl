@@ -11,22 +11,8 @@ temperature: 0.1
 
 # Dependencies
 dependencies:
-  # Context system operations
-  - context:core/context-system/operations/harvest
-  - context:core/context-system/operations/extract
-  - context:core/context-system/operations/organize
-  - context:core/context-system/operations/update
-  - context:core/context-system/operations/error
-  
-  # Context system standards
-  - context:core/context-system/standards/mvi
-  - context:core/context-system/standards/structure
-  - context:core/context-system/standards/templates
-  
-  # Context system guides
-  - context:core/context-system/guides/workflows
-  - context:core/context-system/guides/compact
-  - context:core/context-system/guides/creation
+  # Context system (all standards, operations, guides, templates, examples)
+  - context:core/context-system/*
 
 # Tags
 tags:
@@ -113,243 +99,217 @@ tags:
 </operation_handling>
 
 <process_flow>
-  <step_1>
-    <action>Generate domain knowledge files</action>
+  <step_0>
+    <action>Load context system standards</action>
     <process>
-      1. Extract core concepts from domain_analysis
-      2. Group related concepts (target 50-200 lines per file)
-      3. Create files for:
-         - Core concepts and definitions
-         - Terminology and glossary
-         - Business rules and policies
-         - Data models and schemas
-      4. Document relationships and dependencies
-      5. Add clear examples for each concept
+      Load these standards BEFORE generating any files:
+      - @context:core/context-system/standards/mvi
+      - @context:core/context-system/standards/structure
+      - @context:core/context-system/standards/frontmatter
+      - @context:core/context-system/standards/codebase-references
+      - @context:core/context-system/standards/templates
     </process>
-    <file_structure>
-      ```markdown
-      # {Concept Name}
-      
-      ## Overview
-      {Brief description of this concept}
-      
-      ## Definition
-      {Detailed definition}
-      
-      ## Key Attributes
-      - **{Attribute 1}**: {Description}
-      - **{Attribute 2}**: {Description}
-      
-      ## Business Rules
-      1. {Rule 1}
-      2. {Rule 2}
-      
-      ## Relationships
-      - **Depends on**: {Related concepts}
-      - **Used by**: {Processes that use this}
-      
-      ## Examples
+    <output>Standards loaded and ready to apply</output>
+  </step_0>
+
+  <step_1>
+    <action>Discover codebase structure</action>
+    <process>
+      1. Use glob to find relevant code files for domain concepts
+      2. Map files to domain concepts
+      3. Identify business logic locations (priority: **/*rules*.ts, **/*validation*.ts, **/*policy*.ts)
+      4. Find implementation files (**/*service*.ts, **/*handler*.ts, **/*processor*.ts)
+      5. Locate models/types (**/*model*.ts, **/*schema*.ts, **/*type*.ts)
+      6. Find test files (**/__tests__/*.test.ts, **/*.spec.ts)
+      7. Map configuration files (**/config/*.ts, **/*.config.ts)
+      8. Create codebase reference map for each concept
+    </process>
+    <output>
+      Codebase reference map:
       ```yaml
-      {concrete example}
+      {concept_name}:
+        business_logic:
+          - path/to/rules.ts
+        implementation:
+          - path/to/service.ts
+        models:
+          - path/to/model.ts
+        tests:
+          - path/to/test.ts
+        config:
+          - path/to/config.ts
       ```
-      
-      ## Common Patterns
-      {Typical usage patterns}
-      ```
-    </file_structure>
-    <output>Domain knowledge files (core-concepts.md, terminology.md, business-rules.md, data-models.md)</output>
+    </output>
   </step_1>
 
   <step_2>
-    <action>Generate process knowledge files</action>
+    <action>Generate concept files (domain knowledge)</action>
     <process>
-      1. Extract workflows from use_cases
-      2. Document step-by-step procedures
-      3. Create files for:
-         - Standard workflows
-         - Integration patterns
-         - Edge case handling
-         - Escalation paths
-      4. Map context dependencies for each process
-      5. Define success criteria
+      1. Extract core concepts from domain_analysis
+      2. Map each concept to codebase references from step_1
+      3. Group related concepts (target <100 lines per file)
+      4. For each concept:
+         - Apply Concept Template from @templates.md
+         - Add frontmatter from @frontmatter.md
+         - Add codebase references from @codebase-references.md
+         - Follow MVI format from @mvi.md
+         - Use function-based folders from @structure.md
+      5. Create files in: .opencode/context/{category}/concepts/
     </process>
-    <file_structure>
-      ```markdown
-      # {Process Name}
-      
-      ## Overview
-      {What this process accomplishes}
-      
-      ## When to Use
-      - {Scenario 1}
-      - {Scenario 2}
-      
-      ## Prerequisites
-      - {Prerequisite 1}
-      - {Prerequisite 2}
-      
-      ## Process Steps
-      
-      ### Step 1: {Step Name}
-      **Action**: {What to do}
-      **Validation**: {How to verify}
-      **Output**: {What this produces}
-      
-      ### Step 2: {Next Step}
-      ...
-      
-      ## Decision Points
-      - **If {condition}**: {Action}
-      - **Else**: {Alternative}
-      
-      ## Context Dependencies
-      - {Required context file 1}
-      - {Required context file 2}
-      
-      ## Success Criteria
-      - {Criterion 1}
-      - {Criterion 2}
-      
-      ## Common Issues
-      - **Issue**: {Problem}
-        **Solution**: {How to resolve}
-      ```
-    </file_structure>
-    <output>Process files (standard-workflow.md, integration-patterns.md, edge-cases.md, escalation-paths.md)</output>
+    <template_reference>
+      Follow Concept Template from @context:core/context-system/standards/templates
+      Include: frontmatter, purpose, core idea, key points, example, codebase references, related
+    </template_reference>
+    <output>Concept files in {category}/concepts/ folder</output>
   </step_2>
 
   <step_3>
-    <action>Generate standards files</action>
+    <action>Generate guide files (process knowledge)</action>
     <process>
-      1. Define quality criteria from standards_requirements
-      2. Create validation rules
-      3. Document error handling patterns
-      4. Specify compliance requirements (if applicable)
-      5. Add scoring systems and thresholds
+      1. Extract workflows from use_cases
+      2. Map each workflow to codebase references from step_1
+      3. Document step-by-step procedures (target <150 lines per file)
+      4. For each guide:
+         - Apply Guide Template from @templates.md
+         - Add frontmatter from @frontmatter.md
+         - Add codebase references (workflow orchestration, business logic, integration)
+         - Follow MVI format from @mvi.md
+      5. Create files in: .opencode/context/{category}/guides/
     </process>
-    <file_structure>
-      ```markdown
-      # {Standards Type}
-      
-      ## Overview
-      {What these standards ensure}
-      
-      ## Quality Criteria
-      
-      ### {Criterion 1}
-      **Description**: {What this measures}
-      **Threshold**: {Acceptable level}
-      **Measurement**: {How to measure}
-      
-      ### {Criterion 2}
-      ...
-      
-      ## Validation Rules
-      
-      ### {Rule Category}
-      - **Rule**: {Validation rule}
-        **Check**: {How to validate}
-        **Failure Action**: {What to do if fails}
-      
-      ## Scoring System
-      ```yaml
-      score_calculation:
-        criterion_1: weight_X
-        criterion_2: weight_Y
-        threshold: 8/10
-      ```
-      
-      ## Compliance Requirements
-      {Any regulatory or policy requirements}
-      
-      ## Examples
-      
-      **Pass Example**:
-      ```yaml
-      {example that passes}
-      ```
-      
-      **Fail Example**:
-      ```yaml
-      {example that fails}
-      ```
-      ```
-    </file_structure>
-    <output>Standards files (quality-criteria.md, validation-rules.md, error-handling.md)</output>
+    <template_reference>
+      Follow Guide Template from @context:core/context-system/standards/templates
+      Include: frontmatter, purpose, prerequisites, steps, codebase references, related
+    </template_reference>
+    <output>Guide files in {category}/guides/ folder</output>
   </step_3>
 
   <step_4>
-    <action>Generate template files</action>
+    <action>Generate example files (working code)</action>
     <process>
-      1. Create output format templates
-      2. Document common patterns
-      3. Provide reusable structures
-      4. Include concrete examples
+      1. Create minimal working examples for key concepts
+      2. Link to actual implementation in codebase
+      3. Keep examples <80 lines
+      4. For each example:
+         - Apply Example Template from @templates.md
+         - Add frontmatter from @frontmatter.md
+         - Add codebase references (full implementation, related code, tests)
+         - Follow MVI format from @mvi.md
+      5. Create files in: .opencode/context/{category}/examples/
     </process>
-    <file_structure>
-      ```markdown
-      # {Template Type}
-      
-      ## Overview
-      {What this template is for}
-      
-      ## Template Structure
-      ```yaml
-      {template structure}
-      ```
-      
-      ## Required Fields
-      - **{Field 1}**: {Description and format}
-      - **{Field 2}**: {Description and format}
-      
-      ## Optional Fields
-      - **{Field 3}**: {Description and when to use}
-      
-      ## Examples
-      
-      ### Example 1: {Use Case}
-      ```yaml
-      {complete example}
-      ```
-      
-      ### Example 2: {Another Use Case}
-      ```yaml
-      {complete example}
-      ```
-      
-      ## Variations
-      {Different variations of this template}
-      
-      ## Best Practices
-      - {Practice 1}
-      - {Practice 2}
-      ```
-    </file_structure>
-    <output>Template files (output-formats.md, common-patterns.md)</output>
+    <template_reference>
+      Follow Example Template from @context:core/context-system/standards/templates
+      Include: frontmatter, purpose, code, explanation, codebase references, related
+    </template_reference>
+    <output>Example files in {category}/examples/ folder</output>
   </step_4>
 
   <step_5>
-    <action>Create context README</action>
+    <action>Generate lookup files (quick reference)</action>
     <process>
-      1. Document context organization
-      2. Explain file purposes
-      3. Map dependencies
-      4. Provide usage guidance
+      1. Create quick reference tables for standards/criteria
+      2. Map to validation/enforcement code
+      3. Keep lookup files <100 lines
+      4. For each lookup:
+         - Apply Lookup Template from @templates.md
+         - Add frontmatter from @frontmatter.md
+         - Add codebase references (validation logic, configuration)
+         - Follow MVI format from @mvi.md
+      5. Create files in: .opencode/context/{category}/lookup/
     </process>
-    <output>context/navigation.md with complete guide</output>
+    <template_reference>
+      Follow Lookup Template from @context:core/context-system/standards/templates
+      Include: frontmatter, purpose, tables, codebase references, related
+    </template_reference>
+    <output>Lookup files in {category}/lookup/ folder</output>
   </step_5>
 
   <step_6>
+    <action>Generate error files (common issues)</action>
+    <process>
+      1. Document common errors and issues
+      2. Link to error handling code
+      3. Keep error files <150 lines
+      4. For each error file:
+         - Apply Error Template from @templates.md
+         - Add frontmatter from @frontmatter.md
+         - Add codebase references (error definitions, handlers, prevention)
+         - Follow MVI format from @mvi.md
+      5. Create files in: .opencode/context/{category}/errors/
+    </process>
+    <template_reference>
+      Follow Error Template from @context:core/context-system/standards/templates
+      Include: frontmatter, purpose, errors, codebase references, related
+    </template_reference>
+    <output>Error files in {category}/errors/ folder</output>
+  </step_6>
+
+  <step_7>
+    <action>Create navigation.md</action>
+    <process>
+      1. Document context organization
+      2. Create navigation tables for all 5 folders (concepts, examples, guides, lookup, errors)
+      3. Map dependencies between files
+      4. Provide loading strategy
+      5. Create file at: .opencode/context/{category}/navigation.md
+    </process>
+    <template_reference>
+      Follow Navigation Template from @context:core/context-system/standards/templates
+    </template_reference>
+    <output>navigation.md with complete guide</output>
+  </step_7>
+
+  <step_8>
     <action>Validate context files</action>
     <process>
-      1. Check file sizes (50-200 lines target)
-      2. Verify no duplication across files
-      3. Validate dependencies are documented
-      4. Ensure clear separation of concerns
-      5. Check examples are concrete and helpful
+      1. Check frontmatter format (from @frontmatter.md)
+      2. Verify codebase references exist (from @codebase-references.md)
+      3. Validate MVI compliance (from @mvi.md)
+      4. Check file sizes (concepts <100, guides <150, examples <80, lookup <100, errors <150)
+      5. Verify function-based folder structure (from @structure.md)
+      6. Ensure navigation.md exists
+      7. Check no duplication across files
     </process>
-    <output>Validation report with any issues</output>
-  </step_6>
+    <validation_rules>
+      <frontmatter>
+        - Must start with <!-- Context: ... -->
+        - Must include: category/function, priority, version, updated date
+        - Priority must be: critical|high|medium|low
+        - Version must be: X.Y format
+        - Date must be: YYYY-MM-DD format
+      </frontmatter>
+      <codebase_references>
+        - Must have "📂 Codebase References" section
+        - Must include most important section for context type
+        - All paths must be project-relative
+        - All paths must include file extension
+        - Each path must have 3-10 word description
+      </codebase_references>
+      <mvi_compliance>
+        - Core Idea: 1-3 sentences
+        - Key Points: 3-5 bullets
+        - Quick Example: 5-20 lines
+        - Reference: Link or "See implementation above"
+        - Related: Cross-references
+      </mvi_compliance>
+      <file_size>
+        - Concepts: <100 lines
+        - Examples: <80 lines
+        - Guides: <150 lines
+        - Lookup: <100 lines
+        - Errors: <150 lines
+      </file_size>
+    </validation_rules>
+    <output>
+      Validation report:
+      - Files checked
+      - Frontmatter compliance (pass/fail per file)
+      - Codebase references compliance (pass/fail per file)
+      - MVI compliance (pass/fail per file)
+      - File size compliance (pass/fail per file)
+      - Overall score
+      - List of issues to fix
+    </output>
+  </step_8>
 </process_flow>
 
 <file_organization_principles>
@@ -375,99 +335,146 @@ tags:
 </file_organization_principles>
 
 <constraints>
-  <must>Create files in all 4 categories (domain/processes/standards/templates)</must>
-  <must>Keep files between 50-200 lines</must>
-  <must>Include concrete examples in every file</must>
-  <must>Document dependencies between files</must>
-  <must>Use clear, descriptive file names</must>
+  <must>Load context system standards BEFORE generating files (@step_0)</must>
+  <must>Use function-based folder structure (concepts/examples/guides/lookup/errors)</must>
+  <must>Add frontmatter to ALL files (<!-- Context: ... -->)</must>
+  <must>Add codebase references to ALL files (📂 Codebase References)</must>
+  <must>Follow MVI format (1-3 sentences, 3-5 bullets, example, reference)</must>
+  <must>Keep files under size limits (concepts <100, guides <150, examples <80, lookup <100, errors <150)</must>
+  <must>Create navigation.md for each category</must>
+  <must>Use clear, descriptive file names (kebab-case)</must>
   <must_not>Duplicate information across files</must_not>
-  <must_not>Create files larger than 200 lines</must_not>
-  <must_not>Use generic file names (e.g., "file1.md")</must_not>
+  <must_not>Skip frontmatter or codebase references</must_not>
+  <must_not>Use old folder structure (domain/processes/standards/templates)</must_not>
 </constraints>
 
 <output_specification>
   <format>
     ```yaml
     context_files_result:
-      domain_files:
-        - filename: "core-concepts.md"
-          content: |
-            {file content}
-          line_count: 150
-          dependencies: []
-        - filename: "business-rules.md"
-          content: |
-            {file content}
-          line_count: 120
-          dependencies: ["core-concepts.md"]
+      category: "{category-name}"
       
-      process_files:
-        - filename: "standard-workflow.md"
+      concept_files:
+        - filename: "{concept-name}.md"
+          path: "context/{category}/concepts/{concept-name}.md"
           content: |
-            {file content}
-          line_count: 180
-          dependencies: ["core-concepts.md", "business-rules.md"]
+            <!-- Context: {category}/concepts | Priority: critical | Version: 1.0 | Updated: YYYY-MM-DD -->
+            {file content with frontmatter, codebase references, MVI format}
+          line_count: 95
+          has_frontmatter: true
+          has_codebase_refs: true
+          codebase_refs_count: 5
       
-      standards_files:
-        - filename: "quality-criteria.md"
+      guide_files:
+        - filename: "{guide-name}.md"
+          path: "context/{category}/guides/{guide-name}.md"
           content: |
-            {file content}
-          line_count: 100
-          dependencies: []
+            <!-- Context: {category}/guides | Priority: high | Version: 1.0 | Updated: YYYY-MM-DD -->
+            {file content with frontmatter, codebase references, MVI format}
+          line_count: 140
+          has_frontmatter: true
+          has_codebase_refs: true
+          codebase_refs_count: 4
       
-      template_files:
-        - filename: "output-formats.md"
+      example_files:
+        - filename: "{example-name}.md"
+          path: "context/{category}/examples/{example-name}.md"
           content: |
-            {file content}
-          line_count: 80
-          dependencies: []
+            <!-- Context: {category}/examples | Priority: medium | Version: 1.0 | Updated: YYYY-MM-DD -->
+            {file content with frontmatter, codebase references, MVI format}
+          line_count: 75
+          has_frontmatter: true
+          has_codebase_refs: true
+          codebase_refs_count: 3
       
-      context_readme:
+      lookup_files:
+        - filename: "{lookup-name}.md"
+          path: "context/{category}/lookup/{lookup-name}.md"
+          content: |
+            <!-- Context: {category}/lookup | Priority: high | Version: 1.0 | Updated: YYYY-MM-DD -->
+            {file content with frontmatter, codebase references, MVI format}
+          line_count: 90
+          has_frontmatter: true
+          has_codebase_refs: true
+          codebase_refs_count: 3
+      
+      error_files:
+        - filename: "{error-category}.md"
+          path: "context/{category}/errors/{error-category}.md"
+          content: |
+            <!-- Context: {category}/errors | Priority: high | Version: 1.0 | Updated: YYYY-MM-DD -->
+            {file content with frontmatter, codebase references, MVI format}
+          line_count: 130
+          has_frontmatter: true
+          has_codebase_refs: true
+          codebase_refs_count: 4
+      
+      navigation_file:
         filename: "navigation.md"
+        path: "context/{category}/navigation.md"
         content: |
-          {context organization guide}
+          {context organization guide with navigation tables}
       
       validation_report:
-        total_files: 8
-        average_lines: 145
+        total_files: 12
+        frontmatter_compliance: 12/12
+        codebase_refs_compliance: 12/12
+        mvi_compliance: 12/12
+        file_size_compliance: 12/12
+        average_lines: 105
         issues: []
-        quality_score: 9/10
+        quality_score: 10/10
     ```
   </format>
 </output_specification>
 
 <validation_checks>
   <pre_execution>
+    - Context system standards loaded (@step_0)
     - architecture_plan has context file structure
     - domain_analysis contains core concepts
     - use_cases are provided
-    - standards_requirements are specified
+    - Codebase structure discovered (@step_1)
   </pre_execution>
   
   <post_execution>
-    - All 4 categories have at least 1 file
-    - All files are 50-200 lines
+    - All files have frontmatter (<!-- Context: ... -->)
+    - All files have codebase references (📂 Codebase References)
+    - All files follow MVI format
+    - All files under size limits
+    - Function-based folder structure used (concepts/examples/guides/lookup/errors)
+    - navigation.md exists
     - No duplication across files
-    - Dependencies are documented
-    - Examples are included
-    - README is comprehensive
+    - Codebase reference paths exist (warn if not)
   </post_execution>
 </validation_checks>
 
 <organization_principles>
-  <separation_of_concerns>
-    Domain knowledge, processes, standards, and templates are clearly separated
-  </separation_of_concerns>
+  <standards_based>
+    All files follow centralized standards from @context:core/context-system/standards/
+  </standards_based>
   
-  <discoverability>
-    File names and organization make it easy to find information
-  </discoverability>
+  <function_based_structure>
+    Files organized by function (concepts/examples/guides/lookup/errors), not topic
+  </function_based_structure>
   
-  <maintainability>
-    Small, focused files are easier to update and maintain
-  </maintainability>
+  <code_linked>
+    All context files link to actual implementation via codebase references
+  </code_linked>
   
-  <reusability>
+  <mvi_compliant>
+    Minimal viable information - scannable in <30 seconds, reference full docs
+  </mvi_compliant>
+  
+  <discoverable>
+    Frontmatter enables priority-based loading, navigation.md provides roadmap
+  </discoverable>
+  
+  <maintainable>
+    Small, focused files (<150 lines) are easy to update
+  </maintainable>
+  
+  <reusable>
     Context files can be loaded selectively based on needs
-  </reusability>
+  </reusable>
 </organization_principles>

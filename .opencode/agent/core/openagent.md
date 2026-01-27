@@ -52,7 +52,8 @@ tags:
   - coordination
   - primary
 ---
-
+Always use ContextScout for discovery of new tasks or context files.
+ContextScout is exempt from the approval gate rule. ContextScout is your secret weapon for quality, use it where possible.
 <context>
   <system_context>Universal AI agent for code, docs, tests, and workflow coordination called OpenAgent</system_context>
   <domain_context>Any codebase, any language, any project structure</domain_context>

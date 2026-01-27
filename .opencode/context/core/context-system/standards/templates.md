@@ -22,6 +22,7 @@
 ## 1. Concept Template
 
 ```markdown
+<!-- Context: {category}/concepts | Priority: {critical|high|medium|low} | Version: 1.0 | Updated: YYYY-MM-DD -->
 # Concept: {Name}
 
 **Purpose**: [1 sentence]
@@ -44,8 +45,22 @@
 [<10 lines]
 ```
 
+## 📂 Codebase References
+
+**Business Logic** (if business domain):
+- `path/to/rules.ts` - {3-10 word description}
+
+**Implementation**:
+- `path/to/main.ts` - {3-10 word description}
+
+**Models/Types**:
+- `path/to/model.ts` - {3-10 word description}
+
+**Tests**:
+- `path/to/test.ts` - {3-10 word description}
+
 ## Deep Dive
-**Reference**: [Link]
+**Reference**: [Link or "See implementation above"]
 
 ## Related
 - concepts/x.md
@@ -57,6 +72,7 @@
 ## 2. Example Template
 
 ```markdown
+<!-- Context: {category}/examples | Priority: {high|medium} | Version: 1.0 | Updated: YYYY-MM-DD -->
 # Example: {What It Shows}
 
 **Purpose**: [1 sentence]
@@ -79,6 +95,17 @@
 - Detail 1
 - Detail 2
 
+## 📂 Codebase References
+
+**Full Implementation**:
+- `path/to/real-implementation.ts` - {Production version}
+
+**Related Code**:
+- `path/to/helper.ts` - {Helper utilities}
+
+**Tests**:
+- `path/to/test.ts` - {Tests demonstrating pattern}
+
 ## Related
 - concepts/x.md
 ```
@@ -88,6 +115,7 @@
 ## 3. Guide Template
 
 ```markdown
+<!-- Context: {category}/guides | Priority: {critical|high|medium} | Version: 1.0 | Updated: YYYY-MM-DD -->
 # Guide: {Action}
 
 **Purpose**: [1 sentence]
@@ -106,6 +134,7 @@
 {command}
 ```
 **Expected**: [result]
+**Implementation**: `path/to/step.ts`
 
 ### 2. {Step}
 [Repeat 4-7 steps]
@@ -114,6 +143,20 @@
 ```bash
 {verify command}
 ```
+
+## 📂 Codebase References
+
+**Workflow Orchestration**:
+- `path/to/workflow.ts` - {Main workflow coordinator}
+
+**Business Logic** (if applicable):
+- `path/to/rules.ts` - {Process validation rules}
+
+**Integration Points**:
+- `path/to/api-client.ts` - {External integration}
+
+**Tests**:
+- `path/to/workflow.test.ts` - {End-to-end tests}
 
 ## Troubleshooting
 | Issue | Solution |
@@ -129,15 +172,16 @@
 ## 4. Lookup Template
 
 ```markdown
+<!-- Context: {category}/lookup | Priority: {high|medium} | Version: 1.0 | Updated: YYYY-MM-DD -->
 # Lookup: {Reference Type}
 
 **Purpose**: Quick reference for {desc}
 **Last Updated**: {YYYY-MM-DD}
 
 ## {Section}
-| Item | Value | Desc |
-|------|-------|------|
-| x | y | z |
+| Item | Value | Desc | Code |
+|------|-------|------|------|
+| x | y | z | `path/to/file.ts` |
 
 ## Commands
 ```bash
@@ -150,6 +194,17 @@
 {path} - {desc}
 ```
 
+## 📂 Codebase References
+
+**Validation/Enforcement**:
+- `path/to/validator.ts` - {Validation logic}
+
+**Configuration**:
+- `path/to/config.ts` - {Configuration settings}
+
+**Tests**:
+- `path/to/test.ts` - {Validation tests}
+
 ## Related
 - concepts/x.md
 ```
@@ -159,6 +214,7 @@
 ## 5. Error Template
 
 ```markdown
+<!-- Context: {category}/errors | Priority: {high|medium} | Version: 1.0 | Updated: YYYY-MM-DD -->
 # Errors: {Framework}
 
 **Purpose**: Common errors for {framework}
@@ -188,11 +244,29 @@
 
 **Prevention**: [how to avoid]
 **Frequency**: common/occasional/rare
-**Reference**: [link]
+
+**Code References**:
+- Error thrown: `path/to/error-source.ts`
+- Error handler: `path/to/error-handler.ts`
+- Prevention: `path/to/validator.ts`
 
 ---
 
 [Repeat for 5-10 errors]
+
+## 📂 Codebase References
+
+**Error Definitions**:
+- `path/to/error-types.ts` - {Error class definitions}
+
+**Error Handling**:
+- `path/to/error-handler.ts` - {Error handler}
+
+**Prevention Logic**:
+- `path/to/validator.ts` - {Validation preventing errors}
+
+**Tests**:
+- `path/to/error-handling.test.ts` - {Error handling tests}
 
 ## Related
 - concepts/x.md

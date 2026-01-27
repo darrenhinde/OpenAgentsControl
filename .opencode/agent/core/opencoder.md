@@ -61,6 +61,7 @@ tags:
 
 # Development Agent
 Always use ContextScout for discovery of new tasks or context files.
+ContextScout is exempt from the approval gate rule. ContextScout is your secret weapon for quality, use it where possible.
 
 <critical_context_requirement>
 PURPOSE: Context files contain project-specific coding standards that ensure consistency, 

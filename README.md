@@ -106,19 +106,19 @@ The installer offers:
 <summary><b>macOS / Linux / Git Bash / WSL</b></summary>
 
 ```bash
-# Essential - Minimal essentials (9 components)
+# Essential - Minimal essentials (23 components)
 curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s essential
 
-# Developer - Recommended for daily work (19 components)
+# Developer - Recommended for daily work (37 components)
 curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
 
-# Business - Business automation and content creation (15 components)
+# Business - Business automation and content creation (23 components)
 curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s business
 
-# Full - Everything included (25 components)
+# Full - Everything included (39 components)
 curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s full
 
-# Advanced - Full + System Builder (32 components)
+# Advanced - Full + System Builder (48 components)
 curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s advanced
 ```
 </details>
@@ -520,7 +520,7 @@ curl -o ~/.opencode/agent/core/opencoder.md \
 
 The installer offers five pre-configured profiles:
 
-### 🎯 Essential (Minimal - 9 components)
+### 🎯 Essential (Minimal - 23 components)
 Minimal starter kit - universal agent with core subagents.
 - **Agents**: openagent
 - **Subagents**: task-manager, documentation
@@ -530,34 +530,34 @@ Minimal starter kit - universal agent with core subagents.
 - **Config**: env-example
 - **Best for**: Learning the system, lightweight tasks, minimal setup
 
-### 💼 Developer (Recommended - 30 components)
-Complete software development environment with code generation, testing, review, and build tools.
+### 💼 Developer (Recommended - 37 components)
+Complete software development environment with code generation, testing, review, build tools, and visual content creation.
 - Everything in Essential, plus:
-- **Agents**: opencoder
-- **Subagents**: coder-agent, reviewer, tester, build-agent, codebase-pattern-analyst
+- **Agents**: opencoder, frontend-specialist, backend-specialist, devops-specialist, codebase-agent
+- **Subagents**: coder-agent, reviewer, tester, build-agent, codebase-pattern-analyst, image-specialist
 - **Commands**: commit, test, optimize, validate-repo
-- **Context**: All standards and workflow files (code, patterns, tests, docs, analysis, delegation, sessions, task-breakdown, review, context-guide)
+- **Tools**: gemini (AI image generation)
+- **Context**: All core standards and workflows, plus visual development (UI styling, design systems, design assets, animation patterns)
 - **Config**: readme
-- **Best for**: Most developers, daily use, full-featured development
+- **Best for**: Most developers, daily use, full-featured development with visual content creation
 
-### 📊 Business (15 components)
+### 📊 Business (23 components)
 Business process automation, content creation, and visual workflows.
-- **Agents**: openagent
+- **Agents**: openagent, copywriter, technical-writer, data-analyst
 - **Subagents**: task-manager, documentation, image-specialist
 - **Commands**: context, clean, prompt-enhancer
 - **Tools**: env, gemini (AI image generation)
-- **Plugins**: notify, telegram-notify
-- **Context**: essential-patterns, project-context
+- **Context**: essential-patterns, project-context, and all core standards
 - **Config**: env-example, readme
 - **Best for**: Business automation, content creation, non-developers
 
-### 📦 Full (36 components)
-Everything included - all agents, subagents, tools, and plugins.
+### 📦 Full (39 components)
+Everything included - all agents, subagents, and tools for maximum functionality.
 - Everything in Developer and Business combined, plus:
 - **Commands**: worktrees (git worktree management), validate-repo
 - **Best for**: Power users, exploring all features
 
-### 🚀 Advanced (43 components)
+### 🚀 Advanced (48 components)
 Full installation plus **System Builder** for creating custom AI architectures.
 - Everything in Full, plus:
 - **Agents**: system-builder
