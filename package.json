@@ -1,6 +1,6 @@
 {
   "name": "opencode-agents",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "OpenCode agent evaluation framework and test suites",
   "private": true,
   "workspaces": [

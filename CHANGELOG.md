@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.5.5] - 2026-01-27
+
+### Changes
+- refactor: remove plugins from profiles and update opencoder agent (#122)
+
 ## [0.5.4] - 2026-01-25
 
 ### Changes
