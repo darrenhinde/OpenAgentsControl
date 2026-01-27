@@ -18,11 +18,9 @@
     "tool:gemini",
     "context:essential-patterns",
     "context:project-context",
-    "context:quick-start",
     "context:core/*",
     "context:project-intelligence/*",
     "context:to-be-consumed/*",
-    "context:adding-skill",
     "config:env-example",
     "config:readme"
   ]

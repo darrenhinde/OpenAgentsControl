@@ -29,6 +29,7 @@
         ],
         "dependencies": [
           "context:standards-code",
+          "context:component-planning",
           "subagent:build-agent",
           "subagent:coder-agent",
           "subagent:contextscout",
@@ -164,7 +165,9 @@
         "path": ".opencode/agent/eval-runner.md",
         "description": "Test harness for evaluation framework - DO NOT USE DIRECTLY",
         "tags": [],
-        "dependencies": [],
+        "dependencies": [
+          "context:component-planning"
+        ],
         "category": "standard"
       },
       {
@@ -1678,6 +1681,24 @@
         ],
         "description": "Session Management",
         "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "component-planning",
+        "name": "Component Planning",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/component-planning.md",
+        "aliases": [
+          "workflows-component-planning"
+        ],
+        "description": "Iterative component-based planning for complex features",
+        "tags": [
+          "workflows",
+          "planning",
+          "architecture",
+          "components"
+        ],
         "dependencies": [],
         "category": "standard"
       },

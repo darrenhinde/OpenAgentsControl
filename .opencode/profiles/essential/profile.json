@@ -12,7 +12,6 @@
     "tool:env",
     "context:essential-patterns",
     "context:project-context",
-    "context:quick-start",
     "context:standards-code",
     "context:standards-patterns",
     "context:standards-tests",
@@ -23,7 +22,6 @@
     "context:feature-breakdown",
     "context:workflows-review",
     "context:system-context-guide",
-    "context:adding-skill",
     "config:env-example"
   ]
 }
