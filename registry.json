@@ -373,13 +373,15 @@
         "name": "ContextScout",
         "type": "subagent",
         "path": ".opencode/agent/subagents/core/contextscout.md",
-        "description": "Get accurate context FIRST before diving deep—save time, energy, and avoid rework. ContextScout intelligently discovers and retrieves the exact context files you need with precise file paths and line ranges, so you start with the right information instead of guessing.",
+        "version": "5.1.0",
+        "description": "Get accurate context FIRST before diving deep—save time, energy, and avoid rework. ContextScout intelligently discovers and retrieves the exact context files you need with precise file paths and line ranges, so you start with the right information instead of guessing. Optimized for multi-model compatibility (Claude, Gemini, GPT-4) with 20% token reduction.",
         "tags": [
           "context",
           "search",
           "discovery",
           "navigation",
-          "subagent"
+          "subagent",
+          "optimized"
         ],
         "dependencies": [
           "command:check-context-deps",
@@ -387,7 +389,30 @@
           "context:context-system",
           "context:mvi",
           "context:structure",
-          "context:workflows"
+          "context:workflows",
+          "subagent:externalscout"
+        ],
+        "category": "core"
+      },
+      {
+        "id": "externalscout",
+        "name": "ExternalScout",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/core/externalscout.md",
+        "version": "2.0.0",
+        "description": "Fetches live, version-specific documentation for external libraries and frameworks using Context7 and other sources. Optimized with 42% token reduction and enhanced references to prompt engineering and context system docs.",
+        "tags": [
+          "external-docs",
+          "libraries",
+          "frameworks",
+          "context7",
+          "subagent",
+          "optimized"
+        ],
+        "dependencies": [
+          "skill:context7",
+          "context:prompt-engineering",
+          "context:context-system"
         ],
         "category": "core"
       },
@@ -725,6 +750,21 @@
         ],
         "dependencies": [],
         "category": "specialized"
+      },
+      {
+        "id": "context7",
+        "name": "Context7",
+        "type": "skill",
+        "path": ".opencode/skill/context7/SKILLS.MD",
+        "description": "Fetch live, version-specific documentation for external libraries and frameworks via Context7 API",
+        "tags": [
+          "documentation",
+          "external",
+          "libraries",
+          "api"
+        ],
+        "dependencies": [],
+        "category": "essential"
       }
     ],
     "contexts": [
