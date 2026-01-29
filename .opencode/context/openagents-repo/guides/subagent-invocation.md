@@ -34,7 +34,6 @@ Based on the OpenCode CLI registration, use these exact strings for `subagent_ty
 - `"Tester"` - Test authoring
 - `"Reviewer"` - Code review
 - `"Build Agent"` - Build validation
-- `"Codebase Pattern Analyst"` - Pattern analysis
 
 **System Builder Subagents**:
 - `"Domain Analyzer"` - Domain analysis
@@ -102,7 +101,6 @@ Tester
 Documentation Writer
 Coder Agent
 Build Agent
-Codebase Pattern Analyst
 Domain Analyzer
 Agent Generator
 Context Organizer
@@ -266,7 +264,6 @@ read(filePath=".opencode/context/openagents-repo/core-concepts/registry.md")
 
 1. **repo-manager.md** - Uses `ContextScout`
 2. **opencoder.md** - Check if uses incorrect format
-3. **codebase-agent.md** - Check if uses incorrect format
 
 ### Fix Process
 
@@ -303,7 +300,6 @@ available_types = [
   "Reviewer",
   "Coder Agent",
   "Build Agent",
-  "Codebase Pattern Analyst",
   "Image Specialist",
   "Domain Analyzer",
   "Agent Generator",

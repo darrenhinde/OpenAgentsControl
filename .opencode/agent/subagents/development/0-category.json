@@ -1,0 +1,32 @@
+{
+  "name": "Development Specialists",
+  "description": "Domain-specific development subagents for frontend, backend, and DevOps tasks",
+  "icon": "💻",
+  "order": 3,
+  "status": "active",
+  "agents": {
+    "frontend-specialist": {
+      "description": "Expert in React, Vue, and modern CSS architecture",
+      "commonSubagents": [
+        "subagents/code/coder-agent",
+        "subagents/code/tester",
+        "subagents/code/reviewer"
+      ],
+      "commonTools": [],
+      "commonContext": [
+        "core/standards/code",
+        "ui/web/react-patterns"
+      ]
+    },
+    "devops-specialist": {
+      "description": "Expert in CI/CD, infrastructure as code, and deployment automation",
+      "commonSubagents": [
+        "subagents/code/build-agent"
+      ],
+      "commonTools": [],
+      "commonContext": [
+        "core/standards/code"
+      ]
+    }
+  }
+}

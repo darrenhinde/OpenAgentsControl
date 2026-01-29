@@ -1,31 +1,64 @@
 <div align="center">
 
-# OpenAgents Control
+![OpenAgents Control Hero](docs/images/hero-image.png)
+
+# OpenAgents Control (AOC)
 
 ### AI agent framework for plan-first development workflows with approval-based execution
-
-[![GitHub stars](https://img.shields.io/github/stars/darrenhinde/OpenAgentsControl?style=social)](https://github.com/darrenhinde/OpenAgentsControl/stargazers)
-[![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/DarrenBuildsAI?style=social)](https://x.com/DarrenBuildsAI)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub last commit](https://img.shields.io/github/last-commit/darrenhinde/OpenAgentsControl)](https://github.com/darrenhinde/OpenAgentsControl/commits/main)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/contributing/CONTRIBUTING.md)
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/darrenhinde)
 
 **Multi-language support:** TypeScript • Python • Go • Rust  
 **Features:** Automatic testing • Code review • Validation
 
-> **🚀 Future Plans:** Currently optimized for OpenCode CLI. Support for other AI coding tools (Cursor, Claude Code, etc.) will be added after stabilizing the OpenCode integration.
+[![GitHub stars](https://img.shields.io/github/stars/darrenhinde/OpenAgentsControl?style=flat-square&logo=github&labelColor=black&color=ffcb47)](https://github.com/darrenhinde/OpenAgentsControl/stargazers)
+[![X Follow](https://img.shields.io/twitter/follow/DarrenBuildsAI?style=flat-square&logo=x&labelColor=black&color=1DA1F2)](https://x.com/DarrenBuildsAI)
+[![License: MIT](https://img.shields.io/badge/License-MIT-3fb950?style=flat-square&labelColor=black)](https://opensource.org/licenses/MIT)
+[![Last Commit](https://img.shields.io/github/last-commit/darrenhinde/OpenAgentsControl?style=flat-square&labelColor=black&color=8957e5)](https://github.com/darrenhinde/OpenAgentsControl/commits/main)
+
+[🚀 Quick Start](#get-started-in-5-minutes) • [📖 Documentation](#how-it-works) • [🎥 Demo Video](https://youtu.be/EOIzFMdmox8) • [💬 Community](https://nextsystems.ai)
 
 </div>
 
-[![Watch Demo](https://img.youtube.com/vi/EOIzFMdmox8/maxresdefault.jpg)](https://youtu.be/EOIzFMdmox8?si=4ZSsVlAkhMxVmF2R)
+## Why I Built This
 
-> **Note:** This repository has evolved since the demo video with continuous improvements to make it easier for others to use in their projects. The core concepts remain the same, but installation and component organization have been streamlined.
+I've spent 14+ years shipping production software. I've watched AI agents burn through thousands of tokens generating code that doesn't match your project, doesn't follow your patterns, and doesn't actually work without heavy refactoring.
 
-> 📹 **Following along with the video?** The simplified structure shown in the tutorial is available on the [`video-simple`](https://github.com/darrenhinde/OpenAgentsControl/tree/video-simple) branch.
+**The problem**: Most AI agents are like hiring a developer who doesn't know your codebase. They write generic code. You spend hours rewriting, refactoring, and fixing inconsistencies. Tokens burned. Time wasted. No actual work done.
 
+**This system solves that**: AOC teaches agents your patterns upfront. They understand your coding standards, your architecture, your security requirements. They propose plans before implementing. They execute incrementally with validation. The result: **code that actually ships to production without heavy rework**.
 
-## Why Use This?
+This isn't a gimmick project. I use this every day to ship real production code. It works because it respects two things:
+1. **Your time** - Agents propose plans, you approve before execution
+2. **Your patterns** - Agents follow your standards automatically
+
+**The result**: Production-ready code, not throwaway prototypes. No rework. No refactoring. Just ship.
+
+**Full-stack development**: AOC handles both frontend and backend work. No need for separate developers—the agents coordinate to build complete features from UI to database.
+
+---
+
+## What Is AOC?
+
+AOC is a **framework for AI-assisted development** that combines:
+- **Plan-first workflows** - Agents propose plans before implementing
+- **Context-aware execution** - Agents follow YOUR coding standards
+- **Incremental validation** - Step-by-step implementation with quality checks
+
+Think of it as having a senior developer who understands your project's patterns and asks for approval before making changes.
+
+**Key insight**: The context system (your coding standards) is the secret weapon. Agents automatically load and follow your patterns, so code is consistent without manual configuration.
+
+---
+
+## Quick Navigation
+
+- **New here?** → [What Is AOC?](#what-is-aoc) → [Get Started](#get-started-in-5-minutes)
+- **Want to understand the system?** → [How It Works](#how-it-works) → [Context System](#-the-context-system-your-secret-weapon)
+- **Ready to install?** → [Installation](#installation)
+- **Building something?** → [Example Workflows](#example-workflows)
+
+---
+
+## Why Use AOC?
 
 - ✅ **Multi-language support** - Works with TypeScript, Python, Go, Rust, and more
 - ✅ **Plan-first workflow** - Agents propose plans before implementing
@@ -35,148 +68,148 @@
 
 ---
 
-## Quick Start
+## Get Started in 5 Minutes
 
-### Step 1: Install OpenCode CLI (Follow official guide)
-```bash
-https://opencode.ai/docs# 
-```
-### Step 2: Install Agents & Commands
-
-**Option A: Interactive Installer**
-
-> **Note:** Interactive mode requires downloading the script first (can't run through pipe)
-
-<details open>
-<summary><b>macOS / Linux</b></summary>
+**One command. That's it.**
 
 ```bash
-# Download the installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
-
-# Run interactively
-bash install.sh
-```
-</details>
-
-<details>
-<summary><b>Windows (Git Bash)</b></summary>
-
-```bash
-# Download the installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
-
-# Run interactively
-bash install.sh
-```
-</details>
-
-<details>
-<summary><b>Windows (PowerShell)</b></summary>
-
-```powershell
-# Download the script
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh" -OutFile "install.sh"
-
-# Run with Git Bash
-& "C:\Program Files\Git\bin\bash.exe" install.sh
-
-# Or run with WSL
-wsl bash install.sh
-```
-
-> **Note:** Git Bash comes with Git for Windows. [Download here](https://git-scm.com/download/win)
-</details>
-
-The installer offers:
-- 🎯 **Quick Profiles**: Essential, Developer, Business, Full, or Advanced
-- 🎨 **Custom Selection**: Pick exactly what you need
-- 📦 **Smart Dependencies**: Auto-installs required components
-- ✨ **Interactive Menus**: User-friendly component browser
-- 🛡️ **Collision Detection**: Safely handles existing files with 4 strategies (skip/overwrite/backup/cancel)
-- 🖥️ **Cross-Platform**: Works on macOS, Linux, and Windows (Git Bash/WSL)
-
-> **Updating?** The installer detects existing files and lets you choose: skip existing (keep your changes), overwrite all (get latest), or backup & overwrite (safe update). [Learn more](docs/getting-started/collision-handling.md)
-
-**Option B: Profile-Based Install (Recommended)**
-
-> **Fastest method:** One command, no interaction needed
-
-<details open>
-<summary><b>macOS / Linux / Git Bash / WSL</b></summary>
-
-```bash
-# Essential - Minimal essentials (23 components)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s essential
-
-# Developer - Recommended for daily work (37 components)
+# Quick install (developer profile)
 curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
-
-# Business - Business automation and content creation (23 components)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s business
-
-# Full - Everything included (39 components)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s full
-
-# Advanced - Full + System Builder (48 components)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s advanced
 ```
-</details>
 
-<details>
-<summary><b>Windows PowerShell</b></summary>
-
-```powershell
-# Download script
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh" -OutFile "install.sh"
-
-# Essential profile
-& "C:\Program Files\Git\bin\bash.exe" install.sh essential
-
-# Developer profile
-& "C:\Program Files\Git\bin\bash.exe" install.sh developer
-
-# Business profile
-& "C:\Program Files\Git\bin\bash.exe" install.sh business
-
-# Full profile
-& "C:\Program Files\Git\bin\bash.exe" install.sh full
-
-# Advanced profile
-& "C:\Program Files\Git\bin\bash.exe" install.sh advanced
-```
-</details>
-
-> **New!** The `advanced` profile includes the **System Builder** - an interactive tool that generates complete custom AI systems tailored to your domain. [Learn more](docs/features/system-builder/)
-
-**Option C: Manual Install**
+**Or use interactive installer:**
 ```bash
-# Clone this repository
+# Download the installer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
+
+# Run interactively
+bash install.sh
+```
+
+Then start building:
+```bash
+opencode --agent OpenAgent
+> "Create a user authentication system"
+```
+
+**What happens:**
+1. Analyzes your request
+2. Proposes a plan (you approve)
+3. Executes step-by-step with validation
+4. Delegates to specialists when needed
+5. Ships production-ready code
+
+**That's the entire workflow.** No complex setup. No configuration. Just ship code.
+
+---
+
+## Recommended for New Users
+
+**Start with `OpenAgent`** - a lightweight, versatile agent perfect for getting started. It handles multiple task types and is ideal for learning the system.
+
+```bash
+opencode --agent OpenAgent
+> "Create a user authentication system"            # Building features
+> "How do I implement authentication in Next.js?"  # Questions
+> "Create a README for this project"               # Documentation
+> "Explain the architecture of this codebase"      # Analysis
+```
+
+OpenAgent is a streamlined version that can handle most tasks while you learn the workflow. It automatically delegates to specialists when needed.
+
+**Ready for advanced workflows?** Upgrade to `OpenCoder`:
+
+```bash
+opencode --agent OpenCoder
+> "Create a user authentication system"                 # Full-stack features
+> "Refactor this codebase to use dependency injection"  # Multi-file refactoring
+> "Add real-time notifications with WebSockets"         # Complex implementations
+```
+
+OpenCoder is the full-featured development agent with rigorous workflows: Discover context → Propose plan → Get approval → Execute incrementally → Validate → Ship. It provides deeper context management, session tracking, and more sophisticated delegation to specialists (TaskManager, TestEngineer, CodeReviewer).
+
+**Learn more:** 
+- [OpenAgent Guide](docs/agents/openagent.md) - Lightweight, versatile agent for getting started
+- [OpenCoder Guide](docs/agents/opencoder.md) - Advanced development workflows
+
+---
+
+## Installation
+
+### Prerequisites
+- **OpenCode CLI** - [Install here](https://opencode.ai/docs)
+- **Bash 3.2+** (macOS default works)
+- **Git** (for cloning)
+
+### Install AOC
+
+**Recommended: One-line install**
+```bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
+```
+
+**Alternative: Interactive installer**
+```bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
+bash install.sh
+```
+
+**Manual install**
+```bash
 git clone https://github.com/darrenhinde/OpenAgentsControl.git
 cd OpenAgentsControl
-
-# Install to OpenCode directory (global)
 mkdir -p ~/.opencode
 cp -r .opencode/agent ~/.opencode/
 cp -r .opencode/command ~/.opencode/
 cp -r .opencode/context ~/.opencode/
 ```
 
-### Step 3: Start Building
+### Start Using It
 ```bash
-# Start the universal agent (recommended for new users)
 opencode --agent OpenAgent
-
-# Ask questions or request tasks
-> "Create a React todo list with TypeScript"
+> "Create a user authentication system"
 ```
 
-**What happens next:**
-1. OpenAgent analyzes your request (question or task)
-2. For tasks: proposes a plan and asks for approval
-3. Executes step-by-step with validation
-4. Delegates to specialists (@task-manager, @tester, @reviewer) when needed
-5. Confirms completion and offers cleanup
+---
+
+## 🌟 Liking This Project?
+
+<div align="center">
+
+**Join the community and stay updated with the latest AI development workflows!**
+
+[![YouTube](https://img.shields.io/badge/YouTube-Darren_Builds_AI-red?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/@DarrenBuildsAI)
+[![Community](https://img.shields.io/badge/Community-NextSystems.ai-blue?style=for-the-badge&logo=discourse&logoColor=white)](https://nextsystems.ai)
+[![X/Twitter](https://img.shields.io/badge/Follow-@DarrenBuildsAI-1DA1F2?style=for-the-badge&logo=x&logoColor=white)](https://x.com/DarrenBuildsAI)
+[![Buy Me A Coffee](https://img.shields.io/badge/Support-Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/darrenhinde)
+
+**📺 Tutorials & Demos** • **💬 Join Waitlist** • **🐦 Latest Updates** • **☕ Support Development**
+
+*Your support helps keep this project free and open-source!*
+
+</div>
+
+---
+
+## Setup & Installation FAQ
+
+**Q: Does this work on Windows?**  
+A: Yes! Use Git Bash (recommended) or WSL. See [Platform Compatibility Guide](docs/getting-started/platform-compatibility.md) for details.
+
+**Q: What bash version do I need?**  
+A: Bash 3.2+ (works on macOS default bash). Run `bash scripts/tests/test-compatibility.sh` to check your system.
+
+**Q: Do I need to install plugins/tools?**  
+A: No, they're optional. Only install if you want Telegram notifications or Gemini AI features.
+
+**Q: Where should I install - globally or per-project?**  
+A: Global (`~/.opencode/`) works for most. Project-specific (`.opencode/`) if you need different configs per project.
+
+**Q: How do I add my own coding patterns?**  
+A: Edit `~/.opencode/context/project/project-context.md` - agents automatically load this file.
+
+**Q: What languages are supported?**  
+A: The agents work with any language (TypeScript, Python, Go, Rust, etc.) and adapt based on your project files.
 
 ---
 
@@ -213,69 +246,126 @@ User Request
 
 **Context-aware:** Agents automatically load patterns from `.opencode/context/` to follow your coding standards.
 
+**Smart discovery:** ContextScout finds relevant standards, ExternalScout fetches current library docs (preventing outdated training data issues). ExternalScout supports 18+ libraries including Drizzle, Better Auth, Next.js, TanStack, Cloudflare Workers, AWS Lambda, and more.
+
+---
+
+## 🧠 The Context System (Your Secret Weapon)
+
+### What Is Context?
+
+Context files are **your project's coding standards and patterns**. They tell agents how you write code, what libraries you use, your security requirements, and your design system.
+
+**Think of it as a style guide for AI agents.**
+
+### How It Works
+
+```
+Your Request
+    ↓
+Agent receives request
+    ↓
+ContextScout discovers relevant context files
+    ↓
+Agent loads context files
+    ↓
+Agent follows patterns from context
+    ↓
+Code matches your standards automatically
+```
+
+### Why It Matters
+
+**Without context**: You ask for a component → Agent creates it in its own style → Doesn't match your project ❌
+
+**With context**: You ask for a component → Agent loads your patterns → Creates component matching your style → Perfectly matches your project ✅
+
+### Get Started
+
+1. **Add your patterns** to `~/.opencode/context/project/project-context.md`
+2. **Include examples** of your API endpoints, components, naming conventions
+3. **Agents automatically use** these patterns in all code they generate
+
+### Learn More
+
+For a complete guide including real-world examples and best practices, see [The Context System Guide](CONTEXT_SYSTEM_GUIDE.md).
+
 ---
 
 ## What's Included
 
-### 🤖 Main Agents
-- **openagent** - Universal coordinator for general tasks, questions, and workflows (recommended default)
-- **opencoder** - Specialized development agent for complex coding, architecture, and refactoring
-- **system-builder** - Meta-level generator for creating custom AI architectures
+### 🤖 Main Agents (3 core agents)
+- **OpenCoder** - Specialized development agent for production-ready code (start here for building)
+- **OpenAgent** - Universal coordinator for general tasks, questions, and workflows
+- **SystemBuilder** - Interactive tool for generating complete custom AI systems
 
 ### 🔧 Specialized Subagents (Auto-delegated)
-
-**Core Coordination:**
-- **task-manager** - Task breakdown and planning
-- **documentation** - Documentation authoring
-
-**Code Specialists:**
-- **coder-agent** - Quick implementation tasks
+- **task-manager** - Breaks complex features into atomic subtasks
+- **coder-agent** - Focused code implementations
+- **tester** - Test authoring and TDD
 - **reviewer** - Code review and security analysis
-- **tester** - Test creation and validation
-- **build-agent** - Build and type checking
-- **codebase-pattern-analyst** - Pattern discovery
-
-**Utilities:**
-- **image-specialist** - Image generation with Gemini AI
-
-**System Builder (Meta-Level):**
-- **domain-analyzer** - Domain analysis and agent recommendations
-- **agent-generator** - XML-optimized agent generation
-- **context-organizer** - Context file organization
-- **workflow-designer** - Workflow design
-- **command-creator** - Custom command creation
+- **build-agent** - Type checking and build validation
+- **documentation** - Documentation generation
+- Plus category specialists: frontend, devops, copywriter, technical-writer, data-analyst
 
 ### ⚡ Commands
-- **/commit** - Smart git commits with conventional format
-- **/optimize** - Code optimization
-- **/test** - Testing workflows
-- **/clean** - Cleanup operations
-- **/context** - Context management
-- **/prompt-enhancer** - Improve your prompts
-- **/worktrees** - Git worktree management
-- **/validate-repo** - Validate repository consistency
+- `/commit` - Smart git commits with conventional format
+- `/test` - Testing workflows
+- `/optimize` - Code optimization
+- `/context` - Context management
+- And 7+ more productivity commands
 
-### 📚 Context Files
-- `core/essential-patterns.md` - Universal coding patterns
-- `project/project-context.md` - Your project-specific patterns
+### 📚 Context System
+Your coding standards automatically loaded by agents:
+- Code quality and security patterns
+- UI/design system standards
+- Task management workflows
+- External library integration guides
+- Your project-specific patterns
 
 ---
 
 ## Example Workflows
 
-### Build a Feature
+### Build a Full-Stack Feature
 ```bash
-opencode --agent OpenAgent
+opencode --agent OpenCoder
+> "Create a user dashboard with authentication and profile settings"
+
+# OpenCoder will:
+# 1. Discover context (loads your auth patterns, code standards)
+# 2. Propose detailed implementation plan
+# 3. Wait for your approval
+# 4. Initialize session and persist context
+# 5. Delegate to task-manager (creates atomic task breakdown)
+#    - task-manager identifies UI and backend tasks
+#    - Suggests frontend-specialist for UI work
+#    - Includes design standards in context
+# 6. Frontend specialist executes 4-stage workflow:
+#    - Stage 1: Layout (ASCII wireframe, responsive structure)
+#    - Stage 2: Theme (design system, CSS theme file)
+#    - Stage 3: Animation (micro-interactions, timing)
+#    - Stage 4: Implementation (single HTML file, design_iterations/)
+# 7. Execute full-stack implementation (frontend + backend)
+# 8. Delegate to tester for tests and reviewer for security
+# 9. Validate and handoff production-ready code
+```
+
+### Build a Backend Feature
+```bash
+opencode --agent OpenCoder
 > "Create a user authentication system with email/password"
 
-# OpenAgent will:
-# 1. Analyze the request (complex task)
-# 2. Propose implementation plan
+# OpenCoder will:
+# 1. Discover context (loads auth-patterns.md, code-quality.md)
+# 2. Propose implementation plan with component breakdown
 # 3. Wait for your approval
-# 4. Delegate to @task-manager (creates task breakdown)
-# 5. Coordinate implementation step-by-step
-# 6. Use @tester for tests and @reviewer for security
-# 7. Validate, summarize, and confirm completion
+# 4. Initialize session (.tmp/sessions/YYYY-MM-DD-auth-system/)
+# 5. Delegate to task-manager for atomic task breakdown
+# 6. Execute incrementally (one component at a time)
+# 7. Validate after each step (type check, lint, test)
+# 8. Delegate to tester and reviewer
+# 9. Ship production-ready code
 ```
 
 ### Make a Commit
@@ -304,6 +394,55 @@ nano ~/.opencode/context/project/project-context.md
 
 # Agents will automatically use these patterns!
 ```
+
+---
+
+## Feature Deep Dives
+
+The following sections provide detailed information about advanced features. New users can skip to [Advanced Features FAQ](#advanced-features-faq) and return to these as needed.
+
+---
+
+## 🎨 Frontend Design Workflow
+
+The **OpenFrontendSpecialist** follows a structured 4-stage design workflow for UI-heavy features:
+
+**4-Stage Process:**
+1. **Layout** - ASCII wireframe, responsive structure planning (mobile-first)
+2. **Theme** - Design system selection (Tailwind + Flowbite), OKLCH colors, typography
+3. **Animation** - Micro-interactions, timing (<400ms), accessibility (prefers-reduced-motion)
+4. **Implementation** - Single HTML file, semantic markup, saved to `design_iterations/`
+
+**Key Features:**
+- Approval gates at each stage
+- Design versioning (`design_1.html`, `design_1_1.html`, `design_2.html`)
+- Mobile-first responsive design (375px, 768px, 1024px, 1440px)
+- TaskManager auto-detects UI tasks and suggests OpenFrontendSpecialist
+
+**Learn more:** [Frontend Design Workflow Guide](docs/features/frontend-design-workflow.md)
+
+---
+
+## 📋 Task Management & Breakdown
+
+The **TaskManager** breaks complex features into atomic, verifiable subtasks with smart agent suggestions and parallel execution support.
+
+**Key Capabilities:**
+- **Atomic Decomposition** - Tasks completable in 1-2 hours
+- **Dependency Tracking** - Explicit dependencies via `depends_on`
+- **Parallel Execution** - Frontend and backend work simultaneously
+- **Agent Suggestions** - Auto-recommends best agent (e.g., OpenFrontendSpecialist for UI)
+- **Context Boundaries** - Separates standards from source material
+- **CLI Integration** - Status tracking and validation
+
+**Workflow:**
+1. **Plan** - Analyzes feature and creates task breakdown
+2. **Suggest** - Recommends best agent for each task
+3. **Execute** - Agents work with clear context boundaries (parallel where possible)
+4. **Verify** - Validates completion against acceptance criteria
+5. **Track** - CLI shows progress and next available tasks
+
+**Learn more:** [Task Management Guide](docs/features/task-management.md)
 
 ---
 
@@ -349,155 +488,22 @@ Purpose: Automate order processing and customer support
 
 ---
 
-## Optional Add-ons
-
-### 📱 Telegram Notifications
-Get notified when OpenCode sessions go idle.
-
-```bash
-# Copy plugin directory
-cp -r .opencode/plugin ~/.opencode/
-
-# Install dependencies
-cd ~/.opencode/plugin
-npm install
-
-# Configure
-cd ~/OpenAgentsControl
-cp env.example .env
-# Edit .env with TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID
-```
-
-**Get credentials:** Message @BotFather on Telegram → `/newbot` → Save token
-
-See [`.opencode/plugin/README.md`](.opencode/plugin/README.md) for detailed documentation.
-
-### 🎨 Gemini AI Image Tools
-Generate and edit images using Gemini AI.
-
-```bash
-# Copy tool directory
-cp -r .opencode/tool ~/.opencode/
-
-# Install dependencies
-cd ~/.opencode/tool
-npm install
-
-# Configure
-cd ~/OpenAgentsControl
-cp env.example .env
-# Edit .env with GEMINI_API_KEY
-```
-
-**Get API key:** https://makersuite.google.com/app/apikey
-
-### 🤖 Use with Claude Code (Beta)
-
-> **⚠️ Beta Feature** - This integration allows Claude Code to understand and use OpenAgents Control standards. Works with Claude Code v2.1.6+
-
-OpenAgents Control includes a bridge that makes Claude Code automatically load context files and follow your coding patterns.
-
-<details>
-<summary><b>For This Repository (Contributors)</b></summary>
-
-If you're working **on** this repository and want Claude Code to understand OpenAgents Control:
-
-```bash
-cd /path/to/opencode-agents
-claude
-```
-
-Claude will automatically:
-- Load the `openagents-standards` Skill
-- Use `context-scout` to find relevant context files
-- Apply OpenAgents Control standards to any task
-
-**If it doesn't auto-trigger**, restart Claude Code and start your request with:
-```
-[Use OpenAgents Control standards]
-```
-
-</details>
-
-<details>
-<summary><b>For Your Own OpenAgents Control Projects</b></summary>
-
-If you've set up OpenAgents Control in your own project and want Claude Code support:
-
-```bash
-# One-line installer (recommended)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/integrations/claude-code/install-claude.sh | bash
-
-# Use with Claude Code
-claude --plugin-dir ~/.claude/plugins/openagents-bridge
-```
-
-**Prereqs**: `git`, `bash`, `node`
-
-**Verify Claude Code**:
-```bash
-claude --version
-```
-
-**Manual install (if you already cloned this repo):**
-```bash
-cd /path/to/opencode-agents/integrations/claude-code
-./install-claude.sh
-```
-
-**How it works:**
-- The installer automatically converts your `.opencode/` files to Claude format
-- Converts agents, subagents, and creates context-scout skill
-- Claude automatically discovers and follows your patterns
-- No duplication - works with your existing OpenAgents Control setup
-
-</details>
-
-<details>
-<summary><b>CLI Reference</b></summary>
-
-| Command | Description |
-|---------|-------------|
-| `claude` | Start interactive session |
-| `claude "request"` | One-shot request |
-| `claude --plugin-dir ~/.claude/plugins/openagents-bridge` | Load with OpenAgents Control plugin |
-| `claude --print-plugins` | Show loaded plugins |
-| `claude --debug` | Debug mode (shows plugin loading) |
-
-**Manual workaround** if plugin doesn't trigger:
-```
-"Load context from .opencode/context/ then help me create a new agent"
-```
-
-</details>
-
----
-
-## Common Questions
+## Advanced Features FAQ
 
 **Q: What's the main way to use this?**  
-A: Use `opencode --agent OpenAgent` as your default for general tasks and questions. For complex multi-file coding work, use `opencode --agent OpenCoder`. Both coordinate with specialists as needed.
-
-**Q: Does this work on Windows?**  
-A: Yes! Use Git Bash (recommended) or WSL. See [Platform Compatibility Guide](docs/getting-started/platform-compatibility.md) for details.
-
-**Q: What bash version do I need?**  
-A: Bash 3.2+ (works on macOS default bash). Run `bash scripts/tests/test-compatibility.sh` to check your system.
-
-**Q: Do I need to install plugins/tools?**  
-A: No, they're optional. Only install if you want Telegram notifications or Gemini AI features.
-
-**Q: Where should I install - globally or per-project?**  
-A: Global (`~/.opencode/`) works for most. Project-specific (`.opencode/`) if you need different configs per project.
-
-**Q: How do I add my own coding patterns?**  
-A: Edit `~/.opencode/context/project/project-context.md` - agents automatically load this file.
-
-**Q: What languages are supported?**  
-A: The agents work with any language (TypeScript, Python, Go, Rust, etc.) and adapt based on your project files.
+A: Use `opencode --agent OpenCoder` for building features and production code. For general questions, documentation, or simple tasks, use `opencode --agent OpenAgent`. Both coordinate with specialists as needed.
 
 **Q: What's the Agent System Blueprint for?**  
 A: It's a teaching document explaining architecture patterns and how to extend the system. See [docs/features/agent-system-blueprint.md](docs/features/agent-system-blueprint.md)
+
+**Q: How does the frontend design workflow work?**  
+A: The frontend-specialist agent follows a 4-stage workflow: Layout (wireframe) → Theme (design system) → Animation (micro-interactions) → Implementation (HTML). Each stage has approval gates. See the [Frontend Design Workflow](#-frontend-design-workflow) section above.
+
+**Q: What's ExternalScout?**  
+A: ExternalScout fetches current documentation for external libraries (Tailwind, React, etc.) to prevent outdated training data issues. ContextScout uses it automatically when needed.
+
+**Q: How does task-manager suggest agents?**  
+A: The task-manager analyzes each task and sets a `suggested_agent` field. For UI tasks, it suggests frontend-specialist and includes design context files automatically.
 
 **Q: Can I use just one command or agent?**  
 A: Yes! Use the installer's list feature to see all components:
@@ -512,115 +518,6 @@ mkdir -p ~/.opencode/agent/core
 # Download specific agent
 curl -o ~/.opencode/agent/core/opencoder.md \
   https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/.opencode/agent/core/opencoder.md
-```
-
----
-
-## Installation Profiles
-
-The installer offers five pre-configured profiles:
-
-### 🎯 Essential (Minimal - 23 components)
-Minimal starter kit - universal agent with core subagents.
-- **Agents**: openagent
-- **Subagents**: task-manager, documentation
-- **Commands**: context, clean
-- **Tools**: env
-- **Context**: essential-patterns, project-context
-- **Config**: env-example
-- **Best for**: Learning the system, lightweight tasks, minimal setup
-
-### 💼 Developer (Recommended - 37 components)
-Complete software development environment with code generation, testing, review, build tools, and visual content creation.
-- Everything in Essential, plus:
-- **Agents**: opencoder, frontend-specialist, backend-specialist, devops-specialist, codebase-agent
-- **Subagents**: coder-agent, reviewer, tester, build-agent, codebase-pattern-analyst, image-specialist
-- **Commands**: commit, test, optimize, validate-repo
-- **Tools**: gemini (AI image generation)
-- **Context**: All core standards and workflows, plus visual development (UI styling, design systems, design assets, animation patterns)
-- **Config**: readme
-- **Best for**: Most developers, daily use, full-featured development with visual content creation
-
-### 📊 Business (23 components)
-Business process automation, content creation, and visual workflows.
-- **Agents**: openagent, copywriter, technical-writer, data-analyst
-- **Subagents**: task-manager, documentation, image-specialist
-- **Commands**: context, clean, prompt-enhancer
-- **Tools**: env, gemini (AI image generation)
-- **Context**: essential-patterns, project-context, and all core standards
-- **Config**: env-example, readme
-- **Best for**: Business automation, content creation, non-developers
-
-### 📦 Full (39 components)
-Everything included - all agents, subagents, and tools for maximum functionality.
-- Everything in Developer and Business combined, plus:
-- **Commands**: worktrees (git worktree management), validate-repo
-- **Best for**: Power users, exploring all features
-
-### 🚀 Advanced (48 components)
-Full installation plus **System Builder** for creating custom AI architectures.
-- Everything in Full, plus:
-- **Agents**: system-builder
-- **System Builder Subagents**: domain-analyzer, agent-generator, context-organizer, workflow-designer, command-creator
-- **Commands**: build-context-system
-- **Best for**: Building custom AI systems, contributors, learning the architecture
-
-## Updating Components
-
-Keep your components up to date:
-
-```bash
-# Update all installed components
-./update.sh
-
-# Or re-run the installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash
-```
-
----
-
-## Advanced
-
-### Understanding the System
-Read [Agent System Blueprint](docs/features/agent-system-blueprint.md) to learn:
-- How context loading works (the `@` symbol)
-- Agent architecture patterns
-- How to create custom agents and commands
-- How to extend the system for your needs
-
-### Safety & Security
-- **Approval-first workflow** - Agents propose plans before execution
-- **Configurable permissions** - Granular control over agent capabilities
-- **Secure credentials** - Environment variables for sensitive data
-- **Input sanitization** - Protection against injection attacks
-
-### Project Structure
-```
-.opencode/
-├── agent/              # AI agents (category-based)
-│   ├── core/                    # Core system agents
-│   │   ├── openagent.md        # Universal orchestrator
-│   │   └── opencoder.md        # Development specialist
-│   ├── meta/                    # Meta-level agents
-│   │   └── system-builder.md   # System architect
-│   ├── development/            # Development specialists
-│   │   ├── frontend-specialist.md
-│   │   ├── backend-specialist.md
-│   │   └── devops-specialist.md
-│   ├── content/               # Content creation
-│   │   ├── copywriter.md
-│   │   └── technical-writer.md
-│   ├── data/                  # Data & analysis
-│   │   └── data-analyst.md
-│   └── subagents/             # Specialized helpers
-├── command/            # Slash commands
-│   ├── commit.md
-│   └── optimize.md
-├── context/            # Coding patterns
-│   ├── core/           # Essential patterns
-│   └── project/        # Your patterns
-├── plugin/             # Optional: Telegram
-└── tool/               # Optional: Gemini AI
 ```
 
 ---
@@ -644,38 +541,5 @@ This project is licensed under the MIT License.
 
 ---
 
-## Recommended for New Users
-
-**Start with `OpenAgent`** - your universal coordinator for general tasks, questions, and workflows. It follows a systematic 6-stage workflow (Analyze → Approve → Execute → Validate → Summarize → Confirm) and automatically delegates to specialized subagents when needed.
-
-```bash
-opencode --agent OpenAgent
-> "How do I implement authentication in Next.js?"  # Questions
-> "Create a user authentication system"            # Simple tasks
-> "Create a README for this project"               # Documentation
-```
-
-OpenAgent will guide you through with a plan-first, approval-based approach. For questions, you get direct answers. For tasks, you see the plan before execution.
-
-**For complex coding work**, use `OpenCoder`:
-
-```bash
-opencode --agent OpenCoder
-> "Refactor this codebase to use dependency injection"  # Multi-file refactoring
-> "Analyze the architecture and suggest improvements"   # Architecture analysis
-```
-
-**Learn more:** 
-- [OpenAgent Guide](docs/agents/openagent.md) - General tasks and coordination
-- [OpenCoder Guide](docs/agents/opencoder.md) - Specialized development work
-
----
-## Support & Connect
-
-If this helped you out, I'd love to hear about it!
-
-- **Follow on X**: [@DarrenBuildsAI](https://x.com/DarrenBuildsAI) - I post updates on AI agents and OpenCode workflows.
-- **Support the Work**: [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/darrenhinde)
-
-Totally optional, but appreciated.
+**Made with ❤️ by developers, for developers. Star the repo if this helped you ship better code!**
 

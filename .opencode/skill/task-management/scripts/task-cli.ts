@@ -44,6 +44,7 @@ interface Task {
   status: 'active' | 'completed' | 'blocked' | 'archived';
   objective: string;
   context_files: string[];
+  reference_files?: string[];
   exit_criteria: string[];
   subtask_count: number;
   completed_count: number;
@@ -59,9 +60,11 @@ interface Subtask {
   depends_on: string[];
   parallel: boolean;
   context_files: string[];
+  reference_files?: string[];
   acceptance_criteria: string[];
   deliverables: string[];
   agent_id: string | null;
+  suggested_agent?: string;
   started_at: string | null;
   completed_at: string | null;
   completion_summary: string | null;

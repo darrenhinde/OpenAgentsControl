@@ -3,6 +3,64 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+### Documentation
+- Updated README.md and QUICK_START.md for v0.6.0 accuracy
+  - Updated version from 0.1.0-alpha.1 to 0.6.0
+  - Added OpenImplementer agent to main agents list
+  - Completed commands list with /analyze-patterns, /commit-openagents, /build-context-system
+  - Highlighted ExternalScout with 18+ supported libraries
+  - Updated installation profiles to mention new agents
+
+## [0.6.0] - 2026-01-28
+
+### Added
+- **ExternalScout Subagent**: New subagent for fetching live, version-specific documentation for external libraries via Context7 API
+  - Supports 18+ libraries: Drizzle, Better Auth, Next.js, TanStack, Cloudflare Workers, AWS Lambda, and more
+  - Lazy-loads query patterns for specific libraries only
+  - Filters and formats results by relevance
+  - Fallback to official docs via webfetch
+  - Added to registry with `skill:context7` dependency
+
+- **Context7 Skill**: Registered in system for external documentation fetching
+  - Path: `.opencode/skill/context7/SKILLS.MD`
+  - Library registry: `.opencode/skill/context7/library-registry.md`
+  - Navigation guide: `.opencode/skill/context7/navigation.md`
+
+### Changed
+- **ContextScout v5.1.0**: Optimized with research-backed prompt engineering patterns
+  - Critical rules moved to first 15% of prompt (position sensitivity)
+  - Added 3-tier execution priority system
+  - 20% token reduction via visual operators (→, |, @refs)
+  - Simplified XML structure (4% XML vs 40%) for multi-model compatibility (Claude, Gemini, GPT-4)
+  - Added external library detection and ExternalScout recommendation
+  - Added dependency: `subagent:externalscout`
+  - 100% behavior preservation
+
+- **ExternalScout v2.0.0**: Optimized with research-backed prompt engineering patterns
+  - 42% token reduction via visual operators and inline mappings
+  - Critical rules moved to first 15% of prompt
+  - Added 3-tier execution priority system
+  - Added references to prompt engineering docs and context system
+  - Enhanced workflow structure with checkpoints
+  - Added dependencies: `context:prompt-engineering`, `context:context-system`
+  - 100% behavior preservation
+
+- **Registry Updates**:
+  - Updated ContextScout description to mention multi-model optimization
+  - Updated ExternalScout description to mention token reduction
+  - Added version numbers to both subagents
+  - Added "optimized" tag to both subagents
+
+### Documentation
+- Added `.tmp/contextscout-optimization-analysis.md` - Detailed optimization metrics
+- Added `.tmp/contextscout-simplification-analysis.md` - Multi-model compatibility analysis
+- Added `.tmp/externalscout-optimization-analysis.md` - Token reduction analysis
+
+### Backup
+- Created `.opencode/agent/subagents/core/contextscout-v4-backup.md` - Original v4.0.0
+- Created `.opencode/agent/subagents/core/externalscout-v1-backup.md` - Original v1.0.0
+
 ## [0.5.5] - 2026-01-27
 
 ### Changes

@@ -96,10 +96,13 @@ cat registry.json | jq '.profiles.full.components[] | select(. == "agent:your-ag
 ### Developer Profile
 **Include**:
 - Core agents (openagent, opencoder)
-- Development specialists (frontend, backend, devops, codebase)
+- Development specialist subagents (frontend, devops)
+- OpenImplementer (openimplementer - lightweight implementation agent)
 - All code subagents (tester, reviewer, coder-agent, build-agent)
-- Dev commands (commit, test, validate-repo)
+- Dev commands (commit, test, validate-repo, analyze-patterns)
 - Dev context (standards/code, standards/tests, workflows/*)
+- Utility subagents (image-specialist for website images)
+- Tools (env, gemini for image generation)
 
 **Exclude**:
 - Content agents (copywriter, technical-writer)
@@ -322,10 +325,35 @@ Add profile validation to CI:
 | Agent Category | Essential | Developer | Business | Full | Advanced |
 |---------------|-----------|-----------|----------|------|----------|
 | core          | ✅        | ✅        | ✅       | ✅   | ✅       |
-| development   | ❌        | ✅        | ❌       | ✅   | ✅       |
+| development*  | ❌        | ✅        | ❌       | ✅   | ✅       |
 | content       | ❌        | ❌        | ✅       | ✅   | ✅       |
 | data          | ❌        | ❌        | ✅       | ✅   | ✅       |
 | meta          | ❌        | ❌        | ❌       | ❌   | ✅       |
+
+*Note: Development category includes both agents (opencoder, openimplementer) and specialist subagents (frontend, devops)
+
+---
+
+## Development Profile Changes (v2.0.0)
+
+**What Changed**:
+- frontend-specialist: Agent → Subagent (specialized executor)
+- devops-specialist: Agent → Subagent (specialized executor)
+- backend-specialist: Removed (functionality covered by opencoder)
+- codebase-pattern-analyst: Removed (replaced by analyze-patterns command)
+- analyze-patterns: New command for pattern analysis
+
+**Why**:
+- Streamlined main agents to 2 (openagent, opencoder)
+- Specialist subagents provide focused expertise when needed
+- Reduced cognitive load for new users
+- Clearer separation between main agents and specialized tools
+
+**Impact**:
+- Developer profile now has 2 main agents + 8 subagents
+- Smaller, more focused profile
+- Same capabilities, better organization
+- No breaking changes for existing workflows
 
 ---
 
@@ -337,5 +365,5 @@ Add profile validation to CI:
 
 ---
 
-**Last Updated**: 2025-12-29  
-**Version**: 0.5.1
+**Last Updated**: 2025-01-28  
+**Version**: 0.5.2
