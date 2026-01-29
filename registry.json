@@ -38,7 +38,25 @@
           "subagent:task-manager",
           "subagent:tester"
         ],
-        "category": "standard"
+        "category": "core"
+      },
+      {
+        "id": "openimplementer",
+        "name": "OpenImplementer",
+        "type": "agent",
+        "path": ".opencode/agent/core/openimplementer.md",
+        "description": "Lightweight implementation agent for focused coding tasks with direct execution, self-testing, and specialist review",
+        "tags": [
+          "implementation",
+          "focused-tasks",
+          "direct-execution",
+          "lightweight"
+        ],
+        "dependencies": [
+          "subagent:contextscout",
+          "subagent:reviewer"
+        ],
+        "category": "core"
       },
       {
         "id": "openagent",
@@ -87,46 +105,6 @@
           "subagent:command-creator"
         ],
         "category": "meta"
-      },
-      {
-        "id": "codebase-agent",
-        "name": "OpenCodebaseAgent",
-        "type": "agent",
-        "path": ".opencode/agent/development/codebase-agent.md",
-        "description": "Multi-language implementation agent for modular and functional development",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "devops-specialist",
-        "name": "OpenDevopsSpecialist",
-        "type": "agent",
-        "path": ".opencode/agent/development/devops-specialist.md",
-        "description": "Expert in CI/CD, infrastructure as code, and deployment automation",
-        "tags": [],
-        "dependencies": [],
-        "category": "development"
-      },
-      {
-        "id": "frontend-specialist",
-        "name": "OpenFrontendSpecialist",
-        "type": "agent",
-        "path": ".opencode/agent/development/frontend-specialist.md",
-        "description": "Expert in React, Vue, and modern CSS architecture",
-        "tags": [],
-        "dependencies": [],
-        "category": "development"
-      },
-      {
-        "id": "backend-specialist",
-        "name": "OpenBackendSpecialist",
-        "type": "agent",
-        "path": ".opencode/agent/development/backend-specialist.md",
-        "description": "Expert in API design, database architecture, and server-side development",
-        "tags": [],
-        "dependencies": [],
-        "category": "development"
       },
       {
         "id": "technical-writer",
@@ -283,18 +261,24 @@
         "category": "standard"
       },
       {
-        "id": "codebase-pattern-analyst",
-        "name": "PatternAnalyst",
+        "id": "frontend-specialist",
+        "name": "OpenFrontendSpecialist",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/code/codebase-pattern-analyst.md",
-        "description": "Analyzes and implements codebase patterns",
-        "tags": [
-          "patterns",
-          "analysis",
-          "architecture"
-        ],
+        "path": ".opencode/agent/subagents/development/frontend-specialist.md",
+        "description": "Expert in React, Vue, and modern CSS architecture",
+        "tags": [],
         "dependencies": [],
-        "category": "specialized"
+        "category": "development"
+      },
+      {
+        "id": "devops-specialist",
+        "name": "OpenDevopsSpecialist",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/development/devops-specialist.md",
+        "description": "Expert in CI/CD, infrastructure as code, and deployment automation",
+        "tags": [],
+        "dependencies": [],
+        "category": "development"
       },
       {
         "id": "domain-analyzer",
@@ -374,7 +358,7 @@
         "type": "subagent",
         "path": ".opencode/agent/subagents/core/contextscout.md",
         "version": "5.1.0",
-        "description": "Get accurate context FIRST before diving deep—save time, energy, and avoid rework. ContextScout intelligently discovers and retrieves the exact context files you need with precise file paths and line ranges, so you start with the right information instead of guessing. Optimized for multi-model compatibility (Claude, Gemini, GPT-4) with 20% token reduction.",
+        "description": "Get accurate context FIRST before diving deep\u2014save time, energy, and avoid rework. ContextScout intelligently discovers and retrieves the exact context files you need with precise file paths and line ranges, so you start with the right information instead of guessing. Optimized for multi-model compatibility (Claude, Gemini, GPT-4) with 20% token reduction.",
         "tags": [
           "context",
           "search",
@@ -638,8 +622,19 @@
           "context",
           "dependencies"
         ],
-        "dependencies": [
-          "subagent:codebase-pattern-analyst"
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "analyze-patterns",
+        "name": "Analyze Patterns",
+        "type": "command",
+        "path": ".opencode/command/analyze-patterns.md",
+        "description": "Analyze codebase for patterns and similar implementations",
+        "tags": [
+          "analysis",
+          "patterns",
+          "refactoring"
         ],
         "category": "standard"
       }
@@ -765,6 +760,26 @@
         ],
         "dependencies": [],
         "category": "essential"
+      },
+      {
+        "id": "context-manager",
+        "name": "Context Manager",
+        "type": "skill",
+        "path": ".opencode/skill/context/context-manager.md",
+        "description": "Comprehensive context management with 8 operations: discover, fetch, harvest, extract, compress, organize, cleanup, and process. Integrates with ContextScout and ExternalScout with lazy loading and clear guidance.",
+        "tags": [
+          "context-management",
+          "discovery",
+          "organization",
+          "cleanup",
+          "external-docs",
+          "lazy-loading"
+        ],
+        "dependencies": [
+          "subagent:contextscout",
+          "subagent:externalscout"
+        ],
+        "category": "essential"
       }
     ],
     "contexts": [
@@ -787,7 +802,7 @@
         "name": "Project Context",
         "type": "context",
         "path": ".opencode/context/project/project-context.md",
-        "description": "⛔ DEPRECATED: Replaced by project-intelligence/technical-domain.md",
+        "description": "\u26d4 DEPRECATED: Replaced by project-intelligence/technical-domain.md",
         "tags": [
           "deprecated",
           "context",
@@ -2567,6 +2582,39 @@
         ],
         "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "workflows-external-context-management",
+        "name": "External Context Management",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/external-context-management.md",
+        "description": "Complete guide to managing external context: persistence, organization, cleanup, and best practices",
+        "tags": [
+          "external-context",
+          "management",
+          "workflows",
+          "cleanup"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-external-context-integration",
+        "name": "External Context Integration",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/external-context-integration.md",
+        "description": "Integration guide for external context: how main agents fetch and pass to subagents",
+        "tags": [
+          "external-context",
+          "integration",
+          "workflows",
+          "delegation"
+        ],
+        "dependencies": [
+          "context:workflows-delegation",
+          "context:workflows-external-context-management"
+        ],
+        "category": "standard"
       }
     ],
     "config": [
@@ -2632,22 +2680,20 @@
     },
     "developer": {
       "name": "Developer",
-      "description": "Complete software development environment with code generation, testing, review, and build tools. Recommended for most developers.",
+      "description": "Complete software development environment with code generation, testing, review, and build tools. Choose OpenImplementer for focused tasks or OpenCoder for complex architecture. Recommended for most developers.",
       "badge": "RECOMMENDED",
       "components": [
         "agent:openagent",
+        "agent:openimplementer",
         "agent:opencoder",
-        "agent:frontend-specialist",
-        "agent:backend-specialist",
-        "agent:devops-specialist",
-        "agent:codebase-agent",
         "subagent:task-manager",
+        "subagent:frontend-specialist",
+        "subagent:devops-specialist",
         "subagent:documentation",
         "subagent:coder-agent",
         "subagent:reviewer",
         "subagent:tester",
         "subagent:build-agent",
-        "subagent:codebase-pattern-analyst",
         "subagent:contextscout",
         "skill:task-management",
         "command:commit",
@@ -2656,6 +2702,7 @@
         "command:clean",
         "command:optimize",
         "command:validate-repo",
+        "command:analyze-patterns",
         "tool:env",
         "context:essential-patterns",
         "context:project-context",
@@ -2705,22 +2752,20 @@
       "description": "Everything included - all agents, subagents, tools, and plugins for maximum functionality.",
       "components": [
         "agent:openagent",
+        "agent:openimplementer",
         "agent:opencoder",
         "agent:eval-runner",
-        "agent:frontend-specialist",
-        "agent:backend-specialist",
-        "agent:devops-specialist",
-        "agent:codebase-agent",
         "agent:copywriter",
         "agent:technical-writer",
         "agent:data-analyst",
         "subagent:task-manager",
+        "subagent:frontend-specialist",
+        "subagent:devops-specialist",
         "subagent:documentation",
         "subagent:coder-agent",
         "subagent:reviewer",
         "subagent:tester",
         "subagent:build-agent",
-        "subagent:codebase-pattern-analyst",
         "subagent:contextscout",
         "skill:task-management",
         "subagent:image-specialist",
@@ -2732,6 +2777,7 @@
         "command:prompt-enhancer",
         "command:worktrees",
         "command:validate-repo",
+        "command:analyze-patterns",
         "tool:env",
         "tool:gemini",
         "plugin:notify",
@@ -2753,24 +2799,22 @@
       "description": "Full installation plus System Builder for creating custom AI architectures. For power users and contributors.",
       "components": [
         "agent:openagent",
+        "agent:openimplementer",
         "agent:opencoder",
         "agent:system-builder",
         "agent:repo-manager",
         "agent:eval-runner",
-        "agent:frontend-specialist",
-        "agent:backend-specialist",
-        "agent:devops-specialist",
-        "agent:codebase-agent",
         "agent:copywriter",
         "agent:technical-writer",
         "agent:data-analyst",
         "subagent:task-manager",
+        "subagent:frontend-specialist",
+        "subagent:devops-specialist",
         "subagent:documentation",
         "subagent:coder-agent",
         "subagent:reviewer",
         "subagent:tester",
         "subagent:build-agent",
-        "subagent:codebase-pattern-analyst",
         "subagent:image-specialist",
         "subagent:context-retriever",
         "subagent:contextscout",
@@ -2789,6 +2833,7 @@
         "command:worktrees",
         "command:build-context-system",
         "command:validate-repo",
+        "command:analyze-patterns",
         "tool:env",
         "tool:gemini",
         "plugin:notify",

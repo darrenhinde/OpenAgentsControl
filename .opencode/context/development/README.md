@@ -13,7 +13,7 @@ Core coding standards and best practices for writing clean, maintainable code ac
 - Error handling patterns
 - Language-specific guidelines (JavaScript, Python, Go, Rust)
 
-**Used by**: frontend-specialist, backend-specialist, devops-specialist, codebase-agent
+**Used by**: frontend-specialist, devops-specialist, opencoder, openimplementer
 
 ### react-patterns.md
 Modern React patterns, hooks usage, and component design principles.
@@ -37,7 +37,7 @@ REST API design principles, GraphQL patterns, and API versioning strategies.
 - API versioning strategies
 - Authentication and authorization
 
-**Used by**: backend-specialist
+**Used by**: opencoder, openimplementer
 
 ## Usage
 

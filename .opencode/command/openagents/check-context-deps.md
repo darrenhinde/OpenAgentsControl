@@ -7,7 +7,7 @@ tags:
   - dependencies
   - openagents
 dependencies:
-  - subagent:codebase-pattern-analyst
+  - command:analyze-patterns
 ---
 
 # Check Context Dependencies

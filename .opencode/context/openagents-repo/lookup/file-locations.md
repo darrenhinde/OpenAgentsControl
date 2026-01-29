@@ -132,9 +132,8 @@ README.md                            # Main documentation
 
 ```
 .opencode/agent/development/frontend-specialist.md
-.opencode/agent/development/backend-specialist.md
 .opencode/agent/development/devops-specialist.md
-.opencode/agent/development/codebase-agent.md
+.opencode/agent/core/openimplementer.md
 ```
 
 ### Content Agents

@@ -22,6 +22,10 @@
     "context:feature-breakdown",
     "context:workflows-review",
     "context:system-context-guide",
-    "config:env-example"
+    "config:env-example",
+    "skill:context-manager",
+    "context:workflows-external-context-management",
+    "context:workflows-external-context-integration",
+    "context:context-system"
   ]
 }

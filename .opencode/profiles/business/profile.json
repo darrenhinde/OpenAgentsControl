@@ -22,6 +22,10 @@
     "context:project-intelligence/*",
     "context:to-be-consumed/*",
     "config:env-example",
-    "config:readme"
+    "config:readme",
+    "skill:context-manager",
+    "context:workflows-external-context-management",
+    "context:workflows-external-context-integration",
+    "context:context-system"
   ]
 }

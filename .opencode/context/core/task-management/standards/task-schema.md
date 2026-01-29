@@ -24,7 +24,8 @@ Location: `.tmp/tasks/{feature-slug}/` (at project root)
 | `name` | string | Yes | Human-readable name (max 100) |
 | `status` | enum | Yes | active / completed / blocked / archived |
 | `objective` | string | Yes | One-line objective (max 200) |
-| `context_files` | array | No | Paths to lazy-load |
+| `context_files` | array | No | **Standards paths only** — coding conventions, patterns, security rules to follow |
+| `reference_files` | array | No | **Source material only** — project files to look at (existing code, config, schemas) |
 | `exit_criteria` | array | No | Completion conditions |
 | `subtask_count` | int | No | Total subtasks |
 | `completed_count` | int | No | Done subtasks |
@@ -43,7 +44,9 @@ Location: `.tmp/tasks/{feature-slug}/` (at project root)
 | `status` | enum | Yes | pending / in_progress / completed / blocked |
 | `depends_on` | array | No | Sequence numbers of dependencies |
 | `parallel` | bool | No | True if can run alongside others |
-| `context_files` | array | No | Task-specific context |
+| `context_files` | array | No | **Standards paths only** — conventions and patterns to follow |
+| `reference_files` | array | No | **Source material only** — existing files to reference |
+| `suggested_agent` | string | No | Recommended agent for this task (e.g., OpenFrontendSpecialist) |
 | `acceptance_criteria` | array | No | Binary pass/fail conditions |
 | `deliverables` | array | No | Files to create/modify |
 | `agent_id` | string | No | Set when in_progress |
@@ -73,6 +76,38 @@ Use `task-cli.ts parallel` to find all parallelizable tasks ready to run.
 
 ---
 
+## context_files vs reference_files — The Rule
+
+These two fields serve fundamentally different purposes. **Never mix them.**
+
+| Field | Answers | Contains | Agent behavior |
+|-------|---------|----------|----------------|
+| `context_files` | "What rules do I follow?" | Standards, conventions, patterns from `.opencode/context/` | Load and apply as coding guidelines |
+| `reference_files` | "What existing code do I look at?" | Project source files, configs, schemas | Read to understand existing patterns |
+
+**Wrong** ❌ — mixing standards and source files:
+```json
+"context_files": [
+  ".opencode/context/core/standards/code-quality.md",
+  "package.json",
+  "src/existing-auth.ts"
+]
+```
+
+**Right** ✅ — clean separation:
+```json
+"context_files": [
+  ".opencode/context/core/standards/code-quality.md",
+  ".opencode/context/core/standards/security-patterns.md"
+],
+"reference_files": [
+  "package.json",
+  "src/existing-auth.ts"
+]
+```
+
+---
+
 ## Example
 
 ```json
@@ -83,7 +118,13 @@ Use `task-cli.ts parallel` to find all parallelizable tasks ready to run.
   "status": "pending",
   "depends_on": ["01"],
   "parallel": false,
-  "context_files": [".opencode/context/development/backend/auth/jwt-patterns.md"],
+  "context_files": [
+    ".opencode/context/core/standards/code-quality.md",
+    ".opencode/context/core/standards/security-patterns.md"
+  ],
+  "reference_files": [
+    "src/auth/token-utils.ts"
+  ],
   "acceptance_criteria": ["JWT tokens signed with RS256", "Tests pass"],
   "deliverables": ["src/auth/jwt.service.ts"]
 }

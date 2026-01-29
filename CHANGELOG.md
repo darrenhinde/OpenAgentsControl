@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Documentation
+- Updated README.md and QUICK_START.md for v0.6.0 accuracy
+  - Updated version from 0.1.0-alpha.1 to 0.6.0
+  - Added OpenImplementer agent to main agents list
+  - Completed commands list with /analyze-patterns, /commit-openagents, /build-context-system
+  - Highlighted ExternalScout with 18+ supported libraries
+  - Updated installation profiles to mention new agents
+
 ## [0.6.0] - 2026-01-28
 
 ### Added
