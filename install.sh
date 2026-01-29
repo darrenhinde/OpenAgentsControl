@@ -522,7 +522,7 @@ show_install_location_menu() {
     echo ""
     echo "  4) Back / Exit"
     echo ""
-    read -p "Enter your choice [1-4]: " location_choice
+    read -r -p "Enter your choice [1-4]: " location_choice
     
     case $location_choice in
         1)
@@ -537,7 +537,7 @@ show_install_location_menu() {
             ;;
         3)
             echo ""
-            read -p "Enter installation path: " custom_path
+            read -r -p "Enter installation path: " custom_path
             
             if [ -z "$custom_path" ]; then
                 print_error "No path entered"
@@ -549,7 +549,7 @@ show_install_location_menu() {
             local normalized_path
             normalized_path=$(normalize_and_validate_path "$custom_path")
             
-            if [ $? -ne 0 ]; then
+            if ! normalize_and_validate_path "$custom_path" > /dev/null; then
                 print_error "Invalid path"
                 sleep 2
                 show_install_location_menu
@@ -558,7 +558,7 @@ show_install_location_menu() {
             
             if ! validate_install_path "$normalized_path"; then
                 echo ""
-                read -p "Continue anyway? [y/N]: " continue_choice
+                read -r -p "Continue anyway? [y/N]: " continue_choice
                 if [[ ! $continue_choice =~ ^[Yy] ]]; then
                     show_install_location_menu
                     return
@@ -593,12 +593,12 @@ show_main_menu() {
     echo "  3) List Available Components"
     echo "  4) Exit"
     echo ""
-    read -p "Enter your choice [1-4]: " choice
+    read -r -p "Enter your choice [1-4]: " choice
     
     case $choice in
         1) INSTALL_MODE="profile" ;;
         2) INSTALL_MODE="custom" ;;
-        3) list_components; read -p "Press Enter to continue..."; show_main_menu ;;
+        3) list_components; read -r -p "Press Enter to continue..."; show_main_menu ;;
         4) cleanup_and_exit 0 ;;
         *) print_error "Invalid choice"; sleep 2; show_main_menu ;;
     esac
@@ -675,7 +675,7 @@ show_profile_menu() {
     
     echo "  6) Back to main menu"
     echo ""
-    read -p "Enter your choice [1-6]: " choice
+    read -r -p "Enter your choice [1-6]: " choice
     
     case $choice in
         1) PROFILE="essential" ;;
@@ -743,7 +743,7 @@ show_custom_menu() {
     echo "  $((${#categories[@]}+3))) Back to main menu"
     echo ""
     
-    read -p "Enter category numbers (space-separated) or option: " -a selections
+    read -r -p "Enter category numbers (space-separated) or option: " -a selections
     
     for sel in "${selections[@]}"; do
         if [ "$sel" -eq $((${#categories[@]}+1)) ]; then
@@ -807,7 +807,7 @@ show_component_selection() {
     done
     
     echo "Enter component numbers (space-separated), 'all' for all, or 'done' to continue:"
-    read -a selections
+    read -r -a selections
     
     for sel in "${selections[@]}"; do
         if [ "$sel" = "all" ]; then
@@ -834,7 +834,7 @@ show_component_selection() {
         resolve_dependencies "$comp"
     done
     
-    if [ ${#SELECTED_COMPONENTS[@]} -gt $original_count ]; then
+    if [ ${#SELECTED_COMPONENTS[@]} -gt "$original_count" ]; then
         print_info "Added $((${#SELECTED_COMPONENTS[@]} - original_count)) dependencies"
     fi
     
@@ -904,7 +904,7 @@ show_installation_preview() {
         print_info "Installing automatically (profile specified)..."
         perform_installation
     else
-        read -p "Proceed with installation? [Y/n]: " confirm
+        read -r -p "Proceed with installation? [Y/n]: " confirm
         
         if [[ $confirm =~ ^[Nn] ]]; then
             print_info "Installation cancelled"
@@ -981,14 +981,14 @@ get_install_strategy() {
     echo "  3) ${CYAN}Backup & overwrite${NC} - Backup existing files, then install new versions" >&2
     echo "  4) ${RED}Cancel${NC} - Exit without making changes" >&2
     echo "" >&2
-    read -p "Enter your choice [1-4]: " strategy_choice
+    read -r -p "Enter your choice [1-4]: " strategy_choice
     
     case $strategy_choice in
         1) echo "skip" ;;
         2) 
             echo "" >&2
             print_warning "This will overwrite existing files. Your changes will be lost!"
-            read -p "Are you sure? Type 'yes' to confirm: " confirm
+            read -r -p "Are you sure? Type 'yes' to confirm: " confirm
             if [ "$confirm" = "yes" ]; then
                 echo "overwrite"
             else
@@ -1389,8 +1389,8 @@ main() {
     # Apply custom install directory if specified (CLI arg overrides env var)
     if [ -n "$CUSTOM_INSTALL_DIR" ]; then
         local normalized_path
-        normalized_path=$(normalize_and_validate_path "$CUSTOM_INSTALL_DIR")
-        if [ $? -eq 0 ]; then
+        if normalize_and_validate_path "$CUSTOM_INSTALL_DIR" > /dev/null; then
+            normalized_path=$(normalize_and_validate_path "$CUSTOM_INSTALL_DIR")
             INSTALL_DIR="$normalized_path"
             if ! validate_install_path "$INSTALL_DIR"; then
                 print_warning "Installation path may have issues, but continuing..."

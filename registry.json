@@ -358,7 +358,7 @@
         "type": "subagent",
         "path": ".opencode/agent/subagents/core/contextscout.md",
         "version": "5.1.0",
-        "description": "Get accurate context FIRST before diving deep\u2014save time, energy, and avoid rework. ContextScout intelligently discovers and retrieves the exact context files you need with precise file paths and line ranges, so you start with the right information instead of guessing. Optimized for multi-model compatibility (Claude, Gemini, GPT-4) with 20% token reduction.",
+        "description": "Get accurate context FIRST before diving deep—save time, energy, and avoid rework. ContextScout intelligently discovers and retrieves the exact context files you need with precise file paths and line ranges, so you start with the right information instead of guessing. Optimized for multi-model compatibility (Claude, Gemini, GPT-4) with 20% token reduction.",
         "tags": [
           "context",
           "search",
@@ -802,7 +802,7 @@
         "name": "Project Context",
         "type": "context",
         "path": ".opencode/context/project/project-context.md",
-        "description": "\u26d4 DEPRECATED: Replaced by project-intelligence/technical-domain.md",
+        "description": "⛔ DEPRECATED: Replaced by project-intelligence/technical-domain.md",
         "tags": [
           "deprecated",
           "context",
@@ -2613,6 +2613,106 @@
         "dependencies": [
           "context:workflows-delegation",
           "context:workflows-external-context-management"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "external-libraries",
+        "name": "External Libraries Workflow",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/external-libraries.md",
+        "description": "Workflow for handling external library documentation and integration patterns",
+        "tags": [
+          "external-libraries",
+          "workflows",
+          "documentation"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "visual-development",
+        "name": "Visual Development",
+        "type": "context",
+        "path": ".opencode/context/core/visual-development.md",
+        "description": "Visual development patterns and guidelines",
+        "tags": [
+          "visual",
+          "development",
+          "patterns"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "development-readme",
+        "name": "Development README",
+        "type": "context",
+        "path": ".opencode/context/development/README.md",
+        "description": "Development context overview and guide",
+        "tags": [
+          "development",
+          "guide"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "learning-readme",
+        "name": "Learning README",
+        "type": "context",
+        "path": ".opencode/context/learning/README.md",
+        "description": "Learning resources and guides",
+        "tags": [
+          "learning",
+          "guide"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "product-readme",
+        "name": "Product README",
+        "type": "context",
+        "path": ".opencode/context/product/README.md",
+        "description": "Product context overview and guide",
+        "tags": [
+          "product",
+          "guide"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "data-readme",
+        "name": "Data README",
+        "type": "context",
+        "path": ".opencode/context/data/README.md",
+        "description": "Data context overview and guide",
+        "tags": [
+          "data",
+          "guide"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "mastra-ai-readme",
+        "name": "Mastra AI README",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/README.md",
+        "description": "Mastra AI framework documentation and guides",
+        "tags": [
+          "mastra-ai",
+          "ai",
+          "development"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "context-bundle-template",
+        "name": "Context Bundle Template",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/templates/context-bundle-template.md",
+        "description": "Template for creating context bundles",
+        "tags": [
+          "template",
+          "context",
+          "bundle"
         ],
         "category": "standard"
       }
