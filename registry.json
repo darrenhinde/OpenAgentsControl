@@ -2715,6 +2715,26 @@
           "bundle"
         ],
         "category": "standard"
+      },
+      {
+        "id": "external-libraries-workflow",
+        "name": "External Libraries Workflow",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/external-libraries-workflow.md",
+        "description": "Guide for fetching current documentation for external packages when adding agents or skills",
+        "tags": [
+          "external-libraries",
+          "workflow",
+          "agents",
+          "skills",
+          "dependencies"
+        ],
+        "dependencies": [
+          "context:external-libraries",
+          "context:adding-agent",
+          "context:adding-skill"
+        ],
+        "category": "standard"
       }
     ],
     "config": [

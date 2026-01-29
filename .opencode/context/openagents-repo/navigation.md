@@ -45,6 +45,7 @@
 | `guides/testing-subagents.md` | How to test subagents standalone | ⭐⭐⭐⭐⭐ |
 | `guides/adding-agent.md` | How to add new agents | ⭐⭐⭐⭐ |
 | `guides/testing-agent.md` | How to test agents | ⭐⭐⭐⭐ |
+| `guides/external-libraries-workflow.md` | How to handle external library dependencies | ⭐⭐⭐⭐ |
 | `guides/updating-registry.md` | How to update registry | ⭐⭐⭐ |
 | `guides/debugging.md` | How to debug issues | ⭐⭐⭐ |
 | `guides/resolving-installer-wildcard-failures.md` | Fix wildcard context install failures | ⭐⭐⭐ |
@@ -100,8 +101,9 @@
 ### For Agent Creation:
 1. Load `core-concepts/agents.md` (understand structure)
 2. Load `guides/adding-agent.md` (step-by-step)
-3. Load `examples/subagent-prompt-structure.md` (if subagent)
-4. Load `guides/testing-agent.md` (validate)
+3. **If using external libraries**: Load `guides/external-libraries-workflow.md` (fetch docs)
+4. Load `examples/subagent-prompt-structure.md` (if subagent)
+5. Load `guides/testing-agent.md` (validate)
 
 ### For Debugging:
 1. Load `guides/debugging.md` (general approach)
