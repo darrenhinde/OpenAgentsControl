@@ -52,7 +52,7 @@ list_cache() {
   
   echo ""
   echo "Cached files:"
-  find "$EXTERNAL_CONTEXT_DIR" -name "*.md" -type f | sort | while read file; do
+  find "$EXTERNAL_CONTEXT_DIR" -name "*.md" -type f | sort | while read -r file; do
     size=$(du -h "$file" | cut -f1)
     modified=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$file" 2>/dev/null || stat -c "%y" "$file" 2>/dev/null | cut -d' ' -f1-2)
     echo "  $file ($size, modified: $modified)"
@@ -95,13 +95,13 @@ cleanup_old() {
   fi
   
   local count=0
-  find "$EXTERNAL_CONTEXT_DIR" -name "*.md" -type f -mtime +$days | while read file; do
+  while IFS= read -r file; do
     print_warning "Removing: $file"
     rm "$file"
     count=$((count + 1))
-  done
+  done < <(find "$EXTERNAL_CONTEXT_DIR" -name "*.md" -type f -mtime +"$days")
   
-  if [ $count -eq 0 ]; then
+  if [ "$count" -eq 0 ]; then
     print_success "No files older than $days days found"
   else
     print_success "Removed $count old files"
@@ -119,19 +119,27 @@ regenerate_manifest() {
     return 1
   fi
   
-  # Create new manifest
-  local manifest="{\"last_updated\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"version\": \"1.0\", \"packages\": {}}"
+  # Create new manifest (placeholder for future implementation)
+  # local manifest
+  # manifest="{\"last_updated\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"version\": \"1.0\", \"packages\": {}}"
   
   # Find all packages and topics
-  find "$EXTERNAL_CONTEXT_DIR" -name "*.md" -type f | grep -v README | while read file; do
-    local package=$(basename $(dirname "$file"))
-    local topic=$(basename "$file" .md)
-    local fetched=$(stat -f "%Sm" -t "%Y-%m-%dT%H:%M:%SZ" "$file" 2>/dev/null || stat -c "%y" "$file" 2>/dev/null | cut -d' ' -f1-2)
+  find "$EXTERNAL_CONTEXT_DIR" -name "*.md" -type f | grep -v README | while read -r file; do
+    local package
+    local topic
     
-    # Extract metadata from file header
-    local source=$(grep "^source:" "$file" | cut -d: -f2- | xargs)
-    local library=$(grep "^library:" "$file" | cut -d: -f2- | xargs)
-    local official_docs=$(grep "^official_docs:" "$file" | cut -d: -f2- | xargs)
+    package=$(basename "$(dirname "$file")")
+    topic=$(basename "$file" .md)
+    
+    # Metadata extraction (placeholder for future implementation)
+    # local fetched
+    # local source
+    # local library
+    # local official_docs
+    # fetched=$(stat -f "%Sm" -t "%Y-%m-%dT%H:%M:%SZ" "$file" 2>/dev/null || stat -c "%y" "$file" 2>/dev/null | cut -d' ' -f1-2)
+    # source=$(grep "^source:" "$file" | cut -d: -f2- | xargs)
+    # library=$(grep "^library:" "$file" | cut -d: -f2- | xargs)
+    # official_docs=$(grep "^official_docs:" "$file" | cut -d: -f2- | xargs)
     
     echo "  $package/$topic.md"
   done
