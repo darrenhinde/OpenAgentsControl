@@ -194,12 +194,12 @@ jobs:
           echo "## ✅ Registry Validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if ./scripts/registry/validate-registry.sh -v > /tmp/validation-output.txt 2>&1; then
+          if python3 scripts/registry/validate-registry.py > /tmp/validation-output.txt 2>&1; then
             echo "validation=passed" >> $GITHUB_OUTPUT
             echo "✅ All registry paths are valid!" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            tail -20 /tmp/validation-output.txt >> $GITHUB_STEP_SUMMARY
+            cat /tmp/validation-output.txt >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           else
             echo "validation=failed" >> $GITHUB_OUTPUT
