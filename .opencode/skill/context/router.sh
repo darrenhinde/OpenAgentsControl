@@ -6,7 +6,7 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Show help
 show_help() {
@@ -77,7 +77,7 @@ find_project_root() {
     return 1
 }
 
-PROJECT_ROOT="$(find_project_root)"
+# PROJECT_ROOT="$(find_project_root)"
 
 # Route to appropriate operation
 OPERATION="$1"
