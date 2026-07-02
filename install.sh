@@ -1260,7 +1260,7 @@ show_post_install() {
     echo ""
     print_step "Next Steps"
     
-    echo "1. Review the installed components in ${CYAN}${INSTALL_DIR}/${NC}"
+    echo -e "1. Review the installed components in ${CYAN}${INSTALL_DIR}/${NC}"
     
     # Check if env.example was installed
     if [ -f "${INSTALL_DIR}/env.example" ] || [ -f "env.example" ]; then
