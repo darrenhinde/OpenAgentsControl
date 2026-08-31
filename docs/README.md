@@ -8,6 +8,7 @@ Welcome to the OpenAgents Control documentation! This directory contains all doc
 
 - **[Installation Guide](getting-started/installation.md)** - Complete installation guide with collision handling
 - **[Collision Handling](getting-started/collision-handling.md)** - Quick reference for install script collision strategies
+- **[Nix Home Manager Guide](getting-started/nix-home-manager.md)** - Install OAC with the flake module and configure `programs.opencode.oac`
 
 ### Features
 
@@ -50,7 +51,8 @@ docs/
 ├── README.md                           # This file
 ├── getting-started/
 │   ├── installation.md                 # Installation guide
-│   └── collision-handling.md           # Collision handling reference
+│   ├── collision-handling.md           # Collision handling reference
+│   └── nix-home-manager.md             # Nix/Home Manager flake module guide
 ├── features/
 │   ├── system-builder/
 │   │   ├── README.md                   # System builder quick start
@@ -69,6 +71,9 @@ docs/
 
 **...install OpenAgents Control**
 → [Installation Guide](getting-started/installation.md)
+
+**...install OpenAgents Control with Nix/Home Manager**
+→ [Nix Home Manager Guide](getting-started/nix-home-manager.md)
 
 **...understand collision handling**
 → [Collision Handling](getting-started/collision-handling.md)

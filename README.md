@@ -205,6 +205,25 @@ Add a login endpoint
 
 ---
 
+## For Nix Users
+
+If you use Nix, OAC includes a Home Manager flake module:
+
+```nix
+{
+  programs.opencode.oac = {
+    enable = true;
+    profile = "developer";
+  };
+}
+```
+
+Import `oac.homeManagerModules.default`, then apply with `home-manager switch --flake .#my-user`.
+
+For the full setup, available `programs.opencode.oac.*` options, context reference behavior, bootstrap files, and built-in permission settings, see [docs/getting-started/nix-home-manager.md](docs/getting-started/nix-home-manager.md).
+
+---
+
 ## 💡 The Context System: Your Secret Weapon
 
 **The problem with AI code:** It doesn't match your patterns. You spend hours refactoring.
