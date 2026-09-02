@@ -9,7 +9,7 @@
  * mapModelFromOAC('claude-sonnet-4', 'claude')
  * // => { id: 'claude-sonnet-4-20250514', exact: true }
  *
- * mapModelToOAC('gpt-4-turbo', 'cursor')
+ * mapModelToOAC('claude-sonnet-4-20250514', 'claude')
  * // => { id: 'gpt-4-turbo', exact: true }
  * ```
  */
@@ -18,7 +18,7 @@
 // Types
 // ============================================================================
 
-export type ModelPlatform = "oac" | "claude" | "cursor" | "windsurf";
+export type ModelPlatform = "oac" | "claude";
 
 /**
  * Result of a model mapping operation
@@ -66,8 +66,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     displayName: "Claude Sonnet 4",
     platformIds: {
       claude: "claude-sonnet-4-20250514",
-      cursor: "claude-sonnet-4",
-      windsurf: "claude-4-sonnet",
     },
   },
   {
@@ -76,8 +74,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     displayName: "Claude Opus 4",
     platformIds: {
       claude: "claude-opus-4-20250514",
-      cursor: "claude-opus-4",
-      windsurf: "claude-4-opus",
     },
   },
   {
@@ -86,8 +82,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     displayName: "Claude 3.5 Sonnet",
     platformIds: {
       claude: "claude-3-5-sonnet-20241022",
-      cursor: "claude-3.5-sonnet",
-      windsurf: "claude-3-5-sonnet",
     },
   },
   {
@@ -96,8 +90,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     displayName: "Claude 3 Opus",
     platformIds: {
       claude: "claude-3-opus-20240229",
-      cursor: "claude-3-opus",
-      windsurf: "claude-3-opus",
     },
   },
   {
@@ -106,8 +98,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     displayName: "Claude 3 Haiku",
     platformIds: {
       claude: "claude-3-haiku-20240307",
-      cursor: "claude-3-haiku",
-      windsurf: "claude-3-haiku",
     },
   },
 
@@ -117,8 +107,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     family: "gpt",
     displayName: "GPT-4",
     platformIds: {
-      cursor: "gpt-4",
-      windsurf: "gpt-4",
     },
   },
   {
@@ -126,8 +114,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     family: "gpt",
     displayName: "GPT-4 Turbo",
     platformIds: {
-      cursor: "gpt-4-turbo",
-      windsurf: "gpt-4-turbo",
     },
   },
   {
@@ -135,8 +121,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     family: "gpt",
     displayName: "GPT-4o",
     platformIds: {
-      cursor: "gpt-4o",
-      windsurf: "gpt-4o",
     },
   },
   {
@@ -144,8 +128,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     family: "gpt",
     displayName: "GPT-4o Mini",
     platformIds: {
-      cursor: "gpt-4o-mini",
-      windsurf: "gpt-4o-mini",
     },
   },
 
@@ -155,8 +137,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     family: "gemini",
     displayName: "Gemini Pro",
     platformIds: {
-      cursor: "gemini-pro",
-      windsurf: "gemini-pro",
     },
   },
   {
@@ -164,8 +144,6 @@ const MODEL_REGISTRY: ModelInfo[] = [
     family: "gemini",
     displayName: "Gemini 2.0 Flash",
     platformIds: {
-      cursor: "gemini-2.0-flash",
-      windsurf: "gemini-2-flash",
     },
   },
 ];
@@ -185,7 +163,7 @@ function buildLookupMaps(): {
   const platformToOac = new Map<Exclude<ModelPlatform, "oac">, Map<string, string>>();
 
   // Initialize platform maps
-  const platforms: Exclude<ModelPlatform, "oac">[] = ["claude", "cursor", "windsurf"];
+  const platforms: Exclude<ModelPlatform, "oac">[] = ["claude"];
   for (const platform of platforms) {
     platformToOac.set(platform, new Map());
   }
@@ -300,10 +278,6 @@ function isLikelyPlatformFormat(
     case "claude":
       // Claude uses date suffixes like "20250514"
       return /claude-.*-\d{8}$/.test(modelId);
-    case "cursor":
-    case "windsurf":
-      // These typically use simpler IDs
-      return !/-\d{8}$/.test(modelId);
     default:
       return false;
   }
@@ -403,10 +377,6 @@ export function getDefaultModel(platform: Exclude<ModelPlatform, "oac">): string
   switch (platform) {
     case "claude":
       return "claude-sonnet-4-20250514";
-    case "cursor":
-      return "claude-sonnet-4";
-    case "windsurf":
-      return "claude-4-sonnet";
     default:
       return "claude-sonnet-4";
   }

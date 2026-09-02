@@ -19,7 +19,7 @@ import type { PermissionMap, PermissionRule } from "../types.js";
 // Types
 // ============================================================================
 
-export type PermissionPlatform = "oac" | "claude" | "cursor" | "windsurf";
+export type PermissionPlatform = "oac" | "claude";
 
 /**
  * Binary permission representation used by most tools
@@ -59,8 +59,6 @@ const PLATFORM_CAPABILITIES: Record<
   { supportsGranular: boolean; supportsAsk: boolean }
 > = {
   claude: { supportsGranular: false, supportsAsk: false },
-  cursor: { supportsGranular: false, supportsAsk: false },
-  windsurf: { supportsGranular: false, supportsAsk: false },
 };
 
 // ============================================================================

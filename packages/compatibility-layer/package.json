@@ -6,9 +6,6 @@
   "description": "Compatibility layer for converting OpenAgents Control agents to/from other AI coding tools (Cursor, Claude Code, Windsurf)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": {
-    "oac-compat": "dist/cli/index.js"
-  },
   "files": [
     "dist",
     "README.md",

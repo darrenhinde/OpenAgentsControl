@@ -385,8 +385,6 @@ export const OacCategorySchema = z.string().refine(
 export const BuildTargetSchema = z.enum([
   "opencode",
   "claude-code",
-  "cursor",
-  "windsurf",
 ]);
 
 /**
@@ -481,8 +479,6 @@ export const TargetOverridesSchema = z
   .object({
     opencode: TargetOverrideSchema.optional(),
     "claude-code": TargetOverrideSchema.optional(),
-    cursor: TargetOverrideSchema.optional(),
-    windsurf: TargetOverrideSchema.optional(),
   })
   .strict();
 

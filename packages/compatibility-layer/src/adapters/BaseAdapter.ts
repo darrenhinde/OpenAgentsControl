@@ -12,17 +12,17 @@ import type {
  * 
  * @example
  * ```ts
- * class CursorAdapter extends BaseAdapter {
- *   readonly name = 'cursor';
- *   readonly displayName = 'Cursor IDE';
+ * class MyToolAdapter extends BaseAdapter {
+ *   readonly name = 'my-tool';
+ *   readonly displayName = 'My Tool';
  *   
  *   async toOAC(source: string): Promise\u003cOpenAgent\u003e {
- *     // Parse Cursor .cursorrules format
+ *     // Parse the tool's native format
  *     // Convert to OpenAgent
  *   }
  *   
  *   async fromOAC(agent: OpenAgent): Promise\u003cConversionResult\u003e {
- *     // Convert OpenAgent to Cursor format
+ *     // Convert OpenAgent to the tool's format
  *     // Return converted files
  *   }
  * }
@@ -30,12 +30,12 @@ import type {
  */
 export abstract class BaseAdapter {
   /**
-   * Unique identifier for this adapter (e.g., "cursor", "claude", "windsurf")
+   * Unique identifier for this adapter (e.g., "claude", "opencode")
    */
   abstract readonly name: string;
 
   /**
-   * Human-readable display name (e.g., "Cursor IDE", "Claude Code")
+   * Human-readable display name (e.g., "Claude Code", "OpenCode")
    */
   abstract readonly displayName: string;
 
@@ -69,7 +69,7 @@ export abstract class BaseAdapter {
    * Get the configuration path where files should be written.
    * 
    * @param agent - Optional agent for context-specific paths
-   * @returns Relative path from project root (e.g., ".cursorrules", ".claude/")
+   * @returns Relative path from project root (e.g., "CLAUDE.md", ".claude/")
    */
   abstract getConfigPath(agent?: OpenAgent): string;
 

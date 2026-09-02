@@ -21,7 +21,7 @@ This roadmap tracks the evolution of OpenAgents Control - an AI agent framework 
 
 **Planned for the following 6-8 weeks:**
 
-- [ ] Support for additional AI coding tools (Cursor, Claude Code)
+- [ ] Support for additional AI coding tools (Claude Code)
 - [ ] Enhanced context-aware system builder
 - [ ] Multi-language template improvements
 - [ ] Community contribution guidelines

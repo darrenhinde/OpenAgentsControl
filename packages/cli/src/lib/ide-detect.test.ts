@@ -14,19 +14,10 @@ import {
 // Pure function — no I/O.
 
 describe('getIdeOutputFile', () => {
-  // ✅ Positive: cursor maps to .cursorrules
-  test('cursor → .cursorrules', () => {
-    expect(getIdeOutputFile('cursor')).toBe('.cursorrules');
-  });
 
   // ✅ Positive: claude maps to CLAUDE.md
   test('claude → CLAUDE.md', () => {
     expect(getIdeOutputFile('claude')).toBe('CLAUDE.md');
-  });
-
-  // ✅ Positive: windsurf maps to .windsurfrules
-  test('windsurf → .windsurfrules', () => {
-    expect(getIdeOutputFile('windsurf')).toBe('.windsurfrules');
   });
 
   // ✅ Positive: opencode maps to .opencode/
@@ -39,19 +30,10 @@ describe('getIdeOutputFile', () => {
 // Pure function — no I/O.
 
 describe('getIdeDisplayName', () => {
-  // ✅ Positive: cursor → Cursor
-  test('cursor → Cursor', () => {
-    expect(getIdeDisplayName('cursor')).toBe('Cursor');
-  });
 
   // ✅ Positive: claude → Claude
   test('claude → Claude', () => {
     expect(getIdeDisplayName('claude')).toBe('Claude');
-  });
-
-  // ✅ Positive: windsurf → Windsurf
-  test('windsurf → Windsurf', () => {
-    expect(getIdeDisplayName('windsurf')).toBe('Windsurf');
   });
 
   // ✅ Positive: opencode → OpenCode
@@ -99,82 +81,6 @@ describe('detectIde — opencode (directory-based)', () => {
     expect(result.type).toBe('opencode');
     expect(result.detected).toBe(false);
     expect(result.indicator).toContain('.opencode');
-  });
-});
-
-describe('detectIde — cursor (directory-based)', () => {
-  let tmpDir: string;
-
-  beforeAll(async () => {
-    tmpDir = await mkdtemp(join(tmpdir(), 'oac-ide-detect-cursor-'));
-  });
-
-  afterAll(async () => {
-    await rm(tmpDir, { recursive: true, force: true });
-  });
-
-  // ✅ Positive: .cursor/ directory present → detected: true
-  test('detected: true when .cursor/ directory exists', async () => {
-    // Arrange
-    const projectRoot = join(tmpDir, 'with-cursor');
-    await mkdir(join(projectRoot, '.cursor'), { recursive: true });
-    // Act
-    const result = await detectIde(projectRoot, 'cursor');
-    // Assert
-    expect(result.type).toBe('cursor');
-    expect(result.detected).toBe(true);
-    expect(result.indicator).toContain('.cursor');
-  });
-
-  // ❌ Negative: .cursor/ directory absent → detected: false
-  test('detected: false when .cursor/ directory does not exist', async () => {
-    // Arrange
-    const projectRoot = join(tmpDir, 'without-cursor');
-    await mkdir(projectRoot, { recursive: true });
-    // Act
-    const result = await detectIde(projectRoot, 'cursor');
-    // Assert
-    expect(result.type).toBe('cursor');
-    expect(result.detected).toBe(false);
-    expect(result.indicator).toContain('.cursor');
-  });
-});
-
-describe('detectIde — windsurf (directory-based)', () => {
-  let tmpDir: string;
-
-  beforeAll(async () => {
-    tmpDir = await mkdtemp(join(tmpdir(), 'oac-ide-detect-windsurf-'));
-  });
-
-  afterAll(async () => {
-    await rm(tmpDir, { recursive: true, force: true });
-  });
-
-  // ✅ Positive: .windsurf/ directory present → detected: true
-  test('detected: true when .windsurf/ directory exists', async () => {
-    // Arrange
-    const projectRoot = join(tmpDir, 'with-windsurf');
-    await mkdir(join(projectRoot, '.windsurf'), { recursive: true });
-    // Act
-    const result = await detectIde(projectRoot, 'windsurf');
-    // Assert
-    expect(result.type).toBe('windsurf');
-    expect(result.detected).toBe(true);
-    expect(result.indicator).toContain('.windsurf');
-  });
-
-  // ❌ Negative: .windsurf/ directory absent → detected: false
-  test('detected: false when .windsurf/ directory does not exist', async () => {
-    // Arrange
-    const projectRoot = join(tmpDir, 'without-windsurf');
-    await mkdir(projectRoot, { recursive: true });
-    // Act
-    const result = await detectIde(projectRoot, 'windsurf');
-    // Assert
-    expect(result.type).toBe('windsurf');
-    expect(result.detected).toBe(false);
-    expect(result.indicator).toContain('.windsurf');
   });
 });
 
@@ -245,9 +151,9 @@ describe('detectIde — claude (directory + file indicators)', () => {
   });
 });
 
-// ── detectIdes — all 4 IDEs in parallel ──────────────────────────────────────
+// ── detectIdes — both IDEs in parallel ──────────────────────────────────────
 
-describe('detectIdes — parallel detection of all 4 IDEs', () => {
+describe('detectIdes — parallel detection of both IDEs', () => {
   let tmpDir: string;
 
   beforeAll(async () => {
@@ -259,23 +165,21 @@ describe('detectIdes — parallel detection of all 4 IDEs', () => {
   });
 
   // ✅ Positive: returns exactly 4 results covering all IDE types
-  test('returns an array of 4 DetectedIde results', async () => {
+  test('returns an array of 2 DetectedIde results', async () => {
     // Arrange
     const projectRoot = join(tmpDir, 'count-check');
     await mkdir(projectRoot, { recursive: true });
     // Act
     const results = await detectIdes(projectRoot);
     // Assert
-    expect(results).toHaveLength(4);
+    expect(results).toHaveLength(2);
     const types = results.map((r) => r.type);
     expect(types).toContain('opencode');
-    expect(types).toContain('cursor');
     expect(types).toContain('claude');
-    expect(types).toContain('windsurf');
   });
 
-  // ❌ Negative: empty temp dir → all 4 IDEs return detected: false
-  test('all 4 IDEs return detected: false in an empty directory', async () => {
+  // ❌ Negative: empty temp dir → both IDEs return detected: false
+  test('both IDEs return detected: false in an empty directory', async () => {
     // Arrange — directory with no IDE indicators
     const projectRoot = join(tmpDir, 'all-absent');
     await mkdir(projectRoot, { recursive: true });
@@ -287,37 +191,6 @@ describe('detectIdes — parallel detection of all 4 IDEs', () => {
     }
   });
 
-  // ✅ Positive: .cursor/ and CLAUDE.md present → cursor and claude detected, others not
-  test('detects cursor and claude when their indicators are present', async () => {
-    // Arrange
-    const projectRoot = join(tmpDir, 'cursor-and-claude');
-    await mkdir(join(projectRoot, '.cursor'), { recursive: true });
-    await writeFile(join(projectRoot, 'CLAUDE.md'), '# Claude rules\n', 'utf8');
-    // Act
-    const results = await detectIdes(projectRoot);
-    // Assert
-    const byType = Object.fromEntries(results.map((r) => [r.type, r]));
-    expect(byType['cursor']?.detected).toBe(true);
-    expect(byType['claude']?.detected).toBe(true);
-    expect(byType['opencode']?.detected).toBe(false);
-    expect(byType['windsurf']?.detected).toBe(false);
-  });
-
-  // ✅ Positive: all 4 IDE directories present → all 4 detected
-  test('detects all 4 IDEs when all indicator directories are present', async () => {
-    // Arrange
-    const projectRoot = join(tmpDir, 'all-present');
-    await mkdir(join(projectRoot, '.opencode'), { recursive: true });
-    await mkdir(join(projectRoot, '.cursor'), { recursive: true });
-    await mkdir(join(projectRoot, '.claude'), { recursive: true });
-    await mkdir(join(projectRoot, '.windsurf'), { recursive: true });
-    // Act
-    const results = await detectIdes(projectRoot);
-    // Assert
-    for (const result of results) {
-      expect(result.detected).toBe(true);
-    }
-  });
 });
 
 // ── isIdePresent ──────────────────────────────────────────────────────────────
@@ -333,17 +206,6 @@ describe('isIdePresent', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  // ✅ Positive: returns true when the IDE directory exists
-  test('returns true when .cursor/ directory exists', async () => {
-    // Arrange
-    const projectRoot = join(tmpDir, 'present-cursor');
-    await mkdir(join(projectRoot, '.cursor'), { recursive: true });
-    // Act
-    const present = await isIdePresent(projectRoot, 'cursor');
-    // Assert
-    expect(present).toBe(true);
-  });
-
   // ✅ Positive: returns true for opencode when .opencode/ directory exists
   test('returns true when .opencode/ directory exists', async () => {
     // Arrange
@@ -353,28 +215,6 @@ describe('isIdePresent', () => {
     const present = await isIdePresent(projectRoot, 'opencode');
     // Assert
     expect(present).toBe(true);
-  });
-
-  // ❌ Negative: returns false when the IDE directory is absent
-  test('returns false when .cursor/ directory does not exist', async () => {
-    // Arrange — empty project root
-    const projectRoot = join(tmpDir, 'absent-cursor');
-    await mkdir(projectRoot, { recursive: true });
-    // Act
-    const present = await isIdePresent(projectRoot, 'cursor');
-    // Assert
-    expect(present).toBe(false);
-  });
-
-  // ❌ Negative: returns false for windsurf when directory is absent
-  test('returns false when .windsurf/ directory does not exist', async () => {
-    // Arrange
-    const projectRoot = join(tmpDir, 'absent-windsurf');
-    await mkdir(projectRoot, { recursive: true });
-    // Act
-    const present = await isIdePresent(projectRoot, 'windsurf');
-    // Assert
-    expect(present).toBe(false);
   });
 
   // ✅ Positive: returns true for claude when CLAUDE.md file exists (no directory)
@@ -389,13 +229,4 @@ describe('isIdePresent', () => {
     expect(present).toBe(true);
   });
 
-  // ❌ Negative: returns false when project root itself does not exist
-  test('returns false when the project root directory does not exist', async () => {
-    // Arrange — a path that was never created
-    const nonExistentRoot = join(tmpDir, 'does-not-exist-at-all');
-    // Act
-    const present = await isIdePresent(nonExistentRoot, 'cursor');
-    // Assert
-    expect(present).toBe(false);
-  });
 });

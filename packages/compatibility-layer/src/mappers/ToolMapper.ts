@@ -20,7 +20,7 @@ import type { ToolAccess } from "../types.js";
 /**
  * Supported tool platforms for mapping
  */
-export type ToolPlatform = "oac" | "claude" | "cursor" | "windsurf";
+export type ToolPlatform = "oac" | "claude";
 
 /**
  * Tool mapping configuration for a specific platform
@@ -80,50 +80,7 @@ const TOOL_MAPPINGS: Record<Exclude<ToolPlatform, "oac">, ToolMappingConfig> = {
     unsupported: [], // Claude supports most tools
   },
 
-  cursor: {
-    fromOAC: {
-      bash: "terminal",
-      read: "file_read",
-      write: "file_write",
-      edit: "file_edit",
-      glob: "file_search",
-      grep: "content_search",
-      task: "task", // Not really supported, maps to itself
-      patch: "file_edit",
-    },
-    toOAC: {
-      terminal: "bash",
-      file_read: "read",
-      file_write: "write",
-      file_edit: "edit",
-      file_search: "glob",
-      content_search: "grep",
-    },
-    unsupported: ["task"], // Cursor doesn't support delegation
-  },
 
-  windsurf: {
-    fromOAC: {
-      bash: "shell",
-      read: "read_file",
-      write: "write_file",
-      edit: "edit_file",
-      glob: "find_files",
-      grep: "search_content",
-      task: "delegate", // Limited support
-      patch: "edit_file",
-    },
-    toOAC: {
-      shell: "bash",
-      read_file: "read",
-      write_file: "write",
-      edit_file: "edit",
-      find_files: "glob",
-      search_content: "grep",
-      delegate: "task",
-    },
-    unsupported: [], // Windsurf has equivalents for most
-  },
 };
 
 // ============================================================================

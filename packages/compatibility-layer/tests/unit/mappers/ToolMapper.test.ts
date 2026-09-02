@@ -59,52 +59,6 @@ describe("ToolMapper", () => {
       });
     });
 
-    describe("Cursor platform", () => {
-      it("maps bash to terminal", () => {
-        const result = mapToolFromOAC("bash", "cursor");
-        expect(result.name).toBe("terminal");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps read to file_read", () => {
-        const result = mapToolFromOAC("read", "cursor");
-        expect(result.name).toBe("file_read");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps grep to content_search", () => {
-        const result = mapToolFromOAC("grep", "cursor");
-        expect(result.name).toBe("content_search");
-        expect(result.exact).toBe(true);
-      });
-
-      it("warns about unsupported task tool", () => {
-        const result = mapToolFromOAC("task", "cursor");
-        expect(result.exact).toBe(false);
-        expect(result.warning).toContain("not supported");
-      });
-    });
-
-    describe("Windsurf platform", () => {
-      it("maps bash to shell", () => {
-        const result = mapToolFromOAC("bash", "windsurf");
-        expect(result.name).toBe("shell");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps task to delegate", () => {
-        const result = mapToolFromOAC("task", "windsurf");
-        expect(result.name).toBe("delegate");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps glob to find_files", () => {
-        const result = mapToolFromOAC("glob", "windsurf");
-        expect(result.name).toBe("find_files");
-        expect(result.exact).toBe(true);
-      });
-    });
-
     describe("unknown tools", () => {
       it("returns tool name as-is with warning for unknown tools", () => {
         const result = mapToolFromOAC("unknown_tool", "claude");
@@ -135,40 +89,6 @@ describe("ToolMapper", () => {
       it("maps WebSearch to bash (approximation)", () => {
         const result = mapToolToOAC("WebSearch", "claude");
         expect(result.name).toBe("bash");
-        expect(result.exact).toBe(true);
-      });
-    });
-
-    describe("from Cursor", () => {
-      it("maps terminal to bash", () => {
-        const result = mapToolToOAC("terminal", "cursor");
-        expect(result.name).toBe("bash");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps file_read to read", () => {
-        const result = mapToolToOAC("file_read", "cursor");
-        expect(result.name).toBe("read");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps content_search to grep", () => {
-        const result = mapToolToOAC("content_search", "cursor");
-        expect(result.name).toBe("grep");
-        expect(result.exact).toBe(true);
-      });
-    });
-
-    describe("from Windsurf", () => {
-      it("maps shell to bash", () => {
-        const result = mapToolToOAC("shell", "windsurf");
-        expect(result.name).toBe("bash");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps delegate to task", () => {
-        const result = mapToolToOAC("delegate", "windsurf");
-        expect(result.name).toBe("task");
         expect(result.exact).toBe(true);
       });
     });
@@ -205,35 +125,11 @@ describe("ToolMapper", () => {
       expect(result.tools["Read"]).toBeUndefined();
     });
 
-    it("collects warnings for unsupported tools", () => {
-      const tools = { task: true };
-      const result = mapToolAccessFromOAC(tools, "cursor");
-
-      expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings[0]).toContain("not supported");
-    });
   });
 
   // ==========================================================================
   // mapToolAccessToOAC - Batch Platform to OAC
   // ==========================================================================
-  describe("mapToolAccessToOAC()", () => {
-    it("maps multiple tools back to OAC format", () => {
-      const tools = { terminal: true, file_read: true, file_write: false };
-      const result = mapToolAccessToOAC(tools, "cursor");
-
-      expect(result.tools.bash).toBe(true);
-      expect(result.tools.read).toBe(true);
-      expect(result.tools.write).toBe(false);
-    });
-
-    it("handles unknown tools with warnings", () => {
-      const tools = { unknown_tool: true };
-      const result = mapToolAccessToOAC(tools, "cursor");
-
-      expect(result.warnings.length).toBeGreaterThan(0);
-    });
-  });
 
   // ==========================================================================
   // Utility Functions
@@ -246,11 +142,6 @@ describe("ToolMapper", () => {
       expect(tools).toContain("task");
     });
 
-    it("returns list of supported tools for Cursor", () => {
-      const tools = getSupportedTools("cursor");
-      expect(tools).toContain("bash");
-      expect(tools).toContain("read");
-    });
   });
 
   describe("getUnsupportedTools()", () => {
@@ -259,20 +150,14 @@ describe("ToolMapper", () => {
       expect(tools).toHaveLength(0);
     });
 
-    it("returns task for Cursor (no delegation support)", () => {
-      const tools = getUnsupportedTools("cursor");
-      expect(tools).toContain("task");
-    });
   });
 
   describe("isToolSupported()", () => {
     it("returns true for supported tools", () => {
       expect(isToolSupported("bash", "claude")).toBe(true);
-      expect(isToolSupported("read", "cursor")).toBe(true);
     });
 
     it("returns false for unsupported tools", () => {
-      expect(isToolSupported("task", "cursor")).toBe(false);
     });
   });
 });

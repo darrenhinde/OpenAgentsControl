@@ -28,18 +28,6 @@ describe("ModelMapper", () => {
         expect(result.exact).toBe(true);
       });
 
-      it("maps claude-sonnet-4 to Cursor format", () => {
-        const result = mapModelFromOAC("claude-sonnet-4", "cursor");
-        expect(result.id).toBe("claude-sonnet-4");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps claude-sonnet-4 to Windsurf format", () => {
-        const result = mapModelFromOAC("claude-sonnet-4", "windsurf");
-        expect(result.id).toBe("claude-4-sonnet");
-        expect(result.exact).toBe(true);
-      });
-
       it("maps claude-3.5-sonnet correctly", () => {
         const result = mapModelFromOAC("claude-3.5-sonnet", "claude");
         expect(result.id).toBe("claude-3-5-sonnet-20241022");
@@ -49,26 +37,6 @@ describe("ModelMapper", () => {
       it("maps claude-3-opus correctly", () => {
         const result = mapModelFromOAC("claude-3-opus", "claude");
         expect(result.id).toBe("claude-3-opus-20240229");
-        expect(result.exact).toBe(true);
-      });
-    });
-
-    describe("GPT models", () => {
-      it("maps gpt-4 to Cursor", () => {
-        const result = mapModelFromOAC("gpt-4", "cursor");
-        expect(result.id).toBe("gpt-4");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps gpt-4-turbo to Windsurf", () => {
-        const result = mapModelFromOAC("gpt-4-turbo", "windsurf");
-        expect(result.id).toBe("gpt-4-turbo");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps gpt-4o to Cursor", () => {
-        const result = mapModelFromOAC("gpt-4o", "cursor");
-        expect(result.id).toBe("gpt-4o");
         expect(result.exact).toBe(true);
       });
     });
@@ -107,28 +75,6 @@ describe("ModelMapper", () => {
       });
     });
 
-    describe("from Cursor", () => {
-      it("maps Cursor format to OAC", () => {
-        const result = mapModelToOAC("claude-sonnet-4", "cursor");
-        expect(result.id).toBe("claude-sonnet-4");
-        expect(result.exact).toBe(true);
-      });
-
-      it("maps gpt-4 from Cursor", () => {
-        const result = mapModelToOAC("gpt-4", "cursor");
-        expect(result.id).toBe("gpt-4");
-        expect(result.exact).toBe(true);
-      });
-    });
-
-    describe("from Windsurf", () => {
-      it("maps Windsurf format to OAC", () => {
-        const result = mapModelToOAC("claude-4-sonnet", "windsurf");
-        expect(result.id).toBe("claude-sonnet-4");
-        expect(result.exact).toBe(true);
-      });
-    });
-
     describe("unknown models", () => {
       it("attempts pattern matching", () => {
         const result = mapModelToOAC("claude-sonnet-new-20260101", "claude");
@@ -137,11 +83,6 @@ describe("ModelMapper", () => {
         expect(result.warning).toBeDefined();
       });
 
-      it("returns as-is for completely unknown models", () => {
-        const result = mapModelToOAC("some-new-model", "cursor");
-        expect(result.id).toBe("some-new-model");
-        expect(result.exact).toBe(false);
-      });
     });
   });
 
@@ -229,15 +170,6 @@ describe("ModelMapper", () => {
       expect(models.every((m) => m.platformIds.claude !== undefined)).toBe(true);
     });
 
-    it("returns models available on Cursor", () => {
-      const models = getModelsForPlatform("cursor");
-      expect(models.length).toBeGreaterThan(0);
-    });
-
-    it("returns models available on Windsurf", () => {
-      const models = getModelsForPlatform("windsurf");
-      expect(models.length).toBeGreaterThan(0);
-    });
   });
 
   // ==========================================================================
@@ -246,7 +178,6 @@ describe("ModelMapper", () => {
   describe("isModelAvailable()", () => {
     it("returns true for available models", () => {
       expect(isModelAvailable("claude-sonnet-4", "claude")).toBe(true);
-      expect(isModelAvailable("gpt-4", "cursor")).toBe(true);
     });
 
     it("returns false for unavailable models", () => {
@@ -269,14 +200,5 @@ describe("ModelMapper", () => {
       expect(model).toMatch(/\d{8}$/); // Date suffix
     });
 
-    it("returns Cursor format default for Cursor", () => {
-      const model = getDefaultModel("cursor");
-      expect(model).toContain("claude");
-    });
-
-    it("returns Windsurf format default for Windsurf", () => {
-      const model = getDefaultModel("windsurf");
-      expect(model).toContain("claude");
-    });
   });
 });

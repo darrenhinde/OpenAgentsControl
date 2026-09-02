@@ -6,6 +6,7 @@
 > **Goal:** Re-architect OAC from an OpenCode-specific project into a tool-agnostic,
 > npm-distributed system with a single neutral source of truth that generates
 > per-tool outputs (OpenCode, Claude Code, Cursor, Windsurf).
+> **2026-09-02:** Cursor and Windsurf were dropped as targets. Only OpenCode and Claude Code are built; references to the other two below are historical.
 
 This index is the **authoritative shared context** for all spec workstreams. Read it first.
 Where a spec document conflicts with this index, **this index wins**.

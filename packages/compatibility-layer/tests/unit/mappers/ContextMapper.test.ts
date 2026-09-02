@@ -55,37 +55,6 @@ describe("ContextMapper", () => {
       });
     });
 
-    describe("Cursor platform (inline-only)", () => {
-      it("returns empty path with warning for Cursor", () => {
-        const result = mapContextPathFromOAC(
-          ".opencode/context/core/standards.md",
-          "cursor"
-        );
-        expect(result.path).toBe("");
-        expect(result.exact).toBe(false);
-        expect(result.warning).toContain("does not support external context files");
-      });
-    });
-
-    describe("Windsurf platform", () => {
-      it("maps OAC context path to Windsurf context path", () => {
-        const result = mapContextPathFromOAC(
-          ".opencode/context/core/standards.md",
-          "windsurf"
-        );
-        expect(result.path).toBe(".windsurf/context/core/standards.md");
-        expect(result.exact).toBe(true);
-      });
-
-      it("preserves subdirectory structure for Windsurf", () => {
-        const result = mapContextPathFromOAC(
-          ".opencode/context/guides/development.md",
-          "windsurf"
-        );
-        expect(result.path).toBe(".windsurf/context/guides/development.md");
-        expect(result.exact).toBe(true);
-      });
-    });
   });
 
   // ==========================================================================
@@ -109,25 +78,6 @@ describe("ContextMapper", () => {
       });
     });
 
-    describe("from Cursor (inline-only)", () => {
-      it("returns empty path with warning for Cursor", () => {
-        const result = mapContextPathToOAC("some-path.md", "cursor");
-        expect(result.path).toBe("");
-        expect(result.exact).toBe(false);
-        expect(result.warning).toContain("uses inline context");
-      });
-    });
-
-    describe("from Windsurf", () => {
-      it("maps Windsurf context path to OAC context path", () => {
-        const result = mapContextPathToOAC(
-          ".windsurf/context/core/standards.md",
-          "windsurf"
-        );
-        expect(result.path).toBe(".opencode/context/core/standards.md");
-        expect(result.exact).toBe(true);
-      });
-    });
   });
 
   // ==========================================================================
@@ -156,16 +106,6 @@ describe("ContextMapper", () => {
       expect(result.warning).toContain("does not support priority metadata");
     });
 
-    it("returns inline warning for Cursor", () => {
-      const context: ContextReference = {
-        path: ".opencode/context/core/standards.md",
-        priority: "high",
-      };
-      const result = mapContextReferenceFromOAC(context, "cursor");
-      expect(result.path).toBe("");
-      expect(result.exact).toBe(false);
-      expect(result.warning).toBeDefined();
-    });
   });
 
   // ==========================================================================
@@ -191,16 +131,6 @@ describe("ContextMapper", () => {
       ];
       const result = mapContextReferencesFromOAC(contexts, "claude");
       expect(result.paths).toHaveLength(2);
-      expect(result.warnings.length).toBeGreaterThan(0);
-    });
-
-    it("filters out empty paths for Cursor", () => {
-      const contexts: ContextReference[] = [
-        { path: ".opencode/context/core/standards.md" },
-        { path: ".opencode/context/guides/workflow.md" },
-      ];
-      const result = mapContextReferencesFromOAC(contexts, "cursor");
-      expect(result.paths).toHaveLength(0);
       expect(result.warnings.length).toBeGreaterThan(0);
     });
 
@@ -309,13 +239,6 @@ describe("ContextMapper", () => {
       expect(getContextBaseDir("claude")).toBe(".claude/skills");
     });
 
-    it("returns empty string for Cursor (inline-only)", () => {
-      expect(getContextBaseDir("cursor")).toBe("");
-    });
-
-    it("returns correct base dir for Windsurf", () => {
-      expect(getContextBaseDir("windsurf")).toBe(".windsurf/context");
-    });
   });
 
   describe("supportsExternalContext()", () => {
@@ -327,13 +250,6 @@ describe("ContextMapper", () => {
       expect(supportsExternalContext("claude")).toBe(true);
     });
 
-    it("returns false for Cursor", () => {
-      expect(supportsExternalContext("cursor")).toBe(false);
-    });
-
-    it("returns true for Windsurf", () => {
-      expect(supportsExternalContext("windsurf")).toBe(true);
-    });
   });
 
   describe("supportsContextSubdirs()", () => {
@@ -345,21 +261,12 @@ describe("ContextMapper", () => {
       expect(supportsContextSubdirs("claude")).toBe(true);
     });
 
-    it("returns false for Cursor", () => {
-      expect(supportsContextSubdirs("cursor")).toBe(false);
-    });
-
-    it("returns true for Windsurf", () => {
-      expect(supportsContextSubdirs("windsurf")).toBe(true);
-    });
   });
 
   describe("supportsContextPriority()", () => {
     it("returns true only for OAC", () => {
       expect(supportsContextPriority("oac")).toBe(true);
       expect(supportsContextPriority("claude")).toBe(false);
-      expect(supportsContextPriority("cursor")).toBe(false);
-      expect(supportsContextPriority("windsurf")).toBe(false);
     });
   });
 
@@ -436,9 +343,5 @@ describe("ContextMapper", () => {
       expect(result).toBe("some/other/path.md");
     });
 
-    it("handles Cursor (empty base dir)", () => {
-      const result = getRelativeContextPath("any/path.md", "cursor");
-      expect(result).toBe("any/path.md");
-    });
   });
 });

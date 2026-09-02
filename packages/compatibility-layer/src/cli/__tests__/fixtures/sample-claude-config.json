@@ -1,9 +1,0 @@
-{
-  "name": "sample-claude-agent",
-  "description": "A sample Claude Code agent for testing",
-  "model": "claude-sonnet-4-20250514",
-  "tools": ["Read", "Write", "Bash", "Edit"],
-  "systemPrompt": "You are a Claude Code assistant.\n\n## Guidelines\n\n- Help users write better code\n- Provide clear explanations\n- Follow best practices\n\n## Capabilities\n\n- Code generation\n- Code review\n- Documentation",
-  "skills": ["code-review", "documentation"],
-  "permissionMode": "default"
-}

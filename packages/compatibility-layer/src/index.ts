@@ -1,22 +1,11 @@
 /**
  * @controlstack/compatibility-layer
  * 
- * A TypeScript library for converting OpenAgents Control agent definitions
- * to and from other AI coding tool formats (Cursor, Claude, Windsurf, etc.).
+ * The build library behind `oac build`: loads canonical content/ and emits
+ * OpenCode and Claude Code trees plus registry.json.
  * 
  * @module @controlstack/compatibility-layer
  * 
- * @example
- * ```typescript
- * import { loadAgent, registry, CursorAdapter } from '@controlstack/compatibility-layer';
- * 
- * // Load an OAC agent
- * const agent = await loadAgent('.opencode/agent/opencoder.md');
- * 
- * // Convert to Cursor format
- * const cursorAdapter = registry.get('cursor');
- * const result = await cursorAdapter.fromOAC(agent);
- * ```
  */
 
 // ============================================================================
@@ -222,42 +211,6 @@ export type {
 } from "./core/ProfileLoader.js";
 
 // ============================================================================
-// CORE - Adapter Registry
-// ============================================================================
-
-/**
- * AdapterRegistry for managing tool adapters.
- * 
- * @example
- * ```typescript
- * import { registry, getAdapter } from '@controlstack/compatibility-layer';
- * 
- * // Get adapter from registry
- * const adapter = getAdapter('cursor');
- * 
- * // List all adapters
- * const names = registry.list();
- * ```
- */
-export {
-  AdapterRegistry,
-  registry,
-  getAdapter,
-  listAdapters,
-  getAllCapabilities,
-} from "./core/AdapterRegistry.js";
-
-/**
- * Error class for adapter registry operations.
- */
-export { AdapterRegistryError } from "./core/AdapterRegistry.js";
-
-/**
- * Type for adapter information including capabilities.
- */
-export type { AdapterInfo } from "./core/AdapterRegistry.js";
-
-// ============================================================================
 // ADAPTERS - Base Class
 // ============================================================================
 
@@ -289,22 +242,9 @@ export { BaseAdapter } from "./adapters/BaseAdapter.js";
 // ============================================================================
 
 /**
- * Built-in adapters for popular AI coding tools.
- * 
- * Note: These will be available in Phase 2.
- * For now, they need to be registered manually.
- * 
- * @example
- * ```typescript
- * // Available in Phase 2:
- * // import { CursorAdapter, ClaudeAdapter, WindsurfAdapter } from '@controlstack/compatibility-layer';
- * ```
+ * ClaudeAdapter — emits Claude Code agent files from canonical content.
  */
-
-// Phase 2 adapters (implemented)
-export { CursorAdapter } from "./adapters/CursorAdapter.js";
 export { ClaudeAdapter } from "./adapters/ClaudeAdapter.js";
-export { WindsurfAdapter } from "./adapters/WindsurfAdapter.js";
 
 /**
  * OpenCodeAdapter — emits `.opencode/agent/**` from the canonical `content/agents/**` tree by
@@ -339,7 +279,7 @@ export type {
  * ```typescript
  * import { mapToolFromOAC, mapToolToOAC } from '@controlstack/compatibility-layer';
  * 
- * mapToolFromOAC('bash', 'cursor'); // => { name: 'terminal', exact: true }
+ * mapToolFromOAC('bash', 'claude'); // => { name: 'Bash', exact: true }
  * ```
  */
 export {
@@ -390,8 +330,8 @@ export {
  * ```typescript
  * import { mapModelFromOAC, getModelsForPlatform } from '@controlstack/compatibility-layer';
  * 
- * mapModelFromOAC('claude-sonnet-4', 'cursor');
- * // => { id: 'claude-sonnet-4', exact: true }
+ * mapModelFromOAC('claude-sonnet-4', 'claude');
+ * // => { id: 'claude-sonnet-4-20250514', exact: true }
  * ```
  */
 export {
@@ -439,7 +379,7 @@ export {
 } from "./mappers/ContextMapper.js";
 
 // ============================================================================
-// CORE - Capability Matrix & Translation Engine (Phase 3)
+// CORE - Capability Matrix
 // ============================================================================
 
 /**
@@ -449,7 +389,7 @@ export {
  * ```typescript
  * import { analyzeCompatibility, getToolCapabilities } from '@controlstack/compatibility-layer';
  * 
- * const result = analyzeCompatibility(agent, 'cursor');
+ * const result = analyzeCompatibility(agent, 'claude');
  * // => { compatible: false, warnings: [...], blockers: [...] }
  * ```
  */
@@ -468,32 +408,6 @@ export {
   type FeatureDefinition,
   type CompatibilityResult,
 } from "./core/CapabilityMatrix.js";
-
-/**
- * TranslationEngine for orchestrating complete agent translation.
- * 
- * @example
- * ```typescript
- * import { TranslationEngine, translate } from '@controlstack/compatibility-layer';
- * 
- * // Using the engine
- * const engine = new TranslationEngine();
- * const result = engine.translate(agent, 'cursor');
- * 
- * // Quick translate
- * const result = translate(agent, 'cursor');
- * ```
- */
-export {
-  TranslationEngine,
-  createTranslationEngine,
-  translate,
-  previewTranslation,
-  type TranslationTarget,
-  type TranslationOptions,
-  type TranslationResult,
-  type ReverseTranslationResult,
-} from "./core/TranslationEngine.js";
 
 // ============================================================================
 // VERSION INFO
