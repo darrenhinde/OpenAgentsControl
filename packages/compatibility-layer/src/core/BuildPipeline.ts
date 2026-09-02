@@ -52,7 +52,7 @@ import {
   rmdirSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { CanonicalAgentLoader, type CanonicalAgentFile } from "./AgentLoader.js";
 import {
   MANIFEST_FILE,
@@ -193,6 +193,28 @@ function isUnder(path: string, root: string): boolean {
 
 function sha256(content: string): string {
   return createHash("sha256").update(content, "utf-8").digest("hex");
+}
+
+/**
+ * True when `absolute` is `root` itself or sits underneath it, after both are resolved.
+ *
+ * Every path the build writes or deletes is derived from a `--stage` override or a committed
+ * ledger, neither of which is trusted to stay inside the repository on its own. `relative()`
+ * is the honest test: a result that starts with `..` (or is absolute, on Windows) has escaped.
+ */
+function contained(root: string, absolute: string): boolean {
+  const rel = relative(resolve(root), resolve(absolute));
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+}
+
+/** Refuse to touch a path outside the build root. Thrown before any write happens. */
+function assertContained(root: string, absolute: string, what: string): void {
+  if (!contained(root, absolute)) {
+    throw new Error(
+      `refusing to ${what} "${absolute}": it resolves outside the build root "${resolve(root)}". ` +
+        "Check the --stage override and the output roots.",
+    );
+  }
 }
 
 // ============================================================================
@@ -457,6 +479,13 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
   const outputRoots = options.outputRoots ?? {};
   const result: WriteResult = { changed: [], unchanged: [], removed: [], kept: [] };
 
+  // Validate every destination BEFORE the first write, so a bad staging override fails the
+  // build outright instead of leaving a half-written tree behind.
+  for (const file of plan.files) {
+    assertContained(root, join(root, rebase(file.path, file.target, outputRoots)), "write");
+  }
+  assertContained(root, join(root, MANIFEST_FILE), "write");
+
   for (const file of plan.files) {
     const path = rebase(file.path, file.target, outputRoots);
     const absolute = join(root, path);
@@ -482,7 +511,10 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
       if (path in next.files) continue;
 
       const entry = previous.files[path]!;
-      const reason = prunable(join(root, path), path, entry);
+      // A ledger entry that escapes the root is never deleted, whatever else it claims.
+      const reason = contained(root, join(root, path))
+        ? prunable(join(root, path), path, entry)
+        : "manifest entry resolves outside the build root — refusing to delete it";
 
       if (reason === null) {
         removeAndPruneDirs(root, path, entry.root);

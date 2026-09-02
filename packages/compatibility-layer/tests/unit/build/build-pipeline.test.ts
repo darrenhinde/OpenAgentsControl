@@ -373,3 +373,56 @@ describe("failure handling", () => {
     }
   });
 });
+
+// ============================================================================
+// root containment
+// ============================================================================
+
+describe("root containment", () => {
+  it("refuses a staging override that escapes the build root and writes nothing", async () => {
+    const outside = join(root, "..", `oac-escape-${Date.now()}`);
+    const built = await plan({ root });
+
+    expect(() => write(built, { root, outputRoots: { "claude-code": "../../escape" } })).toThrow(
+      /outside the build root/,
+    );
+
+    // Nothing in place was written either: validation runs before the first write.
+    expect(existsSync(join(root, ".opencode/agent/subagents/test/alpha.md"))).toBe(false);
+    expect(existsSync(join(root, ".oac/build-manifest.json"))).toBe(false);
+    expect(existsSync(outside)).toBe(false);
+  });
+
+  it("never deletes a ledger entry whose path resolves outside the build root", async () => {
+    const victimDir = mkdtempSync(join(tmpdir(), "oac-victim-"));
+    const victim = join(victimDir, "precious.md");
+    writeFileSync(victim, "keep me", "utf-8");
+
+    const escaped = `../${victimDir.split("/").pop()}/precious.md`;
+    put(
+      ".oac/build-manifest.json",
+      serializeManifest({
+        version: 1,
+        files: {
+          [escaped]: {
+            sha256: "0000000000000000000000000000000000000000000000000000000000000000",
+            target: "opencode",
+            root: ".opencode/agent",
+          },
+        },
+      }),
+    );
+
+    // Point the tmp root's parent at the victim's parent so `../<dir>` really resolves to it.
+    // Both mkdtemp dirs live directly under tmpdir(), so this holds by construction.
+    const result = write(await plan({ root }), { root });
+
+    expect(existsSync(victim)).toBe(true);
+    expect(readFileSync(victim, "utf-8")).toBe("keep me");
+    expect(result.removed).not.toContain(escaped);
+    expect(result.kept.map((k) => k.path)).toContain(escaped);
+    expect(result.kept.find((k) => k.path === escaped)?.reason).toMatch(/outside the build root/);
+
+    rmSync(victimDir, { recursive: true, force: true });
+  });
+});
