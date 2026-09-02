@@ -86,10 +86,6 @@ task(subagent_type="ContextScout", description="Find prioritization context for 
 3. **Apply** those criteria to RICE and WSJF scoring
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 ---
 
 ## Workflow

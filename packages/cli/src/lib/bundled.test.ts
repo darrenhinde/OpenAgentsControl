@@ -9,6 +9,7 @@ import {
   listBundledFiles,
   bundledFileExists,
   type BundledFileType,
+  toManifestType,
 } from './bundled.js';
 
 // ── classifyBundledFile ───────────────────────────────────────────────────────
@@ -389,5 +390,38 @@ describe('bundledFileExists', () => {
   test('returns false when the bundled file does not exist', async () => {
     const exists = await bundledFileExists(packageRoot, '.opencode/agent/missing.md');
     expect(exists).toBe(false);
+  });
+});
+
+// ── classifyBundledFile — commands, tools, plugins ────────────────────────────
+
+describe('classifyBundledFile — profile kinds', () => {
+  test('returns "command" for .opencode/command/ paths', () => {
+    expect(classifyBundledFile('.opencode/command/clean.md')).toBe('command');
+  });
+
+  test('returns "tool" for .opencode/tool/ paths', () => {
+    expect(classifyBundledFile('.opencode/tool/env/index.ts')).toBe('tool');
+  });
+
+  test('returns "plugin" for .opencode/plugin/ paths', () => {
+    expect(classifyBundledFile('.opencode/plugin/notify.ts')).toBe('plugin');
+  });
+
+  test('returns "config" for the env template', () => {
+    expect(classifyBundledFile('env.example')).toBe('config');
+  });
+});
+
+describe('toManifestType', () => {
+  test('folds registry kinds into the manifest vocabulary', () => {
+    expect(toManifestType('agent')).toBe('agent');
+    expect(toManifestType('subagent')).toBe('agent');
+    expect(toManifestType('context')).toBe('context');
+    expect(toManifestType('skill')).toBe('skill');
+    expect(toManifestType('config')).toBe('config');
+    expect(toManifestType('command')).toBe('other');
+    expect(toManifestType('tool')).toBe('other');
+    expect(toManifestType('plugin')).toBe('other');
   });
 });

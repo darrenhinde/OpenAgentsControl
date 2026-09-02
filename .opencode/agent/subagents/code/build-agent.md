@@ -90,12 +90,6 @@ task(subagent_type="ContextScout", description="Find build standards", prompt="F
 3. **Apply** any custom build configurations or strictness requirements
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
----
-
 ## What NOT to Do
 
 - ❌ **Don't skip ContextScout** — build validation without project standards = running wrong commands
@@ -106,10 +100,6 @@ task(subagent_type="ContextScout", description="Find build standards", prompt="F
 - ❌ **Don't give vague error reports** — include file paths, line numbers, and what's expected
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
   <context_first>ContextScout before any validation — understand project conventions first</context_first>
   <detect_first>Language detection before any commands — never assume</detect_first>
   <read_only>Report errors, never fix them — clear separation of concerns</read_only>

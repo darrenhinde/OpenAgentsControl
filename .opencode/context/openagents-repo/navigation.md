@@ -1,4 +1,4 @@
-<!-- Context: openagents-repo/navigation | Priority: critical | Version: 1.0 | Updated: 2026-02-15 -->
+<!-- Context: openagents-repo/navigation | Priority: critical | Version: 1.1 | Updated: 2026-09-02 -->
 
 # OpenAgents Control Repository Context
 
@@ -15,7 +15,7 @@
 | **Standards** | 2 files | Agent creation standards |
 | **Concepts** | 6 files | Core ideas and principles |
 | **Examples** | 9 files | Working code samples |
-| **Guides** | 14 files | Step-by-step workflows |
+| **Guides** | 16 files | Step-by-step workflows |
 | **Lookup** | 11 files | Quick reference tables |
 | **Errors** | 2 files | Common issues + solutions |
 | **Features** | 3 files | Feature documentation and refactoring |
@@ -64,6 +64,7 @@
 
 | File | Topic | Priority |
 |------|-------|----------|
+| `guides/oac-cli-install.md` | The `oac` CLI: install, profiles, update, maintainer build loop | ⭐⭐⭐⭐⭐ |
 | `guides/compatibility-layer-workflow.md` | Developing compatibility layer for AI tools | ⭐⭐⭐⭐⭐ |
 | `guides/testing-subagents.md` | How to test subagents standalone | ⭐⭐⭐⭐⭐ |
 | `guides/adding-agent-basics.md` | How to add new agents (basics) | ⭐⭐⭐⭐ |

@@ -9,7 +9,7 @@ import {
   readManifest,
   createEmptyManifest,
 } from "./manifest.js";
-import { listBundledFiles, getBundledFilePath, classifyBundledFile } from "./bundled.js";
+import { listBundledFiles, getBundledFilePath, classifyBundledFile, toManifestType } from "./bundled.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -219,7 +219,7 @@ async function processOneFile(
   const decision = decisionResult.value;
 
   const now = new Date().toISOString();
-  const fileType = classifyBundledFile(relativePath);
+  const fileType = toManifestType(classifyBundledFile(relativePath));
 
   try {
     if (decision.action === "install") {
@@ -305,7 +305,7 @@ export async function installFiles(
         const sha256 = options.dryRun ? "" : await computeFileHash(destPath);
         const entry: FileEntry = {
           sha256,
-          type: classifyBundledFile(relativePath),
+          type: toManifestType(classifyBundledFile(relativePath)),
           source: "bundled",
           installedAt: now,
         };
@@ -337,6 +337,52 @@ export async function installFiles(
 }
 
 /**
+ * Reconciles an explicit list of bundled files against the manifest: new files are
+ * installed, untouched files are refreshed, user-modified files are skipped (or backed up
+ * and overwritten with --yolo). Entries already in the manifest but not in `files` are left
+ * alone — this is the merge step `oac init` re-runs and `oac update` share.
+ *
+ * Does NOT write the manifest — caller is responsible.
+ */
+export async function syncFiles(
+  files: string[],
+  manifest: ManifestFile | null,
+  options: InstallOptions,
+): Promise<{ result: InstallResult; updatedManifest: ManifestFile }> {
+  const timestamp = buildTimestamp();
+
+  const outcomes = await Promise.all(
+    files.map(async (relativePath) => {
+      const sourcePath = getBundledFilePath(options.packageRoot, relativePath);
+      const destPath = path.join(options.projectRoot, relativePath);
+      const { patch, entry } = await processOneFile({
+        relativePath,
+        sourcePath,
+        destPath,
+        manifest,
+        options,
+        timestamp,
+      });
+      return { relativePath, patch, entry };
+    }),
+  );
+
+  return outcomes.reduce(
+    (acc, { relativePath, patch, entry }) => ({
+      result: mergeResult(acc.result, patch),
+      updatedManifest:
+        entry !== null
+          ? addFileToManifest(acc.updatedManifest, relativePath, entry)
+          : acc.updatedManifest,
+    }),
+    {
+      result: { ...EMPTY_RESULT } as InstallResult,
+      updatedManifest: manifest ?? createEmptyManifest("0.0.0"),
+    },
+  );
+}
+
+/**
  * Implements the full OAC update algorithm:
  *
  * FOR each file in new bundle:
@@ -354,37 +400,10 @@ export async function updateFiles(
 ): Promise<{ result: InstallResult; updatedManifest: ManifestFile }> {
   const manifest = await readManifest(options.projectRoot);
   const bundledFiles = await listBundledFiles(options.packageRoot);
-  const timestamp = buildTimestamp();
 
-  // Phase 1: process each file in the new bundle (parallel)
-  const phase1Results = await Promise.all(
-    bundledFiles.map(async (relativePath) => {
-      const sourcePath = getBundledFilePath(options.packageRoot, relativePath);
-      const destPath = path.join(options.projectRoot, relativePath);
-      const { patch, entry } = await processOneFile({
-        relativePath,
-        sourcePath,
-        destPath,
-        manifest,
-        options,
-        timestamp,
-      });
-      return { relativePath, patch, entry };
-    }),
-  );
-
-  const phase1 = phase1Results.reduce(
-    (acc, { relativePath, patch, entry }) => ({
-      result: mergeResult(acc.result, patch),
-      workingManifest:
-        entry !== null
-          ? addFileToManifest(acc.workingManifest, relativePath, entry)
-          : acc.workingManifest,
-    }),
-    {
-      result: { ...EMPTY_RESULT } as InstallResult,
-      workingManifest: manifest ?? createEmptyManifest("0.0.0"),
-    },
+  // Phase 1: reconcile every file in the new bundle
+  const phase1 = await syncFiles(bundledFiles, manifest, options).then(
+    ({ result, updatedManifest }) => ({ result, workingManifest: updatedManifest }),
   );
 
   // Phase 2: handle files in manifest that are no longer in the bundle

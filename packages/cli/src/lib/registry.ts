@@ -6,57 +6,64 @@ import { join } from "node:path";
 
 const REGISTRY_FILENAME = "registry.json";
 
-/** Install destinations for each component type (relative to project root). */
-const INSTALL_DIRS = {
-  agent: ".opencode/agent/",
-  context: ".opencode/context/",
-  skill: ".opencode/skills/",
-} as const;
+/** The profile `oac init` installs when none is named. */
+export const DEFAULT_PROFILE_ID = "essential";
 
-/** Source directories inside the npm bundle for each component type. */
-const BUNDLE_DIRS = {
-  agent: ".opencode/agent/",
-  context: ".opencode/context/",
-  skill: ".opencode/skills/",
-} as const;
+/**
+ * The one profile that is NOT resolved through the registry: it means "everything the
+ * bundle ships", so `oac init --profile full` keeps copying the whole tree.
+ */
+export const FULL_PROFILE_ID = "full";
+
+/**
+ * Component paths must live under `.opencode/` to be installed. The only exception is the
+ * environment template, which is harmless to drop next to the user's project. Anything else
+ * at the project root (`README.md`, for example) would overwrite a file the user owns.
+ */
+const PROJECT_LEVEL_ALLOWLIST: ReadonlySet<string> = new Set(["env.example"]);
+const INSTALL_PREFIX = ".opencode/";
 
 // ── Schemas ────────────────────────────────────────────────────────────────────
 
 /**
- * The component types that the CLI can install via `oac add`.
- * Matches the user-facing ref prefix: `agent:X`, `context:X`, `skill:X`.
+ * Every component kind the registry knows and the CLI can install.
+ * Matches the user-facing ref prefix: `agent:X`, `context:X`, `skill:X`, `command:X`, ...
  */
-export const ComponentTypeSchema = z.enum(["agent", "context", "skill"]);
+export const ComponentTypeSchema = z.enum([
+  "agent",
+  "subagent",
+  "context",
+  "skill",
+  "command",
+  "tool",
+  "plugin",
+  "config",
+]);
 
-/**
- * A single installable component entry from registry.json.
- * The registry also contains subagents, commands, tools, plugins — those are
- * not user-installable via `oac add` and are excluded from RegistryComponent.
- */
+/** A single component entry from registry.json. */
 export const RegistryComponentSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: ComponentTypeSchema,
   path: z.string(),
-  description: z.string(),
+  description: z.string().default(""),
   tags: z.array(z.string()).default([]),
   dependencies: z.array(z.string()).default([]),
   category: z.string().default("standard"),
-  /** Skills may list multiple files to install. */
+  /** Multi-file components (skills) list every file to install; `path` is the primary one. */
   files: z.array(z.string()).optional(),
+  /** Alternative ids a ref may use (legacy names kept for old profiles). */
+  aliases: z.array(z.string()).optional(),
 });
 
-/**
- * Loose schema for non-installable component categories (subagents, commands,
- * tools, plugins). We only need to parse them without strict validation.
- */
-const AnyComponentSchema = z.object({
-  id: z.string(),
+/** An install tier: a name, a blurb, and the `type:id` refs it pulls in. */
+export const RegistryProfileSchema = z.object({
   name: z.string(),
-  type: z.string(),
-  path: z.string(),
-  description: z.string(),
-}).passthrough();
+  description: z.string().default(""),
+  components: z.array(z.string()).default([]),
+});
+
+const componentList = z.array(RegistryComponentSchema).default([]);
 
 export const RegistrySchema = z.object({
   version: z.string(),
@@ -64,22 +71,39 @@ export const RegistrySchema = z.object({
   repository: z.string().optional(),
   categories: z.record(z.string(), z.string()).optional(),
   components: z.object({
-    agents: z.array(RegistryComponentSchema).default([]),
-    skills: z.array(RegistryComponentSchema).default([]),
-    contexts: z.array(RegistryComponentSchema).default([]),
-    // Non-installable sections — parsed loosely so schema changes don't break us
-    subagents: z.array(AnyComponentSchema).default([]),
-    commands: z.array(AnyComponentSchema).default([]),
-    tools: z.array(AnyComponentSchema).default([]),
-    plugins: z.array(AnyComponentSchema).default([]),
+    agents: componentList,
+    subagents: componentList,
+    contexts: componentList,
+    skills: componentList,
+    commands: componentList,
+    tools: componentList,
+    plugins: componentList,
+    config: componentList,
   }),
+  profiles: z.record(z.string(), RegistryProfileSchema).default({}),
 });
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 export type ComponentType = z.infer<typeof ComponentTypeSchema>;
 export type RegistryComponent = z.infer<typeof RegistryComponentSchema>;
+export type RegistryProfile = z.infer<typeof RegistryProfileSchema>;
 export type Registry = z.infer<typeof RegistrySchema>;
+
+/** A profile with its id, for listing. */
+export type ProfileSummary = RegistryProfile & { id: string };
+
+/** What a profile resolves to on disk. */
+export type ProfileResolution = {
+  /** Relative paths to install, deduplicated and sorted. */
+  files: string[];
+  /** The components those files came from. */
+  components: RegistryComponent[];
+  /** `type:id` refs the registry does not know. Reported, never fatal. */
+  unresolved: string[];
+  /** Refs skipped because their path would land outside `.opencode/`. */
+  refused: string[];
+};
 
 // ── Path helpers ───────────────────────────────────────────────────────────────
 
@@ -87,28 +111,43 @@ export type Registry = z.infer<typeof RegistrySchema>;
 export const getRegistryPath = (packageRoot: string): string =>
   join(packageRoot, REGISTRY_FILENAME);
 
+/** True when a component path is somewhere `oac` is allowed to write. Pure. */
+export const isInstallablePath = (relativePath: string): boolean =>
+  relativePath.startsWith(INSTALL_PREFIX) || PROJECT_LEVEL_ALLOWLIST.has(relativePath);
+
+/** Every file a component installs: its `files[]` when listed, else its `path`. Pure. */
+export const filesForComponent = (component: RegistryComponent): string[] =>
+  component.files !== undefined && component.files.length > 0
+    ? component.files
+    : [component.path];
+
 // ── Pure query helpers ─────────────────────────────────────────────────────────
 
+const SECTION_FOR_TYPE: Record<ComponentType, keyof Registry["components"]> = {
+  agent: "agents",
+  subagent: "subagents",
+  context: "contexts",
+  skill: "skills",
+  command: "commands",
+  tool: "tools",
+  plugin: "plugins",
+  config: "config",
+};
+
 /**
- * Returns all installable components (agents + skills + contexts) from the
- * registry, optionally filtered to a single type.
+ * Returns every component in the registry, optionally filtered to one type.
  * Pure — no side effects.
  */
 export const listComponents = (
   registry: Registry,
   type?: ComponentType,
 ): RegistryComponent[] => {
-  const all: RegistryComponent[] = [
-    ...registry.components.agents,
-    ...registry.components.skills,
-    ...registry.components.contexts,
-  ];
-  return type === undefined ? all : all.filter((c) => c.type === type);
+  if (type !== undefined) return registry.components[SECTION_FOR_TYPE[type]];
+  return ComponentTypeSchema.options.flatMap((t) => registry.components[SECTION_FOR_TYPE[t]]);
 };
 
 /**
- * Alias matching the acceptance criteria name.
- * Filters installable components by type string.
+ * Filters components by a type string; unknown types yield an empty list.
  * Pure — no side effects.
  */
 export const listComponentsByType = (
@@ -120,16 +159,8 @@ export const listComponentsByType = (
   return listComponents(registry, parsed.data);
 };
 
-/**
- * Resolves a `type:name` ref (e.g. `"context:react-patterns"`) to a component.
- * Returns `null` — never throws — when the component is not found or the ref
- * format is invalid.
- * Pure — no side effects.
- */
-export const resolveComponent = (
-  registry: Registry,
-  ref: string,
-): RegistryComponent | null => {
+/** Splits `type:id` into its parts, or null when the shape is wrong. Pure. */
+const parseRef = (ref: string): { type: ComponentType; id: string } | null => {
   const colonIndex = ref.indexOf(":");
   if (colonIndex === -1) return null;
 
@@ -140,25 +171,135 @@ export const resolveComponent = (
   const typeResult = ComponentTypeSchema.safeParse(rawType);
   if (!typeResult.success) return null;
 
-  const candidates = listComponents(registry, typeResult.data);
-  return candidates.find((c) => c.id === id) ?? null;
+  return { type: typeResult.data, id };
+};
+
+/** Where each component kind's files live, for path-shaped and wildcard refs. */
+const BASE_DIR: Record<ComponentType, string> = {
+  agent: ".opencode/agent/",
+  subagent: ".opencode/agent/",
+  context: ".opencode/context/",
+  skill: ".opencode/skills/",
+  command: ".opencode/command/",
+  tool: ".opencode/tool/",
+  plugin: ".opencode/plugin/",
+  config: "",
+};
+
+/** True when the component answers to `id`, by id or alias. Pure. */
+const hasId = (component: RegistryComponent, id: string): boolean =>
+  component.id === id || (component.aliases?.includes(id) ?? false);
+
+/**
+ * Resolves a `type:name` ref (e.g. `"context:react-patterns"`) to a component.
+ *
+ * A context ref may also be path-shaped (`context:core/standards/code-quality`), the form
+ * older profiles and `install.sh` use: it matches the component whose path is that file
+ * under `.opencode/context/`, with or without a `.md` extension.
+ *
+ * Returns `null` — never throws — when the component is not found or the ref
+ * format is invalid.
+ * Pure — no side effects.
+ */
+export const resolveComponent = (
+  registry: Registry,
+  ref: string,
+): RegistryComponent | null => {
+  const parsed = parseRef(ref);
+  if (parsed === null) return null;
+
+  const candidates = listComponents(registry, parsed.type);
+  const byId = candidates.find((c) => hasId(c, parsed.id));
+  if (byId !== undefined) return byId;
+
+  if (!parsed.id.includes("/")) return null;
+  const asPath = `${BASE_DIR[parsed.type]}${parsed.id}`;
+  return candidates.find((c) => c.path === `${asPath}.md` || c.path === asPath) ?? null;
 };
 
 /**
- * Returns the directory (relative to project root) where a component should
- * be installed.
+ * Expands one profile ref to the components it names.
+ *
+ * `context:core/*` means every context whose path sits under `.opencode/context/core/`.
+ * Only a trailing `*` is understood; that is the only shape the shipped profiles use.
+ * A ref without a wildcard expands to at most one component.
+ *
  * Pure — no side effects.
  */
-export const getInstallPath = (component: RegistryComponent): string =>
-  INSTALL_DIRS[component.type];
+export const expandRef = (registry: Registry, ref: string): RegistryComponent[] => {
+  const parsed = parseRef(ref);
+  if (parsed === null) return [];
+
+  if (!parsed.id.endsWith("*")) {
+    const one = resolveComponent(registry, ref);
+    return one === null ? [] : [one];
+  }
+
+  const prefix = `${BASE_DIR[parsed.type]}${parsed.id.slice(0, -1)}`;
+  return listComponents(registry, parsed.type).filter((c) => c.path.startsWith(prefix));
+};
+
+// ── Profiles ───────────────────────────────────────────────────────────────────
+
+/** Every profile the registry declares, sorted by id. Pure. */
+export const listProfiles = (registry: Registry): ProfileSummary[] =>
+  Object.entries(registry.profiles)
+    .map(([id, profile]) => ({ id, ...profile }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+
+/** A profile by id, or null. Pure. */
+export const getProfile = (registry: Registry, id: string): RegistryProfile | null =>
+  registry.profiles[id] ?? null;
 
 /**
- * Returns the directory (relative to the npm bundle / package root) where the
- * component's source files live.
+ * Turns a profile into the list of files to install.
+ *
+ * Refs may be ids, path-shaped context refs, or trailing-wildcard globs (see {@link expandRef}).
+ * Unknown refs are collected, not thrown: a stale profile entry should cost the user one
+ * warning line, not the whole install. Refs whose path would land outside `.opencode/` are
+ * refused for the same reason `oac` never writes a project's README.
+ *
  * Pure — no side effects.
  */
-export const getBundledSourcePath = (component: RegistryComponent): string =>
-  BUNDLE_DIRS[component.type];
+export const resolveProfile = (
+  registry: Registry,
+  profile: RegistryProfile,
+  options: { contextOnly?: boolean } = {},
+): ProfileResolution => {
+  const wanted = options.contextOnly
+    ? profile.components.filter((ref) => ref.startsWith("context:"))
+    : profile.components;
+
+  const seen = new Set<string>();
+  const resolution: ProfileResolution = { files: [], components: [], unresolved: [], refused: [] };
+
+  for (const ref of wanted) {
+    const components = expandRef(registry, ref);
+    if (components.length === 0) {
+      resolution.unresolved.push(ref);
+      continue;
+    }
+
+    for (const component of components) {
+      const files = filesForComponent(component);
+      if (!files.every(isInstallablePath)) {
+        resolution.refused.push(ref);
+        continue;
+      }
+
+      resolution.components.push(component);
+      for (const file of files) {
+        if (!seen.has(file)) {
+          seen.add(file);
+          resolution.files.push(file);
+        }
+      }
+    }
+  }
+
+  resolution.files.sort();
+  return resolution;
+};
 
 // ── I/O ────────────────────────────────────────────────────────────────────────
 

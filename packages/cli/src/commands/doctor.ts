@@ -4,32 +4,27 @@ import { type Command } from 'commander';
 import semver from 'semver';
 
 import { readCliVersion } from '../lib/version.js';
-import { readManifest } from '../lib/manifest.js';
 import { readConfig } from '../lib/config.js';
 import { computeFileHash, hashesMatch } from '../lib/sha256.js';
-import { detectIdes, getIdeDisplayName, getIdeOutputFile } from '../lib/ide-detect.js';
+import { detectIdes } from '../lib/ide-detect.js';
+import {
+  ideCheckResults,
+  manifestUnavailable,
+  overallStatus,
+  safeReadManifest,
+  summariseResults,
+  type CheckResult,
+  type DoctorSummary,
+} from '../lib/doctor-checks.js';
 import { log, info, warn, error, success, dim, bold, setVerbose } from '../ui/logger.js';
 
+export type { CheckResult, CheckStatus } from '../lib/doctor-checks.js';
+
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-export type CheckStatus = 'ok' | 'warn' | 'error' | 'info';
-
-export type CheckResult = {
-  name: string;
-  status: CheckStatus;
-  message: string;
-  detail?: string[];
-};
 
 export type DoctorOptions = {
   verbose: boolean;
   json: boolean;
-};
-
-type DoctorSummary = {
-  ok: number;
-  warnings: number;
-  errors: number;
 };
 
 // ── Version helpers ───────────────────────────────────────────────────────────
@@ -122,49 +117,40 @@ const checkConfig = async (projectRoot: string): Promise<CheckResult> => {
 
 /** Check 4: .oac/manifest.json exists and is valid JSON. */
 const checkManifest = async (projectRoot: string): Promise<CheckResult> => {
-  try {
-    const manifest = await readManifest(projectRoot);
-    if (manifest === null) {
-      return {
-        name: 'Manifest',
-        status: 'error',
-        message: '.oac/manifest.json not found — run \'oac init\' to create it',
-      };
-    }
-    const fileCount = Object.keys(manifest.files).length;
-    return {
-      name: 'Manifest',
-      status: 'ok',
-      message: `.oac/manifest.json valid (${fileCount} file${fileCount !== 1 ? 's' : ''} tracked)`,
-    };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+  const read = await safeReadManifest(projectRoot);
+  if (!read.ok) {
     return {
       name: 'Manifest',
       status: 'error',
-      message: `.oac/manifest.json invalid — ${msg}`,
+      message: `.oac/manifest.json invalid — ${read.error}`,
     };
   }
+  if (read.manifest === null) {
+    return {
+      name: 'Manifest',
+      status: 'error',
+      message: '.oac/manifest.json not found — run \'oac init\' to create it',
+    };
+  }
+  const fileCount = Object.keys(read.manifest.files).length;
+  return {
+    name: 'Manifest',
+    status: 'ok',
+    message: `.oac/manifest.json valid (${fileCount} file${fileCount !== 1 ? 's' : ''} tracked)`,
+  };
 };
 
 /** Check 5: Every file listed in manifest exists on disk. */
 const checkFilesOnDisk = async (projectRoot: string): Promise<CheckResult> => {
-  const manifest = await readManifest(projectRoot);
-  if (manifest === null) {
-    return {
-      name: 'Files on disk',
-      status: 'error',
-      message: 'Cannot check files — manifest is missing',
-    };
+  const name = 'Files on disk';
+  const read = await safeReadManifest(projectRoot);
+  if (!read.ok || read.manifest === null) {
+    return manifestUnavailable(name, read) ?? { name, status: 'error', message: 'Cannot check — manifest is missing' };
   }
 
-  const trackedFiles = Object.keys(manifest.files);
+  const trackedFiles = Object.keys(read.manifest.files);
   if (trackedFiles.length === 0) {
-    return {
-      name: 'Files on disk',
-      status: 'ok',
-      message: 'No files tracked in manifest',
-    };
+    return { name, status: 'ok', message: 'No files tracked in manifest' };
   }
 
   const missingFiles: string[] = [];
@@ -176,7 +162,7 @@ const checkFilesOnDisk = async (projectRoot: string): Promise<CheckResult> => {
 
   if (missingFiles.length > 0) {
     return {
-      name: 'Files on disk',
+      name,
       status: 'error',
       message: `${missingFiles.length} file${missingFiles.length !== 1 ? 's' : ''} missing from disk`,
       detail: missingFiles,
@@ -184,7 +170,7 @@ const checkFilesOnDisk = async (projectRoot: string): Promise<CheckResult> => {
   }
 
   return {
-    name: 'Files on disk',
+    name,
     status: 'ok',
     message: `All ${trackedFiles.length} tracked file${trackedFiles.length !== 1 ? 's' : ''} present`,
   };
@@ -192,22 +178,16 @@ const checkFilesOnDisk = async (projectRoot: string): Promise<CheckResult> => {
 
 /** Check 6: SHA256 mismatch detection — warn for user-modified files. */
 const checkModifiedFiles = async (projectRoot: string): Promise<CheckResult> => {
-  const manifest = await readManifest(projectRoot);
-  if (manifest === null) {
-    return {
-      name: 'Modified files',
-      status: 'error',
-      message: 'Cannot check modifications — manifest is missing',
-    };
+  const name = 'Modified files';
+  const read = await safeReadManifest(projectRoot);
+  if (!read.ok || read.manifest === null) {
+    return manifestUnavailable(name, read) ?? { name, status: 'error', message: 'Cannot check — manifest is missing' };
   }
 
+  const manifest = read.manifest;
   const trackedFiles = Object.keys(manifest.files);
   if (trackedFiles.length === 0) {
-    return {
-      name: 'Modified files',
-      status: 'ok',
-      message: 'No files tracked',
-    };
+    return { name, status: 'ok', message: 'No files tracked' };
   }
 
   const modifiedFiles: string[] = [];
@@ -229,41 +209,19 @@ const checkModifiedFiles = async (projectRoot: string): Promise<CheckResult> => 
 
   if (modifiedFiles.length > 0) {
     return {
-      name: 'Modified files',
+      name,
       status: 'warn',
       message: `${modifiedFiles.length} file${modifiedFiles.length !== 1 ? 's' : ''} modified since install`,
       detail: modifiedFiles,
     };
   }
 
-  return {
-    name: 'Modified files',
-    status: 'ok',
-    message: 'No files modified since install',
-  };
+  return { name, status: 'ok', message: 'No files modified since install' };
 };
 
-/** Check 7: IDE detection — suggests 'oac apply' for each detected IDE. */
-const checkIdes = async (projectRoot: string): Promise<CheckResult[]> => {
-  const ides = await detectIdes(projectRoot);
-  const detected = ides.filter((ide) => ide.detected);
-
-  if (detected.length === 0) {
-    return [
-      {
-        name: 'IDE detection',
-        status: 'info',
-        message: 'No IDEs detected — run \'oac apply <ide>\' to generate IDE-specific files',
-      },
-    ];
-  }
-
-  return detected.map((ide) => ({
-    name: `IDE: ${getIdeDisplayName(ide.type)}`,
-    status: 'warn' as CheckStatus,
-    message: `${getIdeDisplayName(ide.type)} detected (${ide.indicator}) — run 'oac apply ${ide.type}' to sync ${getIdeOutputFile(ide.type)}`,
-  }));
-};
+/** Check 7: which tools are present. OpenCode present is the healthy state; Claude is informational. */
+const checkIdes = async (projectRoot: string): Promise<CheckResult[]> =>
+  ideCheckResults(await detectIdes(projectRoot));
 
 // ── Result rendering ──────────────────────────────────────────────────────────
 
@@ -291,20 +249,6 @@ const printCheckResult = (result: CheckResult): void => {
   }
 };
 
-/** Computes summary counts from check results. Pure function. */
-const summariseResults = (results: CheckResult[]): DoctorSummary => ({
-  ok: results.filter((r) => r.status === 'ok' || r.status === 'info').length,
-  warnings: results.filter((r) => r.status === 'warn').length,
-  errors: results.filter((r) => r.status === 'error').length,
-});
-
-/** Returns the overall status string from a summary. Pure function. */
-const overallStatus = (summary: DoctorSummary): 'healthy' | 'warning' | 'error' => {
-  if (summary.errors > 0) return 'error';
-  if (summary.warnings > 0) return 'warning';
-  return 'healthy';
-};
-
 /** Prints the final result line. Side-effect only. */
 const printFinalResult = (summary: DoctorSummary): void => {
   log('');
@@ -330,6 +274,9 @@ const printFinalResult = (summary: DoctorSummary): void => {
  * Implements `oac doctor`:
  *  Runs all 7 health checks, prints results, and exits with code 0 (healthy/warnings)
  *  or 1 (errors found). Supports --json for machine-readable output.
+ *
+ *  Every check returns a value; a corrupt manifest is reported as a failed check rather
+ *  than crashing the one tool whose job is to report it.
  */
 export async function doctorCommand(options: DoctorOptions): Promise<void> {
   if (options.verbose) setVerbose(true);
@@ -369,7 +316,6 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
     };
     log(JSON.stringify(output, null, 2));
     process.exit(summary.errors > 0 ? 1 : 0);
-    return;
   }
 
   // Human-readable output

@@ -6,7 +6,20 @@ import { fileURLToPath } from "node:url";
 // --- Types ---
 
 /** The category of a bundled file, inferred from its path prefix. */
-export type BundledFileType = "agent" | "context" | "skill" | "config";
+export type BundledFileType =
+  | "agent"
+  | "context"
+  | "skill"
+  | "command"
+  | "tool"
+  | "plugin"
+  | "config";
+
+/**
+ * What the manifest records for a bundled file. The manifest's vocabulary is narrower than
+ * the bundle's (it predates commands, tools and plugins), so those fold into "other".
+ */
+export type ManifestType = "agent" | "context" | "skill" | "config" | "other";
 
 // --- Constants ---
 
@@ -171,6 +184,9 @@ export const bundledFileExists = async (
  * - `.opencode/agent/...`   → "agent"
  * - `.opencode/context/...` → "context"
  * - `.opencode/skills/...`  → "skill"
+ * - `.opencode/command/...` → "command"
+ * - `.opencode/tool/...`    → "tool"
+ * - `.opencode/plugin/...`  → "plugin"
  * - anything else           → "config"
  *
  * Pure function — no I/O.
@@ -179,5 +195,28 @@ export const classifyBundledFile = (relativePath: string): BundledFileType => {
   if (relativePath.startsWith(".opencode/agent/")) return "agent";
   if (relativePath.startsWith(".opencode/context/")) return "context";
   if (relativePath.startsWith(".opencode/skills/")) return "skill";
+  if (relativePath.startsWith(".opencode/command/")) return "command";
+  if (relativePath.startsWith(".opencode/tool/")) return "tool";
+  if (relativePath.startsWith(".opencode/plugin/")) return "plugin";
   return "config";
+};
+
+/**
+ * Maps a bundled-file kind (or a registry component type) onto the manifest's vocabulary.
+ * Pure function — no I/O.
+ */
+export const toManifestType = (kind: string): ManifestType => {
+  switch (kind) {
+    case "agent":
+    case "subagent":
+      return "agent";
+    case "context":
+      return "context";
+    case "skill":
+      return "skill";
+    case "config":
+      return "config";
+    default:
+      return "other";
+  }
 };

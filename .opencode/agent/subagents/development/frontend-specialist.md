@@ -86,10 +86,6 @@ task(subagent_type="ContextScout", description="Find frontend design standards",
 3. If ContextScout flags a UI library (Tailwind, Shadcn, etc.) → call **ExternalScout** (see below)
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 ---
 
 ## Workflow
@@ -142,10 +138,6 @@ task(subagent_type="ContextScout", description="Find frontend design standards",
 4. Present: "Updated design saved. Previous version preserved."
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 ---
 
 <heuristics>

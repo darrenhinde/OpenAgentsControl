@@ -80,10 +80,6 @@ task(subagent_type="ContextScout", description="Find workflow design standards",
 3. **Apply** validation gate, context dependency, and success criteria standards
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 ---
 
 ## What NOT to Do
@@ -96,10 +92,6 @@ task(subagent_type="ContextScout", description="Find workflow design standards",
 - ❌ **Don't ignore complexity patterns** — match the pattern to the use case complexity
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
   <simple_pattern>
     Linear execution with validation:
     1. Validate inputs → 2. Execute main task → 3. Validate outputs → 4. Deliver results

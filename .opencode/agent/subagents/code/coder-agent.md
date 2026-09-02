@@ -92,12 +92,6 @@ task(subagent_type="ContextScout", description="Find coding standards for [featu
 3. If ContextScout flags a framework/library → call **ExternalScout** for live docs (see below)
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
----
-
 ## Workflow
 
 ### Step 1: Read Subtask JSON
@@ -245,12 +239,6 @@ Summary: Implemented JWT authentication with refresh tokens and error handling
 - Status marking is the signal that enables parallel workflow progression
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
----
-
 ## Principles
 
 - Context first, code second. Always.

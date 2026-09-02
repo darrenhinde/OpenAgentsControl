@@ -556,3 +556,89 @@ describe('isProjectRoot', () => {
     expect(result).toBe(false);
   });
 });
+
+// ── syncFiles — the merge step `oac init` re-runs use ────────────────────────
+
+import { syncFiles } from './installer.js';
+import { readManifest as readManifestFile } from './manifest.js';
+
+describe('syncFiles — re-running init against an existing manifest', () => {
+  let projectRoot: string;
+  let packageRoot: string;
+  const bundledPath = '.opencode/context/core/quick-start.md';
+  const editedPath = '.opencode/context/core/standards/code-quality.md';
+  const addedPath = '.opencode/context/extra/react-patterns.md';
+
+  beforeAll(async () => {
+    projectRoot = await mkdtemp(join(tmpdir(), 'oac-sync-'));
+    packageRoot = await mkdtemp(join(tmpdir(), 'oac-sync-pkg-'));
+
+    await setupPackageRoot(packageRoot, bundledPath, '# Quick start v2');
+    await setupPackageRoot(packageRoot, editedPath, '# Code quality v2');
+
+    // First install: both files land untouched, plus one `oac add` entry not in this profile.
+    await setupPackageRoot(projectRoot, bundledPath, '# Quick start v1');
+    await setupPackageRoot(projectRoot, editedPath, '# Code quality v1');
+    await setupPackageRoot(projectRoot, addedPath, '# React');
+
+    let manifest = createEmptyManifest('1.0.0');
+    manifest = addFileToManifest(manifest, bundledPath, makeEntry(await computeFileHash(join(projectRoot, bundledPath)), { type: 'context' }));
+    manifest = addFileToManifest(manifest, editedPath, makeEntry(await computeFileHash(join(projectRoot, editedPath)), { type: 'context' }));
+    manifest = addFileToManifest(manifest, addedPath, makeEntry(await computeFileHash(join(projectRoot, addedPath)), { type: 'context', source: 'registry' }));
+    await writeManifest(projectRoot, manifest);
+
+    // The user edits one file after install.
+    await writeFile(join(projectRoot, editedPath), '# Code quality v1 — my edits', 'utf8');
+  });
+
+  afterAll(async () => {
+    await rm(projectRoot, { recursive: true, force: true });
+    await rm(packageRoot, { recursive: true, force: true });
+  });
+
+  test('refreshes untouched files, skips edited ones, keeps foreign manifest entries', async () => {
+    const manifest = await readManifestFile(projectRoot);
+    const { result, updatedManifest } = await syncFiles(
+      [bundledPath, editedPath],
+      manifest,
+      makeOptions(projectRoot, packageRoot),
+    );
+
+    expect(result.updated).toEqual([bundledPath]);
+    expect(result.skipped).toEqual([editedPath]);
+    expect(result.installed).toEqual([]);
+    expect(result.removed_from_manifest).toEqual([]);
+
+    expect(await Bun.file(join(projectRoot, bundledPath)).text()).toBe('# Quick start v2');
+    expect(await Bun.file(join(projectRoot, editedPath)).text()).toBe('# Code quality v1 — my edits');
+
+    // The `oac add` entry survives the re-init.
+    expect(updatedManifest.files[addedPath]).toBeDefined();
+    expect(updatedManifest.files[addedPath]!.source).toBe('registry');
+    // The skipped file keeps its old hash entry (still tracked, still "modified").
+    expect(updatedManifest.files[editedPath]!.sha256).toBe(manifest!.files[editedPath]!.sha256);
+  });
+
+  test('with yolo, backs up the edited file and overwrites it', async () => {
+    const manifest = await readManifestFile(projectRoot);
+    const { result } = await syncFiles([editedPath], manifest, makeOptions(projectRoot, packageRoot, { yolo: true }));
+
+    expect(result.updated).toEqual([editedPath]);
+    expect(result.backed_up).toHaveLength(1);
+    expect(result.backed_up[0]).toContain(join('.oac', 'backups'));
+    expect(await Bun.file(join(projectRoot, editedPath)).text()).toBe('# Code quality v2');
+    expect(await Bun.file(result.backed_up[0]!).text()).toBe('# Code quality v1 — my edits');
+  });
+
+  test('installs a file the manifest has never seen', async () => {
+    const newPath = '.opencode/command/clean.md';
+    await setupPackageRoot(packageRoot, newPath, '# clean');
+    const manifest = await readManifestFile(projectRoot);
+
+    const { result, updatedManifest } = await syncFiles([newPath], manifest, makeOptions(projectRoot, packageRoot));
+
+    expect(result.installed).toEqual([newPath]);
+    expect(updatedManifest.files[newPath]!.type).toBe('other');
+    expect(await Bun.file(join(projectRoot, newPath)).exists()).toBe(true);
+  });
+});
