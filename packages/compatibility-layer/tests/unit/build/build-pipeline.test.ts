@@ -325,6 +325,26 @@ describe("orphan removal", () => {
 // ============================================================================
 
 describe("failure handling", () => {
+  it("rejects duplicate typed identities in carried-through component categories", async () => {
+    put(
+      "registry.json",
+      `${JSON.stringify({
+        ...BASE_REGISTRY,
+        components: {
+          ...BASE_REGISTRY.components,
+          contexts: [
+            { id: "duplicate", type: "context", path: ".opencode/context/one.md" },
+            { id: "duplicate", type: "context", path: ".opencode/context/two.md" },
+          ],
+        },
+      }, null, 2)}\n`,
+    );
+
+    await expect(plan({ root })).rejects.toThrow(
+      "Duplicate registry component identities: context:duplicate",
+    );
+  });
+
   it("rejects the whole build on a schema violation rather than emitting a partial tree", async () => {
     put("content/agents/subagents/test/broken.md", "---\nname: broken\n---\n\nNo oac block.\n");
 

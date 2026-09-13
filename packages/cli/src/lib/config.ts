@@ -6,12 +6,32 @@ export const OacPreferencesSchema = z.object({
   yoloMode: z.boolean(),
   autoBackup: z.boolean(),
 });
+
+const DEFAULT_INSTALLATION_SCOPE = {
+  profile: "essential",
+  contextOnly: false,
+  profiles: ["essential"],
+};
+
+/** The profiles whose files OAC is allowed to reconcile on later updates. */
+export const OacInstallationScopeSchema = z.object({
+  /** The most recently selected profile, used as the default for subsequent commands. */
+  profile: z.string(),
+  /** Whether the current profile selection was limited to context files. */
+  contextOnly: z.boolean(),
+  /** Every profile selected over the lifetime of this installation. */
+  profiles: z.array(z.string()),
+});
+
 export const OacConfigSchema = z.object({
   version: z.literal("1"),
   preferences: OacPreferencesSchema,
+  // Version-1 configs predate installation scope. Defaulting keeps them readable.
+  installationScope: OacInstallationScopeSchema.default(DEFAULT_INSTALLATION_SCOPE),
 });
 
 export type OacPreferences = z.infer<typeof OacPreferencesSchema>;
+export type OacInstallationScope = z.infer<typeof OacInstallationScopeSchema>;
 export type OacConfig = z.infer<typeof OacConfigSchema>;
 
 export const getConfigPath = (projectRoot: string): string =>
@@ -20,6 +40,10 @@ export const getConfigPath = (projectRoot: string): string =>
 export const createDefaultConfig = (): OacConfig => ({
   version: "1",
   preferences: { yoloMode: false, autoBackup: true },
+  installationScope: {
+    ...DEFAULT_INSTALLATION_SCOPE,
+    profiles: [...DEFAULT_INSTALLATION_SCOPE.profiles],
+  },
 });
 
 // Pure — returns new object, no mutation

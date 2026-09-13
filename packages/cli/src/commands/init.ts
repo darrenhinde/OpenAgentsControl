@@ -1,10 +1,11 @@
 import { type Command } from 'commander';
+import { lstat, writeFile } from 'node:fs/promises';
 
 import { readCliVersion } from '../lib/version.js';
 import { isProjectRoot, installFiles, syncFiles, type InstallResult } from '../lib/installer.js';
 import { getPackageRoot, listBundledFiles, classifyBundledFile } from '../lib/bundled.js';
 import { readManifest, writeManifest, type ManifestFile } from '../lib/manifest.js';
-import { readConfig, writeConfig, createDefaultConfig } from '../lib/config.js';
+import { readConfig, writeConfig, createDefaultConfig, type OacInstallationScope } from '../lib/config.js';
 import { detectIdes } from '../lib/ide-detect.js';
 import {
   loadRegistry,
@@ -17,6 +18,7 @@ import {
 } from '../lib/registry.js';
 import { log, info, warn, error, success, setVerbose, verbose, dim } from '../ui/logger.js';
 import { createSpinner } from '../ui/spinner.js';
+import { CLAUDE_CONTEXT_ROOT, getClaudeDiscoveryConfigPath } from '../lib/doctor-checks.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -193,18 +195,46 @@ const assertProjectRoot = async (cwd: string): Promise<void> => {
  * Writes the default config only if one does not already exist.
  * Idempotent — never overwrites an existing config.
  */
-const ensureConfig = async (projectRoot: string, dryRun: boolean): Promise<void> => {
+const ensureConfig = async (
+  projectRoot: string,
+  dryRun: boolean,
+  selection: Pick<OacInstallationScope, 'profile' | 'contextOnly'>,
+): Promise<void> => {
   const existing = await readConfig(projectRoot);
-  if (existing !== null) {
-    verbose('Config already exists — skipping config write.');
+  if (dryRun) {
+    info('[dry-run] Would write .oac/config.json with installation scope.');
+    return;
+  }
+  const base = existing ?? createDefaultConfig();
+  const profiles = [...new Set([...base.installationScope.profiles, selection.profile])];
+  await writeConfig(projectRoot, {
+    ...base,
+    installationScope: { ...selection, profiles },
+  });
+  verbose(existing === null ? 'Wrote .oac/config.json with installation scope.' : 'Updated installation scope.');
+};
+
+/**
+ * Adds Claude Code's verified project-local context pointer without taking ownership of an
+ * existing user configuration. The protocol requires a project-relative root.
+ */
+export const ensureClaudeDiscoveryConfig = async (projectRoot: string, dryRun: boolean): Promise<void> => {
+  const configPath = getClaudeDiscoveryConfigPath(projectRoot);
+  const exists = await lstat(configPath).then(() => true).catch(() => false);
+  if (exists) {
+    verbose('.oac.json already exists — skipping user-owned Claude discovery configuration.');
     return;
   }
   if (dryRun) {
-    info('[dry-run] Would write .oac/config.json with defaults.');
+    info(`[dry-run] Would write .oac.json with context.root "${CLAUDE_CONTEXT_ROOT}".`);
     return;
   }
-  await writeConfig(projectRoot, createDefaultConfig());
-  verbose('Wrote .oac/config.json with defaults.');
+  await writeFile(
+    configPath,
+    JSON.stringify({ version: '1', context: { root: CLAUDE_CONTEXT_ROOT } }, null, 2),
+    'utf8',
+  );
+  verbose(`Wrote .oac.json with context.root "${CLAUDE_CONTEXT_ROOT}".`);
 };
 
 // ── Install step ──────────────────────────────────────────────────────────────
@@ -349,15 +379,26 @@ export async function initCommand(options: InitOptions): Promise<void> {
     verbose('Wrote .oac/manifest.json');
   }
 
-  // Step 7: write config (only if absent)
-  await ensureConfig(projectRoot, effectiveOptions.dryRun).catch((err: unknown) => {
+  // Step 7: persist config and the cumulative installation scope
+  await ensureConfig(projectRoot, effectiveOptions.dryRun, {
+    profile: plan.profileId,
+    contextOnly: effectiveOptions.contextOnly,
+  }).catch((err: unknown) => {
     const msg = err instanceof Error ? err.message : String(err);
     error(`Failed to write config: ${msg}`);
     error('Fix: check write permissions for the .oac/ directory.');
     process.exit(1) as never;
   });
 
-  // Step 8: print summary
+  // Step 8: write Claude Code's verified discovery configuration (only if absent)
+  await ensureClaudeDiscoveryConfig(projectRoot, effectiveOptions.dryRun).catch((err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    error(`Failed to write .oac.json: ${msg}`);
+    error('Fix: check write permissions for the project root.');
+    process.exit(1) as never;
+  });
+
+  // Step 9: print summary
   printSummary(result, reinstall, effectiveOptions.dryRun);
 
   // Exit 0 on success (explicit for clarity)

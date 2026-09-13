@@ -31,6 +31,8 @@ export const FileEntrySchema = z.object({
   type: ManifestFileTypeSchema,
   source: z.enum(['bundled', 'registry', 'custom']),
   installedAt: z.string(),
+  /** A pre-existing file observed by OAC but never installed or overwritten by it. */
+  protected: z.boolean().default(false),
 });
 
 export const ManifestFileSchema = z.object({
@@ -44,8 +46,24 @@ export const ManifestFileSchema = z.object({
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type ManifestFileType = z.infer<typeof ManifestFileTypeSchema>;
-export type FileEntry = z.infer<typeof FileEntrySchema>;
-export type ManifestFile = z.infer<typeof ManifestFileSchema>;
+/** `protected` remains optional in memory so existing callers can create legacy-compatible entries. */
+export type FileEntry = Omit<z.infer<typeof FileEntrySchema>, 'protected'> & {
+  protected?: boolean;
+};
+export type ManifestFile = Omit<z.infer<typeof ManifestFileSchema>, 'files'> & {
+  files: Record<string, FileEntry>;
+};
+
+/**
+ * The safe update scope for installs created before profiles were persisted.
+ * The original tier is unknowable, so only already tracked paths are eligible.
+ */
+export type LegacyInstallationScope = {
+  profile: null;
+  contextOnly: boolean;
+  profiles: [];
+  files: string[];
+};
 
 // ── Path helpers ──────────────────────────────────────────────────────────────
 
@@ -67,6 +85,19 @@ export const createEmptyManifest = (oacVersion: string): ManifestFile => {
     installedAt: now,
     updatedAt: now,
     files: {},
+  };
+};
+
+/** Infers a non-expanding update scope from a legacy manifest. Pure. */
+export const inferLegacyInstallationScope = (
+  manifest: ManifestFile,
+): LegacyInstallationScope => {
+  const files = Object.keys(manifest.files).sort();
+  return {
+    profile: null,
+    contextOnly: files.length > 0 && files.every((file) => file.startsWith('.opencode/context/')),
+    profiles: [],
+    files,
   };
 };
 

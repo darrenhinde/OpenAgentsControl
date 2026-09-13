@@ -23,10 +23,6 @@ pnpm-debug.log*
 bun.lock
 package-lock.json
 
-# Exclude tool directory (large binaries)
-.opencode/tool/
-**/.opencode/tool/
-
 # Build and test artifacts
 dist/
 build/

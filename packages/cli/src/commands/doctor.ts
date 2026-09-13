@@ -9,6 +9,8 @@ import { computeFileHash, hashesMatch } from '../lib/sha256.js';
 import { detectIdes } from '../lib/ide-detect.js';
 import {
   ideCheckResults,
+  checkClaudeDiscoveryConfig,
+  checkContextRootNavigation,
   manifestUnavailable,
   overallStatus,
   safeReadManifest,
@@ -284,12 +286,14 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
   const projectRoot = process.cwd();
 
   // Run all independent async checks in parallel for speed
-  const [configResult, manifestResult, filesResult, modifiedResult, ideResults, versionResult] =
+  const [configResult, manifestResult, filesResult, modifiedResult, contextNavigationResult, claudeDiscoveryResult, ideResults, versionResult] =
     await Promise.all([
       checkConfig(projectRoot),
       checkManifest(projectRoot),
       checkFilesOnDisk(projectRoot),
       checkModifiedFiles(projectRoot),
+      checkContextRootNavigation(projectRoot),
+      checkClaudeDiscoveryConfig(projectRoot),
       checkIdes(projectRoot),
       checkOacVersion(),
     ]);
@@ -300,6 +304,8 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
     manifestResult,
     filesResult,
     modifiedResult,
+    contextNavigationResult,
+    claudeDiscoveryResult,
     ...ideResults,    // checkIdes returns CheckResult[]
     versionResult,
   ];

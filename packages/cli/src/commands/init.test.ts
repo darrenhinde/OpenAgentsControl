@@ -2,7 +2,10 @@
  * Tests for the pure planning half of `oac init`: which files a profile installs.
  */
 import { describe, test, expect } from 'bun:test';
-import { planInstall, countByType, formatFileSummary } from './init.js';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { planInstall, countByType, ensureClaudeDiscoveryConfig, formatFileSummary } from './init.js';
 import { RegistrySchema } from '../lib/registry.js';
 
 const REGISTRY = RegistrySchema.parse({
@@ -42,7 +45,12 @@ describe('planInstall', () => {
     expect(plan.profileName).toBe('Essential');
     expect(plan.files).toEqual([
       '.opencode/agent/core/openagent.md',
+      '.opencode/context/core/config/navigation.md',
+      '.opencode/context/core/config/paths.json',
+      '.opencode/context/core/navigation.md',
       '.opencode/context/core/quick-start.md',
+      '.opencode/context/index.md',
+      '.opencode/context/navigation.md',
       '.opencode/skills/task-management/SKILL.md',
       '.opencode/skills/task-management/router.sh',
     ]);
@@ -62,7 +70,14 @@ describe('planInstall', () => {
 
   test('essential --context-only keeps only the profile context refs', () => {
     const plan = planInstall(REGISTRY, BUNDLE, { profile: 'essential', contextOnly: true })!;
-    expect(plan.files).toEqual(['.opencode/context/core/quick-start.md']);
+    expect(plan.files).toEqual([
+      '.opencode/context/core/config/navigation.md',
+      '.opencode/context/core/config/paths.json',
+      '.opencode/context/core/navigation.md',
+      '.opencode/context/core/quick-start.md',
+      '.opencode/context/index.md',
+      '.opencode/context/navigation.md',
+    ]);
   });
 
   test('unknown profile yields null', () => {
@@ -89,5 +104,33 @@ describe('countByType / formatFileSummary', () => {
 
   test('empty list formats as 0 files', () => {
     expect(formatFileSummary(countByType([]))).toBe('0 files');
+  });
+});
+
+describe('ensureClaudeDiscoveryConfig', () => {
+  test('writes the verified project-relative Claude configuration when absent', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'oac-init-claude-'));
+    try {
+      await ensureClaudeDiscoveryConfig(projectRoot, false);
+      expect(JSON.parse(await readFile(join(projectRoot, '.oac.json'), 'utf8'))).toEqual({
+        version: '1',
+        context: { root: '.opencode/context' },
+      });
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  test('leaves an existing user-owned .oac.json unchanged', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'oac-init-claude-'));
+    const configPath = join(projectRoot, '.oac.json');
+    const userConfig = '{"context":{"root":"custom/context"}}';
+    try {
+      await writeFile(configPath, userConfig, 'utf8');
+      await ensureClaudeDiscoveryConfig(projectRoot, false);
+      expect(await readFile(configPath, 'utf8')).toBe(userConfig);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
   });
 });

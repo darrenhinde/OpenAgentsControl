@@ -30,6 +30,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   RegistryEmitter,
+  duplicateRegistryIdentities,
   emitRegistry,
   serializeRegistry,
   entryForAgent,
@@ -577,6 +578,22 @@ describe("generation from the canonical tree", () => {
 // ============================================================================
 
 describe("registry defects", () => {
+  it("finds duplicate typed identities across carried-through categories", () => {
+    const document: RegistryDocument = {
+      components: {
+        agents: [{ id: "shared", type: "agent" }],
+        contexts: [{ id: "shared", type: "context" }],
+        carriedContexts: [{ id: "shared", type: "context" }],
+      },
+    };
+
+    expect(duplicateRegistryIdentities(document)).toEqual(["context:shared"]);
+  });
+
+  it("emits no duplicate typed identities across any component category", async () => {
+    expect(duplicateRegistryIdentities(await new RegistryEmitter(repoPath()).emit())).toEqual([]);
+  });
+
   it.each(RECOVERED_BY_GENERATION)("keeps %s registered, which only generation ever added", async (id) => {
     // Both sides are asserted on purpose. The generated document proves the emitter still
     // derives the entry from the canonical file; the committed one proves the emit actually

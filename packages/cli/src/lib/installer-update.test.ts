@@ -17,6 +17,9 @@ import { tmpdir } from 'node:os';
 import { updateFiles, isProjectRoot } from './installer.js';
 import { writeManifest, createEmptyManifest, addFileToManifest } from './manifest.js';
 import { computeFileHash } from './sha256.js';
+import { createDefaultConfig } from './config.js';
+import { RegistrySchema } from './registry.js';
+import { resolveUpdateScope } from '../commands/update.js';
 import type { InstallOptions } from './installer.js';
 import type { FileEntry } from './manifest.js';
 
@@ -465,6 +468,98 @@ describe('updateFiles — no manifest (first run)', () => {
     // Both files should be tracked in the manifest
     expect(updatedManifest.files['.opencode/agent/a.md']).toBeDefined();
     expect(updatedManifest.files['.opencode/context/b.md']).toBeDefined();
+  });
+});
+
+describe('updateFiles — eligible installation scope', () => {
+  test('does not install bundled files outside the recorded scope', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'oac-update-scope-'));
+    const packageRoot = await mkdtemp(join(tmpdir(), 'oac-update-scope-pkg-'));
+    try {
+      const eligible = '.opencode/context/essential.md';
+      const outsideScope = '.opencode/agent/developer.md';
+      await setupPackageRoot(packageRoot, eligible, '# Essential');
+      await setupPackageRoot(packageRoot, outsideScope, '# Developer');
+
+      const { result, updatedManifest } = await updateFiles(
+        makeOptions(projectRoot, packageRoot),
+        [eligible],
+      );
+
+      expect(result.installed).toEqual([eligible]);
+      expect(await Bun.file(join(projectRoot, outsideScope)).exists()).toBe(false);
+      expect(updatedManifest.files[outsideScope]).toBeUndefined();
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(packageRoot, { recursive: true, force: true });
+    }
+  });
+
+  test('keeps a tracked file that is bundled but outside the selected scope', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'oac-update-scope-'));
+    const packageRoot = await mkdtemp(join(tmpdir(), 'oac-update-scope-pkg-'));
+    try {
+      const eligible = '.opencode/context/essential.md';
+      const priorProfile = '.opencode/agent/developer.md';
+      await setupPackageRoot(packageRoot, eligible, '# Essential');
+      await setupPackageRoot(packageRoot, priorProfile, '# Developer v2');
+      await setupPackageRoot(projectRoot, priorProfile, '# Developer v1');
+
+      let manifest = createEmptyManifest('1.0.0');
+      manifest = addFileToManifest(
+        manifest,
+        priorProfile,
+        makeEntry(await computeFileHash(join(projectRoot, priorProfile))),
+      );
+      await writeManifest(projectRoot, manifest);
+
+      const { result, updatedManifest } = await updateFiles(
+        makeOptions(projectRoot, packageRoot),
+        [eligible],
+      );
+
+      expect(result.removed_from_manifest).not.toContain(priorProfile);
+      expect(updatedManifest.files[priorProfile]).toBeDefined();
+      expect(await Bun.file(join(projectRoot, priorProfile)).text()).toBe('# Developer v1');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(packageRoot, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('resolveUpdateScope', () => {
+  const registry = RegistrySchema.parse({
+    version: '1.0.0',
+    components: {
+      agents: [{ id: 'developer-agent', name: 'Developer', type: 'agent', path: '.opencode/agent/developer.md', description: '' }],
+      subagents: [],
+      contexts: [{ id: 'essential-context', name: 'Essential', type: 'context', path: '.opencode/context/essential.md', description: '' }],
+      skills: [], commands: [], tools: [], plugins: [], config: [],
+    },
+    profiles: {
+      essential: { name: 'Essential', components: ['context:essential-context'] },
+      developer: { name: 'Developer', components: ['agent:developer-agent'] },
+    },
+  });
+  const bundle = ['.opencode/context/essential.md', '.opencode/agent/developer.md'];
+
+  test('adds a requested profile without dropping the recorded profile scope', () => {
+    const scope = resolveUpdateScope(registry, bundle, createEmptyManifest('1.0.0'), createDefaultConfig(), 'developer');
+
+    expect(scope.files).toContain('.opencode/agent/developer.md');
+    expect(scope.files).toContain('.opencode/context/essential.md');
+    expect(scope.config?.installationScope.profiles).toEqual(['essential', 'developer']);
+  });
+
+  test('migrates a manifest without config conservatively', () => {
+    let manifest = createEmptyManifest('1.0.0');
+    manifest = addFileToManifest(manifest, '.opencode/context/essential.md', makeEntry('f'.repeat(64)));
+
+    const scope = resolveUpdateScope(registry, bundle, manifest, null);
+
+    expect(scope.files).toEqual(['.opencode/context/essential.md']);
+    expect(scope.originalTierUnknown).toBe(true);
   });
 });
 

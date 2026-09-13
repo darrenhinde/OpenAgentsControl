@@ -1,7 +1,9 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
-import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, mkdir, writeFile, symlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { execFile as execFileCallback } from 'node:child_process';
+import { promisify } from 'node:util';
 import {
   classifyBundledFile,
   findPackageRoot,
@@ -11,6 +13,9 @@ import {
   type BundledFileType,
   toManifestType,
 } from './bundled.js';
+
+const execFile = promisify(execFileCallback);
+const PACKAGE_ROOT = join(import.meta.dir, '../../../../');
 
 // ── classifyBundledFile ───────────────────────────────────────────────────────
 // Pure function — no I/O, no setup needed.
@@ -289,32 +294,43 @@ describe('listBundledFiles', () => {
   beforeAll(async () => {
     packageRoot = await mkdtemp(join(tmpdir(), 'oac-list-bundled-'));
 
-    // Create a fake package structure with files in all three subdirs
+    // Create a fake package structure with files in every installable directory.
     await mkdir(join(packageRoot, '.opencode', 'agent', 'core'), { recursive: true });
+    await mkdir(join(packageRoot, '.opencode', 'command'), { recursive: true });
     await mkdir(join(packageRoot, '.opencode', 'context'), { recursive: true });
+    await mkdir(join(packageRoot, '.opencode', 'plugin'), { recursive: true });
     await mkdir(join(packageRoot, '.opencode', 'skills', 'sub'), { recursive: true });
+    await mkdir(join(packageRoot, '.opencode', 'tool', 'env', 'node_modules', 'dependency'), { recursive: true });
 
     await writeFile(join(packageRoot, '.opencode', 'agent', 'core', 'openagent.md'), '# Agent', 'utf8');
     await writeFile(join(packageRoot, '.opencode', 'agent', 'helper.md'), '# Helper', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'command', 'clean.md'), '# Command', 'utf8');
     await writeFile(join(packageRoot, '.opencode', 'context', 'standards.md'), '# Standards', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'plugin', 'notify.ts'), 'export {};', 'utf8');
     await writeFile(join(packageRoot, '.opencode', 'skills', 'sub', 'skill.md'), '# Skill', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'tool', 'env', 'index.ts'), 'export {};', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'tool', 'env', 'node_modules', 'dependency', 'index.js'), 'module.exports = {};', 'utf8');
+    await writeFile(join(packageRoot, 'env.example'), 'EXAMPLE=value\n', 'utf8');
   });
 
   afterAll(async () => {
     await rm(packageRoot, { recursive: true, force: true });
   });
 
-  // ✅ Positive: returns relative paths for all files in all three subdirs
-  test('returns relative paths for all bundled files', async () => {
+  test('returns every installable path and excludes nested node_modules', async () => {
     // Act
     const files = await listBundledFiles(packageRoot);
 
-    // Assert — all four files should be present
     expect(files).toContain('.opencode/agent/core/openagent.md');
     expect(files).toContain('.opencode/agent/helper.md');
+    expect(files).toContain('.opencode/command/clean.md');
     expect(files).toContain('.opencode/context/standards.md');
+    expect(files).toContain('.opencode/plugin/notify.ts');
     expect(files).toContain('.opencode/skills/sub/skill.md');
-    expect(files).toHaveLength(4);
+    expect(files).toContain('.opencode/tool/env/index.ts');
+    expect(files).toContain('env.example');
+    expect(files).not.toContain('.opencode/tool/env/node_modules/dependency/index.js');
+    expect(files).toHaveLength(8);
   });
 
   // ✅ Positive: paths are relative (not absolute)
@@ -325,11 +341,10 @@ describe('listBundledFiles', () => {
     }
   });
 
-  // ✅ Positive: paths start with .opencode/
-  test('all returned paths start with .opencode/', async () => {
+  test('returns only .opencode paths or explicitly allowlisted root files', async () => {
     const files = await listBundledFiles(packageRoot);
     for (const f of files) {
-      expect(f.startsWith('.opencode/')).toBe(true);
+      expect(f.startsWith('.opencode/') || f === 'env.example').toBe(true);
     }
   });
 
@@ -352,6 +367,34 @@ describe('listBundledFiles', () => {
     }
   });
 
+  test('skips secrets, ignore files, nested package manifests, and alias symlinks', async () => {
+    const filteredRoot = await mkdtemp(join(tmpdir(), 'oac-filtered-pkg-'));
+    try {
+      await mkdir(join(filteredRoot, '.opencode', 'context', 'core', 'standards'), { recursive: true });
+      await mkdir(join(filteredRoot, '.opencode', 'plugin'), { recursive: true });
+      await mkdir(join(filteredRoot, '.opencode', 'tool'), { recursive: true });
+      await writeFile(join(filteredRoot, '.opencode', 'context', 'core', 'standards', 'code-quality.md'), '# Code', 'utf8');
+      await writeFile(join(filteredRoot, '.opencode', 'plugin', 'notify.ts'), 'export {};', 'utf8');
+      await writeFile(join(filteredRoot, '.opencode', 'plugin', 'package.json'), '{"name":"plugin"}', 'utf8');
+      await writeFile(join(filteredRoot, '.opencode', 'plugin', '.env'), 'SECRET=1', 'utf8');
+      await writeFile(join(filteredRoot, '.opencode', 'plugin', '.gitignore'), 'node_modules', 'utf8');
+      await writeFile(join(filteredRoot, '.opencode', 'tool', 'package.json'), '{"name":"tool"}', 'utf8');
+      await symlink('code-quality.md', join(filteredRoot, '.opencode', 'context', 'core', 'standards', 'code.md'));
+
+      const files = await listBundledFiles(filteredRoot);
+
+      expect(files).toContain('.opencode/context/core/standards/code-quality.md');
+      expect(files).toContain('.opencode/plugin/notify.ts');
+      expect(files).not.toContain('.opencode/context/core/standards/code.md');
+      expect(files).not.toContain('.opencode/plugin/package.json');
+      expect(files).not.toContain('.opencode/tool/package.json');
+      expect(files).not.toContain('.opencode/plugin/.env');
+      expect(files).not.toContain('.opencode/plugin/.gitignore');
+    } finally {
+      await rm(filteredRoot, { recursive: true, force: true });
+    }
+  });
+
   // ❌ Negative: empty package root returns empty array
   test('returns empty array when no bundled subdirs exist', async () => {
     // Arrange — completely empty package root
@@ -362,6 +405,20 @@ describe('listBundledFiles', () => {
     } finally {
       await rm(emptyRoot, { recursive: true, force: true });
     }
+  });
+});
+
+describe('published package contents', () => {
+  test('npm pack --dry-run includes env.example and excludes node_modules', async () => {
+    const { stdout } = await execFile('npm', ['pack', '--dry-run', '--json'], {
+      cwd: PACKAGE_ROOT,
+      encoding: 'utf8',
+    });
+    const packed = JSON.parse(stdout) as Array<{ files: Array<{ path: string }> }>;
+    const files = packed[0]?.files.map((file) => file.path) ?? [];
+
+    expect(files).toContain('env.example');
+    expect(files.some((file) => file.includes('node_modules'))).toBe(false);
   });
 });
 

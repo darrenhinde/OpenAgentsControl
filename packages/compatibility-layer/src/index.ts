@@ -112,6 +112,8 @@ export type { CanonicalAgentFile } from "./core/AgentLoader.js";
  */
 export {
   RegistryEmitter,
+  assertUniqueRegistryIdentities,
+  duplicateRegistryIdentities,
   emitRegistry,
   serializeRegistry,
   entryForAgent,

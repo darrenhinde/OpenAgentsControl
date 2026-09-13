@@ -1,5 +1,8 @@
 import { readManifest, type ManifestFile } from './manifest.js';
 import { getIdeDisplayName, type DetectedIde } from './ide-detect.js';
+import { readFile, stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import { z } from 'zod';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,6 +27,17 @@ export type OverallStatus = 'healthy' | 'warning' | 'error';
 export type SafeManifest =
   | { ok: true; manifest: ManifestFile | null }
   | { ok: false; error: string };
+
+export const CLAUDE_CONTEXT_ROOT = '.opencode/context';
+export const ClaudeDiscoveryConfigSchema = z.object({
+  version: z.literal('1'),
+  context: z.object({
+    root: z.literal(CLAUDE_CONTEXT_ROOT),
+  }),
+});
+
+export const getClaudeDiscoveryConfigPath = (projectRoot: string): string =>
+  join(projectRoot, '.oac.json');
 
 // ── Manifest ──────────────────────────────────────────────────────────────────
 
@@ -53,6 +67,68 @@ export const manifestUnavailable = (name: string, read: SafeManifest): CheckResu
     return { name, status: 'error', message: `Cannot check — manifest is missing` };
   }
   return null;
+};
+
+/** Reports whether ContextScout's required root navigation file is present. */
+export const checkContextRootNavigation = async (projectRoot: string): Promise<CheckResult> => {
+  const navigationPath = join(projectRoot, '.opencode', 'context', 'navigation.md');
+  const exists = await stat(navigationPath).then((entry) => entry.isFile()).catch(() => false);
+  return exists
+    ? {
+        name: 'Context root navigation',
+        status: 'ok',
+        message: '.opencode/context/navigation.md present',
+      }
+    : {
+        name: 'Context root navigation',
+        status: 'error',
+        message: '.opencode/context/navigation.md missing — run \'oac init\' to restore context discovery',
+      };
+};
+
+/** Validates Claude Code's externally verified project-local context discovery configuration. */
+export const checkClaudeDiscoveryConfig = async (projectRoot: string): Promise<CheckResult> => {
+  const configPath = getClaudeDiscoveryConfigPath(projectRoot);
+  const raw = await readFile(configPath, 'utf8').catch(() => null);
+  if (raw === null) {
+    return {
+      name: 'Claude context discovery',
+      status: 'error',
+      message: '.oac.json missing — run \'oac init\' to configure Claude context discovery',
+    };
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    const result = ClaudeDiscoveryConfigSchema.safeParse(parsed);
+    if (!result.success) {
+      return {
+        name: 'Claude context discovery',
+        status: 'error',
+        message: `.oac.json invalid — expected version "1" and context.root "${CLAUDE_CONTEXT_ROOT}"`,
+      };
+    }
+  } catch {
+    return {
+      name: 'Claude context discovery',
+      status: 'error',
+      message: '.oac.json invalid JSON',
+    };
+  }
+
+  const navigationPath = join(projectRoot, CLAUDE_CONTEXT_ROOT, 'navigation.md');
+  const hasTarget = await stat(navigationPath).then((entry) => entry.isFile()).catch(() => false);
+  return hasTarget
+    ? {
+        name: 'Claude context discovery',
+        status: 'ok',
+        message: `.oac.json points to ${CLAUDE_CONTEXT_ROOT}`,
+      }
+    : {
+        name: 'Claude context discovery',
+        status: 'error',
+        message: `.oac.json target missing ${CLAUDE_CONTEXT_ROOT}/navigation.md`,
+      };
 };
 
 // ── IDE lines ─────────────────────────────────────────────────────────────────

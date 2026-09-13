@@ -1,10 +1,12 @@
-import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test';
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
   ideCheckResult,
   ideCheckResults,
+  checkContextRootNavigation,
+  checkClaudeDiscoveryConfig,
   manifestUnavailable,
   overallStatus,
   safeReadManifest,
@@ -88,6 +90,75 @@ describe('manifestUnavailable', () => {
       manifest: createEmptyManifest('1.1.0'),
     });
     expect(result).toBeNull();
+  });
+});
+
+describe('checkContextRootNavigation', () => {
+  let projectRoot: string;
+
+  beforeAll(async () => {
+    projectRoot = await mkdtemp(join(tmpdir(), 'oac-doctor-context-'));
+  });
+
+  afterAll(async () => {
+    await rm(projectRoot, { recursive: true, force: true });
+  });
+
+  test('reports an error when root navigation is missing', async () => {
+    const result = await checkContextRootNavigation(projectRoot);
+    expect(result.status).toBe('error');
+    expect(result.message).toContain('navigation.md missing');
+  });
+
+  test('reports ok when root navigation is present', async () => {
+    const navigationPath = join(projectRoot, '.opencode', 'context', 'navigation.md');
+    await mkdir(join(projectRoot, '.opencode', 'context'), { recursive: true });
+    await writeFile(navigationPath, '# Context navigation\n', 'utf8');
+
+    const result = await checkContextRootNavigation(projectRoot);
+    expect(result.status).toBe('ok');
+  });
+});
+
+describe('checkClaudeDiscoveryConfig', () => {
+  let projectRoot: string;
+
+  beforeEach(async () => {
+    projectRoot = await mkdtemp(join(tmpdir(), 'oac-doctor-claude-'));
+  });
+
+  afterEach(async () => {
+    await rm(projectRoot, { recursive: true, force: true });
+  });
+
+  test('reports an error when .oac.json is missing', async () => {
+    const result = await checkClaudeDiscoveryConfig(projectRoot);
+    expect(result.status).toBe('error');
+    expect(result.message).toContain('.oac.json missing');
+  });
+
+  test('accepts the verified schema and existing navigation target', async () => {
+    await mkdir(join(projectRoot, '.opencode', 'context'), { recursive: true });
+    await writeFile(join(projectRoot, '.opencode', 'context', 'navigation.md'), '# Context navigation\n', 'utf8');
+    await writeFile(join(projectRoot, '.oac.json'), '{"version":"1","context":{"root":".opencode/context"}}', 'utf8');
+
+    expect((await checkClaudeDiscoveryConfig(projectRoot)).status).toBe('ok');
+  });
+
+  test('rejects unsupported configuration roots', async () => {
+    await writeFile(join(projectRoot, '.oac.json'), '{"version":"1","context":{"root":"context"}}', 'utf8');
+
+    const result = await checkClaudeDiscoveryConfig(projectRoot);
+    expect(result.status).toBe('error');
+    expect(result.message).toContain('expected version');
+  });
+
+  test('rejects a valid configuration whose navigation target is absent', async () => {
+    await writeFile(join(projectRoot, '.oac.json'), '{"version":"1","context":{"root":".opencode/context"}}', 'utf8');
+
+    const result = await checkClaudeDiscoveryConfig(projectRoot);
+    expect(result.status).toBe('error');
+    expect(result.message).toContain('target missing');
   });
 });
 

@@ -26,9 +26,30 @@ export type ManifestType = "agent" | "context" | "skill" | "config" | "other";
 /** Subdirectories under the package root that contain bundled OAC files. */
 const BUNDLED_SUBDIRS = [
   ".opencode/agent",
+  ".opencode/command",
   ".opencode/context",
+  ".opencode/plugin",
   ".opencode/skills",
+  ".opencode/tool",
 ] as const;
+
+/** Root files that are deliberately safe to install into a user's project. */
+const BUNDLED_ROOT_FILES = ["env.example"] as const;
+
+/**
+ * Local secrets and VCS ignore rules are neither installable OAC assets nor publishable files.
+ * npm excludes them from tarballs, so excluding them at enumeration time keeps `full` aligned
+ * with what an installed package can actually copy.
+ */
+const isNonInstallableBundleFile = (file: string): boolean => {
+  const name = file.split("/").pop()!;
+  return (
+    name === ".gitignore" ||
+    name === ".env" ||
+    name.startsWith(".env.") ||
+    name === "package.json"
+  );
+};
 
 // --- Package root resolution ---
 
@@ -124,31 +145,33 @@ export const getBundledFilePath = (
 // --- File enumeration ---
 
 /**
- * Recursively collects all file paths under `dir`, returning them as
- * absolute paths. Directories are not included in the result.
+ * Recursively collects all file paths under `dir`, returning absolute paths.
+ * `node_modules` is never part of an OAC bundle, even when nested in a tool.
  */
 async function collectFiles(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
 
   const nested = await Promise.all(
-    entries.map((entry) => {
+    entries.filter((entry) => entry.name !== "node_modules").map((entry) => {
       const fullPath = join(dir, entry.name);
-      return entry.isDirectory() ? collectFiles(fullPath) : Promise.resolve([fullPath]);
+      if (entry.isSymbolicLink()) return Promise.resolve([]);
+      if (entry.isDirectory()) return collectFiles(fullPath);
+      return entry.isFile() ? Promise.resolve([fullPath]) : Promise.resolve([]);
     }),
   );
 
-  return nested.flat();
+  return nested.flat().filter((file) => !isNonInstallableBundleFile(file));
 }
 
 /**
- * Lists all files under `.opencode/agent/`, `.opencode/context/`, and
- * `.opencode/skills/` within the given package root.
+ * Lists every installable bundled file: supported `.opencode/` directories and
+ * explicitly allowlisted root files. Missing paths are silently skipped.
  *
  * Returns relative paths like `.opencode/agent/core/openagent.md`.
  * Subdirectories that do not exist are silently skipped.
  */
 export async function listBundledFiles(packageRoot: string): Promise<string[]> {
-  const results = await Promise.all(
+  const directoryResults = await Promise.all(
     BUNDLED_SUBDIRS.map(async (subdir) => {
       const absSubdir = join(packageRoot, subdir);
       const exists = await stat(absSubdir).then((s) => s.isDirectory()).catch(() => false);
@@ -159,7 +182,14 @@ export async function listBundledFiles(packageRoot: string): Promise<string[]> {
     }),
   );
 
-  return results.flat();
+  const rootFiles = await Promise.all(
+    BUNDLED_ROOT_FILES.map(async (file) => {
+      const filePath = join(packageRoot, file);
+      return (await stat(filePath).then((s) => s.isFile()).catch(() => false)) ? [file] : [];
+    }),
+  );
+
+  return [...directoryResults.flat(), ...rootFiles.flat()].sort();
 }
 
 // --- Existence check ---

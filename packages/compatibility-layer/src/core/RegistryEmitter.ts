@@ -207,6 +207,37 @@ export function serializeRegistry(document: RegistryDocument): string {
   return `${escapeNonAscii(JSON.stringify(document, null, 2))}\n`;
 }
 
+/**
+ * Return duplicate component identities across every registry category.
+ *
+ * Registry lookups use the component's declared `type`, not its array name. Scanning every
+ * category catches malformed carry-through data as well as duplicates inside a category.
+ */
+export function duplicateRegistryIdentities(document: RegistryDocument): string[] {
+  const counts = new Map<string, number>();
+
+  for (const entries of Object.values(document.components)) {
+    for (const entry of entries) {
+      if (typeof entry.type !== "string" || entry.type.length === 0) continue;
+      const identity = `${entry.type}:${entry.id}`;
+      counts.set(identity, (counts.get(identity) ?? 0) + 1);
+    }
+  }
+
+  return [...counts]
+    .filter(([, count]) => count > 1)
+    .map(([identity]) => identity)
+    .sort(compare);
+}
+
+/** Fail a build before it can publish an ambiguous `type:id` registry reference. */
+export function assertUniqueRegistryIdentities(document: RegistryDocument): void {
+  const duplicates = duplicateRegistryIdentities(document);
+  if (duplicates.length > 0) {
+    throw new Error(`Duplicate registry component identities: ${duplicates.join(", ")}`);
+  }
+}
+
 // ============================================================================
 // ENTRY CONSTRUCTION
 // ============================================================================

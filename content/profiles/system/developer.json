@@ -35,7 +35,6 @@
   ],
   "plugins": [],
   "config": [
-    "env-example",
-    "readme"
+    "env-example"
   ]
 }

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { isAbsolute, join, win32 } from "node:path";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -22,6 +22,13 @@ export const FULL_PROFILE_ID = "full";
  */
 const PROJECT_LEVEL_ALLOWLIST: ReadonlySet<string> = new Set(["env.example"]);
 const INSTALL_PREFIX = ".opencode/";
+const CONTEXT_ROOT = ".opencode/context";
+const CONTEXT_PREFIX = `${CONTEXT_ROOT}/`;
+const CONTEXT_SPINE_FILES = [
+  `${CONTEXT_ROOT}/index.md`,
+  `${CONTEXT_ROOT}/navigation.md`,
+  `${CONTEXT_ROOT}/core/config/paths.json`,
+] as const;
 
 // ── Schemas ────────────────────────────────────────────────────────────────────
 
@@ -112,14 +119,48 @@ export const getRegistryPath = (packageRoot: string): string =>
   join(packageRoot, REGISTRY_FILENAME);
 
 /** True when a component path is somewhere `oac` is allowed to write. Pure. */
-export const isInstallablePath = (relativePath: string): boolean =>
-  relativePath.startsWith(INSTALL_PREFIX) || PROJECT_LEVEL_ALLOWLIST.has(relativePath);
+export const isInstallablePath = (relativePath: string): boolean => {
+  const containsTraversal = relativePath.split(/[\\/]/).includes("..");
+  if (isAbsolute(relativePath) || win32.isAbsolute(relativePath) || containsTraversal) {
+    return false;
+  }
+
+  return relativePath.startsWith(INSTALL_PREFIX) || PROJECT_LEVEL_ALLOWLIST.has(relativePath);
+};
 
 /** Every file a component installs: its `files[]` when listed, else its `path`. Pure. */
 export const filesForComponent = (component: RegistryComponent): string[] =>
   component.files !== undefined && component.files.length > 0
     ? component.files
     : [component.path];
+
+/** Every navigation file between a context file and the context root, inclusive. Pure. */
+const navigationFilesForContextFile = (file: string): string[] => {
+  if (!file.startsWith(CONTEXT_PREFIX)) return [];
+
+  const navigationFiles: string[] = [];
+  let directory = file.slice(0, file.lastIndexOf("/"));
+  while (directory === CONTEXT_ROOT || directory.startsWith(CONTEXT_PREFIX)) {
+    navigationFiles.push(`${directory}/navigation.md`);
+    if (directory === CONTEXT_ROOT) break;
+    directory = directory.slice(0, directory.lastIndexOf("/"));
+  }
+  return navigationFiles;
+};
+
+/** Adds the root spine and every required ancestor navigation file. Pure. */
+const withContextNavigationSpine = (files: readonly string[]): string[] => {
+  const installedContextFiles = files.filter((file) => file.startsWith(CONTEXT_PREFIX));
+  if (installedContextFiles.length === 0) return [...files];
+
+  const contextFiles = [...new Set([...installedContextFiles, ...CONTEXT_SPINE_FILES])];
+
+  return [...new Set([
+    ...files,
+    ...contextFiles,
+    ...contextFiles.flatMap(navigationFilesForContextFile),
+  ])];
+};
 
 // ── Pure query helpers ─────────────────────────────────────────────────────────
 
@@ -297,7 +338,7 @@ export const resolveProfile = (
     }
   }
 
-  resolution.files.sort();
+  resolution.files = withContextNavigationSpine(resolution.files).sort();
   return resolution;
 };
 

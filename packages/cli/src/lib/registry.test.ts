@@ -143,6 +143,13 @@ describe('isInstallablePath', () => {
     expect(isInstallablePath('package.json')).toBe(false);
     expect(isInstallablePath('.opencode')).toBe(false);
   });
+
+  test('refuses absolute and traversal paths regardless of destination prefix', () => {
+    expect(isInstallablePath('/tmp/escape.md')).toBe(false);
+    expect(isInstallablePath('C:\\temp\\escape.md')).toBe(false);
+    expect(isInstallablePath('.opencode/../escape.md')).toBe(false);
+    expect(isInstallablePath('.opencode\\..\\escape.md')).toBe(false);
+  });
 });
 
 // ── resolveProfile ────────────────────────────────────────────────────────────
@@ -181,10 +188,26 @@ describe('resolveProfile', () => {
   test('contextOnly keeps only context refs', () => {
     const { files, unresolved } = resolveProfile(FIXTURE, essential, { contextOnly: true });
     expect(files).toEqual([
+      '.opencode/context/core/config/navigation.md',
+      '.opencode/context/core/config/paths.json',
+      '.opencode/context/core/navigation.md',
       '.opencode/context/core/quick-start.md',
       '.opencode/context/core/standards/code-quality.md',
+      '.opencode/context/core/standards/navigation.md',
+      '.opencode/context/index.md',
+      '.opencode/context/navigation.md',
     ]);
     expect(unresolved).toEqual(['context:does-not-exist']);
+  });
+
+  test('adds the root spine and each context ancestor navigation exactly once', () => {
+    const { files } = resolveProfile(FIXTURE, essential);
+    expect(files).toContain('.opencode/context/index.md');
+    expect(files).toContain('.opencode/context/navigation.md');
+    expect(files).toContain('.opencode/context/core/config/paths.json');
+    expect(files).toContain('.opencode/context/core/navigation.md');
+    expect(files).toContain('.opencode/context/core/standards/navigation.md');
+    expect(files.filter((file) => file === '.opencode/context/navigation.md')).toHaveLength(1);
   });
 
   test('an empty profile resolves to nothing', () => {
@@ -234,9 +257,14 @@ describe('resolveProfile — wildcards', () => {
     const profile = { name: 'W', description: '', components: ['context:core/*', 'context:missing/*'] };
     const { files, unresolved } = resolveProfile(FIXTURE, profile);
     expect(files).toEqual([
+      '.opencode/context/core/config/navigation.md',
       '.opencode/context/core/config/paths.json',
+      '.opencode/context/core/navigation.md',
       '.opencode/context/core/quick-start.md',
       '.opencode/context/core/standards/code-quality.md',
+      '.opencode/context/core/standards/navigation.md',
+      '.opencode/context/index.md',
+      '.opencode/context/navigation.md',
     ]);
     expect(unresolved).toEqual(['context:missing/*']);
   });

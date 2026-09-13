@@ -1,10 +1,11 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
   createEmptyManifest,
   addFileToManifest,
+  inferLegacyInstallationScope,
   removeFileFromManifest,
   updateFileHash,
   readManifest,
@@ -46,6 +47,83 @@ describe('createEmptyManifest', () => {
     const m = createEmptyManifest('1.0.0');
     expect(() => new Date(m.installedAt)).not.toThrow();
     expect(() => new Date(m.updatedAt)).not.toThrow();
+  });
+});
+
+describe('FileEntrySchema compatibility', () => {
+  test('defaults legacy entries to unprotected', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'oac-legacy-manifest-'));
+    try {
+      await mkdir(join(dir, '.oac'), { recursive: true });
+      await Bun.write(join(dir, '.oac/manifest.json'), JSON.stringify({
+        version: '1',
+        oacVersion: '1.0.0',
+        installedAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        files: {
+          '.opencode/agent/foo.md': {
+            sha256: 'legacy-hash',
+            type: 'agent',
+            source: 'bundled',
+            installedAt: '2026-01-01T00:00:00.000Z',
+          },
+        },
+      }));
+      const manifest = await readManifest(dir);
+      expect(manifest?.files['.opencode/agent/foo.md']?.protected).toBe(false);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('preserves protected pre-existing entries and their observed hash', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'oac-protected-manifest-'));
+    try {
+      let manifest = createEmptyManifest('1.0.0');
+      manifest = addFileToManifest(manifest, '.opencode/context/custom.md', makeEntry({
+        sha256: 'observed-pre-existing-hash',
+        type: 'context',
+        source: 'custom',
+        protected: true,
+      }));
+      await writeManifest(dir, manifest);
+      const read = await readManifest(dir);
+      expect(read?.files['.opencode/context/custom.md']).toMatchObject({
+        protected: true,
+        sha256: 'observed-pre-existing-hash',
+      });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('inferLegacyInstallationScope', () => {
+  test('limits a legacy install to the paths already recorded in its manifest', () => {
+    let manifest = createEmptyManifest('1.0.0');
+    manifest = addFileToManifest(manifest, '.opencode/context/core.md', makeEntry({ type: 'context' }));
+    manifest = addFileToManifest(manifest, '.opencode/agent/coder.md', makeEntry());
+
+    expect(inferLegacyInstallationScope(manifest)).toEqual({
+      profile: null,
+      contextOnly: false,
+      profiles: [],
+      files: ['.opencode/agent/coder.md', '.opencode/context/core.md'],
+    });
+  });
+
+  test('recognizes a context-only legacy install without assigning an unknown profile', () => {
+    const manifest = addFileToManifest(
+      createEmptyManifest('1.0.0'),
+      '.opencode/context/core.md',
+      makeEntry({ type: 'context' }),
+    );
+
+    expect(inferLegacyInstallationScope(manifest)).toMatchObject({
+      profile: null,
+      contextOnly: true,
+      profiles: [],
+    });
   });
 });
 

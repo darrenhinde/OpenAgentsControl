@@ -1,6 +1,5 @@
 import path from 'node:path';
-// node:fs/promises rm is used intentionally — Bun has no built-in recursive directory removal
-import { rm } from 'node:fs/promises';
+import { rm, stat } from 'node:fs/promises';
 import { type Command } from 'commander';
 import {
   loadRegistry,
@@ -11,20 +10,18 @@ import {
   ComponentTypeSchema,
   type ComponentType,
 } from '../lib/registry.js';
-import { getPackageRoot, getBundledFilePath, toManifestType } from '../lib/bundled.js';
-import { installFile } from '../lib/installer.js';
+import { getPackageRoot } from '../lib/bundled.js';
+import { backupFile, syncFiles } from '../lib/installer.js';
 import {
   readManifest,
   writeManifest,
-  addFileToManifest,
   removeFileFromManifest,
   createEmptyManifest,
   type ManifestFile,
-  type FileEntry,
 } from '../lib/manifest.js';
 import { log, info, warn, error, success, verbose } from '../ui/logger.js';
 import { createSpinner } from '../ui/spinner.js';
-import { computeFileHash } from '../lib/sha256.js';
+import { computeFileHash, hashesMatch } from '../lib/sha256.js';
 import { readCliVersion } from '../lib/version.js';
 import type { RegistryComponent } from '../lib/registry.js';
 
@@ -44,17 +41,6 @@ export type RemoveOptions = {
 };
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
-
-/** Builds a FileEntry for a newly installed component file. */
-const buildFileEntry = (
-  sha256: string,
-  component: RegistryComponent,
-): FileEntry => ({
-  sha256,
-  type: toManifestType(component.type),
-  source: 'registry',
-  installedAt: new Date().toISOString(),
-});
 
 /** Returns true if the file is already tracked in the manifest. */
 const isAlreadyInstalled = (
@@ -129,7 +115,7 @@ const checkAlreadyInstalled = (
   return false; // signal: proceed
 };
 
-/** Copies every file of a component and records each one in the manifest. */
+/** Synchronizes every component file using the same safety path as init and update. */
 const performInstall = async (
   component: RegistryComponent,
   packageRoot: string,
@@ -150,23 +136,12 @@ const performInstall = async (
     verbose: opts.verbose,
   };
 
-  let updatedManifest = manifest;
-  for (const relativePath of files) {
-    const sourcePath = getBundledFilePath(packageRoot, relativePath);
-    const destPath = path.join(projectRoot, relativePath);
+  const { result, updatedManifest } = await syncFiles(files, manifest, {
+    ...installOpts,
+    source: 'registry',
+  });
 
-    if (opts.verbose) {
-      verbose(`Source: ${sourcePath}`);
-      verbose(`Destination: ${destPath}`);
-    }
-
-    await installFile(sourcePath, destPath, installOpts);
-
-    if (!opts.dryRun) {
-      const sha256 = await computeFileHash(destPath);
-      updatedManifest = addFileToManifest(updatedManifest, relativePath, buildFileEntry(sha256, component));
-    }
-  }
+  if (result.errors.length > 0) throw new Error(result.errors.join('; '));
 
   if (opts.dryRun) {
     info(`[dry-run] Would install ${component.type}:${component.id} to ${destDir}/`);
@@ -251,18 +226,41 @@ export async function removeCommand(
     }
 
     const files = filesForComponent(component);
+    if (!files.every(isInstallablePath)) {
+      error(`'${ref}' would delete outside .opencode/ (${component.path}) — refusing to remove a project file.`);
+      process.exit(1);
+    }
     info(`Removing ${component.type}:${component.id} from ${destDirOf(component)}/ (${files.length} file${files.length !== 1 ? 's' : ''})`);
 
     let updatedManifest = manifest!;
     for (const relativePath of files) {
       const destPath = path.join(projectRoot, relativePath);
+      const entry = updatedManifest.files[relativePath];
       if (options.verbose) verbose(`Removing: ${destPath}`);
 
       if (options.dryRun) {
         info(`[dry-run] Would remove ${destPath}`);
         continue;
       }
-      await rm(destPath, { recursive: true, force: true });
+      if (entry === undefined) {
+        warn(`Skipping untracked file '${relativePath}'.`);
+        continue;
+      }
+
+      const exists = await stat(destPath).then((file) => file.isFile()).catch(() => false);
+      const modified = exists && !hashesMatch(await computeFileHash(destPath), entry.sha256);
+      const protectedFile = entry.protected === true;
+      if ((protectedFile || modified) && !options.yolo) {
+        warn(`Skipping ${protectedFile ? 'protected' : 'modified'} file '${relativePath}' (use --yolo to remove).`);
+        continue;
+      }
+
+      if (options.yolo && exists && (protectedFile || modified)) {
+        const backupPath = await backupFile(destPath, projectRoot);
+        info(`Backed up ${relativePath} to ${backupPath}`);
+      }
+
+      await rm(destPath, { force: true });
       updatedManifest = removeFileFromManifest(updatedManifest, relativePath);
     }
 

@@ -25,6 +25,7 @@
     "bin/",
     "registry.json",
     "install.sh",
+    "env.example",
     "VERSION",
     "LICENSE",
     "README.md",

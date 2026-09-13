@@ -61,7 +61,11 @@ import {
   type BuildManifest,
   type ManifestEntry,
 } from "./BuildManifest.js";
-import { RegistryEmitter } from "./RegistryEmitter.js";
+import {
+  assertUniqueRegistryIdentities,
+  RegistryEmitter,
+  serializeRegistry,
+} from "./RegistryEmitter.js";
 import { ClaudeAdapter } from "../adapters/ClaudeAdapter.js";
 import { OpenCodeAdapter } from "../adapters/OpenCodeAdapter.js";
 
@@ -294,9 +298,13 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   }
 
   if (options.skipRegistry !== true) {
+    const registry = await new RegistryEmitter(root).emit();
+    // Validate the complete emitted document, not only canonical agent entries: contexts and
+    // other non-owned categories are carried through and remain installable by `type:id`.
+    assertUniqueRegistryIdentities(registry);
     files.push({
       path: "registry.json",
-      content: await new RegistryEmitter(root).emitJson(),
+      content: serializeRegistry(registry),
       target: "registry",
       warnings: [],
     });

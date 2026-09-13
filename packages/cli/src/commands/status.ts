@@ -8,6 +8,7 @@ import { detectIdes } from '../lib/ide-detect.js';
 import { log, info, warn, bold, dim, success } from '../ui/logger.js';
 import type { ManifestFile, ManifestFileType } from '../lib/manifest.js';
 import type { DetectedIde } from '../lib/ide-detect.js';
+import { countUnmanagedContextFiles } from './list.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -27,6 +28,10 @@ type ModifiedResult = {
   count: number;
   paths: string[];
 };
+
+/** Formats the user-context report shown in the status summary. Pure. */
+export const formatUnmanagedContextStatus = (count: number): string =>
+  `${count} context files of your own (not managed by OAC)`;
 
 // ── Pure counters ─────────────────────────────────────────────────────────────
 
@@ -119,6 +124,7 @@ const printStatus = (
   projectRoot: string,
   manifest: ManifestFile,
   counts: ComponentCounts,
+  unmanagedContextCount: number,
   modified: ModifiedResult,
   ides: DetectedIde[],
 ): void => {
@@ -133,6 +139,7 @@ const printStatus = (
 
   info(`Agents:   ${counts.agents} installed`);
   info(`Context:  ${counts.context} files`);
+  info(formatUnmanagedContextStatus(unmanagedContextCount));
   info(`Skills:   ${counts.skills} installed`);
 
   if (modified.count > 0) {
@@ -188,8 +195,10 @@ export async function statusCommand(options: StatusOptions): Promise<void> {
   }
 
   if (manifest === null) {
+    const unmanagedContextCount = await countUnmanagedContextFiles(projectRoot, null);
     log('');
     log('  OAC not initialized. Run \'oac init\' to get started.');
+    info(formatUnmanagedContextStatus(unmanagedContextCount));
     log('');
     process.exit(0);
   }
@@ -197,14 +206,15 @@ export async function statusCommand(options: StatusOptions): Promise<void> {
   // Step 2: count components
   const counts = countComponents(manifest);
 
-  // Steps 3 & 4: check modified files and detect IDEs in parallel
-  const [modified, ides] = await Promise.all([
+  // Steps 3 & 4: inspect tracked files, user-owned context, and IDEs in parallel.
+  const [modified, unmanagedContextCount, ides] = await Promise.all([
     findModifiedFiles(projectRoot, manifest),
+    countUnmanagedContextFiles(projectRoot, manifest),
     detectIdes(projectRoot),
   ]);
 
   // Step 5: print summary
-  printStatus(cliVersion, projectRoot, manifest, counts, modified, ides);
+  printStatus(cliVersion, projectRoot, manifest, counts, unmanagedContextCount, modified, ides);
 
   if (options.verbose) {
     printVerboseModified(modified);
