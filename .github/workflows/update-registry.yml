@@ -1,12 +1,10 @@
 name: Update Component Registry (Direct Push)
 
+# Manual only. `oac build` (RegistryEmitter) now owns the agent, subagent and profile sections
+# of registry.json and CI gates drift on them, so this append-only auto-detect pass must not run
+# on every push or it fights the emitter. Dispatch it by hand for the hand-authored categories
+# (contexts, commands, tools, skills) until those move into content/ as well.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.opencode/**'
-      - '!registry.json'
   workflow_dispatch:
 
 permissions:

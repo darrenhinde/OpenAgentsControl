@@ -1,0 +1,60 @@
+{
+  "id": "advanced",
+  "agents": [
+    "agent-generator",
+    "build-agent",
+    "coder-agent",
+    "command-creator",
+    "context-organizer",
+    "context-retriever",
+    "contextscout",
+    "copywriter",
+    "data-analyst",
+    "devops-specialist",
+    "documentation",
+    "domain-analyzer",
+    "eval-runner",
+    "frontend-specialist",
+    "image-specialist",
+    "openagent",
+    "opencoder",
+    "repo-manager",
+    "reviewer",
+    "system-builder",
+    "task-manager",
+    "technical-writer",
+    "tester",
+    "workflow-designer"
+  ],
+  "contextProfiles": [
+    "core",
+    "engineering",
+    "meta-authoring"
+  ],
+  "commands": [
+    "add-context",
+    "analyze-patterns",
+    "build-context-system",
+    "clean",
+    "commit",
+    "context",
+    "optimize",
+    "prompt-enhancer",
+    "test",
+    "validate-repo",
+    "worktrees"
+  ],
+  "tools": [
+    "env",
+    "gemini"
+  ],
+  "skills": [
+    "task-management"
+  ],
+  "plugins": [
+    "notify"
+  ],
+  "config": [
+    "env-example"
+  ]
+}

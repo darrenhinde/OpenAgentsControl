@@ -1,8 +1,4 @@
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 name: StoryMapper
 description: "User journey mapping specialist transforming user needs into epics, stories, and vertical slices with bounded context alignment"
 mode: subagent

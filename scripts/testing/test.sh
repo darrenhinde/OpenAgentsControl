@@ -15,17 +15,36 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Defaults
-AGENT=${1:-all}
-MODEL=${2:-opencode/grok-code-fast}
-shift 2 2>/dev/null || true
-EXTRA_ARGS=("$@")
-
-# Check if --core flag is present
+# Defaults and argument parsing
+AGENT=all
+MODEL=opencode/grok-code-fast
+AGENT_SET=false
+MODEL_SET=false
 CORE_MODE=false
-if [[ "$AGENT" == "--core" ]] || [[ "$MODEL" == "--core" ]] || [[ "${EXTRA_ARGS[*]}" == *"--core"* ]]; then
-  CORE_MODE=true
-fi
+EXTRA_ARGS=()
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --core)
+      CORE_MODE=true
+      ;;
+    --*)
+      EXTRA_ARGS+=("$1")
+      ;;
+    *)
+      if [ "$AGENT_SET" = false ]; then
+        AGENT="$1"
+        AGENT_SET=true
+      elif [ "$MODEL_SET" = false ]; then
+        MODEL="$1"
+        MODEL_SET=true
+      else
+        EXTRA_ARGS+=("$1")
+      fi
+      ;;
+  esac
+  shift
+done
 
 echo -e "${BLUE}🧪 OpenCode Agents Test Runner${NC}"
 echo -e "${BLUE}================================${NC}"
@@ -39,58 +58,28 @@ if [ -n "${EXTRA_ARGS[*]}" ]; then
   echo -e "Extra:  ${YELLOW}${EXTRA_ARGS[*]}${NC}"
 fi
 
-# Navigate to framework directory
-cd "$(dirname "$0")/../../evals/framework" || exit 1
+REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 
 # Check if dependencies are installed
-if [ ! -d "node_modules" ]; then
-  echo -e "${YELLOW}⚠️  Dependencies not installed. Running npm install...${NC}"
-  npm install
+if [ ! -d "$REPO_ROOT/node_modules" ]; then
+  echo -e "${YELLOW}⚠️  Dependencies not installed. Running pnpm install...${NC}"
+  pnpm --dir "$REPO_ROOT" install
   echo ""
 fi
 
 # Run tests
-if [ "$AGENT" = "all" ]; then
-  echo -e "${YELLOW}Running tests for ALL agents...${NC}"
-  npm run eval:sdk -- --model="$MODEL" "${EXTRA_ARGS[@]}"
-else
-  echo -e "${YELLOW}Running tests for ${AGENT}...${NC}"
-  npm run eval:sdk -- --agent="$AGENT" --model="$MODEL" "${EXTRA_ARGS[@]}"
-fi
-
-echo -e "${BLUE}🧪 OpenCode Agents Test Runner${NC}"
-echo -e "${BLUE}================================${NC}"
-echo ""
+EVAL_SCRIPT=eval:sdk
 if [ "$CORE_MODE" = true ]; then
-  echo -e "Mode:   ${YELLOW}CORE TEST SUITE (7 tests, ~5-8 min)${NC}"
-fi
-echo -e "Agent:  ${GREEN}${AGENT}${NC}"
-echo -e "Model:  ${GREEN}${MODEL}${NC}"
-if [ -n "$EXTRA_ARGS" ]; then
-  echo -e "Extra:  ${YELLOW}${EXTRA_ARGS}${NC}"
-fi
-echo ""
-
-# Navigate to framework directory
-cd "$(dirname "$0")/../../evals/framework" || exit 1
-
-# Check if dependencies are installed
-if [ ! -d "node_modules" ]; then
-  echo -e "${YELLOW}⚠️  Dependencies not installed. Running npm install...${NC}"
-  npm install
-  echo ""
+  EVAL_SCRIPT=eval:sdk:core
 fi
 
-# Run tests
 if [ "$AGENT" = "all" ]; then
   echo -e "${YELLOW}Running tests for ALL agents...${NC}"
-  npm run eval:sdk -- --model="$MODEL" $EXTRA_ARGS
+  pnpm --dir "$REPO_ROOT/evals/framework" run "$EVAL_SCRIPT" -- --model="$MODEL" "${EXTRA_ARGS[@]}" && EXIT_CODE=0 || EXIT_CODE=$?
 else
   echo -e "${YELLOW}Running tests for ${AGENT}...${NC}"
-  npm run eval:sdk -- --agent="$AGENT" --model="$MODEL" $EXTRA_ARGS
+  pnpm --dir "$REPO_ROOT/evals/framework" run "$EVAL_SCRIPT" -- --agent="$AGENT" --model="$MODEL" "${EXTRA_ARGS[@]}" && EXIT_CODE=0 || EXIT_CODE=$?
 fi
-
-EXIT_CODE=$?
 
 echo ""
 if [ $EXIT_CODE -eq 0 ]; then
@@ -98,7 +87,7 @@ if [ $EXIT_CODE -eq 0 ]; then
 else
   echo -e "${RED}❌ Tests failed with exit code ${EXIT_CODE}${NC}"
 fi
-echo -e "${BLUE}View results: npm run dashboard${NC}"
+echo -e "${BLUE}View results: pnpm run dashboard${NC}"
 echo ""
 
 exit $EXIT_CODE

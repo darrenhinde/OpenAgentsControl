@@ -1,5 +1,6 @@
 import { type Command } from 'commander';
 import path from 'node:path';
+import { readdir } from 'node:fs/promises';
 
 import { readManifest, type ManifestFile, type ManifestFileType } from '../lib/manifest.js';
 import { computeFileHash, hashesMatch } from '../lib/sha256.js';
@@ -24,6 +25,8 @@ type FileRow = {
   sha256: string;
   userModified: boolean;
 };
+
+const CONTEXT_ROOT = '.opencode/context';
 
 // ── Path helpers (pure) ───────────────────────────────────────────────────────
 
@@ -52,6 +55,38 @@ const formatDate = (iso: string): string => {
     return iso;
   }
 };
+
+/** Returns whether an entry is managed by OAC rather than merely recorded as user-owned. Pure. */
+const isOacManaged = (entry: ManifestFile['files'][string] | undefined): boolean =>
+  entry !== undefined && entry.source !== 'custom' && entry.protected !== true;
+
+/** Recursively collects regular files below a context directory. */
+const collectContextFiles = async (directory: string): Promise<string[]> => {
+  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+  const nested = await Promise.all(entries.map((entry) => {
+    const filePath = path.join(directory, entry.name);
+    if (entry.isDirectory()) return collectContextFiles(filePath);
+    return Promise.resolve(entry.isFile() ? [filePath] : []);
+  }));
+  return nested.flat();
+};
+
+/** Counts on-disk context files that OAC does not own or manage. */
+export const countUnmanagedContextFiles = async (
+  projectRoot: string,
+  manifest: ManifestFile | null,
+): Promise<number> => {
+  const contextRoot = path.join(projectRoot, CONTEXT_ROOT);
+  const files = await collectContextFiles(contextRoot);
+  return files.filter((filePath) => {
+    const relativePath = path.relative(projectRoot, filePath);
+    return !isOacManaged(manifest?.files[relativePath]);
+  }).length;
+};
+
+/** Formats the user-context report shared by list and status output. Pure. */
+export const formatUnmanagedContextSummary = (count: number): string =>
+  `${count} context files of your own (not managed by OAC)`;
 
 // ── Grouping / filtering (pure) ───────────────────────────────────────────────
 
@@ -155,6 +190,7 @@ const printList = (
   groups: Map<ManifestFileType, FileRow[]>,
   activeTypes: ManifestFileType[] | null,
   verbose: boolean,
+  unmanagedContextCount: number,
 ): void => {
   const TYPE_LABELS: Record<ManifestFileType, string> = {
     agent:   'Agents',
@@ -184,6 +220,7 @@ const printList = (
   } else {
     dim(`  Total: ${totalShown} file${totalShown !== 1 ? 's' : ''}`);
   }
+  info(formatUnmanagedContextSummary(unmanagedContextCount));
   log('');
 };
 
@@ -216,16 +253,20 @@ export async function listCommand(options: ListOptions): Promise<void> {
   }
 
   if (manifest === null) {
+    const unmanagedContextCount = await countUnmanagedContextFiles(projectRoot, null);
     log('');
     info('No components installed. Run `oac init` to get started.');
+    info(formatUnmanagedContextSummary(unmanagedContextCount));
     log('');
     process.exit(0);
     return;
   }
 
   if (Object.keys(manifest.files).length === 0) {
+    const unmanagedContextCount = await countUnmanagedContextFiles(projectRoot, manifest);
     log('');
     info('No components installed.');
+    info(formatUnmanagedContextSummary(unmanagedContextCount));
     log('');
     process.exit(0);
     return;
@@ -235,8 +276,9 @@ export async function listCommand(options: ListOptions): Promise<void> {
   const rows = await buildRows(manifest, projectRoot, true);
   const groups = groupByType(rows);
   const activeTypes = resolveActiveTypes(options);
+  const unmanagedContextCount = await countUnmanagedContextFiles(projectRoot, manifest);
 
-  printList(groups, activeTypes, options.verbose);
+  printList(groups, activeTypes, options.verbose, unmanagedContextCount);
 
   process.exit(0);
 }

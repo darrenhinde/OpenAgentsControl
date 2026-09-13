@@ -17,7 +17,7 @@ import type { ContextReference, SkillReference } from "../types.js";
 // Types
 // ============================================================================
 
-export type ContextPlatform = "oac" | "claude" | "cursor" | "windsurf";
+export type ContextPlatform = "oac" | "claude";
 
 /**
  * Result of a context path mapping operation
@@ -61,20 +61,6 @@ const CONTEXT_CONFIGS: Record<ContextPlatform, ContextConfig> = {
   },
   claude: {
     baseDir: ".claude/skills",
-    extension: ".md",
-    supportsSubdirs: true,
-    supportsPriority: false,
-    inlineOnly: false,
-  },
-  cursor: {
-    baseDir: "",
-    extension: "",
-    supportsSubdirs: false,
-    supportsPriority: false,
-    inlineOnly: true, // Cursor uses inline context in .cursorrules
-  },
-  windsurf: {
-    baseDir: ".windsurf/context",
     extension: ".md",
     supportsSubdirs: true,
     supportsPriority: false,

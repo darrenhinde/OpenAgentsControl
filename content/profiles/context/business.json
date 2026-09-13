@@ -1,0 +1,7 @@
+{
+  "id": "business",
+  "contexts": [
+    "core/*",
+    "project-intelligence/*"
+  ]
+}

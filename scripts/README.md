@@ -42,7 +42,7 @@ See `tests/` subdirectory for installer test scripts.
 
 ### Registry Management
 
-- `registry/auto-detect-components.sh` - Auto-detect new components in .opencode/
+- `registry/auto-detect-components.sh` - Legacy scanner for non-canonical `.opencode/` components; canonical agents are emitted from `content/agents/**` by `oac build`
 - `registry/register-component.sh` - Register a new component in the registry
 - `registry/validate-component.sh` - Validate component structure and metadata
 - `registry/validate-registry.sh` - Validate all registry paths
@@ -100,10 +100,10 @@ Sessions are safe to delete anytime - they only contain temporary context files 
 ### Registry Management
 
 ```bash
-# Auto-detect new components
+# Inspect non-canonical .opencode components (does not generate canonical agents)
 ./scripts/registry/auto-detect-components.sh --dry-run
 
-# Add new components to registry
+# Update residual non-canonical components only
 ./scripts/registry/auto-detect-components.sh --auto-add
 
 # Validate registry

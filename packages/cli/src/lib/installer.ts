@@ -1,5 +1,5 @@
 import path from "node:path";
-import { stat } from "node:fs/promises";
+import { copyFile, mkdir, stat } from "node:fs/promises";
 import { computeFileHash, hashesMatch } from "./sha256.js";
 import {
   type ManifestFile,
@@ -9,7 +9,8 @@ import {
   readManifest,
   createEmptyManifest,
 } from "./manifest.js";
-import { listBundledFiles, getBundledFilePath, classifyBundledFile } from "./bundled.js";
+import { listBundledFiles, getBundledFilePath, classifyBundledFile, toManifestType } from "./bundled.js";
+import { isInstallablePath } from "./registry.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,8 @@ export type InstallOptions = {
   yolo: boolean;
   /** When true: emit verbose log lines. */
   verbose: boolean;
+  /** Ownership recorded for files copied through this synchronization path. */
+  source?: FileEntry["source"];
 };
 
 export type InstallResult = {
@@ -103,7 +106,18 @@ export async function installFile(
     log(options, `[dry-run] would copy: ${sourcePath} → ${destPath}`);
     return;
   }
-  await Bun.write(destPath, Bun.file(sourcePath));
+  await copyFileCreatingDirs(sourcePath, destPath);
+}
+
+/**
+ * Copies `src` to `dest`, creating `dest`'s parent directories first.
+ *
+ * `fs.copyFile` fails when the destination directory does not exist, so the
+ * mkdir is required — every caller here writes into a tree that may not exist yet.
+ */
+async function copyFileCreatingDirs(src: string, dest: string): Promise<void> {
+  await mkdir(path.dirname(dest), { recursive: true });
+  await copyFile(src, dest);
 }
 
 /**
@@ -117,7 +131,7 @@ export async function backupFile(
   const timestamp = buildTimestamp();
   const relativePath = path.relative(projectRoot, filePath);
   const backupPath = buildBackupPath(projectRoot, timestamp, relativePath);
-  await Bun.write(backupPath, Bun.file(filePath));
+  await copyFileCreatingDirs(filePath, backupPath);
   return backupPath;
 }
 
@@ -126,6 +140,7 @@ export async function backupFile(
 type FileDecision =
   | { action: "install" }
   | { action: "update" }
+  | { action: "protect"; observedHash: string }
   | { action: "skip"; reason: string }
   | { action: "yolo-overwrite"; backupNeeded: true };
 
@@ -140,14 +155,24 @@ async function decideFileAction(
   options: InstallOptions,
 ): Promise<FileDecision> {
   const manifestEntry = manifest?.files[relativePath];
+  const diskExists = await stat(destPath).then((s) => s.isFile()).catch(() => false);
 
-  // File not in manifest → brand new, always install
+  // An unmanaged tree belongs to the user. Record, but never overwrite, its files.
   if (manifestEntry === undefined) {
-    return { action: "install" };
+    if (!diskExists) return { action: "install" };
+    if (options.yolo) return { action: "yolo-overwrite", backupNeeded: true };
+    return { action: "protect", observedHash: await computeFileHash(destPath) };
   }
 
-  // File is in manifest — check if user modified it
-  const diskExists = await Bun.file(destPath).exists();
+  if (manifestEntry.protected === true) {
+    if (options.yolo && diskExists) return { action: "yolo-overwrite", backupNeeded: true };
+    return {
+      action: "skip",
+      reason: `${relativePath} existed before OAC managed it — skipping (use --yolo to overwrite)`,
+    };
+  }
+
+  // File is in the manifest and was installed by OAC.
   if (!diskExists) {
     // File was deleted by user — treat as new install
     return { action: "install" };
@@ -208,7 +233,8 @@ async function processOneFile(
   const decision = decisionResult.value;
 
   const now = new Date().toISOString();
-  const fileType = classifyBundledFile(relativePath);
+  const fileType = toManifestType(classifyBundledFile(relativePath));
+  const managedSource = options.source ?? "bundled";
 
   try {
     if (decision.action === "install") {
@@ -218,18 +244,32 @@ async function processOneFile(
       const entry: FileEntry = {
         sha256,
         type: fileType,
-        source: "bundled",
+        source: managedSource,
         installedAt: now,
       };
       return { patch: { installed: [relativePath] }, entry };
+    }
+
+    if (decision.action === "protect") {
+      log(options, `skip: ${relativePath} existed before OAC managed it`);
+      const entry: FileEntry = {
+        sha256: decision.observedHash,
+        type: fileType,
+        source: "custom",
+        installedAt: now,
+        protected: true,
+      };
+      return { patch: { skipped: [relativePath] }, entry };
     }
 
     if (decision.action === "update") {
       log(options, `update: ${relativePath}`);
       await installFile(sourcePath, destPath, options);
       const sha256 = options.dryRun ? "" : await computeFileHash(destPath);
-      const existingEntry = manifest!.files[relativePath]!;
-      const entry: FileEntry = { ...existingEntry, sha256 };
+      const existingEntry = manifest?.files[relativePath];
+      const entry: FileEntry = existingEntry === undefined
+        ? { sha256, type: fileType, source: managedSource, installedAt: now }
+        : { ...existingEntry, sha256, protected: false };
       return { patch: { updated: [relativePath] }, entry };
     }
 
@@ -237,14 +277,16 @@ async function processOneFile(
       log(options, `yolo: backing up and overwriting ${relativePath}`);
       const backupPath = buildBackupPath(options.projectRoot, timestamp, relativePath);
       if (!options.dryRun) {
-        await Bun.write(backupPath, Bun.file(destPath));
+        await copyFileCreatingDirs(destPath, backupPath);
       } else {
         log(options, `[dry-run] would backup: ${destPath} → ${backupPath}`);
       }
       await installFile(sourcePath, destPath, options);
       const sha256 = options.dryRun ? "" : await computeFileHash(destPath);
-      const existingEntry = manifest!.files[relativePath]!;
-      const entry: FileEntry = { ...existingEntry, sha256 };
+      const existingEntry = manifest?.files[relativePath];
+      const entry: FileEntry = existingEntry === undefined
+        ? { sha256, type: fileType, source: managedSource, installedAt: now, protected: false }
+        : { ...existingEntry, sha256, source: managedSource, protected: false };
       return {
         patch: { backed_up: [backupPath], updated: [relativePath] },
         entry,
@@ -269,8 +311,8 @@ async function processOneFile(
 
 /**
  * Installs a list of files from the bundle into the project root.
- * Does NOT consult the manifest — treats every file as new.
- * Used by `oac init` for a fresh install.
+ * Used by `oac init` for a fresh install. Existing destination files are treated as
+ * user-owned and recorded as protected unless --yolo is explicitly requested.
  *
  * Does NOT write the manifest — caller is responsible.
  */
@@ -278,51 +320,58 @@ export async function installFiles(
   files: string[],
   options: InstallOptions,
 ): Promise<{ result: InstallResult; updatedManifest: ManifestFile }> {
-  const now = new Date().toISOString();
+  return syncFiles(files, null, options);
+}
 
-  type FileOutcome =
-    | { ok: true; relativePath: string; entry: FileEntry }
-    | { ok: false; relativePath: string; msg: string };
+/**
+ * Reconciles an explicit list of bundled files against the manifest: new files are
+ * installed, untouched files are refreshed, user-modified files are skipped (or backed up
+ * and overwritten with --yolo). Entries already in the manifest but not in `files` are left
+ * alone — this is the merge step `oac init` re-runs and `oac update` share.
+ *
+ * Does NOT write the manifest — caller is responsible.
+ */
+export async function syncFiles(
+  files: string[],
+  manifest: ManifestFile | null,
+  options: InstallOptions,
+): Promise<{ result: InstallResult; updatedManifest: ManifestFile }> {
+  const timestamp = buildTimestamp();
+  const rejectedPaths = files.filter((relativePath) => !isInstallablePath(relativePath));
+  const installableFiles = files.filter(isInstallablePath);
 
   const outcomes = await Promise.all(
-    files.map(async (relativePath): Promise<FileOutcome> => {
+    installableFiles.map(async (relativePath) => {
       const sourcePath = getBundledFilePath(options.packageRoot, relativePath);
       const destPath = path.join(options.projectRoot, relativePath);
-      log(options, `install: ${relativePath}`);
-      try {
-        await installFile(sourcePath, destPath, options);
-        const sha256 = options.dryRun ? "" : await computeFileHash(destPath);
-        const entry: FileEntry = {
-          sha256,
-          type: classifyBundledFile(relativePath),
-          source: "bundled",
-          installedAt: now,
-        };
-        return { ok: true, relativePath, entry };
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        return { ok: false, relativePath, msg };
-      }
+      const { patch, entry } = await processOneFile({
+        relativePath,
+        sourcePath,
+        destPath,
+        manifest,
+        options,
+        timestamp,
+      });
+      return { relativePath, patch, entry };
     }),
   );
 
-  const { result, updatedManifest } = outcomes.reduce(
-    (acc, outcome) => {
-      if (outcome.ok) {
-        return {
-          result: mergeResult(acc.result, { installed: [outcome.relativePath] }),
-          updatedManifest: addFileToManifest(acc.updatedManifest, outcome.relativePath, outcome.entry),
-        };
-      }
-      return {
-        result: mergeResult(acc.result, { errors: [`${outcome.relativePath}: ${outcome.msg}`] }),
-        updatedManifest: acc.updatedManifest,
-      };
+  return outcomes.reduce(
+    (acc, { relativePath, patch, entry }) => ({
+      result: mergeResult(acc.result, patch),
+      updatedManifest:
+        entry !== null
+          ? addFileToManifest(acc.updatedManifest, relativePath, entry)
+          : acc.updatedManifest,
+    }),
+    {
+      result: {
+        ...EMPTY_RESULT,
+        errors: rejectedPaths.map((relativePath) => `Refusing unsafe destination path: ${relativePath}`),
+      } as InstallResult,
+      updatedManifest: manifest ?? createEmptyManifest("0.0.0"),
     },
-    { result: { ...EMPTY_RESULT }, updatedManifest: createEmptyManifest("0.0.0") },
   );
-
-  return { result, updatedManifest };
 }
 
 /**
@@ -340,49 +389,29 @@ export async function installFiles(
  */
 export async function updateFiles(
   options: InstallOptions,
+  eligibleFiles?: readonly string[],
 ): Promise<{ result: InstallResult; updatedManifest: ManifestFile }> {
   const manifest = await readManifest(options.projectRoot);
   const bundledFiles = await listBundledFiles(options.packageRoot);
-  const timestamp = buildTimestamp();
+  const isScopeRestricted = eligibleFiles !== undefined;
+  const eligibleSet = new Set(eligibleFiles ?? bundledFiles);
+  const filesToSync = bundledFiles.filter((file) => eligibleSet.has(file));
 
-  // Phase 1: process each file in the new bundle (parallel)
-  const phase1Results = await Promise.all(
-    bundledFiles.map(async (relativePath) => {
-      const sourcePath = getBundledFilePath(options.packageRoot, relativePath);
-      const destPath = path.join(options.projectRoot, relativePath);
-      const { patch, entry } = await processOneFile({
-        relativePath,
-        sourcePath,
-        destPath,
-        manifest,
-        options,
-        timestamp,
-      });
-      return { relativePath, patch, entry };
-    }),
-  );
-
-  const phase1 = phase1Results.reduce(
-    (acc, { relativePath, patch, entry }) => ({
-      result: mergeResult(acc.result, patch),
-      workingManifest:
-        entry !== null
-          ? addFileToManifest(acc.workingManifest, relativePath, entry)
-          : acc.workingManifest,
-    }),
-    {
-      result: { ...EMPTY_RESULT } as InstallResult,
-      workingManifest: manifest ?? createEmptyManifest("0.0.0"),
-    },
+  // Phase 1: reconcile only the caller-authorized portion of the bundle.
+  const phase1 = await syncFiles(filesToSync, manifest, options).then(
+    ({ result, updatedManifest }) => ({ result, workingManifest: updatedManifest }),
   );
 
   // Phase 2: handle files in manifest that are no longer in the bundle
-  const bundledSet = new Set(bundledFiles);
+  const bundledSet = new Set(filesToSync);
   const manifestPaths = Object.keys(phase1.workingManifest.files);
 
   const { result, updatedManifest } = manifestPaths.reduce(
     (acc, trackedPath) => {
-      if (!bundledSet.has(trackedPath)) {
+      // An unscoped update owns every bundled path, so it retains the historic
+      // removal behavior. A profile-scoped update must retain entries belonging
+      // to another selected (or previously selected) profile.
+      if ((!isScopeRestricted || eligibleSet.has(trackedPath)) && !bundledSet.has(trackedPath)) {
         process.stdout.write(
           `[oac] warn: "${trackedPath}" is no longer maintained by OAC — your copy is untouched\n`,
         );
@@ -405,9 +434,8 @@ export async function updateFiles(
  */
 export async function isProjectRoot(dir: string): Promise<boolean> {
   const [hasPackageJson, hasGit] = await Promise.all([
-    Bun.file(path.join(dir, "package.json")).exists(),
+    stat(path.join(dir, "package.json")).then((s) => s.isFile()).catch(() => false),
     // stat() works for both files (.git in worktrees) and directories (.git in normal repos)
-    // Bun.file().exists() returns false for directories, so we must use stat() here
     stat(path.join(dir, ".git")).then(() => true).catch(() => false),
   ]);
   return hasPackageJson || hasGit;

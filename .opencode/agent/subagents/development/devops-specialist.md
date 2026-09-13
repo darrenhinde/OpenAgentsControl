@@ -92,10 +92,6 @@ task(subagent_type="ContextScout", description="Find DevOps standards", prompt="
 3. If ContextScout flags a cloud service or tool → verify current docs before implementing
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 ---
 
 ## What NOT to Do
@@ -109,10 +105,6 @@ task(subagent_type="ContextScout", description="Find DevOps standards", prompt="
 - ❌ **Don't ignore peer dependencies** — verify version compatibility before deploying
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
   <pre_flight>
     - ContextScout called and standards loaded
     - Parent agent requirements clear

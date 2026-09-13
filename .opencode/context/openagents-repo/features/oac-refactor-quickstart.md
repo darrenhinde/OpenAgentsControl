@@ -181,7 +181,7 @@ oac context validate
 ## Project Structure (Phase 1)
 
 ```
-@nextsystems/oac/
+@controlstack/oac/
 ├── bin/
 │   └── oac.js                  # Updated entry point
 ├── src/

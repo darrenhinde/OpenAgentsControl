@@ -17,6 +17,9 @@ import { tmpdir } from 'node:os';
 import { updateFiles, isProjectRoot } from './installer.js';
 import { writeManifest, createEmptyManifest, addFileToManifest } from './manifest.js';
 import { computeFileHash } from './sha256.js';
+import { createDefaultConfig } from './config.js';
+import { RegistrySchema } from './registry.js';
+import { resolveUpdateScope } from '../commands/update.js';
 import type { InstallOptions } from './installer.js';
 import type { FileEntry } from './manifest.js';
 
@@ -468,6 +471,98 @@ describe('updateFiles — no manifest (first run)', () => {
   });
 });
 
+describe('updateFiles — eligible installation scope', () => {
+  test('does not install bundled files outside the recorded scope', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'oac-update-scope-'));
+    const packageRoot = await mkdtemp(join(tmpdir(), 'oac-update-scope-pkg-'));
+    try {
+      const eligible = '.opencode/context/essential.md';
+      const outsideScope = '.opencode/agent/developer.md';
+      await setupPackageRoot(packageRoot, eligible, '# Essential');
+      await setupPackageRoot(packageRoot, outsideScope, '# Developer');
+
+      const { result, updatedManifest } = await updateFiles(
+        makeOptions(projectRoot, packageRoot),
+        [eligible],
+      );
+
+      expect(result.installed).toEqual([eligible]);
+      expect(await Bun.file(join(projectRoot, outsideScope)).exists()).toBe(false);
+      expect(updatedManifest.files[outsideScope]).toBeUndefined();
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(packageRoot, { recursive: true, force: true });
+    }
+  });
+
+  test('keeps a tracked file that is bundled but outside the selected scope', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'oac-update-scope-'));
+    const packageRoot = await mkdtemp(join(tmpdir(), 'oac-update-scope-pkg-'));
+    try {
+      const eligible = '.opencode/context/essential.md';
+      const priorProfile = '.opencode/agent/developer.md';
+      await setupPackageRoot(packageRoot, eligible, '# Essential');
+      await setupPackageRoot(packageRoot, priorProfile, '# Developer v2');
+      await setupPackageRoot(projectRoot, priorProfile, '# Developer v1');
+
+      let manifest = createEmptyManifest('1.0.0');
+      manifest = addFileToManifest(
+        manifest,
+        priorProfile,
+        makeEntry(await computeFileHash(join(projectRoot, priorProfile))),
+      );
+      await writeManifest(projectRoot, manifest);
+
+      const { result, updatedManifest } = await updateFiles(
+        makeOptions(projectRoot, packageRoot),
+        [eligible],
+      );
+
+      expect(result.removed_from_manifest).not.toContain(priorProfile);
+      expect(updatedManifest.files[priorProfile]).toBeDefined();
+      expect(await Bun.file(join(projectRoot, priorProfile)).text()).toBe('# Developer v1');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(packageRoot, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('resolveUpdateScope', () => {
+  const registry = RegistrySchema.parse({
+    version: '1.0.0',
+    components: {
+      agents: [{ id: 'developer-agent', name: 'Developer', type: 'agent', path: '.opencode/agent/developer.md', description: '' }],
+      subagents: [],
+      contexts: [{ id: 'essential-context', name: 'Essential', type: 'context', path: '.opencode/context/essential.md', description: '' }],
+      skills: [], commands: [], tools: [], plugins: [], config: [],
+    },
+    profiles: {
+      essential: { name: 'Essential', components: ['context:essential-context'] },
+      developer: { name: 'Developer', components: ['agent:developer-agent'] },
+    },
+  });
+  const bundle = ['.opencode/context/essential.md', '.opencode/agent/developer.md'];
+
+  test('adds a requested profile without dropping the recorded profile scope', () => {
+    const scope = resolveUpdateScope(registry, bundle, createEmptyManifest('1.0.0'), createDefaultConfig(), 'developer');
+
+    expect(scope.files).toContain('.opencode/agent/developer.md');
+    expect(scope.files).toContain('.opencode/context/essential.md');
+    expect(scope.config?.installationScope.profiles).toEqual(['essential', 'developer']);
+  });
+
+  test('migrates a manifest without config conservatively', () => {
+    let manifest = createEmptyManifest('1.0.0');
+    manifest = addFileToManifest(manifest, '.opencode/context/essential.md', makeEntry('f'.repeat(64)));
+
+    const scope = resolveUpdateScope(registry, bundle, manifest, null);
+
+    expect(scope.files).toEqual(['.opencode/context/essential.md']);
+    expect(scope.originalTierUnknown).toBe(true);
+  });
+});
+
 // ── isProjectRoot ─────────────────────────────────────────────────────────────
 
 describe('isProjectRoot', () => {
@@ -554,5 +649,91 @@ describe('isProjectRoot', () => {
 
     // Assert
     expect(result).toBe(false);
+  });
+});
+
+// ── syncFiles — the merge step `oac init` re-runs use ────────────────────────
+
+import { syncFiles } from './installer.js';
+import { readManifest as readManifestFile } from './manifest.js';
+
+describe('syncFiles — re-running init against an existing manifest', () => {
+  let projectRoot: string;
+  let packageRoot: string;
+  const bundledPath = '.opencode/context/core/quick-start.md';
+  const editedPath = '.opencode/context/core/standards/code-quality.md';
+  const addedPath = '.opencode/context/extra/react-patterns.md';
+
+  beforeAll(async () => {
+    projectRoot = await mkdtemp(join(tmpdir(), 'oac-sync-'));
+    packageRoot = await mkdtemp(join(tmpdir(), 'oac-sync-pkg-'));
+
+    await setupPackageRoot(packageRoot, bundledPath, '# Quick start v2');
+    await setupPackageRoot(packageRoot, editedPath, '# Code quality v2');
+
+    // First install: both files land untouched, plus one `oac add` entry not in this profile.
+    await setupPackageRoot(projectRoot, bundledPath, '# Quick start v1');
+    await setupPackageRoot(projectRoot, editedPath, '# Code quality v1');
+    await setupPackageRoot(projectRoot, addedPath, '# React');
+
+    let manifest = createEmptyManifest('1.0.0');
+    manifest = addFileToManifest(manifest, bundledPath, makeEntry(await computeFileHash(join(projectRoot, bundledPath)), { type: 'context' }));
+    manifest = addFileToManifest(manifest, editedPath, makeEntry(await computeFileHash(join(projectRoot, editedPath)), { type: 'context' }));
+    manifest = addFileToManifest(manifest, addedPath, makeEntry(await computeFileHash(join(projectRoot, addedPath)), { type: 'context', source: 'registry' }));
+    await writeManifest(projectRoot, manifest);
+
+    // The user edits one file after install.
+    await writeFile(join(projectRoot, editedPath), '# Code quality v1 — my edits', 'utf8');
+  });
+
+  afterAll(async () => {
+    await rm(projectRoot, { recursive: true, force: true });
+    await rm(packageRoot, { recursive: true, force: true });
+  });
+
+  test('refreshes untouched files, skips edited ones, keeps foreign manifest entries', async () => {
+    const manifest = await readManifestFile(projectRoot);
+    const { result, updatedManifest } = await syncFiles(
+      [bundledPath, editedPath],
+      manifest,
+      makeOptions(projectRoot, packageRoot),
+    );
+
+    expect(result.updated).toEqual([bundledPath]);
+    expect(result.skipped).toEqual([editedPath]);
+    expect(result.installed).toEqual([]);
+    expect(result.removed_from_manifest).toEqual([]);
+
+    expect(await Bun.file(join(projectRoot, bundledPath)).text()).toBe('# Quick start v2');
+    expect(await Bun.file(join(projectRoot, editedPath)).text()).toBe('# Code quality v1 — my edits');
+
+    // The `oac add` entry survives the re-init.
+    expect(updatedManifest.files[addedPath]).toBeDefined();
+    expect(updatedManifest.files[addedPath]!.source).toBe('registry');
+    // The skipped file keeps its old hash entry (still tracked, still "modified").
+    expect(updatedManifest.files[editedPath]!.sha256).toBe(manifest!.files[editedPath]!.sha256);
+  });
+
+  test('with yolo, backs up the edited file and overwrites it', async () => {
+    const manifest = await readManifestFile(projectRoot);
+    const { result } = await syncFiles([editedPath], manifest, makeOptions(projectRoot, packageRoot, { yolo: true }));
+
+    expect(result.updated).toEqual([editedPath]);
+    expect(result.backed_up).toHaveLength(1);
+    expect(result.backed_up[0]).toContain(join('.oac', 'backups'));
+    expect(await Bun.file(join(projectRoot, editedPath)).text()).toBe('# Code quality v2');
+    expect(await Bun.file(result.backed_up[0]!).text()).toBe('# Code quality v1 — my edits');
+  });
+
+  test('installs a file the manifest has never seen', async () => {
+    const newPath = '.opencode/command/clean.md';
+    await setupPackageRoot(packageRoot, newPath, '# clean');
+    const manifest = await readManifestFile(projectRoot);
+
+    const { result, updatedManifest } = await syncFiles([newPath], manifest, makeOptions(projectRoot, packageRoot));
+
+    expect(result.installed).toEqual([newPath]);
+    expect(updatedManifest.files[newPath]!.type).toBe('other');
+    expect(await Bun.file(join(projectRoot, newPath)).exists()).toBe(true);
   });
 });

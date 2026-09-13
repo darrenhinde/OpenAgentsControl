@@ -55,6 +55,15 @@ describe('createDefaultConfig', () => {
     expect(config.preferences.autoBackup).toBe(true);
   });
 
+  test('defaults installation scope to the essential profile', () => {
+    const config = createDefaultConfig();
+    expect(config.installationScope).toEqual({
+      profile: 'essential',
+      contextOnly: false,
+      profiles: ['essential'],
+    });
+  });
+
   // ❌ Negative: two calls return independent objects (no shared reference)
   test('returns a new object on each call', () => {
     const a = createDefaultConfig();
@@ -242,6 +251,41 @@ describe('readConfig / writeConfig', () => {
     // Assert
     expect(read?.preferences.yoloMode).toBe(true);
     expect(read?.preferences.autoBackup).toBe(false);
+  });
+
+  test('writeConfig then readConfig preserves installation scope', async () => {
+    const projectRoot = join(tmpDir, 'roundtrip-scope');
+    const config = {
+      ...createDefaultConfig(),
+      installationScope: {
+        profile: 'developer',
+        contextOnly: true,
+        profiles: ['essential', 'developer'],
+      },
+    };
+    await writeConfig(projectRoot, config);
+    const read = await readConfig(projectRoot);
+    expect(read?.installationScope).toEqual(config.installationScope);
+  });
+
+  test('reads version-1 config files without installation scope using compatible defaults', async () => {
+    const projectRoot = join(tmpDir, 'legacy-config');
+    const configPath = getConfigPath(projectRoot);
+    await mkdir(dirname(configPath), { recursive: true });
+    await Bun.write(
+      configPath,
+      JSON.stringify({ version: '1', preferences: { yoloMode: true, autoBackup: false } }),
+    );
+    const read = await readConfig(projectRoot);
+    expect(read).toEqual({
+      version: '1',
+      preferences: { yoloMode: true, autoBackup: false },
+      installationScope: {
+        profile: 'essential',
+        contextOnly: false,
+        profiles: ['essential'],
+      },
+    });
   });
 
   // ✅ Positive: writeConfig is idempotent — second write overwrites first

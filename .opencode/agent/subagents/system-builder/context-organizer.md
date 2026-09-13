@@ -80,10 +80,6 @@ task(subagent_type="ContextScout", description="Find context system standards", 
 3. **Apply** MVI format, frontmatter, and structure standards to all generated files
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 ---
 
 ## What NOT to Do
@@ -97,10 +93,6 @@ task(subagent_type="ContextScout", description="Find context system standards", 
 - ❌ **Don't skip navigation.md** — every category needs one
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
   <!-- Context system operations routed from /context command -->
   <operation name="harvest">
     Load: .opencode/context/core/context-system/operations/harvest.md

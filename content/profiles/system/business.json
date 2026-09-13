@@ -1,0 +1,36 @@
+{
+  "id": "business",
+  "agents": [
+    "contextscout",
+    "copywriter",
+    "data-analyst",
+    "documentation",
+    "image-specialist",
+    "openagent",
+    "task-manager",
+    "technical-writer"
+  ],
+  "contextProfiles": [
+    "core",
+    "business"
+  ],
+  "commands": [
+    "add-context",
+    "clean",
+    "context",
+    "prompt-enhancer"
+  ],
+  "tools": [
+    "env",
+    "gemini"
+  ],
+  "skills": [
+    "task-management"
+  ],
+  "plugins": [
+    "notify"
+  ],
+  "config": [
+    "env-example"
+  ]
+}

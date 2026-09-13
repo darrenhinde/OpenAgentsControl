@@ -352,7 +352,7 @@ interface ComponentMarketplace {
 ### Use Monorepo (pnpm workspaces)
 
 ```
-@nextsystems/oac/
+@controlstack/oac/
 ├── packages/
 │   ├── core/                  # Core CLI package
 │   │   ├── src/

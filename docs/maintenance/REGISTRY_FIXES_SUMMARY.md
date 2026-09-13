@@ -1,5 +1,7 @@
 # Installer and Registry Fixes Summary
 
+> **Current state (2026-09-02):** This is a historical fixes summary. Current agent metadata comes only from `content/agents/**` `oac:` blocks through RegistryEmitter; references to the retired metadata sidecar describe the former system.
+
 ## Overview
 This document summarizes the fixes made to resolve installer issues and registry inconsistencies.
 

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+### Security
+- **Advisory: Claude Code `coder-agent` file-edit scoping** — Claude Code subagent frontmatter cannot express path-scoped permissions, so the shipped plugin's `coder-agent` (`plugins/claude-code/agents/coder-agent.md`) granted `Write`/`Edit` without the five security deny globs its OpenCode counterpart enforces (`**/*.env*`, `**/*.key`, `**/*.secret`, `node_modules/**`, `.git/**`) — it could edit secret files the authored agent is explicitly denied. Claude Code plugins cannot ship permission rules, so full enforcement requires a one-time user opt-in. Mitigations shipped in this release: the agent now declares an explicit `disallowedTools: Bash, Task` (making the existing fail-closed shell posture explicit; `Bash` remains omitted from `tools:`), a hard protected-paths rule in the agent prompt (stop-and-report if a subtask targets those paths), and a new `plugins/claude-code/RECOMMENDED-PERMISSIONS.md` (linked from the plugin README) with copy-paste **deny-only** `settings.json` rules — users should add these to `.claude/settings.json`; never hoist per-agent allow rules to project scope, as that re-creates the escalation one layer up.
+
 ## [0.7.1] - 2026-01-30
 
 ### Changes

@@ -13,7 +13,7 @@
 
 ## Vision
 
-Transform `@nextsystems/oac` from a simple installer into a comprehensive CLI package manager that:
+Transform `@controlstack/oac` from a simple installer into a comprehensive CLI package manager that:
 - ✅ Manages agents, skills, and contexts across multiple IDEs (OpenCode, Cursor, Claude Code, Windsurf)
 - ✅ Provides flexible configuration for agent behavior and permissions
 - ✅ Supports community contributions via shadcn-like component registry
@@ -1987,7 +1987,7 @@ oac help [command]
 ### Directory Structure
 
 ```
-@nextsystems/oac/
+@controlstack/oac/
 ├── bin/
 │   └── oac.js                  # CLI entry point
 ├── src/
@@ -2272,11 +2272,11 @@ oac help [command]
 **Migration path**:
 ```bash
 # Old way (still works)
-npm install -g @nextsystems/oac
+npm install -g @controlstack/oac
 oac developer
 
 # New way (enhanced)
-npm install -g @nextsystems/oac
+npm install -g @controlstack/oac
 oac configure
 oac install opencode
 oac add agent:rust-specialist

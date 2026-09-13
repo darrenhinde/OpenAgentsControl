@@ -1,12 +1,8 @@
 {
-  "name": "@nextsystems/oac",
-  "version": "0.7.1",
+  "name": "@controlstack/oac",
+  "version": "1.1.0",
   "description": "AI agent framework for plan-first development workflows with approval-based execution. Multi-language support for TypeScript, Python, Go, Rust and more.",
-  "workspaces": [
-    "evals/framework",
-    "packages/cli",
-    "packages/compatibility-layer"
-  ],
+  "packageManager": "pnpm@10.33.4",
   "bin": {
     "oac": "./bin/oac.js"
   },
@@ -29,6 +25,7 @@
     "bin/",
     "registry.json",
     "install.sh",
+    "env.example",
     "VERSION",
     "LICENSE",
     "README.md",
@@ -37,36 +34,39 @@
     "packages/cli/dist/"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "test": "npm run test:all",
-    "test:all": "cd evals/framework && npm run eval:sdk",
-    "test:core": "npm run test:openagent:core",
-    "test:openagent": "cd evals/framework && npm run eval:sdk -- --agent=openagent",
-    "test:openagent:core": "cd evals/framework && npm run eval:sdk:core -- --agent=openagent",
-    "test:opencoder": "cd evals/framework && npm run eval:sdk -- --agent=opencoder",
-    "test:openagent:grok": "npm run test:openagent -- --model=opencode/grok-code-fast",
-    "test:openagent:claude": "npm run test:openagent -- --model=anthropic/claude-3-5-sonnet-20241022",
-    "test:openagent:gpt4": "npm run test:openagent -- --model=openai/gpt-4-turbo",
-    "test:opencoder:grok": "npm run test:opencoder -- --model=opencode/grok-code-fast",
-    "test:opencoder:claude": "npm run test:opencoder -- --model=anthropic/claude-3-5-sonnet-20241022",
-    "test:opencoder:gpt4": "npm run test:opencoder -- --model=openai/gpt-4-turbo",
-    "test:all:grok": "npm run test:all -- --model=opencode/grok-code-fast",
-    "test:all:claude": "npm run test:all -- --model=anthropic/claude-3-5-sonnet-20241022",
-    "test:all:gpt4": "npm run test:all -- --model=openai/gpt-4-turbo",
-    "test:pattern": "cd evals/framework && npm run eval:sdk -- --pattern",
-    "test:debug": "cd evals/framework && npm run eval:sdk -- --debug",
-    "test:openagent:developer": "npm run test:openagent -- --pattern='developer/*.yaml'",
-    "test:openagent:context": "npm run test:openagent -- --pattern='context-loading/*.yaml'",
-    "test:openagent:business": "npm run test:openagent -- --pattern='business/*.yaml'",
-    "test:opencoder:developer": "npm run test:opencoder -- --pattern='developer/*.yaml'",
-    "test:opencoder:bash": "npm run test:opencoder -- --pattern='developer/bash-*.yaml'",
-    "test:ci": "npm run test:ci:openagent && npm run test:ci:opencoder",
-    "test:ci:openagent": "npm run test:openagent -- --pattern='smoke-test.yaml' --no-evaluators",
-    "test:ci:opencoder": "npm run test:opencoder -- --pattern='developer/simple-bash-test.yaml' --no-evaluators",
+    "test": "pnpm run test:all",
+    "test:all": "pnpm --dir evals/framework run eval:sdk",
+    "test:core": "pnpm run test:openagent:core",
+    "test:openagent": "pnpm --dir evals/framework run eval:sdk -- --agent=openagent",
+    "test:openagent:core": "pnpm --dir evals/framework run eval:sdk:core -- --agent=openagent",
+    "test:opencoder": "pnpm --dir evals/framework run eval:sdk -- --agent=opencoder",
+    "test:openagent:grok": "pnpm run test:openagent -- --model=opencode/grok-code-fast",
+    "test:openagent:claude": "pnpm run test:openagent -- --model=anthropic/claude-3-5-sonnet-20241022",
+    "test:openagent:gpt4": "pnpm run test:openagent -- --model=openai/gpt-4-turbo",
+    "test:opencoder:grok": "pnpm run test:opencoder -- --model=opencode/grok-code-fast",
+    "test:opencoder:claude": "pnpm run test:opencoder -- --model=anthropic/claude-3-5-sonnet-20241022",
+    "test:opencoder:gpt4": "pnpm run test:opencoder -- --model=openai/gpt-4-turbo",
+    "test:all:grok": "pnpm run test:all -- --model=opencode/grok-code-fast",
+    "test:all:claude": "pnpm run test:all -- --model=anthropic/claude-3-5-sonnet-20241022",
+    "test:all:gpt4": "pnpm run test:all -- --model=openai/gpt-4-turbo",
+    "test:pattern": "pnpm --dir evals/framework run eval:sdk -- --pattern",
+    "test:debug": "pnpm --dir evals/framework run eval:sdk -- --debug",
+    "test:openagent:developer": "pnpm run test:openagent -- --pattern='developer/*.yaml'",
+    "test:openagent:context": "pnpm run test:openagent -- --pattern='context-loading/*.yaml'",
+    "test:openagent:business": "pnpm run test:openagent -- --pattern='business/*.yaml'",
+    "test:opencoder:developer": "pnpm run test:opencoder -- --pattern='developer/*.yaml'",
+    "test:opencoder:bash": "pnpm run test:opencoder -- --pattern='developer/bash-*.yaml'",
+    "test:ci": "pnpm run test:ci:openagent && pnpm run test:ci:opencoder",
+    "test:ci:openagent": "pnpm run test:openagent -- --pattern='smoke-test.yaml' --no-evaluators",
+    "test:ci:opencoder": "pnpm run test:opencoder -- --pattern='developer/simple-bash-test.yaml' --no-evaluators",
     "dashboard": "cd evals/results && ./serve.sh",
-    "dashboard:open": "npm run dashboard && open http://localhost:8000",
+    "dashboard:open": "pnpm run dashboard && open http://localhost:8000",
     "results:openagent": "echo 'OpenAgent results:' && ls -lh evals/results/history/*openagent*.json 2>/dev/null | tail -5 || echo 'No results yet'",
     "results:opencoder": "echo 'OpenCoder results:' && ls -lh evals/results/history/*opencoder*.json 2>/dev/null | tail -5 || echo 'No results yet'",
     "results:latest": "cat evals/results/latest.json 2>/dev/null | jq '.agent, .passed, .failed' || echo 'No results yet'",
@@ -78,10 +78,10 @@
     "version:bump:alpha": "npm version prerelease --preid=alpha --no-git-tag-version && node -p \"require('./package.json').version\" > VERSION",
     "version:bump:beta": "npm version prerelease --preid=beta --no-git-tag-version && node -p \"require('./package.json').version\" > VERSION",
     "version:bump:rc": "npm version prerelease --preid=rc --no-git-tag-version && node -p \"require('./package.json').version\" > VERSION",
-    "dev:setup": "cd evals/framework && npm install",
-    "dev:build": "cd evals/framework && npm run build",
-    "dev:test": "cd evals/framework && npm test",
-    "dev:clean": "cd evals/framework && rm -rf dist node_modules && npm install",
+    "dev:setup": "pnpm install",
+    "dev:build": "pnpm --dir evals/framework run build",
+    "dev:test": "pnpm --dir evals/framework test",
+    "dev:clean": "rm -rf evals/framework/dist node_modules evals/framework/node_modules && pnpm install",
     "validate:registry": "bun run scripts/registry/validate-registry.ts",
     "validate:context-links": "bun run scripts/validation/validate-markdown-links.ts",
     "validate:registry:verbose": "bun run scripts/registry/validate-registry.ts -v",
@@ -112,6 +112,9 @@
     "url": "https://github.com/darrenhinde/OpenAgentsControl/issues"
   },
   "homepage": "https://github.com/darrenhinde/OpenAgentsControl#readme",
+  "pnpm": {
+    "onlyBuiltDependencies": []
+  },
   "devDependencies": {
     "glob": "^13.0.0"
   }

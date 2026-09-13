@@ -1,0 +1,28 @@
+{
+  "id": "essential",
+  "agents": [
+    "contextscout",
+    "documentation",
+    "openagent",
+    "task-manager"
+  ],
+  "contextProfiles": [
+    "core",
+    "essentials"
+  ],
+  "commands": [
+    "add-context",
+    "clean",
+    "context"
+  ],
+  "tools": [
+    "env"
+  ],
+  "skills": [
+    "task-management"
+  ],
+  "plugins": [],
+  "config": [
+    "env-example"
+  ]
+}

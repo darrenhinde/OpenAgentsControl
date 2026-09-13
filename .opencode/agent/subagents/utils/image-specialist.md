@@ -1,8 +1,4 @@
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 name: Image Specialist
 description: "Specialized agent for image editing and analysis using Gemini AI tools"
 mode: subagent

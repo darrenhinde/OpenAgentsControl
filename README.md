@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 Agents load YOUR patterns before generating code. Code matches your project from the start. No refactoring needed.
 
 **📝 Editable Agents (Not Baked-In Plugins)**  
-Full control over agent behavior. Edit markdown files directly—no compilation, no vendor lock-in. Change workflows, add constraints, customize for your team.
+Full control over agent behavior. Everything installed into your project is plain markdown you edit in place, with no vendor lock-in. Change workflows, add constraints, customize for your team. (Repo maintainers author agents once under `content/` and run `oac build` to generate every tool's copy; you never need that step.)
 
 **✋ Approval Gates (Human-Guided AI)**  
 Agents ALWAYS request approval before execution. Propose → Approve → Execute. You stay in control. No "oh no, what did the AI just do?" moments.
@@ -115,31 +115,56 @@ Use any AI model (Claude, GPT, Gemini, local). No vendor lock-in.
 
 ## 🚀 Quick Start
 
-**Prerequisites:** [OpenCode CLI](https://opencode.ai/docs) (free, open-source) • Bash 3.2+ • Git
+**Prerequisites:** [OpenCode CLI](https://opencode.ai/docs) (free, open-source) • Node 20+ (for the `oac` CLI) • Git
 
 ### Step 1: Install
 
-**One command:**
+**With the `oac` CLI (recommended):**
+
+```bash
+npm i -g @controlstack/oac
+cd your-project
+oac init                      # essential tier: one agent, core subagents, core standards
+oac init --profile developer  # or: business, advanced, full
+oac init --context-only       # just the context/standards files, bring your own agents
+oac apply claude              # project into Claude Code
+oac doctor                    # verify
+oac update                    # later: refresh, keeps your edits
+```
+
+`oac init` writes everything into `.opencode/` in your project and records what it installed in `.oac/manifest.json`, so `oac update` can refresh OAC-owned files and leave anything you edited alone. Pull one more thing at any time with `oac add context:react-patterns` or `oac add skill:task-management`.
+
+**What the tiers contain:**
+
+| Profile | Agents | Context | Also |
+|---------|--------|---------|------|
+| `essential` (default) | OpenAgent + ContextScout, Documentation, TaskManager | Core (quick start, project context) + core standards (code, tests, docs, patterns, analysis, review workflow, session management) | `add-context`, `clean`, `context` commands; task-management skill |
+| `developer` | + OpenCoder, CoderAgent, Reviewer, Tester, BuildAgent, DevOps and Frontend specialists | Core + engineering (development, UI, API design, clean code, React patterns, repo standards) | + `commit`, `test`, `optimize`, `analyze-patterns`, `validate-repo` |
+| `business` | OpenAgent + Copywriter, DataAnalyst, TechnicalWriter, ImageSpecialist, ContextScout, Documentation, TaskManager | Core + business (project intelligence) | + `prompt-enhancer`; gemini tool |
+| `full` | Every developer and business agent | Core + engineering | Every command; gemini tool |
+| `advanced` | Full plus the SystemBuilder, RepoManager and generator subagents | Core + engineering + meta-authoring (templates, frontmatter, context-system internals) | + `build-context-system`, `worktrees` |
+
+`--context-only` installs only the context files of the chosen tier: the standards, patterns and navigation indexes, with no agents, commands or skills. Use it when you already have agents you like and just want them to read your standards.
+
+**Alternative: shell installer**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
 ```
 
-<sub>The installer will set up OpenCode CLI if you don't have it yet.</sub>
-
-**Or interactive:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
-bash install.sh
-```
+<sub>The installer will set up OpenCode CLI if you don't have it yet. Interactive mode: download `install.sh` and run `bash install.sh`.</sub>
 
 ### Keep Updated
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash
+oac update            # CLI installs (skips files you have modified; --yolo to overwrite with a backup)
 ```
 
-> Use `--install-dir PATH` if you installed to a custom location (e.g. `~/.config/opencode`).
+```bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash   # shell installs
+```
+
+> Use `--install-dir PATH` with the shell updater if you installed to a custom location (e.g. `~/.config/opencode`).
 
 ### Step 2: Start Building
 

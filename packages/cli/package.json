@@ -1,7 +1,8 @@
 {
-  "name": "@nextsystems/oac-cli",
-  "version": "1.0.0",
+  "name": "@controlstack/oac-cli",
+  "version": "1.1.0",
   "description": "OAC CLI — install, manage, and update AI agents and context files",
+  "private": true,
   "type": "module",
   "bin": {
     "oac": "./dist/index.js"
@@ -10,20 +11,20 @@
   "types": "./dist/index.d.ts",
   "files": ["dist"],
   "scripts": {
-    "build": "rm -rf dist && bun build src/index.ts --outdir dist --target bun --splitting",
-    "build:watch": "bun build src/index.ts --outdir dist --target bun --splitting --watch",
+    "build": "rm -rf dist && bun build src/index.ts --outdir dist --target node && node --check dist/index.js",
+    "build:watch": "bun build src/index.ts --outdir dist --target node --watch",
     "dev": "bun run src/index.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@openagents-control/compatibility-layer": "*",
-    "commander": "^12.0.0",
-    "chalk": "^5.3.0",
-    "ora": "^8.0.0",
-    "semver": "^7.6.0",
-    "zod": "^3.23.0"
+    "@controlstack/compatibility-layer": "workspace:*",
+    "commander": "12.1.0",
+    "chalk": "5.6.2",
+    "ora": "8.2.0",
+    "semver": "7.7.3",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -32,6 +33,6 @@
     "typescript": "^5.4.0"
   },
   "engines": {
-    "bun": ">=1.0.0"
+    "node": ">=20.0.0"
   }
 }

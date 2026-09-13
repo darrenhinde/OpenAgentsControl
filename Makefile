@@ -7,6 +7,7 @@ OWNER := darrenhinde
 
 .PHONY: help idea ideas board labels project-info issue-view issue-comment issue-close bug feature
 .PHONY: test-evals test-golden test-smoke test-verbose build-evals validate-evals
+.PHONY: build-canonical check-canonical-drift oac-cli
 
 help: ## Show this help message
 	@echo "OpenAgents GitHub Project Management"
@@ -157,27 +158,43 @@ high-priority: ## List all high priority items
 # Evaluation Framework Commands
 # =============================================================================
 
+# The canonical build: content/agents/** is the source, .opencode/agent/**, registry.json and
+# .oac/build-manifest.json are its committed output. `check-canonical-drift` is exactly what CI
+# runs (.github/workflows/packages-checks.yml), so a contributor can reproduce a red gate here.
+oac-cli: ## Build the oac CLI and its compatibility-layer dependency
+	@pnpm --dir packages/compatibility-layer run build
+	@pnpm --dir packages/cli run build
+
+build-canonical: oac-cli ## Regenerate the committed trees from content/agents/**
+	@echo "🔨 Building canonical trees..."
+	@bun packages/cli/dist/index.js build
+
+check-canonical-drift: oac-cli ## Fail if the generated trees drift from content/agents/** (CI gate)
+	@echo "🔍 Checking for generated-tree drift..."
+	@bash scripts/validation/check-build-drift.sh
+
 build-evals: ## Build the evaluation framework
 	@echo "🔨 Building evaluation framework..."
-	@cd evals/framework && npm ci && npm run build
+	@pnpm install --frozen-lockfile
+	@pnpm --dir evals/framework run build
 	@echo "✅ Build complete"
 
 validate-evals: ## Validate all test suites
 	@echo "🔍 Validating test suites..."
-	@cd evals/framework && npm run validate:suites:all
+	@pnpm --dir evals/framework run validate:suites:all
 	@echo "✅ Validation complete"
 
 test-golden: ## Run golden tests (8 tests, ~3-5 min)
 	@echo "🧪 Running golden tests..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml"
 
 test-smoke: ## Run smoke test only (1 test, ~30s)
 	@echo "🧪 Running smoke test..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --pattern="**/golden/01-smoke-test.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --pattern="**/golden/01-smoke-test.yaml"
 
 test-verbose: ## Run golden tests with full conversation output
 	@echo "🧪 Running golden tests (verbose)..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml" --verbose
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml" --verbose
 
 test-evals: build-evals validate-evals test-golden ## Full eval pipeline: build, validate, test
 
@@ -190,7 +207,7 @@ test-agent: ## Run tests for specific agent (requires AGENT=name)
 		exit 1; \
 	fi
 	@echo "🧪 Running tests for agent: $(AGENT)..."
-	@cd evals/framework && npm run eval:sdk -- --agent=$(AGENT) --pattern="**/golden/*.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=$(AGENT) --pattern="**/golden/*.yaml"
 
 # Test with specific model
 test-model: ## Run tests with specific model (requires MODEL=provider/model)
@@ -201,7 +218,7 @@ test-model: ## Run tests with specific model (requires MODEL=provider/model)
 		exit 1; \
 	fi
 	@echo "🧪 Running tests with model: $(MODEL)..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --model=$(MODEL) --pattern="**/golden/*.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --model=$(MODEL) --pattern="**/golden/*.yaml"
 
 # Test with prompt variant
 test-variant: ## Run tests with prompt variant (requires VARIANT=name)
@@ -213,7 +230,7 @@ test-variant: ## Run tests with prompt variant (requires VARIANT=name)
 		exit 1; \
 	fi
 	@echo "🧪 Running tests with prompt variant: $(VARIANT)..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --prompt-variant=$(VARIANT) --pattern="**/golden/*.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --prompt-variant=$(VARIANT) --pattern="**/golden/*.yaml"
 
 # Test subagent standalone
 test-subagent: ## Test subagent in standalone mode (requires SUBAGENT=name)
@@ -229,7 +246,7 @@ test-subagent: ## Test subagent in standalone mode (requires SUBAGENT=name)
 		exit 1; \
 	fi
 	@echo "⚡ Testing subagent (standalone mode): $(SUBAGENT)..."
-	@cd evals/framework && npm run eval:sdk -- --subagent=$(SUBAGENT)
+	@pnpm --dir evals/framework run eval:sdk -- --subagent=$(SUBAGENT)
 
 # Test subagent via delegation
 test-subagent-delegate: ## Test subagent via parent delegation (requires SUBAGENT=name)
@@ -240,7 +257,7 @@ test-subagent-delegate: ## Test subagent via parent delegation (requires SUBAGEN
 		exit 1; \
 	fi
 	@echo "🔗 Testing subagent (delegation mode): $(SUBAGENT)..."
-	@cd evals/framework && npm run eval:sdk -- --subagent=$(SUBAGENT) --delegate
+	@pnpm --dir evals/framework run eval:sdk -- --subagent=$(SUBAGENT) --delegate
 
 # View results
 view-results: ## Open results dashboard in browser

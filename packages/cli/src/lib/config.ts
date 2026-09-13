@@ -1,17 +1,37 @@
 import { z } from "zod";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 
 export const OacPreferencesSchema = z.object({
   yoloMode: z.boolean(),
   autoBackup: z.boolean(),
 });
+
+const DEFAULT_INSTALLATION_SCOPE = {
+  profile: "essential",
+  contextOnly: false,
+  profiles: ["essential"],
+};
+
+/** The profiles whose files OAC is allowed to reconcile on later updates. */
+export const OacInstallationScopeSchema = z.object({
+  /** The most recently selected profile, used as the default for subsequent commands. */
+  profile: z.string(),
+  /** Whether the current profile selection was limited to context files. */
+  contextOnly: z.boolean(),
+  /** Every profile selected over the lifetime of this installation. */
+  profiles: z.array(z.string()),
+});
+
 export const OacConfigSchema = z.object({
   version: z.literal("1"),
   preferences: OacPreferencesSchema,
+  // Version-1 configs predate installation scope. Defaulting keeps them readable.
+  installationScope: OacInstallationScopeSchema.default(DEFAULT_INSTALLATION_SCOPE),
 });
 
 export type OacPreferences = z.infer<typeof OacPreferencesSchema>;
+export type OacInstallationScope = z.infer<typeof OacInstallationScopeSchema>;
 export type OacConfig = z.infer<typeof OacConfigSchema>;
 
 export const getConfigPath = (projectRoot: string): string =>
@@ -20,6 +40,10 @@ export const getConfigPath = (projectRoot: string): string =>
 export const createDefaultConfig = (): OacConfig => ({
   version: "1",
   preferences: { yoloMode: false, autoBackup: true },
+  installationScope: {
+    ...DEFAULT_INSTALLATION_SCOPE,
+    profiles: [...DEFAULT_INSTALLATION_SCOPE.profiles],
+  },
 });
 
 // Pure — returns new object, no mutation
@@ -34,8 +58,9 @@ export const isAutoBackup = (config: OacConfig): boolean =>
 
 export async function readConfig(projectRoot: string): Promise<OacConfig | null> {
   const configPath = getConfigPath(projectRoot);
-  if (!(await Bun.file(configPath).exists())) return null;
-  const raw = await Bun.file(configPath).json() as unknown;
+  const exists = await stat(configPath).then((s) => s.isFile()).catch(() => false);
+  if (!exists) return null;
+  const raw = JSON.parse(await readFile(configPath, "utf8")) as unknown;
   const result = OacConfigSchema.safeParse(raw);
   if (!result.success) {
     throw new Error(`Invalid config at "${configPath}": ${result.error.message}`);
@@ -46,5 +71,5 @@ export async function readConfig(projectRoot: string): Promise<OacConfig | null>
 export async function writeConfig(projectRoot: string, config: OacConfig): Promise<void> {
   const configPath = getConfigPath(projectRoot);
   await mkdir(dirname(configPath), { recursive: true });
-  await Bun.write(configPath, JSON.stringify(config, null, 2));
+  await writeFile(configPath, JSON.stringify(config, null, 2));
 }

@@ -19,7 +19,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@openagents-control/compatibility-layer": ["../compatibility-layer/dist/index.d.ts"]
+      "@controlstack/compatibility-layer": ["../compatibility-layer/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*"],

@@ -1,8 +1,9 @@
 import { type Command } from 'commander';
 import { updateFiles } from '../lib/installer.js';
-import { getPackageRoot } from '../lib/bundled.js';
+import { getPackageRoot, listBundledFiles } from '../lib/bundled.js';
 import { readManifest, writeManifest } from '../lib/manifest.js';
-import { readConfig } from '../lib/config.js';
+import { readConfig, writeConfig, type OacConfig } from '../lib/config.js';
+import { FULL_PROFILE_ID, getProfile, loadRegistry, resolveProfile, type Registry } from '../lib/registry.js';
 import { log, info, warn, error, success, dim, bold, verbose, setVerbose } from '../ui/logger.js';
 import { createSpinner, setDryRun } from '../ui/spinner.js';
 import type { InstallResult } from '../lib/installer.js';
@@ -16,6 +17,44 @@ export type UpdateOptions = {
   verbose: boolean;
   /** Alias for dryRun — shows what would change without changing anything. */
   check: boolean;
+  /** Add a profile to the cumulative installation scope before synchronizing. */
+  profile?: string;
+};
+
+export type UpdateScope = { files: string[]; config: OacConfig | null; originalTierUnknown: boolean };
+
+/** Resolves only the profile files that this project has authorized OAC to manage. */
+export const resolveUpdateScope = (
+  registry: Registry,
+  bundledFiles: readonly string[],
+  manifest: ManifestFile,
+  config: OacConfig | null,
+  profile?: string,
+): UpdateScope => {
+  if (config === null && profile === undefined) {
+    return { files: Object.keys(manifest.files).sort(), config: null, originalTierUnknown: true };
+  }
+
+  const baseScope = config?.installationScope;
+  const profileIds = [...new Set([...(baseScope?.profiles ?? []), ...(profile === undefined ? [] : [profile])])];
+  const contextOnly = baseScope?.contextOnly ?? false;
+  const files = profileIds.flatMap((profileId) => {
+    if (profileId === FULL_PROFILE_ID) {
+      return bundledFiles.filter((file) => !contextOnly || file.startsWith('.opencode/context/'));
+    }
+    const resolved = getProfile(registry, profileId);
+    if (resolved === null) throw new Error(`Unknown profile '${profileId}'.`);
+    return resolveProfile(registry, resolved, { contextOnly }).files;
+  });
+  const nextConfig = config === null
+    ? null
+    : { ...config, installationScope: { profile: profile ?? baseScope!.profile, contextOnly, profiles: profileIds } };
+  const legacyFiles = config === null ? Object.keys(manifest.files) : [];
+  return {
+    files: [...new Set([...legacyFiles, ...files])].sort(),
+    config: nextConfig,
+    originalTierUnknown: config === null,
+  };
 };
 
 // ── Pre-flight checks ─────────────────────────────────────────────────────────
@@ -99,7 +138,7 @@ const resolveOptions = (opts: UpdateOptions): UpdateOptions => ({
 });
 
 /** Runs the update and writes the manifest (unless dry-run). */
-async function runUpdate(projectRoot: string, opts: UpdateOptions): Promise<InstallResult> {
+async function runUpdate(projectRoot: string, opts: UpdateOptions, scope: UpdateScope): Promise<InstallResult> {
   const packageRoot = getPackageRoot();
 
   const spinner = createSpinner('Scanning files...', { dryRun: opts.dryRun });
@@ -114,12 +153,12 @@ async function runUpdate(projectRoot: string, opts: UpdateOptions): Promise<Inst
       dryRun: opts.dryRun,
       yolo: opts.yolo,
       verbose: opts.verbose,
-    }));
+    }, scope.files));
   } catch (err: unknown) {
     spinner.fail('Update failed.');
     const msg = err instanceof Error ? err.message : String(err);
     error(`Update failed: ${msg}`);
-    error('Check that @nextsystems/oac is installed correctly and try again.');
+    error('Check that @controlstack/oac is installed correctly and try again.');
     process.exit(1);
     return {} as InstallResult; // unreachable — satisfies TypeScript
   }
@@ -129,6 +168,7 @@ async function runUpdate(projectRoot: string, opts: UpdateOptions): Promise<Inst
   // Write updated manifest only when not in dry-run mode
   if (!opts.dryRun && result.errors.length === 0) {
     await writeManifest(projectRoot, updatedManifest);
+    if (scope.config !== null) await writeConfig(projectRoot, scope.config);
     verbose('Manifest written.');
   } else if (!opts.dryRun && result.errors.length > 0) {
     warn('Manifest not written due to errors above. Fix the issues and re-run.');
@@ -157,11 +197,31 @@ async function handleUpdate(opts: UpdateOptions): Promise<void> {
   // Pre-flight: manifest must exist
   await assertManifestExists(projectRoot);
 
+  const manifest = await readManifest(projectRoot);
+  if (manifest === null) return;
+  const packageRoot = getPackageRoot();
+  const [registry, bundledFiles] = await Promise.all([
+    loadRegistry(packageRoot),
+    listBundledFiles(packageRoot),
+  ]);
+  let scope: UpdateScope;
+  try {
+    scope = resolveUpdateScope(registry, bundledFiles, manifest, config, finalOpts.profile);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    error(`${msg} Run \`oac init --list-profiles\` to see available profiles.`);
+    process.exit(1);
+    return;
+  }
+  if (scope.originalTierUnknown) {
+    warn('Original installation tier is unknown; only manifest-tracked files will be synchronized.');
+  }
+
   // Announce plan BEFORE doing anything
   printPlan(finalOpts);
 
   // Run the update
-  const result = await runUpdate(projectRoot, finalOpts);
+  const result = await runUpdate(projectRoot, finalOpts, scope);
 
   // Print summary AFTER
   printSummary(result, finalOpts.dryRun);
@@ -185,13 +245,15 @@ export function registerUpdateCommand(program: Command): void {
     .option('--dry-run', 'Show what would be updated without making changes')
     .option('--check', 'Alias for --dry-run: show what would change')
     .option('--yolo', 'Back up user-modified files and overwrite them anyway')
+    .option('-p, --profile <id>', 'Add a profile to the installation scope before updating')
     .option('--verbose', 'Show SHA256 comparison details per file')
-    .action(async (cmdOpts: { dryRun?: boolean; check?: boolean; yolo?: boolean; verbose?: boolean }) => {
+    .action(async (cmdOpts: { dryRun?: boolean; check?: boolean; yolo?: boolean; verbose?: boolean; profile?: string }) => {
       await handleUpdate({
         dryRun: cmdOpts.dryRun ?? false,
         check: cmdOpts.check ?? false,
         yolo: cmdOpts.yolo ?? false,
         verbose: cmdOpts.verbose ?? false,
+        profile: cmdOpts.profile,
       });
     });
 }

@@ -1,24 +1,104 @@
+/**
+ * Unit tests for ClaudeAdapter — the `plugins/claude-code/` emitter.
+ *
+ * ## What changed, and why the old suite could not simply be edited
+ *
+ * This adapter used to emit `.claude/config.json` + `.claude/agents/*.md`. The `config.json`
+ * half was fabricated (Claude Code has no such agent-config file) and the real target is the
+ * plugin tree committed at `plugins/claude-code/`. Roughly half the old suite asserted the
+ * shape of a file that should never have existed, so those tests are gone rather than
+ * retargeted — keeping them would pin a format nothing reads.
+ *
+ * ## The one rule these tests exist to defend
+ *
+ * Claude Code's frontmatter has two flat lists and no scoping: no ordered globs, no `ask`,
+ * no last-match-wins. Canonical agents depend on all three. Emitting MORE permission than
+ * canonical specifies is the single unacceptable outcome, so every projection here is
+ * checked to fail CLOSED and to say out loud what it dropped. A silent widening is the bug
+ * class this file is aimed at — `PermissionMapper`'s permissive default (`hasAllow ||
+ * !hasDeny`) answers `bash: true` for a deny-all-then-allowlist block, which is exactly why
+ * the adapter routes through `core/Capabilities.ts` instead.
+ */
+
 import { describe, it, expect, beforeEach } from "vitest";
+import { readFileSync } from "node:fs";
 import { ClaudeAdapter } from "../../../src/adapters/ClaudeAdapter";
-import type {
-  OpenAgent,
-  AgentFrontmatter,
-  HookDefinition,
-  SkillReference,
-} from "../../../src/types";
+import { packagePath } from "../../support/pending.js";
+import type { OpenAgent, AgentFrontmatter, HookDefinition } from "../../../src/types";
+
+/** Claude Code's tools in the adapter's emit order. The union of both lists is always this. */
+const CLAUDE_TOOLS = ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "WebFetch", "Task"] as const;
+
+/** The same list, rendered for a YAML `tools: [...]` override. */
+const CLAUDE_TOOLS_LITERAL = CLAUDE_TOOLS.join(", ");
+
+const FIXTURE_REVIEWER = packagePath("tests/golden/fixtures/fixture-reviewer.md");
+const FIXTURE_PLANNER = packagePath("tests/golden/fixtures/fixture-planner.md");
+
+function fixture(path: string): string {
+  return readFileSync(path, "utf-8");
+}
 
 /**
- * Unit tests for ClaudeAdapter with 80%+ coverage
+ * A canonical agent file built around one permission block.
  *
- * Test strategy:
- * 1. toOAC() - Parse Claude formats to OpenAgent
- * 2. fromOAC() - Convert OpenAgent to Claude formats
- * 3. getCapabilities() - Feature matrix validation
- * 4. validateConversion() - Validation and warnings
- * 5. Helper methods - Model/tool/hook/skill mapping
- * 6. Edge cases - Invalid input, missing fields, empty values
- * 7. Roundtrip - Data integrity checks
+ * The override defaults to a valid one: every agent targeting claude-code MUST author
+ * `tools`, so an agent without one is an error, not a baseline. Tests that care about the
+ * tool list pass their own via {@link override}; the "refuses without tools" case passes "".
  */
+function canonical(permission: string, extra = "", override = OVERRIDE_DEFAULT): string {
+  return `---
+name: ProbeAgent
+description: A probe agent.
+mode: subagent
+${extra}permission:
+${permission}
+oac:
+  id: probe-agent
+  name: ProbeAgent
+  category: subagents/test
+  type: subagent
+  targets:
+    - claude-code
+${override}---
+
+# ProbeAgent
+
+Body.
+`;
+}
+
+/** An `oac.overrides.claude-code` block, indented to sit inside {@link canonical}'s oac block. */
+function override(body: string): string {
+  return `  overrides:\n    claude-code:\n${body}`;
+}
+
+/** The default override for probes that are not about the tool list itself. */
+const OVERRIDE_DEFAULT = override(`      tools: [Read]\n`);
+
+/**
+ * An in-memory OpenAgent carrying an authored permission map — the `fromOAC` (legacy
+ * `oac-compat convert`) path.
+ *
+ * The degradation warnings live here rather than on the canonical path, and that is by design:
+ * `fromCanonical` refuses to degrade a scoped rule set at all (it demands an authored
+ * override), whereas `fromOAC` converts an agent from a format with no `oac:` block, so there
+ * is nowhere to record a decision and nobody to ask. Fail-closed-and-warn is the best it can
+ * do, so it is still exactly what these assert.
+ */
+function legacy(permission: Record<string, unknown>): OpenAgent {
+  return {
+    frontmatter: {
+      name: "probe-agent",
+      description: "A probe agent.",
+      mode: "subagent",
+      permission,
+    } as AgentFrontmatter,
+    metadata: { name: "probe-agent", category: "core", type: "subagent" },
+    systemPrompt: "Body.",
+    contexts: [],
+  };
+}
 
 describe("ClaudeAdapter", () => {
   let adapter: ClaudeAdapter;
@@ -40,8 +120,461 @@ describe("ClaudeAdapter", () => {
       expect(adapter.displayName).toBe("Claude Code");
     });
 
-    it("returns correct config path", () => {
-      expect(adapter.getConfigPath()).toBe(".claude/");
+    it("returns the plugin tree as its config path, not .claude/", () => {
+      expect(adapter.getConfigPath()).toBe("plugins/claude-code/");
+    });
+  });
+
+  // ============================================================================
+  // OUTPUT LAYOUT
+  // ============================================================================
+
+  describe("output layout", () => {
+    it("emits agents under plugins/claude-code/agents/", async () => {
+      const { path } = await adapter.fromCanonical(fixture(FIXTURE_REVIEWER));
+
+      expect(path).toBe("plugins/claude-code/agents/fixture-reviewer.md");
+    });
+
+    it("keys the emitted path on oac.id, not the authored display name", async () => {
+      // The canonical ids and the Claude Code filenames genuinely differ across the corpus
+      // (`contextscout` -> `context-scout.md`, `reviewer` -> `code-reviewer.md`). Only the
+      // id is stable identity, so resolving by `name:` would emit the wrong filename.
+      const { path, content } = await adapter.fromCanonical(fixture(FIXTURE_REVIEWER));
+
+      expect(path).toContain("fixture-reviewer.md"); // oac.id
+      expect(path).not.toContain("FixtureReviewer"); // frontmatter name
+      expect(content).toMatch(/^name: fixture-reviewer$/m);
+    });
+
+    it("emits no .claude/ path from any conversion", async () => {
+      const canonicalResult = await adapter.fromCanonical(fixture(FIXTURE_PLANNER));
+      const oacResult = await adapter.fromOAC({
+        frontmatter: { name: "Agent", description: "Test", mode: "primary" },
+        metadata: { name: "Agent", category: "core", type: "agent" },
+        systemPrompt: "Prompt",
+        contexts: [{ path: "context/a.md", description: "A" }],
+      });
+
+      expect(canonicalResult.path).not.toContain(".claude/");
+      for (const config of oacResult.configs) {
+        expect(config.fileName, `${config.fileName} still targets the old layout`).not.toContain(
+          ".claude/"
+        );
+        expect(config.fileName).toMatch(/^plugins\/claude-code\//);
+      }
+    });
+
+    it("never emits a config.json", async () => {
+      const result = await adapter.fromOAC({
+        frontmatter: { name: "Agent", description: "Test", mode: "primary" },
+        metadata: { name: "Agent", category: "core", type: "agent" },
+        systemPrompt: "Prompt",
+        contexts: [],
+      });
+
+      expect(result.configs.map((c) => c.fileName)).toEqual([
+        "plugins/claude-code/agents/Agent.md",
+      ]);
+    });
+
+    it("emits one agent file for a primary agent, same as a subagent", async () => {
+      // The old primary/subagent split existed only to choose between config.json and an
+      // agent file. With config.json gone there is exactly one shape.
+      const primary = await adapter.fromCanonical(fixture(FIXTURE_PLANNER)); // mode: primary
+
+      expect(primary.path).toBe("plugins/claude-code/agents/fixture-planner.md");
+      expect(primary.content).toMatch(/^---\nname: fixture-planner$/m);
+    });
+  });
+
+  // ============================================================================
+  // FRONTMATTER SHAPE
+  // ============================================================================
+
+  describe("frontmatter shape", () => {
+    it("emits keys in the committed order: name, description, tools, disallowedTools, model", async () => {
+      const { content } = await adapter.fromCanonical(fixture(FIXTURE_REVIEWER));
+      const keys = content
+        .split("---")[1]!
+        .trim()
+        .split("\n")
+        .map((line) => line.split(":")[0]);
+
+      expect(keys).toEqual(["name", "description", "tools", "disallowedTools", "model"]);
+    });
+
+    it("reproduces the committed frontmatter shape byte-for-byte", async () => {
+      const { content } = await adapter.fromCanonical(fixture(FIXTURE_REVIEWER));
+
+      expect(content.split("---\n\n")[0]).toBe(
+        `---\nname: fixture-reviewer\n` +
+          `description: Reviews code for correctness. A golden-file fixture, not a shipped agent.\n` +
+          `tools: Read, Glob, Grep\n` +
+          `disallowedTools: Write, Edit, Bash, WebFetch, Task\n` +
+          `model: haiku\n`
+      );
+    });
+
+    it("passes the model through unmapped", async () => {
+      // The committed corpus uses Claude Code's own aliases (`sonnet`, `haiku`). Expanding
+      // them to dated ids (`claude-sonnet-4-20250514`) would break every committed agent.
+      const { content } = await adapter.fromCanonical(fixture(FIXTURE_PLANNER));
+
+      expect(content).toMatch(/^model: sonnet$/m);
+    });
+
+    it("omits model when the source declares none", async () => {
+      const { content } = await adapter.fromCanonical(canonical(`  read:\n    "*": "allow"\n`));
+
+      expect(content).not.toMatch(/^model:/m);
+    });
+
+    it("omits an empty tools list rather than emitting a bare key", async () => {
+      // `tools:` with no value means something different to Claude Code than an absent key.
+      const { content } = await adapter.fromCanonical(
+        canonical(`  bash:\n    "*": "deny"\n`, "", override(`      tools: []\n`))
+      );
+
+      expect(content).not.toMatch(/^tools:\s*$/m);
+      expect(content).toMatch(/^disallowedTools: Read, Write/m);
+    });
+
+    it("omits an empty disallowedTools list", async () => {
+      // Only reachable when every bound tool is granted — an authored override is exhaustive,
+      // so this is the one shape that leaves the deny list empty.
+      const { content } = await adapter.fromCanonical(
+        canonical(
+          `  read:\n    "*": "allow"\n`,
+          "",
+          override(`      tools: [${CLAUDE_TOOLS_LITERAL}]\n`)
+        )
+      );
+
+      expect(content).toMatch(/^tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task$/m);
+      expect(content).not.toMatch(/^disallowedTools:/m);
+    });
+
+    it("preserves the body verbatim after the frontmatter", async () => {
+      const { content } = await adapter.fromCanonical(fixture(FIXTURE_REVIEWER));
+
+      expect(content).toContain("# FixtureReviewer");
+      expect(content).toContain("- Report findings, do not fix them.");
+      expect(content.endsWith("- Report findings, do not fix them.\n")).toBe(true);
+    });
+
+    it("renders a multi-line description as a YAML block scalar", async () => {
+      // The committed agents carry multi-line `description: |` blocks with <example> tags.
+      // A naive `key: "value"` would emit a broken single line.
+      const source = canonical(`  read:\n    "*": "allow"\n`).replace(
+        "description: A probe agent.",
+        'description: |\n  First line.\n  user: "quoted colon"\n'
+      );
+
+      const { content } = await adapter.fromCanonical(source);
+
+      expect(content).toContain('description: |\n  First line.\n  user: "quoted colon"\n');
+    });
+
+    it("quotes a description that would otherwise be ambiguous YAML", async () => {
+      const source = canonical(`  read:\n    "*": "allow"\n`).replace(
+        "description: A probe agent.",
+        'description: "*starts with a star"'
+      );
+
+      const { content } = await adapter.fromCanonical(source);
+
+      expect(content).toMatch(/^description: '\*starts with a star'$/m);
+    });
+  });
+
+  // ============================================================================
+  // TOOL ORDERING
+  // ============================================================================
+
+  describe("tool ordering", () => {
+    it("emits tools in the canonical Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task order", async () => {
+      // Recovered from the 7 committed agents — the only total order all 10 of their lists
+      // agree with. Emitting any other order fails to reproduce every shipped file.
+      const { content } = await adapter.fromCanonical(
+        canonical(
+          `  read:\n    "*": "allow"\n`,
+          "",
+          override(`      tools: [Task, Bash, Read, Grep, Write, Glob, Edit, WebFetch]\n`)
+        )
+      );
+
+      expect(/^tools: (.*)$/m.exec(content)?.[1]).toBe(
+        "Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task"
+      );
+    });
+
+    it("orders disallowedTools by the same rule", async () => {
+      const { content } = await adapter.fromCanonical(
+        canonical(`  read:\n    "*": "allow"\n`, "", override(`      tools: [Read]\n`))
+      );
+
+      expect(/^disallowedTools: (.*)$/m.exec(content)?.[1]).toBe(
+        "Write, Edit, Glob, Grep, Bash, WebFetch, Task"
+      );
+    });
+
+    it("puts every bound tool in exactly one list, leaving nothing to a default", async () => {
+      // An omitted tool reads as "Claude Code's default" to Claude Code, which is the
+      // ambiguity an authored override exists to end. Union == every bound tool, always.
+      const { content } = await adapter.fromCanonical(
+        canonical(`  read:\n    "*": "allow"\n`, "", override(`      tools: [Read, Glob]\n`))
+      );
+
+      const tools = /^tools: (.*)$/m.exec(content)?.[1]?.split(", ") ?? [];
+      const denied = /^disallowedTools: (.*)$/m.exec(content)?.[1]?.split(", ") ?? [];
+
+      expect([...tools, ...denied].sort()).toEqual([...CLAUDE_TOOLS].sort());
+    });
+  });
+
+  // ============================================================================
+  // AUTHORED TOOLS — the whole contract
+  // ============================================================================
+
+  describe("authored tools", () => {
+    // Claude Code cannot enforce a per-agent permission scope by any route, so an agent's
+    // tools there are NOT derivable from its canonical permission: block. Deriving them was
+    // tried and was wrong in both directions — fail-closed crippled `externalscout` (it scopes
+    // `read`, so it lost Read outright), and widening is how the shipped agents leaked. So the
+    // list is authored, taken at its word, and its absence is an error rather than a cue to
+    // guess. These tests pin exactly that.
+
+    it("refuses an agent that targets claude-code without authoring tools", async () => {
+      await expect(
+        adapter.fromCanonical(canonical(`  read:\n    "*": "allow"\n`, "", ""))
+      ).rejects.toThrow(/declares no oac\.overrides\.claude-code\.tools/);
+    });
+
+    it("refuses even when the permission block would have projected cleanly", async () => {
+      // The tempting case: `read: {"*": allow}` is unambiguous, so a projection WOULD be
+      // exact. It is still refused — "we could have guessed correctly this time" is how a
+      // derivation creeps back in, and the next agent is the one that scopes something.
+      await expect(
+        adapter.fromCanonical(canonical(`  read:\n    "*": "allow"\n`, "", ""))
+      ).rejects.toThrow(/declares no oac\.overrides\.claude-code\.tools/);
+    });
+
+    it("says how to fix it, and that dropping the target is a valid answer", async () => {
+      await expect(
+        adapter.fromCanonical(canonical(`  read:\n    "*": "allow"\n`, "", ""))
+      ).rejects.toThrow(/Or drop "claude-code" from targets/);
+    });
+
+    it("grants a tool the canonical permission block scopes, when authored to", async () => {
+      // The widening case, stated out loud: canonical scopes bash to `git log*`; Claude Code
+      // cannot express that; the author grants Bash anyway. No warning, no refusal — a human
+      // decided, and the adapter does as it is told.
+      const { content } = await adapter.fromCanonical(
+        canonical(
+          `  bash:\n    "*": "deny"\n    "git log*": "allow"\n`,
+          "",
+          override(`      tools: [Read, Bash]\n`)
+        )
+      );
+
+      expect(/^tools: (.*)$/m.exec(content)?.[1]).toBe("Read, Bash");
+    });
+
+    it("denies a tool the canonical permission block allows, when authored to", async () => {
+      // The reverse: canonical allows bash outright, the author withholds it on this target.
+      const { content } = await adapter.fromCanonical(
+        canonical(`  bash:\n    "*": "allow"\n`, "", override(`      tools: [Read]\n`))
+      );
+
+      expect(/^tools: (.*)$/m.exec(content)?.[1]).toBe("Read");
+      expect(content).toMatch(/^disallowedTools:.*\bBash\b/m);
+    });
+
+    it("refuses a tool name Claude Code does not have", async () => {
+      // A typo fails OPEN — `Reed` would silently just not be granted, quietly shipping an
+      // agent with less access than intended and no error anywhere.
+      await expect(
+        adapter.fromCanonical(
+          canonical(`  read:\n    "*": "allow"\n`, "", override(`      tools: [Reed]\n`))
+        )
+      ).rejects.toThrow(/Claude Code has no such tool for/);
+    });
+
+    it("accepts an empty grant: an agent may be authored to have no tools at all", async () => {
+      const { content } = await adapter.fromCanonical(
+        canonical(`  read:\n    "*": "allow"\n`, "", override(`      tools: []\n`))
+      );
+
+      expect(content).not.toMatch(/^tools:/m);
+      expect(/^disallowedTools: (.*)$/m.exec(content)?.[1]).toBe(CLAUDE_TOOLS.join(", "));
+    });
+
+    it("emits the override name, and keys the path on it", async () => {
+      const { path, content } = await adapter.fromCanonical(
+        canonical(
+          `  read:\n    "*": "allow"\n`,
+          "",
+          override(`      name: probe-scout\n      tools: [Read]\n`)
+        )
+      );
+
+      expect(path).toBe("plugins/claude-code/agents/probe-scout.md");
+      expect(content).toMatch(/^name: probe-scout$/m);
+    });
+
+    it("prefers the override model over the canonical one", async () => {
+      // Claude Code names models in its own vocabulary (`haiku`); canonical `model:` is
+      // OpenCode's.
+      const { content } = await adapter.fromCanonical(
+        canonical(
+          `  read:\n    "*": "allow"\n`,
+          "model: claude-sonnet-4\n",
+          override(`      model: haiku\n      tools: [Read]\n`)
+        )
+      );
+
+      expect(content).toMatch(/^model: haiku$/m);
+    });
+  });
+
+  // ============================================================================
+  // WARNINGS — one per lossy projection
+  // ============================================================================
+
+  describe("warnings", () => {
+    // The degradation warnings below are asserted through `fromOAC`, not `fromCanonical`.
+    // That is not a workaround — after the override work, `fromCanonical` never degrades a
+    // scoped rule set at all (it refuses; see "refuses rather than guessing"), so there is no
+    // canonical-path behaviour left to assert. `fromOAC` still degrades, because it converts
+    // an agent from a format with no `oac:` block: no override can be authored and no human
+    // can be asked, so fail-closed-and-warn remains the best available answer there.
+
+    it("emits exactly one warning for a single unrepresentable capability", async () => {
+      const { warnings } = await adapter.fromOAC(
+        legacy({ bash: { "*": "deny", "git log*": "allow" } })
+      );
+
+      expect(warnings.filter((w) => /has no equivalent/.test(w))).toHaveLength(1);
+      expect(warnings.some((w) => /'bash'/.test(w) && /fail-closed/.test(w))).toBe(true);
+    });
+
+    it("counts one warning per lossy capability, and none for the lossless ones", async () => {
+      // read/glob are exact; bash and edit are not. Two losses, two warnings.
+      const { warnings } = await adapter.fromOAC(
+        legacy({
+          read: { "*": "allow" },
+          glob: { "*": "allow" },
+          bash: { "*": "deny", "git log*": "allow" },
+          edit: { "*": "allow", "**/*.key": "deny" },
+        })
+      );
+
+      const lossy = warnings.filter((w) => /has no equivalent/.test(w));
+
+      expect(lossy).toHaveLength(2);
+      expect(lossy.filter((w) => /'bash'/.test(w))).toHaveLength(1);
+      expect(lossy.filter((w) => /'edit'/.test(w))).toHaveLength(1);
+    });
+
+    it("adds a second warning naming 'ask' when a mixed list contains one", async () => {
+      // test-engineer's real block: a test-runner allowlist plus `rm -rf *: ask`.
+      const { warnings } = await adapter.fromOAC(
+        legacy({ bash: { "npx vitest *": "allow", "rm -rf *": "ask", "*": "deny" } })
+      );
+
+      expect(warnings.some((w) => /cannot express/.test(w) && /ask/.test(w))).toBe(true);
+    });
+
+    it("warns when a rule list has no recoverable default", async () => {
+      // context-manager's real `write` block: allow + deny with no "*" rule.
+      const { warnings } = await adapter.fromOAC(
+        legacy({ write: { ".opencode/context/**/*.md": "allow", "**/*.env*": "deny" } })
+      );
+
+      expect(warnings.some((w) => /ambiguous/.test(w))).toBe(true);
+    });
+
+    it("warns when a capability has no Claude Code tool at all", async () => {
+      // externalscout's real `skill` block restricts which skills it may invoke. Claude Code
+      // cannot express that; dropping it silently is the widening this suite guards against.
+      const { warnings } = await adapter.fromCanonical(
+        canonical(`  skill:\n    "*": "deny"\n    "*context7*": "allow"\n`)
+      );
+
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toMatch(/'skill' has no Claude Code tool/);
+    });
+
+    it("warns that temperature and maxSteps cannot be carried", async () => {
+      const { warnings } = await adapter.fromCanonical(
+        canonical(`  read:\n    "*": "allow"\n`, "temperature: 0.1\nmaxSteps: 10\n")
+      );
+
+      expect(warnings).toHaveLength(2);
+      expect(warnings.some((w) => w.includes("temperature"))).toBe(true);
+      expect(warnings.some((w) => w.includes("maxSteps"))).toBe(true);
+    });
+
+    it("reports no permission loss for an agent whose every capability projects exactly", async () => {
+      // fixture-reviewer's block is uniform-per-capability, so nothing about its permissions
+      // is lost. Its `temperature: 0.1` still is — and that one warning is the whole list.
+      const { warnings } = await adapter.fromCanonical(fixture(FIXTURE_REVIEWER));
+
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain("temperature");
+    });
+  });
+
+  // ============================================================================
+  // DETERMINISM
+  // ============================================================================
+
+  describe("determinism", () => {
+    it("emits identical bytes regardless of the source's key order", async () => {
+      const rules = {
+        read: `  read:\n    "*": "allow"\n`,
+        bash: `  bash:\n    "*": "deny"\n`,
+        write: `  write:\n    "*": "deny"\n`,
+      };
+
+      const forward = await adapter.fromCanonical(
+        canonical(rules.read + rules.bash + rules.write)
+      );
+      const reversed = await adapter.fromCanonical(
+        canonical(rules.write + rules.bash + rules.read)
+      );
+
+      expect(reversed.content).toBe(forward.content);
+    });
+
+    it("emits identical bytes across separate adapter instances", async () => {
+      const source = fixture(FIXTURE_REVIEWER);
+
+      expect((await new ClaudeAdapter().fromCanonical(source)).content).toBe(
+        (await new ClaudeAdapter().fromCanonical(source)).content
+      );
+    });
+  });
+
+  // ============================================================================
+  // INPUT VALIDATION
+  // ============================================================================
+
+  describe("input validation", () => {
+    it("throws a named error when the source lacks an oac: block", async () => {
+      const source = `---\nname: X\ndescription: Y\nmode: subagent\n---\n\nBody\n`;
+
+      await expect(adapter.fromCanonical(source)).rejects.toThrow(/not a canonical agent file/);
+    });
+
+    it("names the offending field when the oac: block is malformed", async () => {
+      const source = canonical(`  read:\n    "*": "allow"\n`).replace(
+        "id: probe-agent",
+        "id: Probe_Agent"
+      );
+
+      await expect(adapter.fromCanonical(source)).rejects.toThrow(/oac\.id/);
     });
   });
 
@@ -67,30 +600,37 @@ describe("ClaudeAdapter", () => {
       expect(capabilities.outputStructure).toBe("directory");
     });
 
+    it("agrees with the CapabilityMatrix rather than restating it", async () => {
+      // These two disagreed before: the matrix called Claude `json`, the adapter `markdown`.
+      // A platform cannot have two answers about itself.
+      const { getToolCapabilities } = await import("../../../src/core/CapabilityMatrix.js");
+
+      expect(adapter.getCapabilities().configFormat).toBe(
+        getToolCapabilities("claude").configFormat
+      );
+    });
+
     it("includes appropriate notes", () => {
       const capabilities = adapter.getCapabilities();
 
-      expect(capabilities.notes).toBeDefined();
       expect(capabilities.notes?.length).toBeGreaterThan(0);
-      expect(capabilities.notes?.some((n) => n.includes("permissions"))).toBe(
-        true
-      );
+      expect(capabilities.notes?.some((n) => /permission/i.test(n))).toBe(true);
     });
   });
 
   // ============================================================================
-  // toOAC() - PARSING CLAUDE CONFIG.JSON
+  // toOAC() — the IMPORT direction (still accepts legacy .claude/ shapes)
   // ============================================================================
 
   describe("toOAC() - parsing config.json", () => {
     it("parses minimal config.json", async () => {
-      const source = JSON.stringify({
-        name: "TestAgent",
-        description: "Test description",
-        systemPrompt: "You are helpful",
-      });
-
-      const result = await adapter.toOAC(source);
+      const result = await adapter.toOAC(
+        JSON.stringify({
+          name: "TestAgent",
+          description: "Test description",
+          systemPrompt: "You are helpful",
+        })
+      );
 
       expect(result.frontmatter.name).toBe("TestAgent");
       expect(result.frontmatter.description).toBe("Test description");
@@ -98,95 +638,50 @@ describe("ClaudeAdapter", () => {
       expect(result.frontmatter.mode).toBe("primary");
     });
 
-    it("parses config with model", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        model: "claude-sonnet-4-20250514",
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.model).toBe("claude-sonnet-4");
-    });
-
     it("parses config with tools array", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        tools: ["Read", "Write", "Bash"],
-        systemPrompt: "Prompt",
-      });
+      const result = await adapter.toOAC(
+        JSON.stringify({ name: "Agent", description: "Test", tools: ["Read", "Write", "Bash"] })
+      );
 
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.tools).toEqual({
-        read: true,
-        write: true,
-        bash: true,
-      });
+      expect(result.frontmatter.tools).toEqual({ read: true, write: true, bash: true });
     });
 
     it("parses config with tools string", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        tools: "Read, Write, Edit",
-        systemPrompt: "Prompt",
-      });
+      const result = await adapter.toOAC(
+        JSON.stringify({ name: "Agent", description: "Test", tools: "Read, Write, Edit" })
+      );
 
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.tools).toEqual({
-        read: true,
-        write: true,
-        edit: true,
-      });
+      expect(result.frontmatter.tools).toEqual({ read: true, write: true, edit: true });
     });
 
     it("parses config with skills", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        skills: ["skill1", "skill2"],
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
+      const result = await adapter.toOAC(
+        JSON.stringify({ name: "Agent", description: "Test", skills: ["skill1", "skill2"] })
+      );
 
       expect(result.frontmatter.skills).toEqual(["skill1", "skill2"]);
     });
 
     it("parses config with hooks", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        hooks: {
-          PreToolUse: [
-            {
-              matcher: "*.txt",
-              hooks: [{ type: "command", command: "validate" }],
-            },
-          ],
-        },
-        systemPrompt: "Prompt",
-      });
+      const result = await adapter.toOAC(
+        JSON.stringify({
+          name: "Agent",
+          description: "Test",
+          hooks: {
+            PreToolUse: [{ matcher: "*.txt", hooks: [{ type: "command", command: "validate" }] }],
+          },
+        })
+      );
 
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.hooks).toBeDefined();
       expect(result.frontmatter.hooks?.length).toBe(1);
       expect(result.frontmatter.hooks?.[0].event).toBe("PreToolUse");
+      expect(result.frontmatter.hooks?.[0].matchers).toEqual(["*.txt"]);
     });
 
     it("handles missing optional fields gracefully", async () => {
-      const source = JSON.stringify({
-        name: "MinimalAgent",
-        description: "Minimal",
-      });
-
-      const result = await adapter.toOAC(source);
+      const result = await adapter.toOAC(
+        JSON.stringify({ name: "MinimalAgent", description: "Minimal" })
+      );
 
       expect(result.frontmatter.name).toBe("MinimalAgent");
       expect(result.systemPrompt).toBe("");
@@ -195,534 +690,260 @@ describe("ClaudeAdapter", () => {
     });
 
     it("parses invalid JSON as markdown (subagent fallback)", async () => {
-      const source = "not valid json";
+      const result = await adapter.toOAC("not valid json");
 
-      const result = await adapter.toOAC(source);
-
-      // Falls back to markdown parsing
       expect(result.frontmatter.mode).toBe("subagent");
       expect(result.systemPrompt).toBe("not valid json");
     });
 
-    it("parses non-object JSON string as markdown (subagent fallback)", async () => {
-      const source = JSON.stringify("just a string");
+    it("handles null system prompt", async () => {
+      const result = await adapter.toOAC(
+        JSON.stringify({ name: "Agent", description: "Test", systemPrompt: null })
+      );
 
-      const result = await adapter.toOAC(source);
-
-      // Falls back to markdown parsing
-      expect(result.frontmatter.mode).toBe("subagent");
+      expect(result.systemPrompt).toBe("");
     });
   });
 
-  // ============================================================================
-  // toOAC() - PARSING CLAUDE AGENT.MD (SUBAGENTS)
-  // ============================================================================
-
   describe("toOAC() - parsing agent.md with YAML frontmatter", () => {
     it("parses agent.md with minimal frontmatter", async () => {
-      const source = `---
-name: SubAgent
-description: A subagent
----
-
-This is the system prompt for the agent.`;
-
-      const result = await adapter.toOAC(source);
+      const result = await adapter.toOAC(
+        `---\nname: SubAgent\ndescription: A subagent\n---\n\nThis is the system prompt.`
+      );
 
       expect(result.frontmatter.name).toBe("SubAgent");
       expect(result.frontmatter.description).toBe("A subagent");
       expect(result.frontmatter.mode).toBe("subagent");
-      expect(result.systemPrompt).toBe("This is the system prompt for the agent.");
+      expect(result.systemPrompt).toBe("This is the system prompt.");
     });
 
-    it("parses agent.md with model in frontmatter", async () => {
-      const source = `---
-name: Agent
-description: Test
-model: claude-opus-4
----
+    it("parses a committed plugin agent's flat tools list", async () => {
+      const result = await adapter.toOAC(
+        `---\nname: code-reviewer\ndescription: Reviews\ntools: Read, Glob, Grep\nmodel: sonnet\n---\n\nPrompt`
+      );
 
-Prompt`;
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.model).toBe("claude-opus-4");
-    });
-
-    it("parses agent.md with tools array in frontmatter", async () => {
-      const source = `---
-name: Agent
-description: Test
-tools: ["Read", "Write", "Bash"]
----
-
-Prompt`;
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.tools).toEqual({
-        read: true,
-        write: true,
-        bash: true,
-      });
-    });
-
-    it("parses agent.md with skills in frontmatter", async () => {
-      const source = `---
-name: Agent
-description: Test
-skills: ["skill1", "skill2"]
----
-
-Prompt`;
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.skills).toEqual(["skill1", "skill2"]);
+      expect(result.frontmatter.tools).toEqual({ read: true, glob: true, grep: true });
+      expect(result.frontmatter.model).toBe("claude-sonnet-4");
     });
 
     it("handles agent.md without frontmatter as markdown content", async () => {
-      const source = "No frontmatter here, just markdown content";
-
-      const result = await adapter.toOAC(source);
+      const result = await adapter.toOAC("No frontmatter here, just markdown content");
 
       expect(result.systemPrompt).toBe("No frontmatter here, just markdown content");
       expect(result.frontmatter.mode).toBe("subagent");
     });
 
     it("preserves multiline system prompt", async () => {
-      const source = `---
-name: Agent
-description: Test
----
+      const result = await adapter.toOAC(
+        `---\nname: Agent\ndescription: Test\n---\n\nLine one.\nLine two.\nLine three.`
+      );
 
-You are a helpful assistant.
-You should be friendly and professional.
-Always provide detailed responses.`;
+      expect(result.systemPrompt).toContain("Line one.");
+      expect(result.systemPrompt).toContain("Line three.");
+    });
+  });
 
-      const result = await adapter.toOAC(source);
+  describe("model mapping (Claude to OAC)", () => {
+    it("maps dated sonnet id to claude-sonnet-4", async () => {
+      const result = await adapter.toOAC(
+        JSON.stringify({ name: "A", description: "T", model: "claude-sonnet-4-20250514" })
+      );
 
-      expect(result.systemPrompt).toContain("You are a helpful assistant");
-      expect(result.systemPrompt).toContain("Always provide detailed responses");
+      expect(result.frontmatter.model).toBe("claude-sonnet-4");
+    });
+
+    it("maps short model aliases", async () => {
+      const result = await adapter.toOAC(
+        JSON.stringify({ name: "A", description: "T", model: "opus" })
+      );
+
+      expect(result.frontmatter.model).toBe("claude-opus-4");
+    });
+
+    it("preserves unknown models", async () => {
+      const result = await adapter.toOAC(
+        JSON.stringify({ name: "A", description: "T", model: "claude-custom-model" })
+      );
+
+      expect(result.frontmatter.model).toBe("claude-custom-model");
+    });
+
+    it("handles missing model gracefully", async () => {
+      const result = await adapter.toOAC(JSON.stringify({ name: "A", description: "T" }));
+
+      expect(result.frontmatter.model).toBeUndefined();
     });
   });
 
   // ============================================================================
-  // fromOAC() - CONVERTING TO CLAUDE CONFIG.JSON
+  // fromOAC() — legacy in-memory interface, retargeted to the plugin layout
   // ============================================================================
 
-  describe("fromOAC() - converting to config.json", () => {
-    const createOpenAgent = (overrides?: Partial<OpenAgent>): OpenAgent => ({
+  describe("fromOAC()", () => {
+    const createAgent = (overrides?: Partial<AgentFrontmatter>): OpenAgent => ({
       frontmatter: {
-        name: "TestAgent",
-        description: "Test agent",
-        mode: "primary",
-        model: "claude-sonnet-4",
-        tools: { read: true, write: true },
-        ...overrides?.frontmatter,
+        name: "CodeAnalyzer",
+        description: "Analyzes code",
+        mode: "subagent",
+        ...overrides,
       },
-      metadata: {
-        name: "TestAgent",
-        category: "core",
-        type: "agent",
-      },
-      systemPrompt: "You are helpful",
+      metadata: { name: "CodeAnalyzer", category: "specialist", type: "subagent" },
+      systemPrompt: "Analyze code quality",
       contexts: [],
-      ...overrides,
     });
 
-    it("converts primary agent to config.json", async () => {
-      const agent = createOpenAgent();
-
-      const result = await adapter.fromOAC(agent);
+    it("emits a single agent markdown file", async () => {
+      const result = await adapter.fromOAC(createAgent());
 
       expect(result.success).toBe(true);
       expect(result.configs).toHaveLength(1);
-      expect(result.configs[0].fileName).toBe(".claude/config.json");
-
-      const config = JSON.parse(result.configs[0].content);
-      expect(config.name).toBe("TestAgent");
-      expect(config.description).toBe("Test agent");
-      expect(config.model).toBe("claude-sonnet-4-20250514");
+      expect(result.configs[0].fileName).toBe("plugins/claude-code/agents/CodeAnalyzer.md");
+      expect(result.configs[0].encoding).toBe("utf-8");
     });
 
-    it("maps tools correctly in config.json", async () => {
-      const agent = createOpenAgent({
-        frontmatter: {
-          tools: { read: true, write: true, bash: true },
-        },
-      });
+    it("generates flat frontmatter and includes the system prompt", async () => {
+      const result = await adapter.fromOAC(createAgent());
+      const content = result.configs[0].content;
 
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.tools).toEqual(["Read", "Write", "Bash"]);
+      expect(content).toMatch(/^---\nname: CodeAnalyzer\ndescription: Analyzes code\n/);
+      expect(content).toContain("---\n\n");
+      expect(content).toContain("Analyze code quality");
     });
 
-    it("includes skills in config.json", async () => {
-      const agent = createOpenAgent({
-        frontmatter: {
-          skills: ["skill1", "skill2"],
-        },
-      });
+    it("maps an authored tools map through the canonical ordering", async () => {
+      const result = await adapter.fromOAC(
+        createAgent({ tools: { bash: true, read: true, write: false } })
+      );
 
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.skills).toEqual(["skill1", "skill2"]);
+      expect(result.configs[0].content).toMatch(/^tools: Read, Bash$/m);
     });
 
-    it("includes hooks in config.json", async () => {
+    it("projects an authored permission map fail-closed", async () => {
+      const result = await adapter.fromOAC(
+        createAgent({ permission: { bash: { "*": "deny", "git log*": "allow" } } })
+      );
+
+      expect(result.configs[0].content).toMatch(/^disallowedTools: Bash$/m);
+      expect(result.warnings.some((w) => /bash/i.test(w))).toBe(true);
+    });
+
+    it("does not emit a permissionMode — Claude Code has no such agent field", async () => {
+      const result = await adapter.fromOAC(
+        createAgent({ permission: { read: "allow", write: "allow" } })
+      );
+
+      expect(result.configs[0].content).not.toContain("permissionMode");
+      expect(result.configs[0].content).not.toContain("bypassPermissions");
+    });
+
+    it("warns when temperature is set (unsupported)", async () => {
+      const result = await adapter.fromOAC(createAgent({ temperature: 0.7 }));
+
+      expect(result.warnings.some((w) => w.includes("temperature"))).toBe(true);
+    });
+
+    it("warns when maxSteps is set (unsupported)", async () => {
+      const result = await adapter.fromOAC(createAgent({ maxSteps: 10 }));
+
+      expect(result.warnings.some((w) => w.includes("maxSteps"))).toBe(true);
+    });
+
+    it("includes validation warnings for a nameless agent", async () => {
+      const result = await adapter.fromOAC(createAgent({ name: "", description: "" }));
+
+      expect(result.warnings.length).toBeGreaterThan(0);
+    });
+
+    it("includes capabilities in the result", async () => {
+      const result = await adapter.fromOAC(createAgent());
+
+      expect(result.capabilities?.name).toBe("claude");
+    });
+
+    it("handles an empty system prompt", async () => {
+      const result = await adapter.fromOAC({ ...createAgent(), systemPrompt: "" });
+
+      expect(result.success).toBe(true);
+      expect(result.configs[0].content).toBe(
+        "---\nname: CodeAnalyzer\ndescription: Analyzes code\n---\n\n\n"
+      );
+    });
+
+    it("carries hooks nowhere in agent frontmatter", async () => {
+      // Claude Code agent frontmatter accepts name/description/tools/disallowedTools/model
+      // and nothing else. The old adapter wrote a `hooks:` key that Claude Code silently
+      // ignores, which reads as support that does not exist.
       const hook: HookDefinition = {
         event: "PreToolUse",
         matchers: ["*.txt"],
         commands: [{ type: "command", command: "validate" }],
       };
 
-      const agent = createOpenAgent({
-        frontmatter: {
-          hooks: [hook],
-        },
-      });
+      const result = await adapter.fromOAC(createAgent({ hooks: [hook] }));
 
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.hooks).toBeDefined();
-      expect(config.hooks.PreToolUse).toBeDefined();
-    });
-
-    it("warns when temperature is set (unsupported)", async () => {
-      const agent = createOpenAgent({
-        frontmatter: {
-          temperature: 0.7,
-        },
-      });
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.warnings.some((w) => w.includes("temperature"))).toBe(true);
-    });
-
-    it("warns when maxSteps is set (unsupported)", async () => {
-      const agent = createOpenAgent({
-        frontmatter: {
-          maxSteps: 10,
-        },
-      });
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.warnings.some((w) => w.includes("maxSteps"))).toBe(true);
-    });
-
-    it("includes validationWarnings in result", async () => {
-      const agent = createOpenAgent({
-        frontmatter: {
-          name: "",
-          description: "",
-        },
-      });
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.warnings.length).toBeGreaterThan(0);
-    });
-
-    it("handles mixed permission rules gracefully", async () => {
-      const agent = createOpenAgent({
-        frontmatter: {
-          permission: {
-            read: "allow",
-            write: "ask",
-            bash: "deny",
-          },
-        },
-      });
-
-      const result = await adapter.fromOAC(agent);
-
-      // Should include some form of warning or degradation
-      expect(result.warnings.length).toBeGreaterThanOrEqual(0);
-      expect(result.success).toBe(true);
+      expect(result.configs[0].content).not.toContain("hooks");
     });
   });
 
   // ============================================================================
-  // fromOAC() - CONVERTING TO CLAUDE AGENT.MD (SUBAGENTS)
-  // ============================================================================
-
-  describe("fromOAC() - converting to agent.md for subagents", () => {
-    const createSubagent = (overrides?: Partial<OpenAgent>): OpenAgent => ({
-      frontmatter: {
-        name: "CodeAnalyzer",
-        description: "Analyzes code",
-        mode: "subagent",
-        model: "claude-sonnet-4",
-        ...overrides?.frontmatter,
-      },
-      metadata: {
-        name: "CodeAnalyzer",
-        category: "specialist",
-        type: "subagent",
-      },
-      systemPrompt: "Analyze code quality",
-      contexts: [],
-      ...overrides,
-    });
-
-    it("converts subagent to agent.md file", async () => {
-      const agent = createSubagent();
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.success).toBe(true);
-      expect(result.configs).toHaveLength(1);
-      expect(result.configs[0].fileName).toBe(".claude/agents/CodeAnalyzer.md");
-    });
-
-    it("generates proper YAML frontmatter in agent.md", async () => {
-      const agent = createSubagent();
-
-      const result = await adapter.fromOAC(agent);
-      const content = result.configs[0].content;
-
-      expect(content).toMatch(/^---/);
-      expect(content).toMatch(/name: "CodeAnalyzer"/);
-      expect(content).toMatch(/description: "Analyzes code"/);
-      expect(content).toContain("---\n\n");
-    });
-
-    it("includes system prompt in agent.md body", async () => {
-      const agent = createSubagent({
-        systemPrompt: "Analyze code quality\nCheck for best practices",
-      });
-
-      const result = await adapter.fromOAC(agent);
-      const content = result.configs[0].content;
-
-      expect(content).toContain("Analyze code quality");
-      expect(content).toContain("Check for best practices");
-    });
-
-    it("includes tools in agent.md frontmatter", async () => {
-      const agent = createSubagent({
-        frontmatter: {
-          tools: { read: true, bash: true },
-        },
-      });
-
-      const result = await adapter.fromOAC(agent);
-      const content = result.configs[0].content;
-
-      expect(content).toContain("Read");
-      expect(content).toContain("Bash");
-      expect(content).toContain("tools");
-    });
-
-    it("includes model in agent.md frontmatter", async () => {
-      const agent = createSubagent({
-        frontmatter: {
-          model: "claude-opus-4",
-        },
-      });
-
-      const result = await adapter.fromOAC(agent);
-      const content = result.configs[0].content;
-
-      expect(content).toContain("model");
-      expect(content).toContain("claude-opus-4");
-    });
-
-    it("includes permission mode in agent.md frontmatter", async () => {
-      const agent = createSubagent({
-        frontmatter: {
-          permission: { read: "allow", write: "allow" },
-        },
-      });
-
-      const result = await adapter.fromOAC(agent);
-      const content = result.configs[0].content;
-
-      expect(content).toContain("permissionMode");
-      expect(content).toContain("bypassPermissions");
-    });
-  });
-
-  // ============================================================================
-  // fromOAC() - SKILLS GENERATION FROM CONTEXTS
+  // SKILLS GENERATION FROM CONTEXTS
   // ============================================================================
 
   describe("fromOAC() - generating skills from contexts", () => {
-    it("generates skill files from contexts", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: {
-          name: "Agent",
-          category: "core",
-          type: "agent",
-        },
-        systemPrompt: "Prompt",
-        contexts: [
-          {
-            path: ".opencode/context/skills/python-best-practices.md",
-            description: "Python coding standards",
-          },
-        ],
-      };
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.configs.length).toBeGreaterThan(1);
-      const skillConfig = result.configs.find((c) =>
-        c.fileName.includes(".claude/skills/")
-      );
-      expect(skillConfig).toBeDefined();
-      expect(skillConfig?.fileName).toMatch(/\.claude\/skills\/.*\/SKILL\.md/);
+    const withContexts = (
+      contexts: Array<{ path: string; priority?: string; description?: string }>
+    ): OpenAgent => ({
+      frontmatter: { name: "Agent", description: "Test", mode: "primary" },
+      metadata: { name: "Agent", category: "core", type: "agent" },
+      systemPrompt: "Prompt",
+      contexts,
     });
 
-    it("generates correct skill name from context path", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: {
-          name: "Agent",
-          category: "core",
-          type: "agent",
-        },
-        systemPrompt: "Prompt",
-        contexts: [
-          {
-            path: "docs/React Hooks Guide.md",
-            description: "React hooks documentation",
-          },
-        ],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const skillConfig = result.configs.find((c) =>
-        c.fileName.includes(".claude/skills/")
+    it("generates skill files under the plugin tree", async () => {
+      const result = await adapter.fromOAC(
+        withContexts([
+          { path: ".opencode/context/skills/python.md", description: "Python standards" },
+        ])
       );
 
-      expect(skillConfig?.fileName).toMatch(/react-hooks-guide/);
+      const skill = result.configs.find((c) => c.fileName.includes("/skills/"));
+      expect(skill?.fileName).toBe("plugins/claude-code/skills/python/SKILL.md");
+    });
+
+    it("generates a slugified skill name from the context path", async () => {
+      const result = await adapter.fromOAC(
+        withContexts([{ path: "docs/React Hooks Guide.md", description: "React docs" }])
+      );
+
+      expect(result.configs.find((c) => c.fileName.includes("/skills/"))?.fileName).toMatch(
+        /react-hooks-guide/
+      );
     });
 
     it("includes context priority in skill content", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: {
-          name: "Agent",
-          category: "core",
-          type: "agent",
-        },
-        systemPrompt: "Prompt",
-        contexts: [
-          {
-            path: "context/important.md",
-            priority: "high",
-            description: "Important context",
-          },
-        ],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const skillConfig = result.configs.find((c) =>
-        c.fileName.includes(".claude/skills/")
+      const result = await adapter.fromOAC(
+        withContexts([{ path: "context/important.md", priority: "high", description: "Ctx" }])
       );
 
-      expect(skillConfig?.content).toContain("Priority: high");
+      expect(result.configs.find((c) => c.fileName.includes("/skills/"))?.content).toContain(
+        "Priority: high"
+      );
     });
 
-    it("generates multiple skills from multiple contexts", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: {
-          name: "Agent",
-          category: "core",
-          type: "agent",
-        },
-        systemPrompt: "Prompt",
-        contexts: [
-          { path: "context1.md", description: "First" },
-          { path: "context2.md", description: "Second" },
-          { path: "context3.md", description: "Third" },
-        ],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const skillConfigs = result.configs.filter((c) =>
-        c.fileName.includes(".claude/skills/")
+    it("generates one skill per context", async () => {
+      const result = await adapter.fromOAC(
+        withContexts([{ path: "a.md" }, { path: "b.md" }, { path: "c.md" }])
       );
 
-      expect(skillConfigs).toHaveLength(3);
+      expect(result.configs.filter((c) => c.fileName.includes("/skills/"))).toHaveLength(3);
     });
 
-    it("includes skill metadata when context lacks description", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: {
-          name: "Agent",
-          category: "core",
-          type: "agent",
-        },
-        systemPrompt: "Prompt",
-        contexts: [{ path: ".opencode/context/styles.md" }],
-      };
+    it("falls back to a generated description when the context lacks one", async () => {
+      const result = await adapter.fromOAC(withContexts([{ path: ".opencode/context/styles.md" }]));
+      const skill = result.configs.find((c) => c.fileName.includes("/skills/"));
 
-      const result = await adapter.fromOAC(agent);
-      const skillConfig = result.configs.find((c) =>
-        c.fileName.includes(".claude/skills/")
-      );
-
-      expect(skillConfig?.content).toContain("Context from");
-      expect(skillConfig?.content).toContain("styles.md");
-    });
-
-    it("handles skill names with special characters", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: {
-          name: "Agent",
-          category: "core",
-          type: "agent",
-        },
-        systemPrompt: "Prompt",
-        contexts: [
-          { path: "docs/Type Script Advanced Rules.md", description: "Test" },
-        ],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const skillConfig = result.configs.find((c) =>
-        c.fileName.includes(".claude/skills/")
-      );
-
-      expect(skillConfig).toBeDefined();
-      // Should have lowercase and dashed name from path
-      expect(skillConfig?.fileName).toMatch(/type-script-advanced-rules/);
+      expect(skill?.content).toContain("Context from");
+      expect(skill?.content).toContain("styles.md");
     });
   });
 
@@ -732,755 +953,44 @@ Always provide detailed responses.`;
 
   describe("validateConversion()", () => {
     const createAgent = (overrides?: Partial<AgentFrontmatter>): OpenAgent => ({
-      frontmatter: {
-        name: "Agent",
-        description: "Test",
-        mode: "primary",
-        ...overrides,
-      },
+      frontmatter: { name: "Agent", description: "Test", mode: "primary", ...overrides },
       metadata: { name: "Agent", category: "core", type: "agent" },
       systemPrompt: "Prompt",
       contexts: [],
     });
 
     it("returns no warnings for valid agent", () => {
-      const agent = createAgent();
-
-      const warnings = adapter.validateConversion(agent);
-
-      expect(warnings).toHaveLength(0);
+      expect(adapter.validateConversion(createAgent())).toHaveLength(0);
     });
 
     it("warns when name is missing", () => {
-      const agent = createAgent({ name: "" });
-
-      const warnings = adapter.validateConversion(agent);
-
-      expect(warnings.some((w) => w.includes("name"))).toBe(true);
+      expect(adapter.validateConversion(createAgent({ name: "" })).some((w) => w.includes("name"))).toBe(
+        true
+      );
     });
 
     it("warns when description is missing", () => {
-      const agent = createAgent({ description: "" });
-
-      const warnings = adapter.validateConversion(agent);
-
-      expect(warnings.some((w) => w.includes("description"))).toBe(true);
-    });
-
-    it("warns about granular permission degradation", () => {
-      const agent = createAgent({
-        permission: {
-          read: { "file1.txt": "allow", "file2.txt": "deny" },
-        },
-      });
-
-      const warnings = adapter.validateConversion(agent);
-
       expect(
-        warnings.some((w) => w.includes("granular permissions"))
+        adapter
+          .validateConversion(createAgent({ description: "" }))
+          .some((w) => w.includes("description"))
       ).toBe(true);
     });
 
+    it("warns about granular permission degradation", () => {
+      const warnings = adapter.validateConversion(
+        createAgent({ permission: { read: { "file1.txt": "allow", "file2.txt": "deny" } } })
+      );
+
+      expect(warnings.some((w) => w.includes("granular permissions"))).toBe(true);
+    });
+
     it("does not warn about simple permission rules", () => {
-      const agent = createAgent({
-        permission: { read: "allow", write: "allow" },
-      });
-
-      const warnings = adapter.validateConversion(agent);
-
-      expect(
-        warnings.some((w) => w.includes("granular permissions"))
-      ).toBe(false);
-    });
-  });
-
-  // ============================================================================
-  // MODEL MAPPING
-  // ============================================================================
-
-  describe("model mapping (Claude to OAC)", () => {
-    it("maps claude-sonnet-4-20250514 to claude-sonnet-4", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        model: "claude-sonnet-4-20250514",
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.model).toBe("claude-sonnet-4");
-    });
-
-    it("maps short model names", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        model: "opus",
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.model).toBe("claude-opus-4");
-    });
-
-    it("preserves unknown models", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        model: "claude-custom-model",
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.model).toBe("claude-custom-model");
-    });
-
-    it("handles missing model gracefully", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.model).toBeUndefined();
-    });
-  });
-
-  // ============================================================================
-  // MODEL MAPPING (OAC to Claude)
-  // ============================================================================
-
-  describe("model mapping (OAC to Claude)", () => {
-    it("maps claude-sonnet-4 to full version", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          model: "claude-sonnet-4",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.model).toBe("claude-sonnet-4-20250514");
-    });
-
-    it("preserves other model IDs", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          model: "claude-opus-4",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.model).toBe("claude-opus-4");
-    });
-
-    it("does not set model when not provided", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.model).toBeUndefined();
-    });
-  });
-
-  // ============================================================================
-  // TOOL MAPPING
-  // ============================================================================
-
-  describe("tool mapping and parsing", () => {
-    it("parses comma-separated tools string", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        tools: "Read, Write, Edit, Bash",
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.tools).toEqual({
-        read: true,
-        write: true,
-        edit: true,
-        bash: true,
-      });
-    });
-
-    it("normalizes tool names to lowercase", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        tools: ["Read", "WRITE", "BaSh"],
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(Object.keys(result.frontmatter.tools || {})).toContain("read");
-      expect(Object.keys(result.frontmatter.tools || {})).toContain("write");
-      expect(Object.keys(result.frontmatter.tools || {})).toContain("bash");
-    });
-
-    it("capitalizes tools for Claude format", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          tools: { read: true, write: true, bash: true },
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.tools).toEqual(
-        expect.arrayContaining(["Read", "Write", "Bash"])
+      const warnings = adapter.validateConversion(
+        createAgent({ permission: { read: "allow", write: "allow" } })
       );
-    });
 
-    it("omits disabled tools", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          tools: { read: true, write: false, bash: true },
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.tools).not.toContain("Write");
-      expect(config.tools).toContain("Read");
-    });
-  });
-
-  // ============================================================================
-  // PERMISSION MAPPING
-  // ============================================================================
-
-  describe("permission mapping", () => {
-    it("maps all-allow permissions to bypassPermissions", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          permission: { read: "allow", write: "allow", bash: true },
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.permissionMode).toBe("bypassPermissions");
-    });
-
-    it("maps all-deny permissions to dontAsk", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          permission: { read: "deny", write: "deny", bash: false },
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.permissionMode).toBe("dontAsk");
-    });
-
-    it("maps ask permissions to default", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          permission: { read: "ask", write: "allow" },
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.permissionMode).toBe("default");
-    });
-
-    it("warns on mixed granular permissions", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          permission: {
-            read: "allow",
-            "write.file1": "deny",
-          },
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.warnings.some((w) => w.includes("permission"))).toBe(true);
-    });
-  });
-
-  // ============================================================================
-  // SKILL MAPPING
-  // ============================================================================
-
-  describe("skill parsing and mapping", () => {
-    it("parses skills as comma-separated string", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        skills: "skill1, skill2, skill3",
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.skills).toEqual(["skill1", "skill2", "skill3"]);
-    });
-
-    it("parses skills as array", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        skills: ["skill1", "skill2"],
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.skills).toEqual(["skill1", "skill2"]);
-    });
-
-    it("handles empty skills gracefully", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        skills: [],
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.skills).toEqual([]);
-    });
-
-    it("includes skills in config.json", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          skills: ["skill1", "skill2"],
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.skills).toEqual(["skill1", "skill2"]);
-    });
-
-    it("handles skill objects with name property", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          skills: [{ name: "skill1" }],
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.skills).toContain("skill1");
-    });
-  });
-
-  // ============================================================================
-  // HOOK MAPPING
-  // ============================================================================
-
-  describe("hook parsing and mapping", () => {
-    it("parses hooks with matchers", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        hooks: {
-          PreToolUse: [
-            {
-              matcher: "*.txt",
-              hooks: [{ type: "command", command: "validate" }],
-            },
-          ],
-        },
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.hooks).toBeDefined();
-      expect(result.frontmatter.hooks![0].matchers).toEqual(["*.txt"]);
-    });
-
-    it("maps hook commands correctly", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        hooks: {
-          PostToolUse: [
-            {
-              matcher: "*",
-              hooks: [
-                { type: "command", command: "log" },
-                { type: "command", command: "notify" },
-              ],
-            },
-          ],
-        },
-        systemPrompt: "Prompt",
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.hooks![0].commands.length).toBe(2);
-    });
-
-    it("converts hooks back to Claude format", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          hooks: [
-            {
-              event: "PreToolUse",
-              matchers: ["*.txt"],
-              commands: [{ type: "command", command: "validate" }],
-            },
-          ],
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.hooks.PreToolUse).toBeDefined();
-      expect(config.hooks.PreToolUse[0].matcher).toBe("*.txt");
-    });
-
-    it("defaults matcher to wildcard", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          hooks: [
-            {
-              event: "AgentStart",
-              commands: [{ type: "command", command: "init" }],
-            },
-          ],
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.hooks.AgentStart[0].matcher).toBe("*");
-    });
-  });
-
-  // ============================================================================
-  // ROUNDTRIP CONVERSION
-  // ============================================================================
-
-  describe("roundtrip conversion", () => {
-    it("roundtrip primary agent config", async () => {
-      // Start with OAC
-      const original: OpenAgent = {
-        frontmatter: {
-          name: "TestAgent",
-          description: "A test agent",
-          mode: "primary",
-          model: "claude-sonnet-4",
-          tools: { read: true, write: true },
-          skills: ["skill1"],
-        },
-        metadata: { name: "TestAgent", category: "core", type: "agent" },
-        systemPrompt: "You are helpful",
-        contexts: [],
-      };
-
-      // Convert to Claude
-      const toClaudeResult = await adapter.fromOAC(original);
-      const claudeConfig = JSON.parse(toClaudeResult.configs[0].content);
-
-      // Convert back to OAC
-      const backToOAC = await adapter.toOAC(JSON.stringify(claudeConfig));
-
-      // Verify core properties are preserved
-      expect(backToOAC.frontmatter.name).toBe(original.frontmatter.name);
-      expect(backToOAC.frontmatter.description).toBe(
-        original.frontmatter.description
-      );
-      expect(backToOAC.systemPrompt).toBe(original.systemPrompt);
-      expect(backToOAC.frontmatter.tools).toEqual(original.frontmatter.tools);
-    });
-
-    it("roundtrip preserves model through conversion", async () => {
-      const original: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          model: "claude-opus-4",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const toClaudeResult = await adapter.fromOAC(original);
-      const claudeConfig = JSON.parse(toClaudeResult.configs[0].content);
-      const backToOAC = await adapter.toOAC(JSON.stringify(claudeConfig));
-
-      expect(backToOAC.frontmatter.model).toBe("claude-opus-4");
-    });
-  });
-
-  // ============================================================================
-  // EDGE CASES & ERROR HANDLING
-  // ============================================================================
-
-  describe("edge cases and error handling", () => {
-    it("omits empty tools from config", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-          tools: {},
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      // Empty tools should not be included in config
-      expect(config.tools === undefined || config.tools?.length === 0).toBe(true);
-    });
-
-    it("handles null system prompt", async () => {
-      const source = JSON.stringify({
-        name: "Agent",
-        description: "Test",
-        systemPrompt: null,
-      });
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.systemPrompt).toBe("");
-    });
-
-    it("handles empty system prompt", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.systemPrompt).toBe("");
-    });
-
-    it("handles special characters in names", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent-With-Dashes_and_underscores",
-          description: "Test with special chars: @#$",
-          mode: "primary",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.success).toBe(true);
-      const config = JSON.parse(result.configs[0].content);
-      expect(config.name).toContain("-");
-    });
-
-    it("handles very long system prompt", async () => {
-      const longPrompt = "A".repeat(5000);
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: longPrompt,
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-      const config = JSON.parse(result.configs[0].content);
-
-      expect(config.systemPrompt.length).toBe(5000);
-    });
-
-    it("handles multiline YAML values in frontmatter", async () => {
-      const source = `---
-name: Agent
-description: Test description
----
-
-System prompt here`;
-
-      const result = await adapter.toOAC(source);
-
-      expect(result.frontmatter.name).toBe("Agent");
-      expect(result.systemPrompt).toBe("System prompt here");
-    });
-  });
-
-  // ============================================================================
-  // CONVERSION RESULT STRUCTURE
-  // ============================================================================
-
-  describe("conversion result structure", () => {
-    it("returns success true on valid conversion", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.success).toBe(true);
-    });
-
-    it("includes capabilities in result", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.capabilities).toBeDefined();
-      expect(result.capabilities?.name).toBe("claude");
-    });
-
-    it("includes encoding in tool config", async () => {
-      const agent: OpenAgent = {
-        frontmatter: {
-          name: "Agent",
-          description: "Test",
-          mode: "primary",
-        },
-        metadata: { name: "Agent", category: "core", type: "agent" },
-        systemPrompt: "Prompt",
-        contexts: [],
-      };
-
-      const result = await adapter.fromOAC(agent);
-
-      expect(result.configs[0].encoding).toBe("utf-8");
+      expect(warnings.some((w) => w.includes("granular permissions"))).toBe(false);
     });
   });
 });

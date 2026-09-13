@@ -11,7 +11,7 @@ NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-TEST_DIR="/tmp/opencode-e2e-test-$$"
+TEST_DIR="$(mktemp -d "${TMPDIR:-/tmp}/opencode-e2e-test.XXXXXX")"
 PASSED=0
 FAILED=0
 
@@ -49,6 +49,69 @@ print_header() {
     echo -e "${NC}"
 }
 
+# Assert the registry-declared closure rather than a retired generated sidecar.
+profile_component_paths() {
+    local profile=$1
+
+    jq -r --arg profile "$profile" '
+        . as $registry
+        | .profiles[$profile].components[]
+        | split(":") as [$type, $id]
+        | if ($id | endswith("*")) then
+            if $type == "context" then
+                ($id | sub("\\*$"; "")) as $prefix
+                | $registry.components.contexts[]
+                | select(.path | startswith(".opencode/context/" + $prefix))
+                | (.files // [.path])[]
+            else
+                empty
+            end
+        else
+            (if $type == "agent" then "agents"
+             elif $type == "subagent" then "subagents"
+             elif $type == "command" then "commands"
+             elif $type == "context" then "contexts"
+             elif $type == "config" then "config"
+             else $type + "s"
+             end) as $collection
+            | first($registry.components[$collection][]? | select(.id == $id)) as $component
+            | if $component == null then empty else ($component.files // [$component.path])[] end
+        end
+        | sub("^\\.opencode/"; "")
+    ' "$REPO_ROOT/registry.json"
+}
+
+test_profile_closure() {
+    local profile=$1
+    local install_dir=$2
+    local path
+    local expected=0
+    local missing=0
+
+    while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        expected=$((expected + 1))
+        if [ -f "$install_dir/$path" ]; then
+            pass "${profile} profile component installed: $path"
+        else
+            fail "${profile} profile component missing: $path"
+            missing=$((missing + 1))
+        fi
+    done < <(profile_component_paths "$profile")
+
+    if [ "$expected" -eq 0 ]; then
+        fail "${profile} profile has no declared components to verify"
+    elif [ "$missing" -eq 0 ]; then
+        pass "${profile} profile closure installed"
+    fi
+
+    if [ ! -e "$install_dir/config/agent-metadata.json" ]; then
+        pass "${profile} profile omitted retired agent metadata sidecar"
+    else
+        fail "${profile} profile unexpectedly included agent metadata sidecar"
+    fi
+}
+
 test_essential_profile() {
     echo -e "\n${BOLD}Test: Essential Profile Installation${NC}"
     
@@ -56,30 +119,13 @@ test_essential_profile() {
     
     bash "$REPO_ROOT/install.sh" essential --install-dir="$install_dir" > "$TEST_DIR/essential.log" 2>&1
     
-    local expected_files=(
-        "agent/core/openagent.md"
-        "agent/subagents/core/task-manager.md"
-        "agent/subagents/core/documentation.md"
-        "command/context.md"
-        "command/clean.md"
-        "config/agent-metadata.json"
-        "context/core/essential-patterns.md"
-        "context/project/project-context.md"
-    )
-    
-    local missing=0
-    for file in "${expected_files[@]}"; do
-        if [ -f "$install_dir/$file" ]; then
-            pass "Found: $file"
-        else
-            fail "Missing: $file"
-            missing=$((missing + 1))
-        fi
-    done
-    
-    if [ $missing -eq 0 ]; then
-        pass "Essential profile: all expected files present"
+    if [ -f "$install_dir/agent/core/openagent.md" ]; then
+        pass "Essential profile installed canonical OpenAgent"
+    else
+        fail "Essential profile missing canonical OpenAgent"
     fi
+
+    test_profile_closure "essential" "$install_dir"
 }
 
 test_developer_profile() {
@@ -89,53 +135,13 @@ test_developer_profile() {
     
     bash "$REPO_ROOT/install.sh" developer --install-dir="$install_dir" > "$TEST_DIR/developer.log" 2>&1
     
-    local expected_files=(
-        "agent/core/openagent.md"
-        "agent/core/opencoder.md"
-        "agent/subagents/code/tester.md"
-        "agent/subagents/code/reviewer.md"
-        "agent/subagents/code/build-agent.md"
-        "command/commit.md"
-        "command/test.md"
-        "config/agent-metadata.json"
-        "context/core/standards/code.md"
-    )
-    
-    local found=0
-    for file in "${expected_files[@]}"; do
-        if [ -f "$install_dir/$file" ]; then
-            found=$((found + 1))
-        fi
-    done
-    
-    if [ $found -ge 6 ]; then
-        pass "Developer profile: $found/${#expected_files[@]} key files present"
+    if [ -f "$install_dir/agent/core/openagent.md" ] && [ -f "$install_dir/agent/core/opencoder.md" ]; then
+        pass "Developer profile installed canonical OpenAgent and OpenCoder"
     else
-        fail "Developer profile: only $found/${#expected_files[@]} key files found"
-    fi
-}
-
-test_agent_metadata_installed() {
-    echo -e "\n${BOLD}Test: Agent Metadata Config Installation${NC}"
-
-    local install_dir="$TEST_DIR/metadata-test/.opencode"
-
-    bash "$REPO_ROOT/install.sh" developer --install-dir="$install_dir" > "$TEST_DIR/metadata.log" 2>&1
-
-    local metadata_file="$install_dir/config/agent-metadata.json"
-
-    if [ -f "$metadata_file" ]; then
-        pass "Installed agent metadata config"
-    else
-        fail "Missing agent metadata config"
-        return
+        fail "Developer profile missing canonical agent files"
     fi
 
-    if command -v jq &> /dev/null && jq -e '.agents.openagent.name == "OpenAgent"' "$metadata_file" > /dev/null; then
-        pass "Agent metadata file contains expected agent entries"
-    else
-        fail "Agent metadata file missing expected OpenAgent entry"
-    fi
+    test_profile_closure "developer" "$install_dir"
 }
 
 test_custom_install_dir() {
@@ -289,7 +295,6 @@ main() {
     test_help_and_list
     test_essential_profile
     test_developer_profile
-    test_agent_metadata_installed
     test_custom_install_dir
     test_skip_existing_files
     test_file_content_validity

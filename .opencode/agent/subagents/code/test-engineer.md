@@ -94,10 +94,6 @@ task(subagent_type="ContextScout", description="Find testing standards", prompt=
 3. Structure your test plan to match project conventions
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
    - ✅ Positive: [expected success outcome]
    - ❌ Negative: [expected failure/edge case handling]
    - ✅ Positive: [expected success outcome]
@@ -115,10 +111,6 @@ task(subagent_type="ContextScout", description="Find testing standards", prompt=
 - ❌ **Don't skip the test plan** — propose before implementing, get approval
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
   <context_first>ContextScout before any test writing — conventions matter</context_first>
   <tdd_mindset>Think about testability before implementation — tests define behavior</tdd_mindset>
   <deterministic>Tests must be reliable — no flakiness, no external dependencies</deterministic>

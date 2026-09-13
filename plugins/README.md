@@ -43,8 +43,6 @@ claude --plugin-dir ./plugins/claude-code
 
 ## Future Plugins
 
-- **Cursor** - Planned
-- **Windsurf** - Planned
 - **VS Code** - Planned
 
 ## Development

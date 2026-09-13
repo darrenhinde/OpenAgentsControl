@@ -3,7 +3,7 @@ import { stat } from "node:fs/promises";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type IdeType = "opencode" | "cursor" | "claude" | "windsurf";
+export type IdeType = "opencode" | "claude";
 
 export type DetectedIde = {
   type: IdeType;
@@ -17,17 +17,13 @@ export type DetectedIde = {
 /** Maps each IDE to its display name and output file for `oac apply`. */
 const IDE_DISPLAY_NAMES: Record<IdeType, string> = {
   opencode: "OpenCode",
-  cursor: "Cursor",
   claude: "Claude",
-  windsurf: "Windsurf",
 };
 
 /** Output file/directory written by `oac apply` for each IDE. */
 const IDE_OUTPUT_FILES: Record<IdeType, string> = {
   opencode: ".opencode/",
-  cursor: ".cursorrules",
   claude: "CLAUDE.md",
-  windsurf: ".windsurfrules",
 };
 
 // ─── Detection Logic ──────────────────────────────────────────────────────────
@@ -35,6 +31,10 @@ const IDE_OUTPUT_FILES: Record<IdeType, string> = {
 /** Returns true if `p` is an existing directory. Never throws. */
 const dirExists = (p: string): Promise<boolean> =>
   stat(p).then((s) => s.isDirectory()).catch(() => false);
+
+/** Returns true if `p` is an existing file. Never throws. */
+const fileExists = (p: string): Promise<boolean> =>
+  stat(p).then((s) => s.isFile()).catch(() => false);
 
 /** Returns the indicator string and detected status for a single IDE. */
 async function checkIde(
@@ -47,24 +47,12 @@ async function checkIde(
       ? { detected: true, indicator: ".opencode/ directory" }
       : { detected: false, indicator: ".opencode/ directory (not found)" };
   }
-  if (ide === "cursor") {
-    const p = path.join(projectRoot, ".cursor");
-    return (await dirExists(p))
-      ? { detected: true, indicator: ".cursor/ directory" }
-      : { detected: false, indicator: ".cursor/ directory (not found)" };
-  }
-  if (ide === "claude") {
-    const dir = path.join(projectRoot, ".claude");
-    const file = path.join(projectRoot, "CLAUDE.md");
-    if (await dirExists(dir)) return { detected: true, indicator: ".claude/ directory" };
-    if (await Bun.file(file).exists()) return { detected: true, indicator: "CLAUDE.md file" };
-    return { detected: false, indicator: ".claude/ directory or CLAUDE.md (not found)" };
-  }
-  // windsurf
-  const p = path.join(projectRoot, ".windsurf");
-  return (await dirExists(p))
-    ? { detected: true, indicator: ".windsurf/ directory" }
-    : { detected: false, indicator: ".windsurf/ directory (not found)" };
+  // claude
+  const dir = path.join(projectRoot, ".claude");
+  const file = path.join(projectRoot, "CLAUDE.md");
+  if (await dirExists(dir)) return { detected: true, indicator: ".claude/ directory" };
+  if (await fileExists(file)) return { detected: true, indicator: "CLAUDE.md file" };
+  return { detected: false, indicator: ".claude/ directory or CLAUDE.md (not found)" };
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -80,7 +68,7 @@ export async function detectIde(
 
 /** Detects all supported IDEs in the given project root. */
 export async function detectIdes(projectRoot: string): Promise<DetectedIde[]> {
-  const ides: IdeType[] = ["opencode", "cursor", "claude", "windsurf"];
+  const ides: IdeType[] = ["opencode", "claude"];
   return Promise.all(ides.map((ide) => detectIde(projectRoot, ide)));
 }
 

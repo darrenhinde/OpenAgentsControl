@@ -1,22 +1,27 @@
 import path from 'node:path';
-// node:fs/promises rm is used intentionally — Bun has no built-in recursive directory removal
-import { rm } from 'node:fs/promises';
+import { rm, stat } from 'node:fs/promises';
 import { type Command } from 'commander';
-import { loadRegistry, resolveComponent, listComponents } from '../lib/registry.js';
-import { getPackageRoot, getBundledFilePath } from '../lib/bundled.js';
-import { installFile } from '../lib/installer.js';
+import {
+  loadRegistry,
+  resolveComponent,
+  listComponents,
+  filesForComponent,
+  isInstallablePath,
+  ComponentTypeSchema,
+  type ComponentType,
+} from '../lib/registry.js';
+import { getPackageRoot } from '../lib/bundled.js';
+import { backupFile, syncFiles } from '../lib/installer.js';
 import {
   readManifest,
   writeManifest,
-  addFileToManifest,
   removeFileFromManifest,
   createEmptyManifest,
   type ManifestFile,
-  type FileEntry,
 } from '../lib/manifest.js';
 import { log, info, warn, error, success, verbose } from '../ui/logger.js';
 import { createSpinner } from '../ui/spinner.js';
-import { computeFileHash } from '../lib/sha256.js';
+import { computeFileHash, hashesMatch } from '../lib/sha256.js';
 import { readCliVersion } from '../lib/version.js';
 import type { RegistryComponent } from '../lib/registry.js';
 
@@ -37,53 +42,31 @@ export type RemoveOptions = {
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
 
-/** Returns the destination path (relative to project root) for a component.
- *  Uses component.path directly if it already starts with .opencode/,
- *  otherwise prefixes with the correct subdirectory. */
-const getDestRelativePath = (component: RegistryComponent): string => {
-  if (component.path.startsWith('.opencode/')) return component.path;
-  const base = component.type === 'skill' ? '.opencode/skills' :
-               component.type === 'agent' ? '.opencode/agent' :
-               '.opencode/context';
-  return path.join(base, component.path);
-};
-
-/** Builds a FileEntry for a newly installed component. */
-const buildFileEntry = (
-  sha256: string,
-  component: RegistryComponent,
-): FileEntry => ({
-  sha256,
-  type: component.type,
-  source: 'registry',
-  installedAt: new Date().toISOString(),
-});
-
-/** Returns true if the file at destPath is already tracked in the manifest. */
+/** Returns true if the file is already tracked in the manifest. */
 const isAlreadyInstalled = (
   manifest: ManifestFile | null,
   destRelativePath: string,
 ): boolean => manifest?.files[destRelativePath] !== undefined;
 
+/** The directory a component's primary file lands in, for messages. */
+const destDirOf = (component: RegistryComponent): string => path.dirname(component.path);
+
 // ── List display ──────────────────────────────────────────────────────────────
 
+/** Component kinds shown by a bare `oac add`, in display order. */
+const LISTED_TYPES: ComponentType[] = ['agent', 'subagent', 'context', 'skill', 'command', 'tool'];
+
 /** Prints all available components grouped by type. */
-const printAvailableComponents = async (_projectRoot: string): Promise<void> => {
+const printAvailableComponents = async (): Promise<void> => {
   const packageRoot = getPackageRoot();
   const registry = await loadRegistry(packageRoot);
-  const all = listComponents(registry);
-
-  const byType = {
-    agent: all.filter((c) => c.type === 'agent'),
-    context: all.filter((c) => c.type === 'context'),
-    skill: all.filter((c) => c.type === 'skill'),
-  };
 
   log('');
   log('Available components:');
   log('');
 
-  for (const [type, components] of Object.entries(byType)) {
+  for (const type of LISTED_TYPES) {
+    const components = listComponents(registry, type);
     if (components.length === 0) continue;
     log(`  ${type.toUpperCase()}S`);
     for (const c of components) {
@@ -107,7 +90,8 @@ const resolveOrFail = async (
   const component = resolveComponent(registry, ref);
 
   if (component === null) {
-    error(`Component '${ref}' not found. Run 'oac add' to see available components.`);
+    const kinds = ComponentTypeSchema.options.join(', ');
+    error(`Component '${ref}' not found. Run 'oac add' to see available components (kinds: ${kinds}).`);
     process.exit(1);
   }
 
@@ -131,25 +115,18 @@ const checkAlreadyInstalled = (
   return false; // signal: proceed
 };
 
-/** Performs the actual file copy and manifest update. */
+/** Synchronizes every component file using the same safety path as init and update. */
 const performInstall = async (
   component: RegistryComponent,
   packageRoot: string,
   projectRoot: string,
-  destRelativePath: string,
   manifest: ManifestFile,
   opts: AddOptions,
 ): Promise<void> => {
-  const sourcePath = getBundledFilePath(packageRoot, component.path);
-  const destPath = path.join(projectRoot, destRelativePath);
-  const destDir = path.dirname(destRelativePath);
+  const files = filesForComponent(component);
+  const destDir = destDirOf(component);
 
-  info(`Installing ${component.type}:${component.id} → ${destDir}/`);
-
-  if (opts.verbose) {
-    verbose(`Source: ${sourcePath}`);
-    verbose(`Destination: ${destPath}`);
-  }
+  info(`Installing ${component.type}:${component.id} → ${destDir}/ (${files.length} file${files.length !== 1 ? 's' : ''})`);
 
   const installOpts = {
     projectRoot,
@@ -159,18 +136,19 @@ const performInstall = async (
     verbose: opts.verbose,
   };
 
-  await installFile(sourcePath, destPath, installOpts);
+  const { result, updatedManifest } = await syncFiles(files, manifest, {
+    ...installOpts,
+    source: 'registry',
+  });
+
+  if (result.errors.length > 0) throw new Error(result.errors.join('; '));
 
   if (opts.dryRun) {
     info(`[dry-run] Would install ${component.type}:${component.id} to ${destDir}/`);
     return;
   }
 
-  const sha256 = await computeFileHash(destPath);
-  const entry = buildFileEntry(sha256, component);
-  const updatedManifest = addFileToManifest(manifest, destRelativePath, entry);
   await writeManifest(projectRoot, updatedManifest);
-
   success(`Added ${component.id} to ${destDir}/`);
 };
 
@@ -179,7 +157,7 @@ const performInstall = async (
 /**
  * Implements `oac add [ref]`.
  * With no ref: lists available components grouped by type.
- * With ref (e.g. `context:react-patterns`): installs the component.
+ * With ref (e.g. `context:react-patterns`): installs the component and every file it lists.
  */
 export async function addCommand(
   ref: string | undefined,
@@ -188,7 +166,7 @@ export async function addCommand(
   const projectRoot = process.cwd();
 
   if (ref === undefined) {
-    await printAvailableComponents(projectRoot);
+    await printAvailableComponents();
     return;
   }
 
@@ -199,13 +177,17 @@ export async function addCommand(
     const { component, packageRoot } = await resolveOrFail(ref);
     spinner.stop();
 
-    const manifest = (await readManifest(projectRoot)) ?? createEmptyManifest(readCliVersion());
-    const destRelativePath = getDestRelativePath(component);
+    if (!filesForComponent(component).every(isInstallablePath)) {
+      error(`'${ref}' would write outside .opencode/ (${component.path}) — refusing to overwrite a project file.`);
+      process.exit(1);
+    }
 
-    const shouldAbort = checkAlreadyInstalled(manifest, destRelativePath, options.force);
+    const manifest = (await readManifest(projectRoot)) ?? createEmptyManifest(readCliVersion());
+
+    const shouldAbort = checkAlreadyInstalled(manifest, component.path, options.force);
     if (shouldAbort) return;
 
-    await performInstall(component, packageRoot, projectRoot, destRelativePath, manifest, options);
+    await performInstall(component, packageRoot, projectRoot, manifest, options);
   } catch (err: unknown) {
     spinner.fail();
     const msg = err instanceof Error ? err.message : String(err);
@@ -216,7 +198,7 @@ export async function addCommand(
 
 /**
  * Implements `oac remove [ref]`.
- * Removes the component file from disk and updates the manifest.
+ * Removes every file the component installed and updates the manifest.
  */
 export async function removeCommand(
   ref: string | undefined,
@@ -237,28 +219,54 @@ export async function removeCommand(
     spinner.stop();
 
     const manifest = await readManifest(projectRoot);
-    const destRelativePath = getDestRelativePath(component);
 
-    if (!isAlreadyInstalled(manifest, destRelativePath)) {
+    if (!isAlreadyInstalled(manifest, component.path)) {
       warn(`'${ref}' is not installed — nothing to remove.`);
       return;
     }
 
-    const destPath = path.join(projectRoot, destRelativePath);
+    const files = filesForComponent(component);
+    if (!files.every(isInstallablePath)) {
+      error(`'${ref}' would delete outside .opencode/ (${component.path}) — refusing to remove a project file.`);
+      process.exit(1);
+    }
+    info(`Removing ${component.type}:${component.id} from ${destDirOf(component)}/ (${files.length} file${files.length !== 1 ? 's' : ''})`);
 
-    if (options.verbose) {
-      verbose(`Removing: ${destPath}`);
+    let updatedManifest = manifest!;
+    for (const relativePath of files) {
+      const destPath = path.join(projectRoot, relativePath);
+      const entry = updatedManifest.files[relativePath];
+      if (options.verbose) verbose(`Removing: ${destPath}`);
+
+      if (options.dryRun) {
+        info(`[dry-run] Would remove ${destPath}`);
+        continue;
+      }
+      if (entry === undefined) {
+        warn(`Skipping untracked file '${relativePath}'.`);
+        continue;
+      }
+
+      const exists = await stat(destPath).then((file) => file.isFile()).catch(() => false);
+      const modified = exists && !hashesMatch(await computeFileHash(destPath), entry.sha256);
+      const protectedFile = entry.protected === true;
+      if ((protectedFile || modified) && !options.yolo) {
+        warn(`Skipping ${protectedFile ? 'protected' : 'modified'} file '${relativePath}' (use --yolo to remove).`);
+        continue;
+      }
+
+      if (options.yolo && exists && (protectedFile || modified)) {
+        const backupPath = await backupFile(destPath, projectRoot);
+        info(`Backed up ${relativePath} to ${backupPath}`);
+      }
+
+      await rm(destPath, { force: true });
+      updatedManifest = removeFileFromManifest(updatedManifest, relativePath);
     }
 
-    info(`Removing ${component.type}:${component.id} from ${path.dirname(destRelativePath)}/`);
-
     if (!options.dryRun) {
-      await rm(destPath, { recursive: true, force: true });
-      const updatedManifest = removeFileFromManifest(manifest!, destRelativePath);
       await writeManifest(projectRoot, updatedManifest);
       success(`Removed ${component.id}`);
-    } else {
-      info(`[dry-run] Would remove ${destPath}`);
     }
   } catch (err: unknown) {
     spinner.fail();
@@ -276,7 +284,7 @@ export async function removeCommand(
 export function registerAddCommand(program: Command): void {
   program
     .command('add [ref]')
-    .description('Add a component (agent, context, or skill). Example: oac add context:react-patterns')
+    .description('Add a component (agent, context, skill, command, tool). Example: oac add context:react-patterns')
     .option('--force', 'Reinstall even if already installed', false)
     .option('--dry-run', 'Show what would happen without making changes', false)
     .option('--yolo', 'Skip safety checks and overwrite user-modified files', false)

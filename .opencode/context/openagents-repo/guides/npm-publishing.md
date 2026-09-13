@@ -10,7 +10,12 @@
 
 ## Core Concept
 
-OpenAgents Control is published as `@nextsystems/oac` on npm. Users install globally and run `oac [profile]` to set up their projects.
+OpenAgents Control publishes as `@controlstack/oac` on npm. Users install globally and run `oac [profile]` to set up their projects.
+
+> **Status (2026-07-15):** `@controlstack/oac` is **not published yet** — the scope must be
+> claimed first (see Security below). The last published release is the legacy
+> `@nextsystems/oac` at **0.7.0**, which gets `npm deprecate`d with a pointer at the new name
+> when `@controlstack/oac` first ships.
 
 **Key files**:
 - `package.json` - Package configuration
@@ -49,7 +54,7 @@ oac --version
 oac --help
 
 # Uninstall
-npm uninstall -g @nextsystems/oac
+npm uninstall -g @controlstack/oac
 ```
 
 ### 3. Publish
@@ -66,10 +71,10 @@ npm publish --access public
 
 ```bash
 # Check it's live
-npm view @nextsystems/oac
+npm view @controlstack/oac
 
 # Test installation
-npm install -g @nextsystems/oac
+npm install -g @controlstack/oac
 oac --version
 ```
 
@@ -89,11 +94,11 @@ Once published, users can:
 
 ```bash
 # Global install (recommended)
-npm install -g @nextsystems/oac
+npm install -g @controlstack/oac
 oac developer
 
 # Or use npx (no install)
-npx @nextsystems/oac developer
+npx @controlstack/oac developer
 ```
 
 ---
@@ -140,14 +145,16 @@ npm profile get  # Check email verification status
 
 - ✅ Enable 2FA: `npm profile enable-2fa auth-and-writes`
 - ✅ Use strong npm password
-- ✅ `@nextsystems` scope is protected (only you can publish)
+- ⬜ Claim the `@controlstack` scope on npmjs.com and confirm it is protected (only you can
+  publish). Not yet verified — the scope currently holds zero packages. Publishing
+  `@controlstack/oac` is blocked until this is done.
 
 ---
 
 ## References
 
-- **Package**: https://www.npmjs.com/package/@nextsystems/oac
-- **Stats**: https://npm-stat.com/charts.html?package=@nextsystems/oac
+- **Package**: https://www.npmjs.com/package/@controlstack/oac
+- **Stats**: https://npm-stat.com/charts.html?package=@controlstack/oac
 - **Codebase**: `package.json`, `bin/oac.js`, `.npmignore`
 
 ---

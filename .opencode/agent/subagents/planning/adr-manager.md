@@ -86,10 +86,6 @@ task(subagent_type="ContextScout", description="Find ADR standards", prompt="Fin
 3. **Apply** formatting, structure, and linking standards to your ADRs
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 ---
 
 ## Workflow

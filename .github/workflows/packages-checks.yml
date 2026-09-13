@@ -1,0 +1,230 @@
+name: Packages Checks
+
+on:
+  pull_request:
+    paths:
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/packages-checks.yml'
+      - '.github/dependabot.yml'
+      - 'scripts/validation/detect-pr-changes.ts'
+      - 'scripts/validation/detect-pr-changes.test.ts'
+      # The canonical source, its committed output, and the drift gate's machinery.
+      - 'content/**'
+      - '.opencode/agent/**'
+      - '.oac/**'
+      - 'registry.json'
+      - 'Makefile'
+      - 'scripts/validation/check-build-drift.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  check-changes:
+    name: Detect Package Changes
+    runs-on: ubuntu-latest
+    outputs:
+      has-packages: ${{ steps.filter.outputs.has-packages }}
+      has-canonical: ${{ steps.filter.outputs.has-canonical }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.14
+
+      # The detector decides which gates run, so a broken detector silently skips them —
+      # including the drift gate. Its tests also pin the drift job's contract (that it is
+      # blocking, gated on has-canonical, and runs the same make target contributors do).
+      # They must execute somewhere, and nothing else in CI ran them.
+      - name: Test change detection
+        run: bun test scripts/validation/detect-pr-changes.test.ts
+
+      - name: Check changed files
+        id: filter
+        run: |
+          echo "Changed files:" >&2
+          git diff --name-only -z "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" |
+            tee >(while IFS= read -r -d '' path; do printf '  %q\n' "$path" >&2; done) |
+            bun run scripts/validation/detect-pr-changes.ts
+
+  cli-checks:
+    name: CLI (build + test + typecheck)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: check-changes
+    if: needs.check-changes.outputs.has-packages == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.14
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b0f76dfb45f55f8421693e4803ac7bb65143bd34 # v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      # cli tsconfig paths point at ../compatibility-layer/dist, so build it first.
+      - name: Build compatibility-layer dependency
+        run: pnpm --dir packages/compatibility-layer run build
+
+      - name: Typecheck
+        run: pnpm --dir packages/cli run typecheck
+
+      - name: Build
+        run: pnpm --dir packages/cli run build
+
+      # packages/cli tests use Bun-only APIs (Bun.file, Bun.spawn, import.meta.dir)
+      # until Stage 5 removes them — they must run under `bun test`, not vitest.
+      - name: Test
+        run: pnpm --dir packages/cli run test
+
+  compatibility-layer-checks:
+    name: Compatibility Layer (build + test + lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: check-changes
+    if: needs.check-changes.outputs.has-packages == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b0f76dfb45f55f8421693e4803ac7bb65143bd34 # v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      # build runs tsc, which is also the typecheck for this package.
+      - name: Build (tsc typecheck)
+        run: pnpm --dir packages/compatibility-layer run build
+
+      - name: Lint
+        run: pnpm --dir packages/compatibility-layer run lint
+
+      - name: Test (vitest)
+        run: pnpm --dir packages/compatibility-layer test
+
+  # The structural guarantee the canonical refactor rests on: the generated trees stay
+  # COMMITTED, so drift has to be impossible rather than merely discouraged. Rebuild them from
+  # content/agents/** and fail if the build changed anything — a hand-edit to generated output
+  # turns this red. BLOCKING by design: no continue-on-error.
+  canonical-drift:
+    name: Canonical Build (no drift)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: check-changes
+    if: needs.check-changes.outputs.has-canonical == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      # `oac build` runs from packages/cli/dist, which is bundled `--target bun`.
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.14
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b0f76dfb45f55f8421693e4803ac7bb65143bd34 # v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The identical target contributors run locally, so a red gate here is reproducible with
+      # one command rather than by reading this file and reassembling it by hand.
+      - name: Build canonical trees and check for drift
+        run: make check-canonical-drift
+
+  summary:
+    name: Packages Checks Summary
+    runs-on: ubuntu-latest
+    needs: [check-changes, cli-checks, compatibility-layer-checks, canonical-drift]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 📦 Packages Checks Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          report() {
+            local label="$1" result="$2"
+            case "$result" in
+              success) echo "✅ **${label}:** Passed" >> $GITHUB_STEP_SUMMARY ;;
+              skipped) echo "⏭️ **${label}:** Skipped (no relevant changes)" >> $GITHUB_STEP_SUMMARY ;;
+              *) echo "❌ **${label}:** ${result}" >> $GITHUB_STEP_SUMMARY ;;
+            esac
+          }
+
+          report "Change Detection" "${{ needs.check-changes.result }}"
+          report "CLI" "${{ needs.cli-checks.result }}"
+          report "Compatibility Layer" "${{ needs.compatibility-layer-checks.result }}"
+          report "Canonical Build (no drift)" "${{ needs.canonical-drift.result }}"
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.canonical-drift.result }}" = "failure" ]; then
+            echo "> The generated trees drift from \`content/agents/**\`." >> $GITHUB_STEP_SUMMARY
+            echo "> Run \`make build-canonical\` and commit the result." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          FAILED=0
+          [ "${{ needs.check-changes.result }}" != "success" ] && FAILED=1
+          for result in "${{ needs.cli-checks.result }}" "${{ needs.compatibility-layer-checks.result }}" "${{ needs.canonical-drift.result }}"; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              FAILED=1
+            fi
+          done
+
+          if [ $FAILED -eq 0 ]; then
+            echo "### ✅ Required Package Checks Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Some Package Checks Failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi

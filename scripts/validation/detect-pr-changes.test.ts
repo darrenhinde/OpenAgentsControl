@@ -13,10 +13,14 @@ const NO_CHANGES = {
   'has-evals': false,
   'has-docs': false,
   'has-workflows': false,
+  'has-packages': false,
+  'has-canonical': false,
 }
 
 const SCRIPT_PATH = join(import.meta.dir, 'detect-pr-changes.ts')
 const WORKFLOW_PATH = join(import.meta.dir, '..', '..', '.github', 'workflows', 'pr-checks.yml')
+const PACKAGES_WORKFLOW_PATH = join(import.meta.dir, '..', '..', '.github', 'workflows', 'packages-checks.yml')
+const DRIFT_SCRIPT_PATH = join(import.meta.dir, 'check-build-drift.sh')
 
 type CliResult = {
   exitCode: number
@@ -76,18 +80,107 @@ describe('classifyChangedPaths', () => {
     })
   })
 
+  test('detects packages changes', () => {
+    expect(classifyChangedPaths(['packages/cli/src/index.ts'])).toEqual({
+      ...NO_CHANGES,
+      'has-packages': true,
+      'has-canonical': true,
+    })
+    expect(classifyChangedPaths(['packages/compatibility-layer/package.json'])).toEqual({
+      ...NO_CHANGES,
+      'has-packages': true,
+      'has-canonical': true,
+    })
+  })
+
+  test('detects shared workspace dependency changes', () => {
+    for (const path of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml']) {
+      expect(classifyChangedPaths([path])).toEqual({
+        ...NO_CHANGES,
+        'has-evals': true,
+        'has-packages': true,
+        'has-canonical': true,
+      })
+    }
+  })
+
+  test('detects package automation changes', () => {
+    for (const path of [
+      '.github/dependabot.yml',
+      '.github/workflows/packages-checks.yml',
+      'scripts/validation/detect-pr-changes.ts',
+      'scripts/validation/detect-pr-changes.test.ts',
+    ]) {
+      expect(classifyChangedPaths([path])).toEqual({
+        ...NO_CHANGES,
+        'has-packages': true,
+        ...(path.startsWith('.github/workflows/') ? { 'has-workflows': true } : {}),
+        ...(path === '.github/workflows/packages-checks.yml' ? { 'has-canonical': true } : {}),
+      })
+    }
+  })
+
+  test('routes canonical source changes to the drift gate', () => {
+    for (const path of ['content/agents/core/openagent.md', 'content/profiles/default.yaml']) {
+      expect(classifyChangedPaths([path])).toEqual({
+        ...NO_CHANGES,
+        'has-canonical': true,
+      })
+    }
+  })
+
+  test('routes generated-tree changes to the drift gate', () => {
+    // A PR that hand-edits generated output touches no packages/** path at all. If these did
+    // not set has-canonical, the gate would skip exactly the change it exists to catch.
+    for (const path of [
+      '.opencode/agent/core/openagent.md',
+      '.oac/build-manifest.json',
+      'registry.json',
+    ]) {
+      expect(classifyChangedPaths([path])).toEqual({
+        ...NO_CHANGES,
+        'has-canonical': true,
+      })
+    }
+  })
+
+  test('routes drift-gate machinery changes to the drift gate', () => {
+    for (const path of ['Makefile', 'scripts/validation/check-build-drift.sh']) {
+      expect(classifyChangedPaths([path])).toEqual({
+        ...NO_CHANGES,
+        'has-canonical': true,
+      })
+    }
+  })
+
+  test('rejects near-prefix paths for canonical routing', () => {
+    expect(
+      classifyChangedPaths([
+        'content-old/agents/x.md',
+        'nested/content/agents/x.md',
+        'contents/x.md',
+        '.opencode/command/add-context.md',
+        'registry.json.bak',
+        'Makefile.old',
+      ]),
+    ).toEqual(NO_CHANGES)
+  })
+
   test('detects mixed changes', () => {
     expect(
       classifyChangedPaths([
         'evals/framework/package.json',
         'docs/README.md',
         '.github/workflows/release.yml',
+        'packages/cli/package.json',
         'src/index.ts',
       ]),
     ).toEqual({
       'has-evals': true,
       'has-docs': true,
       'has-workflows': true,
+      'has-packages': true,
+      'has-canonical': true,
     })
   })
 
@@ -106,6 +199,9 @@ describe('classifyChangedPaths', () => {
         'docs.md',
         '.github/workflows-old/check.yml',
         'nested/evals/test.ts',
+        'packages-old/cli/index.ts',
+        'packages.json',
+        'nested/packages/cli/index.ts',
       ]),
     ).toEqual(NO_CHANGES)
   })
@@ -127,8 +223,13 @@ describe('formatGitHubOutput', () => {
         'has-evals': true,
         'has-docs': false,
         'has-workflows': true,
+        'has-packages': false,
+        'has-canonical': false,
       }),
-    ).toBe('has-evals=true\nhas-docs=false\nhas-workflows=true\n')
+    ).toBe(
+      'has-evals=true\nhas-docs=false\nhas-workflows=true\nhas-packages=false\n' +
+        'has-canonical=false\n',
+    )
   })
 })
 
@@ -142,7 +243,8 @@ describe('CLI', () => {
 
       expect(result).toEqual({ exitCode: 0, stderr: '', stdout: '' })
       expect(await readFile(outputPath, 'utf8')).toBe(
-        'existing=value\nhas-evals=true\nhas-docs=false\nhas-workflows=false\n',
+        'existing=value\nhas-evals=true\nhas-docs=false\nhas-workflows=false\n' +
+          'has-packages=false\nhas-canonical=false\n',
       )
     })
   })
@@ -155,7 +257,8 @@ describe('CLI', () => {
 
       expect(result.exitCode).toBe(0)
       expect(await readFile(outputPath, 'utf8')).toBe(
-        'has-evals=false\nhas-docs=false\nhas-workflows=false\n',
+        'has-evals=false\nhas-docs=false\nhas-workflows=false\nhas-packages=false\n' +
+          'has-canonical=false\n',
       )
     })
   })
@@ -186,13 +289,15 @@ describe('CLI', () => {
         'evals/ leading and trailing .ts ',
         'docs/雪\n$HOME;$(touch never).md',
         '.github/workflows/[check]& weird.yml',
+        'packages/cli/src/ spaced 雪.ts',
       ]
 
       const result = await runCli(`${paths.join('\0')}\0`, outputPath)
 
       expect(result.exitCode).toBe(0)
       expect(await readFile(outputPath, 'utf8')).toBe(
-        'has-evals=true\nhas-docs=true\nhas-workflows=true\n',
+        'has-evals=true\nhas-docs=true\nhas-workflows=true\nhas-packages=true\n' +
+          'has-canonical=true\n',
       )
     })
   })
@@ -230,5 +335,85 @@ describe('PR checks workflow contract', () => {
     expect(overallStatus).toContain('needs.check-changes.result }}" == "success"')
     expect(overallStatus).toContain('needs.check-changes.outputs.has-evals }}" != "true"')
     expect(overallStatus).toContain('exit 1')
+  })
+})
+
+describe('Packages checks workflow contract', () => {
+  test('uses the NUL-delimited detector and the has-packages output', async () => {
+    const workflow = await readFile(PACKAGES_WORKFLOW_PATH, 'utf8')
+
+    expect(workflow).toContain('git diff --name-only -z')
+    expect(workflow).toMatch(/git diff --name-only -z[^\n]*\|[\s\S]*bun run scripts\/validation\/detect-pr-changes\.ts/)
+    expect(workflow).toContain('has-packages: ${{ steps.filter.outputs.has-packages }}')
+    expect(workflow).toContain('oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6')
+    expect(workflow).toContain('bun-version: 1.3.14')
+  })
+
+  test('gates every package check job on the has-packages flag', async () => {
+    const workflow = await readFile(PACKAGES_WORKFLOW_PATH, 'utf8')
+
+    expect(workflow).toContain('cli-checks:')
+    expect(workflow).toContain('compatibility-layer-checks:')
+
+    const gates = workflow.match(/needs\.check-changes\.outputs\.has-packages == 'true'/g) ?? []
+    expect(gates.length).toBeGreaterThanOrEqual(2)
+  })
+
+  test('triggers on packages/** pull request changes', async () => {
+    const workflow = await readFile(PACKAGES_WORKFLOW_PATH, 'utf8')
+
+    expect(workflow).toContain('pull_request:')
+    expect(workflow).toContain("- 'packages/**'")
+  })
+})
+
+describe('Canonical drift gate contract', () => {
+  test('triggers on the canonical source and the generated trees', async () => {
+    const workflow = await readFile(PACKAGES_WORKFLOW_PATH, 'utf8')
+
+    for (const path of [
+      "- 'content/**'",
+      "- '.opencode/agent/**'",
+      "- '.oac/**'",
+      "- 'registry.json'",
+      "- 'Makefile'",
+      "- 'scripts/validation/check-build-drift.sh'",
+    ]) {
+      expect(workflow).toContain(path)
+    }
+  })
+
+  test('gates the drift job on has-canonical and runs the same make target as contributors', async () => {
+    const workflow = await readFile(PACKAGES_WORKFLOW_PATH, 'utf8')
+
+    expect(workflow).toContain('canonical-drift:')
+    expect(workflow).toContain('has-canonical: ${{ steps.filter.outputs.has-canonical }}')
+    expect(workflow).toContain("needs.check-changes.outputs.has-canonical == 'true'")
+    expect(workflow).toContain('run: make check-canonical-drift')
+  })
+
+  test('is blocking — never continue-on-error, and the summary fails on it', async () => {
+    const workflow = await readFile(PACKAGES_WORKFLOW_PATH, 'utf8')
+
+    // A gate that cannot fail the PR reads as coverage while providing none. Match the YAML
+    // key rather than the bare phrase, which also appears in the job's own comment.
+    expect(workflow).not.toMatch(/^\s*continue-on-error:\s*true/m)
+    expect(workflow).toContain('needs: [check-changes, cli-checks, compatibility-layer-checks, canonical-drift]')
+    expect(workflow).toContain('"${{ needs.canonical-drift.result }}"')
+
+    const summary = workflow.slice(workflow.indexOf('  summary:'))
+    expect(summary).toContain('exit 1')
+  })
+
+  test('the drift script rebuilds and compares the committed generated trees', async () => {
+    const script = await readFile(DRIFT_SCRIPT_PATH, 'utf8')
+
+    // A write build, not `--check`: check() never compares the manifest, which is committed.
+    expect(script).toContain('bun packages/cli/dist/index.js build')
+    expect(script).toContain('.oac/build-manifest.json')
+    expect(script).toContain('git status --porcelain')
+    expect(script).toContain('exit 1')
+    // plugins/claude-code/** is staged and compared, never emitted — not this gate's business.
+    expect(script).not.toContain('plugins/claude-code/agents)')
   })
 })

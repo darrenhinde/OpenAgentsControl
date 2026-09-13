@@ -173,8 +173,10 @@ Fetch external library and framework documentation from Context7 API and other s
 ### coder-agent
 Execute coding subtasks with full context awareness, self-review, and quality validation.
 
-**Tools**: Read, Write, Edit, Glob, Grep  
+**Tools**: Read, Write, Edit, Glob, Grep (Bash and Task explicitly disallowed — fail-closed)  
 **Model**: sonnet
+
+> ⚠️ Claude Code cannot scope `Write`/`Edit` to paths per-agent. Apply the opt-in deny rules in [RECOMMENDED-PERMISSIONS.md](./RECOMMENDED-PERMISSIONS.md) to enforce the intended `.env`/`.key`/`.secret`/`node_modules`/`.git` protections.
 
 ### test-engineer
 Generate comprehensive tests using TDD principles with coverage analysis and validation.
@@ -317,6 +319,22 @@ Stage 4: Execute with loaded context → No nested discovery needed
 - **Stage 5 → Stage 6**: Validation must pass
 
 **Never skip approval** - it prevents wasted work and ensures alignment.
+
+## 🔒 Security: Recommended Permission Hardening
+
+Claude Code subagent frontmatter accepts tool **names only** — it cannot express the
+path-scoped denies (`**/*.env*`, `**/*.key`, `**/*.secret`, `node_modules/**`, `.git/**`)
+that the OpenCode `coder-agent` is authored with, and plugins cannot ship permission
+rules. Without action on your part, agents granted `Write`/`Edit` can modify those paths.
+
+**Strongly recommended**: copy the opt-in, deny-only rules from
+[RECOMMENDED-PERMISSIONS.md](./RECOMMENDED-PERMISSIONS.md) into your project's
+`.claude/settings.json` (or your user `~/.claude/settings.json`). Deny rules always win
+over allows and over-apply only in the safe direction. Never hoist per-agent *allow*
+rules to project scope — that re-creates the escalation the denies prevent.
+
+`coder-agent` ships fail-closed on shell access: no `Bash` in `tools:` and an explicit
+`disallowedTools: Bash, Task`.
 
 ## 🔧 Configuration
 
@@ -486,7 +504,7 @@ Create `hooks/hooks.json`:
 
 - [Main Documentation](../.opencode/docs/)
 - [Context System](../docs/context-system/)
-- [Planning Documents](../docs/planning/)
+- [Planning Documents (archived)](../docs/archive/planning/)
 
 ## 🤝 Contributing
 

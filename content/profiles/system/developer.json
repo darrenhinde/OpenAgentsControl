@@ -1,0 +1,40 @@
+{
+  "id": "developer",
+  "agents": [
+    "build-agent",
+    "coder-agent",
+    "contextscout",
+    "devops-specialist",
+    "documentation",
+    "frontend-specialist",
+    "openagent",
+    "opencoder",
+    "reviewer",
+    "task-manager",
+    "tester"
+  ],
+  "contextProfiles": [
+    "core",
+    "engineering"
+  ],
+  "commands": [
+    "add-context",
+    "analyze-patterns",
+    "clean",
+    "commit",
+    "context",
+    "optimize",
+    "test",
+    "validate-repo"
+  ],
+  "tools": [
+    "env"
+  ],
+  "skills": [
+    "task-management"
+  ],
+  "plugins": [],
+  "config": [
+    "env-example"
+  ]
+}

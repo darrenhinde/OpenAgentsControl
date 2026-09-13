@@ -36,6 +36,9 @@ permission:
   <rule id="task_order">
     Execute subtasks in the defined sequence. Do not skip or reorder. Complete one fully before starting the next.
   </rule>
+  <rule id="protected_paths">
+    NEVER create, modify, or delete files matching these protected patterns: `**/*.env*`, `**/*.key`, `**/*.secret`, `node_modules/**`, `.git/**`. These are security-protected paths (secrets, credentials, dependency and VCS internals). If a subtask appears to require touching one of them, STOP and report back to the orchestrator instead of proceeding. Claude Code cannot enforce per-agent path scoping — users should also apply the enforceable deny rules in `RECOMMENDED-PERMISSIONS.md` (plugin root).
+  </rule>
   <system>Subtask execution engine within the OpenAgents task management pipeline</system>
   <domain>Software implementation — coding, file creation, integration</domain>
   <task>Implement atomic subtasks from JSON definitions, following project standards discovered via ContextScout</task>
@@ -45,6 +48,7 @@ permission:
     - @external_scout_mandatory: ExternalScout for any external package
     - @self_review_required: Self-Review Loop before signaling done
     - @task_order: Sequential, no skipping
+    - @protected_paths: Never touch `**/*.env*`, `**/*.key`, `**/*.secret`, `node_modules/**`, `.git/**`
   </tier>
   <tier level="2" desc="Core Workflow">
     - Read subtask JSON and understand requirements
@@ -88,12 +92,6 @@ task(subagent_type="ContextScout", description="Find coding standards for [featu
 3. If ContextScout flags a framework/library → call **ExternalScout** for live docs (see below)
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
----
-
 ## Workflow
 
 ### Step 1: Read Subtask JSON
@@ -182,6 +180,9 @@ Use `grep` on your deliverables to catch:
 - If you used any external library: confirm your usage matches the documented API
 - Never rely on training-data assumptions for external packages
 
+#### Check 5: Protected Paths
+- Any deliverable touching a protected path (`**/*.env*`, `**/*.key`, `**/*.secret`, `node_modules/**`, `.git/**`) — forbidden, see @protected_paths
+
 #### Self-Review Report
 Include this in your completion summary:
 ```
@@ -238,12 +239,6 @@ Summary: Implemented JWT authentication with refresh tokens and error handling
 - Status marking is the signal that enables parallel workflow progression
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
----
-
 ## Principles
 
 - Context first, code second. Always.

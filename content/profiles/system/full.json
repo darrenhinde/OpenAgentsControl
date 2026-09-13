@@ -1,0 +1,50 @@
+{
+  "id": "full",
+  "agents": [
+    "build-agent",
+    "coder-agent",
+    "contextscout",
+    "copywriter",
+    "data-analyst",
+    "devops-specialist",
+    "documentation",
+    "eval-runner",
+    "frontend-specialist",
+    "image-specialist",
+    "openagent",
+    "opencoder",
+    "reviewer",
+    "task-manager",
+    "technical-writer",
+    "tester"
+  ],
+  "contextProfiles": [
+    "core",
+    "engineering"
+  ],
+  "commands": [
+    "add-context",
+    "analyze-patterns",
+    "clean",
+    "commit",
+    "context",
+    "optimize",
+    "prompt-enhancer",
+    "test",
+    "validate-repo",
+    "worktrees"
+  ],
+  "tools": [
+    "env",
+    "gemini"
+  ],
+  "skills": [
+    "task-management"
+  ],
+  "plugins": [
+    "notify"
+  ],
+  "config": [
+    "env-example"
+  ]
+}

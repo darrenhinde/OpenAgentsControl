@@ -3,9 +3,9 @@ description: Interactive wizard to add project patterns using Project Intelligen
 tags: [context, onboarding, project-intelligence, wizard]
 dependencies:
   - subagent:context-organizer
-  - context:core/context-system/standards/mvi.md
-  - context:core/context-system/standards/frontmatter.md
-  - context:core/standards/project-intelligence.md
+  - context:mvi
+  - context:frontmatter
+  - context:project-intelligence
 ---
 
 <context>

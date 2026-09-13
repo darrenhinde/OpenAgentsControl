@@ -18,6 +18,11 @@ build/
 out/
 *.tsbuildinfo
 
+# ...but this one is test SOURCE, not build output. The `build/` rule above matches at any
+# depth, so without this negation the canonical-build test suites are silently untracked:
+# they pass locally, never reach CI, and the gate they exist to be quietly does not exist.
+!packages/compatibility-layer/tests/unit/build/
+
 # OS generated files
 .DS_Store
 .DS_Store?

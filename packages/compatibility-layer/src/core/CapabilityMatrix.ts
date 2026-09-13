@@ -6,18 +6,50 @@
  *
  * @example
  * ```ts
- * const compatibility = analyzeCompatibility(agent, 'cursor');
+ * const compatibility = analyzeCompatibility(agent, 'claude');
  * // => { compatible: false, warnings: [...], blockers: [...] }
  * ```
  */
 
 import type { OpenAgent, ToolCapabilities } from "../types.js";
 
+/**
+ * Re-export only. The ordered-rule collapse lives in `Capabilities.ts`, which owns
+ * last-match-wins; this file is a static per-platform support matrix and must not grow a
+ * second, divergent resolver. Callers reach `degradeToBinary` here because a per-capability
+ * grant is the matrix's own question ("what survives on this platform?"), answered by the
+ * resolver rather than duplicated against it.
+ *
+ * ## Ownership (settled by subtask 07; subtask 04 flagged the overlap)
+ *
+ * `Capabilities.ts` is the sole IMPLEMENTATION — one resolver, one fail-closed projection.
+ * This module is a re-export SURFACE and nothing more: no logic, no wrapper, no defaults.
+ * The re-export is load-bearing rather than convenience —
+ * `tests/unit/build/permission-ordering.test.ts` imports `degradeToBinary` from this path by
+ * name and pins it to subtask 07, so deleting it would break a green gate. New code should
+ * prefer importing from `./Capabilities.js` directly; adapters that need the flat-list
+ * projection want `projectToFlatTools`, which is only exported there.
+ */
+export { degradeToBinary } from "./Capabilities.js";
+export type { BinaryProjection } from "./Capabilities.js";
+
 // ============================================================================
 // Types
 // ============================================================================
 
-export type Platform = "oac" | "claude" | "cursor" | "windsurf";
+/**
+ * Every platform this matrix describes.
+ *
+ * `oac` is the IR itself — the canonical source every other column is measured against — not
+ * an emitted target; it has no adapter. The rest map 1:1 onto `src/adapters/*Adapter.ts`.
+ *
+ * **`opencode` was absent from this union until 2026-07-15**, despite OpenCode being one of
+ * the two first-class targets (`07-EXECUTION-PLAN.md`) and `OpenCodeAdapter` shipping since
+ * `d100ccd`. The consequence was not cosmetic: with nowhere to be described, OpenCodeAdapter
+ * hand-wrote its own `getCapabilities()` while ClaudeAdapter derived from this table — two
+ * patterns, and the drift that follows. See {@link getToolCapabilities}.
+ */
+export type Platform = "oac" | "claude" | "opencode";
 
 /**
  * Feature categories for the capability matrix
@@ -79,73 +111,115 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "multipleAgents",
     category: "agents",
     description: "Support for multiple agent definitions",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "full" },
-    notes: { cursor: "Single .cursorrules file only - agents will be merged" },
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
   {
     name: "agentModes",
     category: "agents",
     description: "Primary/subagent mode distinction",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial" },
-    notes: { windsurf: "Limited mode support" },
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
   {
     name: "agentCategories",
     category: "agents",
     description: "Agent categorization (core, development, etc.)",
-    support: { oac: "full", claude: "partial", cursor: "none", windsurf: "partial" },
+    // Claude Code agent frontmatter has no category field — the canonical `oac.category`
+    // survives only as the directory an author happens to file the source under, and is not
+    // carried into the emitted agent at all.
+    //
+    // OpenCode strips the `oac:` block too, so `category` is likewise not a frontmatter field
+    // there — but its agents are emitted to `.opencode/agent/<category>/<name>.md`, mirroring
+    // content/agents/, so the category survives structurally and round-trips via the path.
+    // Claude's are flat (`plugins/claude-code/agents/<id>.md`), so it is lost outright.
+    support: { oac: "full", claude: "none", opencode: "full" },
+    notes: {
+      claude: "No category field in agent frontmatter — dropped on emit",
+      opencode: "Carried as the agent's directory (.opencode/agent/<category>/), not a field",
+    },
   },
 
   // Permission Features
+  //
+  // OpenCode scores "full" across this whole category for one reason: the canonical
+  // `permission:` block IS OpenCode's own field. There is no projection on that path —
+  // OpenCodeAdapter emits the rules verbatim and OpenCode resolves them last-match-wins.
+  // Every other target is measured by how much of that shape it loses.
   {
     name: "granularPermissions",
     category: "permissions",
     description: "Fine-grained allow/deny/ask patterns",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none" },
+    support: { oac: "full", claude: "none", opencode: "full" },
     notes: {
-      claude: "Binary on/off only",
-      cursor: "Binary on/off only",
-      windsurf: "Binary on/off only",
+      claude:
+        "tools/disallowedTools are flat name lists — a capability is wholly granted or " +
+        "wholly denied, so anything scoped degrades fail-closed to disallowedTools",
+    },
+  },
+  {
+    name: "orderedPermissionRules",
+    category: "permissions",
+    description: "Ordered rule lists resolved last-match-wins (deny-all-then-allowlist)",
+    // The central fact of the canonical refactor, and previously unrepresented here: the
+    // shipped agents' security posture IS the rule order (`bash: {"*": deny, "git log*":
+    // allow}`). A target scoring "none" cannot carry that shape at all, which is why
+    // Capabilities.degradeToBinary refuses it rather than picking a winning rule.
+    support: { oac: "full", claude: "none", opencode: "full" },
+    notes: {
+      claude: "No rule ordering concept — the allowlist cannot be carried, so Bash is denied",
+      opencode: "Rules keep their authored order; OpenCode resolves them last-match-wins",
     },
   },
   {
     name: "askPermissions",
     category: "permissions",
     description: "Interactive permission requests",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none" },
+    support: { oac: "full", claude: "none", opencode: "full" },
+    notes: {
+      claude: "No 'ask' in agent frontmatter — degrades to deny, never to allow",
+    },
   },
   {
     name: "pathPatterns",
     category: "permissions",
     description: "Glob patterns for file permissions",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "partial" },
+    support: { oac: "full", claude: "none", opencode: "full" },
+    notes: {
+      claude: "Tool grants carry no path scope — secret-file denies cannot be expressed",
+    },
   },
 
   // Tool Features
   {
+    name: "binaryToolGrants",
+    category: "tools",
+    description: "Flat allow/deny lists of tool names (tools / disallowedTools)",
+    // What Claude Code DOES support, stated positively — this is the entire target surface
+    // ClaudeAdapter emits into, and the matrix previously described only what was missing.
+    support: { oac: "full", claude: "full", opencode: "full" },
+  },
+  {
     name: "taskDelegation",
     category: "tools",
     description: "Agent-to-agent task delegation",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial" },
-    notes: { cursor: "No delegation support" },
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
   {
     name: "bashExecution",
     category: "tools",
     description: "Shell command execution",
-    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full" },
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
   {
     name: "fileOperations",
     category: "tools",
     description: "Read/write/edit file operations",
-    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full" },
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
   {
     name: "searchOperations",
     category: "tools",
     description: "Grep/glob search operations",
-    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full" },
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
 
   // Context Features
@@ -153,26 +227,29 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "externalContext",
     category: "context",
     description: "External context file references",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "full" },
-    notes: { cursor: "Context must be inline in .cursorrules" },
+    // Ruled 2026-07-15: the feature is external *references*; inlining bytes is degradation.
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
   {
     name: "contextPriority",
     category: "context",
     description: "Priority levels for context loading",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none" },
+    // OpenCode installs context files byte-for-byte, so the MVI header that carries the level
+    // (`<!-- Context: … | Priority: critical | … -->`) survives verbatim in .opencode/context/.
+    support: { oac: "full", claude: "none", opencode: "full" },
+    notes: { opencode: "MVI priority header survives verbatim in the installed context file" },
   },
   {
     name: "contextSubdirs",
     category: "context",
     description: "Nested context directory structure",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "full" },
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
   {
     name: "skillsSystem",
     category: "context",
     description: "Loadable skill modules",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial" },
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
 
   // Model Features
@@ -180,24 +257,25 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "modelSelection",
     category: "model",
     description: "Custom model selection",
-    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full" },
+    support: { oac: "full", claude: "full", opencode: "full" },
   },
   {
     name: "temperatureControl",
     category: "model",
     description: "Temperature parameter control",
-    support: { oac: "full", claude: "none", cursor: "partial", windsurf: "partial" },
+    // opencode "full" verified against disk: real agents carry the field
+    // (.opencode/agent/eval-runner.md, subagents/system-builder/command-creator.md).
+    support: { oac: "full", claude: "none", opencode: "full" },
     notes: {
       claude: "Temperature not configurable",
-      cursor: "Limited range",
-      windsurf: "Maps to creativity setting",
     },
   },
   {
     name: "maxSteps",
     category: "model",
     description: "Maximum execution steps limit",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none" },
+    // opencode "full" verified against disk — same agents as temperatureControl.
+    support: { oac: "full", claude: "none", opencode: "full" },
   },
 
   // Advanced Features
@@ -205,21 +283,51 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "hooks",
     category: "advanced",
     description: "Event hooks (PreToolUse, PostToolUse, etc.)",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "none" },
-    notes: { cursor: "No hook support", windsurf: "No hook support" },
+    // opencode "none": .opencode/plugin/ holds plugins (agent-validator.ts), which are a
+    // different mechanism — there is no PreToolUse/PostToolUse event surface to emit into.
+    // Matches OpenCodeAdapter's own long-standing `supportsHooks: false`.
+    support: { oac: "full", claude: "full", opencode: "none" },
+    notes: {
+      opencode: "Plugins (.opencode/plugin/) are a different mechanism, not event hooks",
+    },
   },
   {
     name: "dependencies",
     category: "advanced",
     description: "Agent dependency declarations",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial" },
+    // Claude Code agent frontmatter accepts name/description/tools/disallowedTools/model and
+    // nothing else. `oac.dependencies` is resolved at build time and then dropped; the
+    // emitted agent declares no dependencies, so "full" overstated this.
+    //
+    // OpenCode is "none" for the same reason, which is easy to miss because OpenCode is the
+    // canonical target: `dependencies` lives in the `oac:` block, and OpenCodeAdapter strips
+    // that block on emit. Being lossless about OpenCode's OWN fields does not make it
+    // lossless about OAC's.
+    support: { oac: "full", claude: "none", opencode: "none" },
+    notes: {
+      claude: "Dependencies resolve at build time; not carried in agent frontmatter",
+      opencode: "Declared in the oac: block, which is stripped on emit; resolved at build time",
+    },
   },
   {
     name: "priorityLevels",
     category: "advanced",
     description: "Task priority levels",
-    support: { oac: "full", claude: "partial", cursor: "none", windsurf: "partial" },
-    notes: { oac: "4 levels", claude: "2 levels", windsurf: "2 levels" },
+    // "2 levels" was not a Claude Code feature — nothing in agent frontmatter or the plugin
+    // format expresses task priority.
+    //
+    // FIXME(2026-07-15): this row describes a concept that does not exist. `types.ts` has only
+    // ContextPrioritySchema — CONTEXT priority — whose four levels (critical/high/medium/low)
+    // are almost certainly the "4 levels" the oac note means. There is no task-priority field
+    // anywhere in the canonical schema, which makes this row a mis-named duplicate of
+    // `contextPriority`. Left as-is deliberately: deciding whether to delete it or rename it is
+    // a separate call, and folding that into an opencode-gap fix would bury it.
+    support: { oac: "full", claude: "none", opencode: "full" },
+    notes: {
+      oac: "4 levels",
+      claude: "No task priority concept",
+      opencode: "Tracks contextPriority — see the FIXME on this row",
+    },
   },
 ];
 
@@ -440,14 +548,19 @@ export function getToolCapabilities(
 ): ToolCapabilities {
   const displayNames: Record<Exclude<Platform, "oac">, string> = {
     claude: "Claude Code",
-    cursor: "Cursor IDE",
-    windsurf: "Windsurf",
+    opencode: "OpenCode",
   };
 
   const configFormats: Record<Exclude<Platform, "oac">, ToolCapabilities["configFormat"]> = {
-    claude: "json",
-    cursor: "plain",
-    windsurf: "json",
+    // Claude Code agents are markdown files with YAML frontmatter
+    // (`plugins/claude-code/agents/<id>.md`). This row previously read "json" on the
+    // reasoning that `settings.json` is JSON — but settings.json is not what any adapter
+    // emits, and ClaudeAdapter.getCapabilities() simultaneously reported "markdown". One
+    // platform cannot have two answers about itself; the emitted artifact decides.
+    claude: "markdown",
+    // Agent files are markdown with YAML frontmatter, emitted to
+    // .opencode/agent/<category>/<name>.md.
+    opencode: "markdown",
   };
 
   const outputStructures: Record<
@@ -455,8 +568,7 @@ export function getToolCapabilities(
     ToolCapabilities["outputStructure"]
   > = {
     claude: "directory",
-    cursor: "single-file",
-    windsurf: "directory",
+    opencode: "directory",
   };
 
   return {

@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "files": {
+    ".opencode/agent/content/copywriter.md": {
+      "sha256": "44b147c69b1396872101c43d502abf8276e7129411ac659d16c7f09b8a3cbb37",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/content/technical-writer.md": {
+      "sha256": "96a24c31e2771eb7e2d0d09125cd9fc2e4469714be6cab0c3934e4225f34ba53",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/core/openagent.md": {
+      "sha256": "0ee08d580380d2c49457f61a0a9e3a6203719028804b8f808b22355f05c6504a",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/core/opencoder.md": {
+      "sha256": "a101876950b9613d7450c7c29b8d4ef3936d8f72ffb2e62c80996f98459979c8",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/data/data-analyst.md": {
+      "sha256": "d4afd3f6bcf8eeeaf6bf397aeaa32de0d60c47949a69b6d0be0324738cccfd04",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/meta/repo-manager.md": {
+      "sha256": "98861c0730bb975b79dc7bf5537fc413da81c91078053e6ffb2888a0145d619d",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/meta/system-builder.md": {
+      "sha256": "4ac001868e0146b87bb15df625c6a8d9fc74cfdfb19ff882eeedca546079bba8",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/code/build-agent.md": {
+      "sha256": "1f61e83d854c57d422a52f89c2e680bb6d601cbcce3828abf3f551b8e507b1e9",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/code/coder-agent.md": {
+      "sha256": "87bb97e02c7a6276c36785dfceb7b280af212fec26ca4fdb07e89e0439d818b2",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/code/reviewer.md": {
+      "sha256": "65bd1f8c1c7804cea7580eedfb47adac39a0da04a447b924b0979eb6d48a144b",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/code/test-engineer.md": {
+      "sha256": "a2f5a6904f7d35a7f347d47490d02320fe1dfffe2d911855faca1945328f6202",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/core/batch-executor.md": {
+      "sha256": "8d7c795b3605941dd83a6e63551238047420fc991e4b92686f64991bffc870ae",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/core/context-manager.md": {
+      "sha256": "2211bf59259c2e6a8ef3542e6a2fb826520a49f0c35e65dbdffadde60cc394ef",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/core/context-retriever.md": {
+      "sha256": "19cef5fc00434cf14061915a957480ffbaf4e3c898919ad4fac350cdf5f04527",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/core/contextscout.md": {
+      "sha256": "b3174e324c9600e1d57fcfdd3fcdb05b0f2b63c5e432ef30798a4331aaac452f",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/core/documentation.md": {
+      "sha256": "2dcfb7e65c1a24ddcd9f32a6f0568b53cf7223026eb967c578586c28cca46301",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/core/externalscout.md": {
+      "sha256": "53c8108b7e02bbf67fd8eeeb7cc31f9315d6b3a2ff8c0c4466c52dd775d499b2",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/core/stage-orchestrator.md": {
+      "sha256": "ba1f85740c72ce41a8d99c425aaceea092a00c41ba31d25e80ba65f59274c3fd",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/core/task-manager.md": {
+      "sha256": "647a9a4993aac60b441d44d5e9e93f4abdc1ecadefd29e985241bfb3a1838eb2",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/development/devops-specialist.md": {
+      "sha256": "f6dc9bbccb154e78e9efe62f1576dbd353d968f6512b7043c170661fa56e8dde",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/development/frontend-specialist.md": {
+      "sha256": "b404eafe11b46cdab04e75fad9a99ee58ee864e60a82e1a655f4644146194deb",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/planning/adr-manager.md": {
+      "sha256": "dce68ca574f628e885df344f44b9b68a98dcf605a155918fbc0b1986c23653e2",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/planning/architecture-analyzer.md": {
+      "sha256": "277d1997d76e4b4f9f09e658bb2a208bc75b32819f20621401f4d7461fa9085c",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/planning/contract-manager.md": {
+      "sha256": "dcc46cb16ce8a56263b4a9ddc36bf605d4b00dbe664819d82e2d7d8573c16fb3",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/planning/prioritization-engine.md": {
+      "sha256": "0622e2fbce7b0def55b34ccb6296c2c12fca68794a2801a870ca36fd49033ebf",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/planning/story-mapper.md": {
+      "sha256": "0cd1bbcc6f0186c02ff3d4c0e44718ba720d280b1d1341d3ffbb18dedd66b98c",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/system-builder/agent-generator.md": {
+      "sha256": "20aff495f9a4c5b1c5612d559e6cb35412c30b61516d8c158e0b24d751778a5c",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/system-builder/command-creator.md": {
+      "sha256": "60a707fa7a4d0f134810d619bf88e5a1d0a031138fa20f322f49e4512b462e8c",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/system-builder/context-organizer.md": {
+      "sha256": "fbcf3dd6d5a6ea26a48be0d9820a59b801661be06456d67a0423579a24eb0047",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/system-builder/domain-analyzer.md": {
+      "sha256": "0a42eb8c7c333d910b5bba56453416b2f80fc32f9015a9386b88d0e544209aa7",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/system-builder/workflow-designer.md": {
+      "sha256": "2e11d4d8165a273ae33fa1ea344737a5ea18ee35f1aa7e52ea4bc5990a522c3f",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/test/simple-responder.md": {
+      "sha256": "4303627dfd026111d6dbd2817902e896afbf6ac9cf5a91a363a33f5198508b60",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".opencode/agent/subagents/utils/image-specialist.md": {
+      "sha256": "fbaaf41e46fc5ffe9028639892532cabbf3a854e40835ecb01b6e45d34541a9d",
+      "target": "opencode",
+      "root": ".opencode/agent"
+    },
+    ".tmp/oac-build/plugins/claude-code/agents/code-reviewer.md": {
+      "sha256": "5a6f85a83ff22b90e154c3b53f601850a9f6bb4a2d6c828eabfc007c374eeea5",
+      "target": "claude-code",
+      "root": ".tmp/oac-build/plugins/claude-code/agents"
+    },
+    ".tmp/oac-build/plugins/claude-code/agents/coder-agent.md": {
+      "sha256": "f9a95528bac2a77fea6dcd12a4dac88f076c236acafd45ece4ec34651428baf0",
+      "target": "claude-code",
+      "root": ".tmp/oac-build/plugins/claude-code/agents"
+    },
+    ".tmp/oac-build/plugins/claude-code/agents/context-manager.md": {
+      "sha256": "8d0837575c3875dba08fe76276080b89abd7447eaafa2ef923da3984d343179c",
+      "target": "claude-code",
+      "root": ".tmp/oac-build/plugins/claude-code/agents"
+    },
+    ".tmp/oac-build/plugins/claude-code/agents/context-scout.md": {
+      "sha256": "0656a63f76e70431a16a797d398007498fb41fdbc1c0fbcf8d0f88a311bb6056",
+      "target": "claude-code",
+      "root": ".tmp/oac-build/plugins/claude-code/agents"
+    },
+    ".tmp/oac-build/plugins/claude-code/agents/external-scout.md": {
+      "sha256": "de921f643ffaa8a11148da2a8d70120e1ab694d054a6b499b033f0552f1d0181",
+      "target": "claude-code",
+      "root": ".tmp/oac-build/plugins/claude-code/agents"
+    },
+    ".tmp/oac-build/plugins/claude-code/agents/task-manager.md": {
+      "sha256": "b74bd22e51b9566752e5d4debc3a49cfe39a58debe3d0e1671e2556e17cf2281",
+      "target": "claude-code",
+      "root": ".tmp/oac-build/plugins/claude-code/agents"
+    },
+    ".tmp/oac-build/plugins/claude-code/agents/test-engineer.md": {
+      "sha256": "8e0cc825358255957173783972774d353313e883f89d10699dba3042b600ff31",
+      "target": "claude-code",
+      "root": ".tmp/oac-build/plugins/claude-code/agents"
+    },
+    "registry.json": {
+      "sha256": "a8423297c682f19c10e53b939de91fd4df83d7e7773b6df80bbe3631f53bd996",
+      "target": "registry",
+      "root": "registry.json"
+    }
+  }
+}

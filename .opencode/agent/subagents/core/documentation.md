@@ -83,10 +83,6 @@ task(subagent_type="ContextScout", description="Find documentation standards", p
 3. **Apply** formatting, structure, and tone standards to your writing
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
 ---
 
 ## What NOT to Do
@@ -99,10 +95,6 @@ task(subagent_type="ContextScout", description="Find documentation standards", p
 - ❌ **Don't ignore existing style** — match what's already there
 
 ---
-# OpenCode Agent Configuration
-# Metadata (id, name, category, type, version, author, tags, dependencies) is stored in:
-# .opencode/config/agent-metadata.json
-
   <context_first>ContextScout before any writing — consistency requires knowing the standards</context_first>
   <propose_first>Always propose before writing — documentation changes need sign-off</propose_first>
   <concise>Scannable in <30 seconds — if not, it's too long</concise>
