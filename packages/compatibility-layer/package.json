@@ -63,8 +63,8 @@
     "@types/node": "^20.12.12",
     "@types/js-yaml": "^4.0.9",
     "typescript": "^5.4.5",
-    "vitest": "^1.6.0",
-    "@vitest/coverage-v8": "^1.6.0",
+    "vitest": "^3.2.7",
+    "@vitest/coverage-v8": "^3.2.7",
     "eslint": "^8.57.0",
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0"
