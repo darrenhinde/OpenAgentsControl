@@ -140,7 +140,9 @@ describe("validate-registry.sh blind spots", () => {
       "essential",
       "full",
     ]);
-    expect(profileRefs.length).toBeGreaterThan(200);
+    // A floor, not an exact count: profiles legitimately shrink (agent-metadata retired,
+    // maintainer-only context dropped from user profiles took it from 209 to 197).
+    expect(profileRefs.length).toBeGreaterThan(150);
 
     // The dead spelling was authored ONLY in a profile — no component depended on it — so a
     // validator that walks components alone could not reach it by any path. That is how it
