@@ -1,0 +1,41 @@
+# Approval source 3: the host's own plan mode. CC: PostToolUse on ExitPlanMode writes the record
+# (unverified, 05 §2.3). OC: leaving the oac-plan agent writes it. Codex: no verified plan mode.
+id: intent/approved-via-plan-mode
+title: Exiting host plan mode counts as approval
+area: gates
+gate: intent
+kind: capability
+layer: L2
+release: v1.4
+runner: host
+hosts: [claude-code, opencode-v2]
+fixture: ts-single
+profile: team
+agent:
+  claude-code: { permission_mode: plan }        # claude -p --permission-mode plan
+  opencode-v2: oac-plan
+asks: approve                    # the plan-exit approval is the human's "yes"
+script:
+  - call: read
+    path: src/a.ts
+  - call: plan_exit              # CC: ExitPlanMode{plan}; OC: runner switches the session to the build agent
+    plan: "Add export b to src/a.ts. Files: src/a.ts."
+  - call: edit
+    path: src/a.ts
+    old: "export const a = 1;"
+    new: "export const a = 1;\nexport const b = 2;"
+  - call: done
+levels:
+  claude-code: { level: enforced, verified: false, note: "plan-exit capture unverified" }
+  opencode-v2: { level: enforced, verified: false }
+when_enforced: allowed           # the edit after plan exit lands
+outcome:
+  - approval_recorded: { source: plan-mode }
+  - file_contains: { path: src/a.ts, text: "export const b" }
+  - asks_count: { max: 1 }       # the plan-exit approval only
+control:                         # without the capture hook, the edit is blocked: proves the capture is what unlocked it
+  disable: intent-capture
+  expect: blocked
+today:
+  claude-code: { status: known-red, ref: v1.4, ev: O }
+  opencode-v2: { status: known-red, ref: v1.4, ev: O, note: "no oac-plan agent emitted yet" }

@@ -1,0 +1,26 @@
+id: load/delegate-by-id
+title: Delegating with the emitted ID runs the subagent
+area: load
+kind: capability
+layer: L2
+release: v1.2
+runner: host
+hosts: [opencode-v2, claude-code]
+fixture: oac-tree
+agent:
+  opencode-v2: "${id.openagent}"                 # core/openagent today, openagent after #362
+  claude-code: main
+script:
+  - call: delegate
+    agent: { opencode-v2: "${id.contextscout}", claude-code: "oac:context-scout" }
+    prompt: "DELEGATED-TASK list context files"
+  - call: done
+subagents:                                       # the mock recognises a subagent session by the DELEGATED-TASK marker
+  "*":
+    - call: done
+outcome:
+  - subagent_completed                           # OC: tool_result <subagent … state="completed">; CC: Task tool_result
+control: none
+today:
+  opencode-v2: { status: pass, ev: F, note: "subagents/core/contextscout resolves (07 Appendix A)" }
+  claude-code: { status: unknown, ev: O, note: "07: cc/subagent-dispatch to build" }

@@ -1,0 +1,21 @@
+id: load/oc-flat-ids
+title: Agents boot under their canonical flat IDs
+area: load
+kind: regression
+layer: L1
+release: v1.2
+runner: host
+hosts: [opencode-v2]
+fixture: oac-tree
+matrix:
+  agent_id: [openagent, opencoder, contextscout, externalscout, coder-agent, tester, reviewer, build-agent, task-manager]
+agent:
+  opencode-v2: "${agent_id}"
+script:
+  - call: say
+    text: "hi"
+outcome:
+  - agent_booted                                 # not {"type":"error",…"Agent not found"}
+control: none
+today:
+  opencode-v2: { status: known-red, ref: "#362", ev: F, note: "all 34 IDs are path-derived (core/openagent)" }

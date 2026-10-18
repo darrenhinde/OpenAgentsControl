@@ -1,0 +1,22 @@
+# T2b. #349: on v2 a permission block ending in "*": deny after allows hides the whole tool.
+id: load/oc-tools-visible
+title: Every agent is offered the tools its permissions allow
+area: load
+kind: regression
+layer: L1
+release: v1.2
+runner: host
+hosts: [opencode-v2]
+fixture: oac-tree               # a copy of the emitted .opencode/ tree (07 §3.3), under $TMPDIR
+for_each_agent: true            # one run per emitted agent: opencode run --standalone --agent <id> "hi" </dev/null
+script:
+  - call: say
+    text: "hi"
+    check:
+      ignore_requests: title-generator          # OC's first request has tools: []
+      tools_offered_superset_of: "${agent.expected_tools}"   # keys with any allow + policy grants (+ expectTools override)
+outcome:
+  - all_agents_checked
+control: none
+today:
+  opencode-v2: { status: known-red, ref: "#349", ev: F, note: "12/34: shell hidden on build-agent, test-engineer, context-manager; subagent hidden on 9 more" }

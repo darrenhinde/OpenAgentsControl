@@ -1,0 +1,32 @@
+id: freshness/stop-nudge-once
+title: Stop nudges once when an area changed but its context didn't
+area: gates
+gate: freshness
+kind: capability
+layer: L2
+release: v1.4
+runner: host
+hosts: [claude-code, codex]      # OC has no Stop; see freshness/oc-toast-and-pre-push
+fixture: ts-go-py-monorepo
+profile: team                    # freshness: warn; min_changed_files: 3
+setup:
+  - approve: { plan: specs/003/plan.md, files: ["packages/api/**"] }
+script:
+  - repeat: 6
+    call: edit
+    path: "packages/api/src/f${i}.ts"
+    old: "// ${i}"
+    new: "// ${i} changed"
+  - call: done
+  - call: done                   # second stop arrives with stop_hook_active: must be let through
+    check: { request_contains: "packages/api/AGENTS.md unchanged" }
+levels:
+  claude-code: nudge             # Stop block once, then allow
+  codex: { level: nudge, verified: false }
+when_nudge: nudged
+outcome:
+  - stop_blocks: { count: 1 }
+  - nudge_logged: { gate: freshness, area: api }
+control: "nudges twice (loop)"   # a hook that ignores stop_hook_active must fail this
+today:
+  claude-code: { status: known-red, ref: v1.4, ev: O }

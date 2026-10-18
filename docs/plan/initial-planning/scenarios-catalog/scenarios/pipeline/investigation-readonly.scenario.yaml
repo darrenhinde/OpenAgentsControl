@@ -1,0 +1,45 @@
+# D-009: read-only work uses each host's own plan mode; the intent gate is the enforced form.
+id: pipeline/investigation-readonly
+title: An investigation stays read-only
+area: pipeline
+kind: capability
+layer: L2
+release: v1.4
+runner: host
+hosts: [claude-code, opencode-v2, codex]
+fixture: ts-single
+profile: team
+agent:
+  claude-code: { permission_mode: plan }
+  opencode-v2: oac-plan
+  codex: { sandbox: read-only }
+asks: reject
+script:
+  - call: read
+    path: src/a.ts
+  - call: grep
+    pattern: "export"
+    path: src
+  - call: shell
+    command: "git log -5 --oneline"
+  - call: write
+    path: .oac/work/inv-1/research.md
+    content: "Root cause: src/a.ts line 1"
+  - call: edit
+    path: src/a.ts
+    old: "export const a = 1;"
+    new: "export const a = 2;"
+  - call: done
+levels:
+  claude-code: enforced          # native plan mode [F†] + intent gate
+  opencode-v2: enforced
+  codex: { level: enforced, verified: false }
+expect_steps: [allowed, allowed, allowed, allowed, blocked]
+outcome:
+  - file_unchanged: src/a.ts
+  - file_present: .oac/work/inv-1/research.md
+  - source_writes: { max: 0 }
+control: lands
+today:
+  claude-code: { status: unknown, ev: O, note: "native plan mode should block the edit; the .oac/work write may also be blocked (to check)" }
+  opencode-v2: { status: known-red, ref: v1.4, ev: O, note: "no oac-plan agent emitted" }

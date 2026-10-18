@@ -1,0 +1,29 @@
+id: today/contextscout-readonly
+title: ContextScout is read-only on both hosts
+area: today
+kind: regression
+layer: L1
+release: v1.2
+runner: host
+hosts: [opencode-v2, claude-code]
+fixture: oac-tree
+agent:
+  opencode-v2: "${id.contextscout}"
+  claude-code: "oac:context-scout"
+script:
+  - call: say
+    text: "hi"
+    check:
+      tools_offered_superset_of: [read, grep, glob]
+      tools_offered_disjoint_from: [write, edit, shell, subagent, webfetch]
+  - call: write                  # only issued if the host offered write anyway; else the step is skipped as passed
+    path: x.txt
+    content: "x"
+    if_offered: true
+  - call: done
+outcome:
+  - file_absent: x.txt
+control: none
+today:
+  opencode-v2: { status: unknown, ev: F, note: "frontmatter: read/grep/glob allow; bash/edit/write/task deny" }
+  claude-code: { status: unknown, ev: F, note: "frontmatter: tools Read, Glob, Grep; disallowedTools Write, Edit, Bash, WebFetch, Task" }
