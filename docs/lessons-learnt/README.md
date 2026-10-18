@@ -7,6 +7,7 @@ This folder records the product decisions behind OpenAgentsControl and the lesso
 | [decisions.md](decisions.md) | Product decisions: what was decided, when, why, and what it rules out. Newest last. |
 | [lessons.md](lessons.md) | Engineering and process lessons: what went wrong or surprised us, and the rule we now follow. |
 | [../NORTH_STAR.md](../NORTH_STAR.md) | What OAC is, why it matters and how it works. Every decision here should serve it. |
+| [../plan/ROADMAP.md](../plan/ROADMAP.md) | The living plan: status, next steps and releases. Map of all planning docs: [../plan/README.md](../plan/README.md). |
 
 ## Adding an entry
 
