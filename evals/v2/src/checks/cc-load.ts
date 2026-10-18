@@ -1,6 +1,7 @@
-import { cpSync } from "node:fs";
+import { cpSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { CheckDef, CheckOutcome, RunContext } from "../core/types.ts";
+import { lintCcAgentExamples } from "../lints/cc-agent-examples.ts";
 import { isoEnv, makeIsoDirs, runIsolated, safePath } from "../sandbox/env.ts";
 import { cachedWhich, lastLine } from "./helpers.ts";
 
@@ -42,7 +43,28 @@ function validate(id: string, what: "plugin" | "marketplace"): CheckDef {
   };
 }
 
+/** L0: each shipped Claude agent keeps its <example> dispatch blocks (lost in 104356a). */
+const agentDispatchExamples: CheckDef = {
+  id: "cc/agent-dispatch-examples",
+  area: "cc-load",
+  layer: "L0",
+  tier: "quick",
+  run: (ctx: RunContext): Promise<CheckOutcome> => {
+    const dir = join(ctx.repo, "plugins", "claude-code", "agents");
+    const files = readdirSync(dir).filter((f) => f.endsWith(".md")).map((f) => ({ name: f, text: readFileSync(join(dir, f), "utf8") }));
+    const res = lintCcAgentExamples(files);
+    for (const f of res.missing) ctx.log(`MISSING <example>: plugins/claude-code/agents/${f}`);
+    ctx.log(`${res.withExamples}/${res.total} agents have <example> blocks`);
+    return Promise.resolve({
+      ok: res.missing.length === 0,
+      summary: `${res.withExamples}/${res.total} Claude agents have <example> blocks`,
+      metrics: { agents: res.total, withExamples: res.withExamples },
+    });
+  },
+};
+
 export const ccLoadChecks: CheckDef[] = [
   validate("cc/plugin-validate", "plugin"),
   validate("cc/marketplace-validate", "marketplace"),
+  agentDispatchExamples,
 ];

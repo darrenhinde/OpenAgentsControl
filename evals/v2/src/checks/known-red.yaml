@@ -11,3 +11,23 @@ cc/marketplace-validate:
   ref: "v1.1"
   until: "v1.1"
   note: "claude plugin validate --strict rejects the unknown marketplace field `categories`"
+
+gates/no-hidden-tools:
+  ref: "#349"
+  until: "v1.1"
+  note: "permission blocks end in \"*\": deny after allows, so OpenCode hides the whole tool"
+
+gates/subagent-keys-exist:
+  ref: "#362"
+  until: "v1.2"
+  note: "task keys and subagent_type strings name display names (ContextScout), not v2 path IDs"
+
+oc/no-v1-artifacts:
+  ref: "#367"
+  until: "v1.2"
+  note: ".opencode/tool/** and v1 @opencode-ai/plugin modules never load on OpenCode v2"
+
+cc/agent-dispatch-examples:
+  ref: "v1.1"
+  until: "v1.1"
+  note: "shipped Claude agents lost their <example> dispatch blocks in 104356a"
