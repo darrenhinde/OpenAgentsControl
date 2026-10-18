@@ -1,0 +1,22 @@
+{
+  "name": "@controlstack/evals-v2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Maintainer-only local test suite: pnpm test:local [quick|hosts|live|all]",
+  "scripts": {
+    "test:local": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "yaml": "2.8.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "tsx": "4.23.0",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

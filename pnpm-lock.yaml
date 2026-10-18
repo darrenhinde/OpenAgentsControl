@@ -52,6 +52,28 @@ importers:
         specifier: ^3.2.7
         version: 3.2.7(@types/node@20.19.43)
 
+  evals/v2:
+    dependencies:
+      yaml:
+        specifier: 2.8.1
+        version: 2.8.1
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: 20.19.43
+        version: 20.19.43
+      tsx:
+        specifier: 4.23.0
+        version: 4.23.0
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 3.2.7
+        version: 3.2.7(@types/node@20.19.43)
+
   packages/cli:
     dependencies:
       '@controlstack/compatibility-layer':

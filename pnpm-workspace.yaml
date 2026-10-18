@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - evals/framework
+  - evals/v2
 
 sharedWorkspaceLockfile: true
 minimumReleaseAge: 4320

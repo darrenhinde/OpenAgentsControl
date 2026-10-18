@@ -1,0 +1,13 @@
+# Known-red checks: failing today on purpose, each tracked by an issue or a release.
+# A known-red row shows ✗ in the table but does not fail the run (unless --strict).
+# A known-red row that PASSES fails the run ("fixed? remove it from here"): strict xfail.
+#
+# <check id>:
+#   ref:   issue or release that turns it green
+#   until: release by which it must be green
+#   note:  one line, what is wrong today
+
+cc/marketplace-validate:
+  ref: "v1.1"
+  until: "v1.1"
+  note: "claude plugin validate --strict rejects the unknown marketplace field `categories`"

@@ -40,6 +40,7 @@
     "access": "public"
   },
   "scripts": {
+    "test:local": "pnpm --filter @controlstack/evals-v2 exec tsx src/cli.ts",
     "test": "pnpm run test:all",
     "test:all": "pnpm --dir evals/framework run eval:sdk",
     "test:core": "pnpm run test:openagent:core",

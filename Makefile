@@ -7,7 +7,7 @@ OWNER := darrenhinde
 
 .PHONY: help idea ideas board labels project-info issue-view issue-comment issue-close bug feature
 .PHONY: test-evals test-golden test-smoke test-verbose build-evals validate-evals
-.PHONY: build-canonical check-canonical-drift oac-cli
+.PHONY: build-canonical check-canonical-drift oac-cli test-local
 
 help: ## Show this help message
 	@echo "OpenAgents GitHub Project Management"
@@ -276,3 +276,9 @@ show-results: ## Show latest test results summary
 	else \
 		echo "No results found. Run 'make test-golden' first."; \
 	fi
+
+# The local suite (evals/v2): every deterministic check, plus real hosts against a fake model
+# under the sandbox for TIER=hosts. Same as `pnpm test:local $(TIER)`. Results: .tmp/test-runs/latest/
+TIER ?= quick
+test-local: ## Run the local suite (TIER=quick|hosts; ARGS="--only build/")
+	@pnpm test:local $(TIER) $(ARGS)
