@@ -5,7 +5,8 @@ import { contextChecks } from "./context.ts";
 import { evalsChecks } from "./evals.ts";
 import { gatesChecks } from "./gates.ts";
 import { installerChecks, installerNetworkChecks } from "./installer.ts";
-import { ocLoadStaticChecks } from "./oc-load.ts";
+import { ocLoadHostChecks, ocLoadStaticChecks } from "./oc-load.ts";
+import { scenarioChecks } from "./scenarios.ts";
 
 // Table order is fixed by AREAS; run order is this list (builds first: later rows reuse them).
 export const allChecks: CheckDef[] = [
@@ -17,4 +18,7 @@ export const allChecks: CheckDef[] = [
   ...installerChecks,
   ...installerNetworkChecks,
   ...evalsChecks,
+  // hosts tier: the OpenCode config-sources self-test runs before any scenario
+  ...ocLoadHostChecks,
+  ...scenarioChecks,
 ];
