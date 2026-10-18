@@ -62,3 +62,14 @@ Format: **What happened** · **Lesson** · **Rule now**. Newest last.
 
 - **What happened:** zsh treated `=====` as a command lookup and `$c:r` as a path modifier, breaking ad-hoc commands mid-run.
 - **Rule now:** suite scripts are `bash` with `set -u`. Quote and brace variables (`"${c}:path"`), and don't use bare `=` separators.
+
+## L-011 Building the local suite: what the sandbox work turned up
+
+- **What happened:** building `pnpm test:local` (evals/v2) on this Mac hit five surprises.
+  - A content-hash snapshot of `~/.claude` would itself read the maintainer's config. The live Claude Code session also rewrites `~/.claude.json` every few seconds, so any snapshot including it reports a false breach.
+  - `opencode debug config` has no `--standalone`. It works only through a managed service, so the self-test starts a private service on a free port inside the throwaway HOME and stops it in a `finally`. A service left by an earlier planning probe (port 49999) was still running over an hour later.
+  - OpenCode v2.0.30 needed no provider download: `@ai-sdk/openai-compatible` resolved with an empty per-run cache and no network, so no shared package cache is needed.
+  - The plan's counts were slightly off once measured: 33/34 agent IDs are path-derived, because `eval-runner.md` sits at the top level, and there are 107 unresolved subagent references, because task keys count as well as prompt strings.
+  - `pnpm --filter <pkg> exec` prints `undefined` and `ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL` whenever the suite exits non-zero, which buries the table. `pnpm --dir evals/v2 exec` doesn't.
+- **Lesson:** isolation checks must not become the leak. Measured numbers beat planned ones.
+- **Rule now:** outside-file snapshots use `lstat` only and skip files live sessions churn. Every service a test starts is stopped in a `finally` and checked afterwards. Known-red rows quote the measured count, never the plan's.

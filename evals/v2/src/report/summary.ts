@@ -59,7 +59,7 @@ export function renderSummary(h: SummaryHeader, rows: CheckRow[], wallMs: number
   if (fails.length) {
     L.push("");
     L.push("UNEXPECTED FAILURES");
-    for (const r of fails) L.push(line(r, r.summary ?? "failed", ""));
+    for (const r of fails) L.push(line(r, r.summary ?? "failed", r.known?.ref ?? ""));
   }
   const fixed = rows.filter((r) => r.status === "fixed");
   if (fixed.length) {
