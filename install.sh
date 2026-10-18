@@ -46,7 +46,9 @@ fi
 # Configuration
 REPO_URL="https://github.com/darrenhinde/OpenAgentsControl"
 BRANCH="${OPENCODE_BRANCH:-main}"  # Allow override via environment variable
-RAW_URL="https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/${BRANCH}"
+# OAC_RAW_URL overrides where component files are fetched from, e.g. file:///path/to/checkout
+# or http://127.0.0.1:8000 for installer tests against a local tree (D-014). Default unchanged.
+RAW_URL="${OAC_RAW_URL:-https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/${BRANCH}}"
 
 # Registry URL - supports local fallback for development
 # Priority: 1) REGISTRY_URL env var, 2) Local registry.json, 3) Remote GitHub
@@ -1410,6 +1412,7 @@ main() {
                 echo -e "${BOLD}Environment Variables:${NC}"
                 echo "  OPENCODE_INSTALL_DIR      Installation directory"
                 echo "  OPENCODE_BRANCH           Git branch to install from (default: main)"
+                echo "  OAC_RAW_URL               Base URL for component files (default: GitHub raw for the branch)"
                 echo ""
                 echo -e "${BOLD}Examples:${NC}"
                 echo ""
