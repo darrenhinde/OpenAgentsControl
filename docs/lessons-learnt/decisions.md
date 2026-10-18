@@ -87,6 +87,18 @@ Format: **Decision** · **Why** · **Rules out** · **Revisit when**. Newest las
 - **Decision:** add an `OAC_RAW_URL` override to `install.sh` so installer tests can run against the local branch instead of the pushed GitHub branch.
 - **Why:** installer e2e tests only ever tested what was already pushed.
 
+## D-015 Guarded, not locked: protecting OAC's own controls
+
+- **Decision:** OAC defends its own flow without making itself hard to work with.
+  - **OAC's control files** (`oac.policy`, `.claude/settings.json`, `opencode.json`, `.oac/**`) are *guarded, not locked*. An agent editing them triggers an **ask** with a plain explanation, not a hard deny. Agents can update config through a path the user grants: a dedicated config agent, or a one-time permission. Every change is logged and shown in `oac report`. A hard lock applies only if the user sets it in their policy.
+  - **Approval only from a human.** An agent writing `Approved-by:` into its own plan doesn't count. Approval comes from host plan-mode approval or `/oac approve` typed by the user.
+  - **Re-approve after a failed test.** In `verify.on_fail: report` mode, a red verifier re-arms the intent gate: report, then approval, then the fix.
+  - **Tests can't vanish.** The verifier records how many tests ran. A drop in that count (deleted or skipped tests) counts as a failure unless the user approves it.
+- **Why:** the scenario catalogue found that an agent could switch off its own gates, approve itself, auto-fix in report mode, or delete tests to go green. The maintainer wants these limited as far as practical, not made impossible at the cost of usability: "We can't fully guard against it but we should limit it as much as possible… lets not get too strict with permissions, unless stated by the user."
+- **Focus:** the main goal is the coding harness and its controlled flow (approve, work in scope, verify, report). Extra permissions serve that flow; they don't replace it.
+- **Rules out:** hard-denying config edits by default; anything that blocks normal config work without a clear way for the user to allow it.
+- **Revisit when:** `oac report` shows config-edit asks are being rubber-stamped, or a real bypass is reported.
+
 ---
 
 ## Open decisions
