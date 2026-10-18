@@ -31,3 +31,18 @@ cc/agent-dispatch-examples:
   ref: "v1.1"
   until: "v1.1"
   note: "shipped Claude agents lost their <example> dispatch blocks in 104356a"
+
+oc/agents-tools-visible:
+  ref: "#349"
+  until: "v1.1"
+  note: "on real OpenCode v2 agents lose shell/subagent despite allow rules (trailing \"*\": deny)"
+
+oc/flat-ids:
+  ref: "#362"
+  until: "v1.2"
+  note: "v2 agent IDs are path-derived (core/openagent); the canonical flat names don't resolve"
+
+scn/delegate-by-name@opencode-v2:
+  ref: "#362"
+  until: "v1.2"
+  note: "delegating with the display name ContextScout fails on v2: Unknown agent"

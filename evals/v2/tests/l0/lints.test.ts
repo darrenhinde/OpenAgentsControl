@@ -70,3 +70,11 @@ describe("cc/agent-dispatch-examples", () => {
     expect(r).toEqual({ total: 2, withExamples: 1, missing: ["b.md"] });
   });
 });
+
+describe("T2 expected tool set", async () => {
+  const { expectedTools } = await import("../../src/checks/oc-agents.ts");
+  it("expects every v2 action that has an allow rule", () => {
+    const t = agent("a.md", 'permission:\n  bash:\n    "tsc": allow\n    "*": deny\n  edit: deny\n  webfetch: allow\n  task:\n    "*": deny').text;
+    expect(expectedTools(t)).toEqual(["shell", "webfetch"]);
+  });
+});

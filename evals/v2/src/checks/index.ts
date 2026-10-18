@@ -5,6 +5,7 @@ import { contextChecks } from "./context.ts";
 import { evalsChecks } from "./evals.ts";
 import { gatesChecks } from "./gates.ts";
 import { installerChecks, installerNetworkChecks } from "./installer.ts";
+import { delegateChecks, ocAgentsChecks } from "./oc-agents.ts";
 import { ocLoadHostChecks, ocLoadStaticChecks } from "./oc-load.ts";
 import { scenarioChecks } from "./scenarios.ts";
 
@@ -20,5 +21,7 @@ export const allChecks: CheckDef[] = [
   ...evalsChecks,
   // hosts tier: the OpenCode config-sources self-test runs before any scenario
   ...ocLoadHostChecks,
+  ...ocAgentsChecks,
   ...scenarioChecks,
+  ...delegateChecks,
 ];

@@ -34,6 +34,11 @@ export interface FakeModelOptions {
   canaries?: Record<string, string>;
   /** The run's dummy keys. Any other credential is an auth-shape violation. */
   expectedAuth?: { anthropicKey?: string; openaiKey?: string };
+  /**
+   * Requests whose first user message contains this marker belong to a delegated sub-session:
+   * they get a plain "Done." and never replay the script (else a delegate turn would recurse).
+   */
+  subSessionMarker?: string;
 }
 
 export type AuthShape = 'dummy' | 'absent' | 'unexpected';
@@ -46,6 +51,8 @@ export interface RequestRecord {
   auth: { header: string; shape: AuthShape; hint?: string }[];
   tools: string[];
   title: boolean;
+  /** A delegated sub-session request (see FakeModelOptions.subSessionMarker). */
+  sub: boolean;
   turn: number;
   action: string;
   toolResults: string[];
@@ -144,6 +151,8 @@ export async function startFakeModel(opts: FakeModelOptions = {}): Promise<FakeM
     const messages = arr(body.messages);
     const tools = arr(body.tools);
     const title = titleRequest(raw);
+    const firstUser = messages.find((m) => isObj(m) && m.role === 'user');
+    const sub = opts.subSessionMarker !== undefined && isObj(firstUser) && str(firstUser.content).includes(opts.subSessionMarker);
     const rec: RequestRecord = {
       t: Date.now(),
       api,
@@ -152,6 +161,7 @@ export async function startFakeModel(opts: FakeModelOptions = {}): Promise<FakeM
       auth,
       tools: tools.map((t) => (isObj(t) ? (isObj(t.function) ? str(t.function.name) : str(t.name)) : '')),
       title,
+      sub,
       turn: 0,
       action: 'text',
       toolResults: [],
@@ -181,7 +191,7 @@ export async function startFakeModel(opts: FakeModelOptions = {}): Promise<FakeM
       const assistantCalls = messages.filter((m) => isObj(m) && m.role === 'assistant' && arr(m.tool_calls).length > 0).length;
       rec.toolResults = messages.filter((m) => isObj(m) && m.role === 'tool').map((m) => (isObj(m) ? str(m.content).slice(0, 400) : ''));
       rec.turn = assistantCalls;
-      const step = title ? undefined : script[assistantCalls];
+      const step = title || sub ? undefined : script[assistantCalls];
       const toolName = step ? NEUTRAL_TO_HOST[step.call].openai : undefined;
       const tool = tools.find((t) => isObj(t) && isObj(t.function) && t.function.name === toolName);
       const base = { id: 'c1', object: 'chat.completion.chunk', created: 0, model: str(body.model) };
@@ -212,7 +222,7 @@ export async function startFakeModel(opts: FakeModelOptions = {}): Promise<FakeM
       if (m.role === 'user') for (const b of blocks) if (b.type === 'tool_result') rec.toolResults.push(str(b.content).slice(0, 400));
     }
     rec.turn = assistantCalls;
-    const step = title ? undefined : script[assistantCalls];
+    const step = title || sub ? undefined : script[assistantCalls];
     const toolName = step ? NEUTRAL_TO_HOST[step.call].anthropic : undefined;
     const tool = tools.find((t) => isObj(t) && t.name === toolName);
     const act = step !== undefined && isObj(tool);

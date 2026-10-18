@@ -72,23 +72,33 @@ export async function runHost(
     const dec = join(dirs.work, ".oac", "logs", "decisions.jsonl");
     if (existsSync(dec)) copyFileSync(dec, join(art, "decisions.jsonl"));
 
-    // Safety: decoys never surface (requests, host output, anything the host wrote).
-    const decoys = canaries.decoys;
-    for (const q of mock.requests) for (const n of q.canaryHits) if (n !== "target") ledger.canaryLeaks.push(`${o.name}: decoy ${n} reached the model (${q.url})`);
-    for (const [n, v] of Object.entries(decoys)) if (r.out.includes(v)) ledger.canaryLeaks.push(`${o.name}: decoy ${n} in host output`);
-    const planted = new Set(Object.keys(decoyHashes));
-    for (const h of [...scanDir(dirs.home, decoys, planted), ...scanDir(dirs.work, decoys, planted)]) ledger.canaryLeaks.push(`${o.name}: decoy ${h.names.join(",")} in ${h.file}`);
-    for (const [p, h] of Object.entries(decoyHashes)) if (!existsSync(p) || sha(p) !== h) ledger.canaryLeaks.push(`${o.name}: decoy file changed: ${p}`);
-    // Safety: auth shape. Only the run's dummy key, and only in the header its API uses.
-    for (const q of mock.requests) {
-      for (const a of q.auth) if (a.shape === "unexpected") ledger.authViolations.push(`${o.name}: ${a.header} carried a non-dummy credential (${a.hint ?? "?"})`);
-      const key = q.api === "openai" ? q.auth.find((a) => a.header === "authorization") : q.auth.find((a) => a.header === "x-api-key");
-      if (q.api !== "other" && key?.shape !== "dummy") ledger.authViolations.push(`${o.name}: ${q.api} request without the run's dummy key (${key?.header}: ${key?.shape})`);
-    }
+    auditHostRun(o.name, mock, canaries, decoyHashes, dirs, r.out);
     for (const q of mock.requests) if (q.action === "unhandled") ctx.log(`mock: unhandled request ${q.url}`);
     return { out: r.out, code: r.code, mock, dirs, canaries, artifacts: art };
   } finally {
     await mock.stop();
+  }
+}
+
+/**
+ * The safety checks that hold for EVERY host run: decoy canaries never appear anywhere (requests,
+ * host output, files the host wrote), the planted decoys are unchanged, and the only credential
+ * the model ever sees is the run's dummy key in the header its API uses.
+ */
+export function auditHostRun(name: string, mock: FakeModel, canaries: Canaries, decoyHashes: Record<string, string>, dirs: IsoDirs, out: string): void {
+  const ledger = safetyLedger();
+  // Safety: decoys never surface (requests, host output, anything the host wrote).
+  const decoys = canaries.decoys;
+  for (const q of mock.requests) for (const n of q.canaryHits) if (n !== "target") ledger.canaryLeaks.push(`${name}: decoy ${n} reached the model (${q.url})`);
+  for (const [n, v] of Object.entries(decoys)) if (out.includes(v)) ledger.canaryLeaks.push(`${name}: decoy ${n} in host output`);
+  const planted = new Set(Object.keys(decoyHashes));
+  for (const h of [...scanDir(dirs.home, decoys, planted), ...scanDir(dirs.work, decoys, planted)]) ledger.canaryLeaks.push(`${name}: decoy ${h.names.join(",")} in ${h.file}`);
+  for (const [p, h] of Object.entries(decoyHashes)) if (!existsSync(p) || sha(p) !== h) ledger.canaryLeaks.push(`${name}: decoy file changed: ${p}`);
+  // Safety: auth shape. Only the run's dummy key, and only in the header its API uses.
+  for (const q of mock.requests) {
+    for (const a of q.auth) if (a.shape === "unexpected") ledger.authViolations.push(`${name}: ${a.header} carried a non-dummy credential (${a.hint ?? "?"})`);
+    const key = q.api === "openai" ? q.auth.find((a) => a.header === "authorization") : q.auth.find((a) => a.header === "x-api-key");
+    if (q.api !== "other" && key?.shape !== "dummy") ledger.authViolations.push(`${name}: ${q.api} request without the run's dummy key (${key?.header}: ${key?.shape})`);
   }
 }
 
