@@ -35,7 +35,7 @@ export interface ClaudeRunResult {
   apiKeySource?: string;
   permissionDenials: unknown[];
   toolResults: string[];
-  hookResponses: { hook: string; stdout: string }[];
+  hookResponses: { hook: string; stdout: string; exitCode?: number }[];
   resultSubtype?: string;
   isError?: boolean;
   events: number;
@@ -67,7 +67,11 @@ export function parseClaudeStream(out: string): ClaudeRunResult {
       if (typeof ev.apiKeySource === 'string') r.apiKeySource = ev.apiKeySource;
     }
     if (ev.type === 'system' && ev.subtype === 'hook_response') {
-      r.hookResponses.push({ hook: String(ev.hook_name ?? ev.hook_event ?? ''), stdout: typeof ev.stdout === 'string' ? ev.stdout : '' });
+      r.hookResponses.push({
+        hook: String(ev.hook_name ?? ev.hook_event ?? ''),
+        stdout: typeof ev.stdout === 'string' ? ev.stdout : '',
+        ...(typeof ev.exit_code === 'number' ? { exitCode: ev.exit_code } : {}),
+      });
     }
     if (ev.type === 'user' && isObj(ev.message) && Array.isArray(ev.message.content)) {
       for (const b of ev.message.content as unknown[]) {
@@ -81,4 +85,45 @@ export function parseClaudeStream(out: string): ClaudeRunResult {
     }
   }
   return r;
+}
+
+export interface SessionStartPayload {
+  /** The context the hook injected (additionalContext / additional_context), decoded. */
+  context: string;
+  lines: number;
+  bytes: number;
+  stdoutBytes: number;
+}
+
+/**
+ * What the SessionStart:startup hooks injected. A hook's stdout is JSON carrying
+ * `hookSpecificOutput.additionalContext` (or the legacy `additional_context`), or plain text,
+ * which Claude Code adds as context as-is. Several hooks are concatenated.
+ */
+export function sessionStartPayload(r: ClaudeRunResult): SessionStartPayload | undefined {
+  const hooks = r.hookResponses.filter((h) => h.hook === 'SessionStart:startup');
+  if (!hooks.length) return undefined;
+  const parts: string[] = [];
+  let stdoutBytes = 0;
+  for (const h of hooks) {
+    stdoutBytes += Buffer.byteLength(h.stdout);
+    const t = h.stdout.trim();
+    if (!t) continue;
+    let ctx: string | undefined;
+    if (t.startsWith('{')) {
+      try {
+        const j: unknown = JSON.parse(t);
+        if (isObj(j)) {
+          const hso = isObj(j.hookSpecificOutput) ? j.hookSpecificOutput.additionalContext : undefined;
+          const v = hso ?? j.additional_context ?? j.additionalContext;
+          ctx = typeof v === 'string' ? v : '';
+        }
+      } catch {
+        /* not JSON: plain text */
+      }
+    }
+    parts.push(ctx ?? t);
+  }
+  const context = parts.filter(Boolean).join('\n');
+  return { context, lines: context ? context.split('\n').length : 0, bytes: Buffer.byteLength(context), stdoutBytes };
 }

@@ -1,6 +1,6 @@
 import type { CheckDef } from "../core/types.ts";
 import { buildChecks } from "./build.ts";
-import { ccLoadChecks } from "./cc-load.ts";
+import { ccLoadChecks, ccLoadHostChecks } from "./cc-load.ts";
 import { contextChecks } from "./context.ts";
 import { evalsChecks } from "./evals.ts";
 import { gatesChecks } from "./gates.ts";
@@ -22,6 +22,7 @@ export const allChecks: CheckDef[] = [
   // hosts tier: the OpenCode config-sources self-test runs before any scenario
   ...ocLoadHostChecks,
   ...ocAgentsChecks,
+  ...ccLoadHostChecks,
   ...scenarioChecks,
   ...delegateChecks,
 ];

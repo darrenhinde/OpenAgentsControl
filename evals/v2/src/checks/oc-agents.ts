@@ -12,7 +12,7 @@ import { allCanaries, makeCanaries, plantDecoys, type Canaries } from "../sandbo
 import { isoEnv, makeIsoDirs, runIsolated, safePath, type IsoDirs } from "../sandbox/env.ts";
 import { safetyLedger } from "../sandbox/ledger.ts";
 import { cachedWhich } from "./helpers.ts";
-import { auditHostRun } from "./scenarios.ts";
+import { auditHostRun } from "./host-run.ts";
 
 interface AgentProbe {
   id: string;
