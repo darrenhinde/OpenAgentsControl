@@ -133,7 +133,7 @@ describe("ProfileLoader (shipped)", () => {
 
   it.each(PROFILES)("reports %s's closure as installable", async (profile) => {
     const { ProfileLoader } = await importPendingSymbols<{
-      ProfileLoader: new (root: string) => {
+      ProfileLoader: new (root: string, resolver?: unknown) => {
         resolveClosure(profile: string): Promise<{ missing: { ref: string }[] }>;
       };
     }>(
@@ -143,7 +143,13 @@ describe("ProfileLoader (shipped)", () => {
       `every component in ${profile}'s transitive closure resolves, so installing it works`
     );
 
-    const { missing } = await new ProfileLoader(repoPath()).resolveClosure(profile);
+    // A profile's full intent includes tools and plugins that only the v1 registry can resolve;
+    // the v2 registry deliberately omits them (see RegistryTargets), so closure is checked there.
+    const { ReferenceResolver } = await import("../../../src/core/ReferenceResolver.js");
+    const { missing } = await new ProfileLoader(
+      repoPath(),
+      new ReferenceResolver(repoPath(), "registry.v1.json"),
+    ).resolveClosure(profile);
 
     expect(missing).toEqual([]);
   });

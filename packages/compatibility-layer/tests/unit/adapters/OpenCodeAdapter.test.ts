@@ -16,6 +16,7 @@ import * as yaml from "js-yaml";
 import { OpenCodeAdapter } from "../../../src/adapters/OpenCodeAdapter.js";
 import { AgentIdResolver } from "../../../src/core/AgentIdResolver.js";
 import { CanonicalAgentLoader, type CanonicalAgentFile } from "../../../src/core/AgentLoader.js";
+import { emitsTo } from "../../../src/core/TargetPolicy.js";
 import { repoPath } from "../../support/pending.js";
 
 const adapter = (): OpenCodeAdapter => new OpenCodeAdapter();
@@ -102,8 +103,10 @@ describe("OpenCodeAdapter (v2) against the real corpus", () => {
   let agents: CanonicalAgentFile[];
   let resolver: AgentIdResolver;
   beforeAll(async () => {
-    agents = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
-    resolver = AgentIdResolver.fromCanonical(agents);
+    const all = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
+    resolver = AgentIdResolver.fromCanonical(all);
+    // v1-only agents (image-specialist) have no v2 file.
+    agents = all.filter((a) => emitsTo(a, "opencode"));
   });
 
   const emit = (a: CanonicalAgentFile): Promise<{ content: string }> =>

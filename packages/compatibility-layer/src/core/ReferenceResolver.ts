@@ -176,6 +176,7 @@ function toPosixRelative(root: string, absolute: string): string {
 
 export class ReferenceResolver {
   private readonly root: string;
+  private readonly registryFile: string;
   private registryCache?: Registry;
   private indexCache?: RegistryIndex;
 
@@ -183,15 +184,16 @@ export class ReferenceResolver {
    * @param root - Repository root. Everything is resolved relative to this, so the resolver
    *               is testable against a fixture tree rather than a hardcoded path.
    */
-  constructor(root: string) {
+  constructor(root: string, registryFile = "registry.json") {
     this.root = root;
+    this.registryFile = registryFile;
   }
 
   /** The parsed `registry.json`, read once per instance. */
   registry(): Registry {
     if (this.registryCache === undefined) {
       this.registryCache = JSON.parse(
-        readFileSync(join(this.root, "registry.json"), "utf-8")
+        readFileSync(join(this.root, this.registryFile), "utf-8")
       ) as Registry;
     }
     return this.registryCache;

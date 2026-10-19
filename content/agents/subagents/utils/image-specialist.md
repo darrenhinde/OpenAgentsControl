@@ -16,8 +16,9 @@ oac:
     - generation
   dependencies:
     - tool:gemini
+  # v1 only: it needs the gemini tool, and OpenCode v2 never loads .opencode/tool/ (#367).
   targets:
-    - opencode
+    - opencode-v1
 ---
 
 You are an image processing specialist powered by Gemini AI's Nano Banana model. Your capabilities include:

@@ -96,11 +96,6 @@
       "target": "opencode",
       "root": ".opencode/agent"
     },
-    ".opencode/agent/image-specialist.md": {
-      "sha256": "59aab57863a8b66d8b89f76f29b320bb4c300365df56c939f50bea378f703af0",
-      "target": "opencode",
-      "root": ".opencode/agent"
-    },
     ".opencode/agent/openagent.md": {
       "sha256": "adba6b7d89e9e329c7810bcfd2ab4ccf1a702e08a2b72ec18553d54335617359",
       "target": "opencode",
@@ -202,9 +197,14 @@
       "root": ".tmp/oac-build/plugins/claude-code/agents"
     },
     "registry.json": {
-      "sha256": "09c7d437c648310bdcd8c54b5b4d52a770cecc1d4f5ac3309f616101c94cb622",
+      "sha256": "f2a4fd5b482f9850da9f73bf8a03079c48c3a146259ac7e61bd579e46d0f760e",
       "target": "registry",
       "root": "registry.json"
+    },
+    "registry.v1.json": {
+      "sha256": "05d9d5cea1a390b6d6c18266842aa07cde6312af23b3e455511d52f320974e01",
+      "target": "registry-v1",
+      "root": "registry.v1.json"
     },
     "v1-opencode/agent/content/copywriter.md": {
       "sha256": "44b147c69b1396872101c43d502abf8276e7129411ac659d16c7f09b8a3cbb37",

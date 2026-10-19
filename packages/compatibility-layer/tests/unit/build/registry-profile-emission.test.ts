@@ -94,13 +94,29 @@ describe("RegistryEmitter profile emission", () => {
           "command:build",
           "config:defaults",
           "context:core/*",
-          "plugin:hooks",
           "skill:testing",
           "subagent:worker",
-          "tool:shell",
         ],
       },
     });
+  });
+
+  it("keeps the tool and plugin refs when emitting the v1 registry, which can load them", async () => {
+    fixture();
+
+    const document = await new RegistryEmitter(root, { target: "opencode-v1", registryFile: "registry.json" }).emit();
+
+    expect((document.profiles as { selected: { components: string[] } }).selected.components).toEqual([
+      "agent:eval-runner",
+      "agent:primary",
+      "command:build",
+      "config:defaults",
+      "context:core/*",
+      "plugin:hooks",
+      "skill:testing",
+      "subagent:worker",
+      "tool:shell",
+    ]);
   });
 
   it("drops base profiles that have no canonical system profile when canonical profiles exist", async () => {

@@ -129,6 +129,19 @@ export class ProfileLoadError extends Error {
 // LOADER
 // ============================================================================
 
+/**
+ * What a target cannot install. A profile is a target-neutral statement of intent ("developer
+ * gets these tools and plugins"); a target that cannot load some of it resolves the remainder
+ * and drops the rest ON PURPOSE, instead of failing the whole profile. Everything else still
+ * fails closed.
+ */
+export interface ProfileOmissions {
+  /** Component kinds the target cannot install at all (e.g. v2 cannot load tools or plugins). */
+  kinds?: readonly ("tools" | "plugins")[];
+  /** Agent ids the target does not ship (e.g. a v1-only agent on v2). */
+  agents?: ReadonlySet<string>;
+}
+
 export class ProfileLoader {
   private readonly root: string;
   private readonly resolver: ReferenceResolver;
@@ -295,8 +308,14 @@ export class ProfileLoader {
    * Output is deduplicated and locale-independently sorted, so authored order never leaks
    * into the emitted install plan.
    */
-  async resolveSystemProfile(id: string): Promise<SystemProfileResolution> {
-    const system = await this.loadProfile(SYSTEM_PROFILES_DIR, id, SystemProfileSchema, "system profile");
+  async resolveSystemProfile(id: string, omit: ProfileOmissions = {}): Promise<SystemProfileResolution> {
+    const loaded = await this.loadProfile(SYSTEM_PROFILES_DIR, id, SystemProfileSchema, "system profile");
+    const system = {
+      ...loaded,
+      agents: loaded.agents.filter((agent) => !omit.agents?.has(agent)),
+      ...(omit.kinds?.includes("tools") ? { tools: [] } : {}),
+      ...(omit.kinds?.includes("plugins") ? { plugins: [] } : {}),
+    };
 
     const contextIds: string[] = [];
     for (const contextProfileId of system.contextProfiles) {

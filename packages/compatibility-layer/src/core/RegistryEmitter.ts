@@ -84,6 +84,9 @@ import { resolve } from "node:path";
 import { CanonicalAgentLoader, type CanonicalAgentFile } from "./AgentLoader.js";
 import { generatedPaths } from "./BuildManifest.js";
 import { ProfileLoader, type SystemProfileResolution } from "./ProfileLoader.js";
+import { ReferenceResolver } from "./ReferenceResolver.js";
+import { REGISTRY_TARGETS, type RegistryTarget, type RegistryTargetSpec } from "./RegistryTargets.js";
+import { emitsTo } from "./TargetPolicy.js";
 
 // ============================================================================
 // TYPES
@@ -123,6 +126,11 @@ interface RegistryProfile {
 }
 
 export interface RegistryEmitterOptions {
+  /**
+   * Which registry to emit: `opencode` (v2, `registry.json`, the default) or `opencode-v1`
+   * (`registry.v1.json`). Selects the defaults below; each can still be overridden.
+   */
+  target?: RegistryTarget;
   /** Root of the canonical agent tree, relative to the repo root. */
   contentRoot?: string;
   /**
@@ -146,8 +154,6 @@ export interface RegistryEmitterOptions {
 
 const DEFAULTS = {
   contentRoot: "content/agents",
-  agentInstallRoot: ".opencode/agent",
-  registryFile: "registry.json",
 } as const;
 
 const PROFILES_ROOT = "content/profiles";
@@ -161,6 +167,9 @@ const CATEGORY_FOR_TYPE: Readonly<Record<string, string>> = {
   agent: "agents",
   subagent: "subagents",
 };
+
+/** The `components` categories the emitter generates from canonical agents. */
+const GENERATED_CATEGORIES: ReadonlySet<string> = new Set(Object.values(CATEGORY_FOR_TYPE));
 
 /** Locale-independent ordering. `localeCompare` is locale-dependent — never use it here. */
 function compare(a: string, b: string): number {
@@ -254,12 +263,16 @@ export function assertUniqueRegistryIdentities(document: RegistryDocument): void
  * `oac:`, the canonical metadata authored alongside the agent.
  */
 export function entryForAgent(agent: CanonicalAgentFile, agentInstallRoot: string): RegistryEntry {
+  return entryForAgentAt(agent, REGISTRY_TARGETS.opencode.agentPath(agent, agentInstallRoot));
+}
+
+/** As {@link entryForAgent}, for an explicit shipped path (the v1 registry nests by category). */
+export function entryForAgentAt(agent: CanonicalAgentFile, path: string): RegistryEntry {
   return {
     id: agent.oac.id,
     name: agent.oac.name,
     type: agent.oac.type,
-    // Flat, like the file the v2 adapter writes: v2 derives the agent id from the file name.
-    path: `${agentInstallRoot}/${agent.oac.id}.md`,
+    path,
     version: agent.oac.version,
     description: agent.frontmatter.description,
     tags: agent.oac.tags,
@@ -277,6 +290,8 @@ export class RegistryEmitter {
   private readonly contentRoot: string;
   private readonly agentInstallRoot: string;
   private readonly registryFile: string;
+  private readonly target: RegistryTarget;
+  private readonly spec: RegistryTargetSpec;
   private readonly injectedGeneratedPaths?: ReadonlySet<string>;
 
   /**
@@ -287,8 +302,10 @@ export class RegistryEmitter {
   constructor(root: string, options: RegistryEmitterOptions = {}) {
     this.root = root;
     this.contentRoot = options.contentRoot ?? DEFAULTS.contentRoot;
-    this.agentInstallRoot = options.agentInstallRoot ?? DEFAULTS.agentInstallRoot;
-    this.registryFile = options.registryFile ?? DEFAULTS.registryFile;
+    this.target = options.target ?? "opencode";
+    this.spec = REGISTRY_TARGETS[this.target];
+    this.agentInstallRoot = options.agentInstallRoot ?? this.spec.defaultAgentRoot;
+    this.registryFile = options.registryFile ?? this.spec.file;
     this.injectedGeneratedPaths = options.generatedPaths;
   }
 
@@ -329,11 +346,19 @@ export class RegistryEmitter {
     const generated = this.generatedByCategory(agents);
     const ours = this.previouslyGenerated();
     const components: Record<string, RegistryEntry[]> = {};
+    // Canonical agents this target does not ship: never carried over from the base either.
+    const notShipped = new Set(agents.filter((agent) => !emitsTo(agent, this.target)).map((agent) => agent.oac.id));
 
     // Iterate the BASE's keys, not the generated ones: an entry type the canonical tree does
     // not own yet must survive untouched, and its position must not move.
     for (const category of Object.keys(base.components)) {
-      const existing = base.components[category] ?? [];
+      if (this.spec.unavailableCategories.includes(category)) {
+        components[category] = [];
+        continue;
+      }
+      const existing = (base.components[category] ?? []).filter(
+        (entry) => !(GENERATED_CATEGORIES.has(category) && notShipped.has(entry.id)),
+      );
       const owned = generated.get(category);
       components[category] = owned === undefined
         ? this.carried(category, existing)
@@ -375,11 +400,12 @@ export class RegistryEmitter {
     const byCategory = new Map<string, RegistryEntry[]>();
 
     for (const agent of agents) {
+      if (!emitsTo(agent, this.target)) continue;
       const category = CATEGORY_FOR_TYPE[agent.oac.type];
       if (category === undefined) continue;
 
       const entries = byCategory.get(category) ?? [];
-      entries.push(entryForAgent(agent, this.agentInstallRoot));
+      entries.push(entryForAgentAt(agent, this.spec.agentPath(agent, this.agentInstallRoot)));
       byCategory.set(category, entries);
     }
 
@@ -396,7 +422,11 @@ export class RegistryEmitter {
     if (!existsSync(resolve(this.root, PROFILES_ROOT))) return base.profiles;
 
     const baseProfiles = isRecord(base.profiles) ? base.profiles : {};
-    const loader = new ProfileLoader(this.root);
+    const loader = new ProfileLoader(this.root, new ReferenceResolver(this.root, this.registryFile));
+    const omit = {
+      kinds: this.spec.unavailableProfileKinds,
+      agents: new Set(agents.filter((agent) => !emitsTo(agent, this.target)).map((agent) => agent.oac.id)),
+    };
     const agentTypes = new Map(agents.map((agent) => [agent.oac.id, agent.oac.type]));
     const ids = readdirSync(resolve(this.root, SYSTEM_PROFILES_ROOT), { withFileTypes: true })
       .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
@@ -405,7 +435,7 @@ export class RegistryEmitter {
 
     const profiles = await Promise.all(
       ids.map(async (id) => {
-        const resolved = await loader.resolveSystemProfile(id);
+        const resolved = await loader.resolveSystemProfile(id, omit);
         const baseProfile = baseProfiles[id];
         return [id, this.profile(baseProfile, resolved, agentTypes, base)] as const;
       })

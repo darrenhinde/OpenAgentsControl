@@ -35,7 +35,7 @@ cd "$ROOT"
 # oac.overrides.claude-code settled those -- but prompt content does: the shipped files carry
 # dispatch <example> blocks and capability-adapted bodies that canonical has no field for.
 # See the docblock in packages/cli/src/commands/build.ts.
-GENERATED=(.opencode/agent v1-opencode/agent registry.json .oac/build-manifest.json)
+GENERATED=(.opencode/agent v1-opencode/agent registry.json registry.v1.json .oac/build-manifest.json)
 
 if [ ! -f packages/cli/dist/index.js ]; then
   echo "error: packages/cli/dist/index.js is missing — build the CLI first:" >&2

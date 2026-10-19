@@ -452,23 +452,6 @@
         "category": "subagents/development"
       },
       {
-        "id": "image-specialist",
-        "name": "Image Specialist",
-        "type": "subagent",
-        "path": ".opencode/agent/image-specialist.md",
-        "version": "1.0.0",
-        "description": "Specialized agent for image editing and analysis using Gemini AI tools",
-        "tags": [
-          "images",
-          "editing",
-          "generation"
-        ],
-        "dependencies": [
-          "tool:gemini"
-        ],
-        "category": "subagents/utils"
-      },
-      {
         "id": "prioritization-engine",
         "name": "PrioritizationEngine",
         "type": "subagent",
@@ -828,53 +811,8 @@
         "category": "standard"
       }
     ],
-    "tools": [
-      {
-        "id": "gemini",
-        "name": "Gemini AI Tool",
-        "type": "tool",
-        "path": ".opencode/tool/gemini/index.ts",
-        "description": "Image generation, editing, and analysis using Gemini AI",
-        "tags": [
-          "ai",
-          "images",
-          "gemini"
-        ],
-        "dependencies": [
-          "tool:env"
-        ],
-        "category": "specialized"
-      },
-      {
-        "id": "env",
-        "name": "Environment Manager",
-        "type": "tool",
-        "path": ".opencode/tool/env/index.ts",
-        "description": "Load and manage environment variables securely",
-        "tags": [
-          "environment",
-          "config",
-          "security"
-        ],
-        "dependencies": [],
-        "category": "essential"
-      }
-    ],
-    "plugins": [
-      {
-        "id": "notify",
-        "name": "Generic Notifier",
-        "type": "plugin",
-        "path": ".opencode/plugin/notify.ts",
-        "description": "Generic notification system",
-        "tags": [
-          "notifications",
-          "alerts"
-        ],
-        "dependencies": [],
-        "category": "specialized"
-      }
-    ],
+    "tools": [],
+    "plugins": [],
     "skills": [
       {
         "id": "task-management",
@@ -3384,7 +3322,6 @@
         "context:templates",
         "context:ui-styling-standards",
         "context:ui/*",
-        "plugin:notify",
         "skill:task-management",
         "subagent:agent-generator",
         "subagent:build-agent",
@@ -3397,13 +3334,10 @@
         "subagent:documentation",
         "subagent:domain-analyzer",
         "subagent:frontend-specialist",
-        "subagent:image-specialist",
         "subagent:reviewer",
         "subagent:task-manager",
         "subagent:tester",
-        "subagent:workflow-designer",
-        "tool:env",
-        "tool:gemini"
+        "subagent:workflow-designer"
       ],
       "additionalPaths": [
         ".Building/",
@@ -3429,14 +3363,10 @@
         "context:project-context",
         "context:project-intelligence/*",
         "context:quick-start",
-        "plugin:notify",
         "skill:task-management",
         "subagent:contextscout",
         "subagent:documentation",
-        "subagent:image-specialist",
-        "subagent:task-manager",
-        "tool:env",
-        "tool:gemini"
+        "subagent:task-manager"
       ]
     },
     "developer": {
@@ -3480,8 +3410,7 @@
         "subagent:frontend-specialist",
         "subagent:reviewer",
         "subagent:task-manager",
-        "subagent:tester",
-        "tool:env"
+        "subagent:tester"
       ]
     },
     "essential": {
@@ -3510,8 +3439,7 @@
         "skill:task-management",
         "subagent:contextscout",
         "subagent:documentation",
-        "subagent:task-manager",
-        "tool:env"
+        "subagent:task-manager"
       ]
     },
     "full": {
@@ -3551,7 +3479,6 @@
         "context:react-patterns",
         "context:ui-styling-standards",
         "context:ui/*",
-        "plugin:notify",
         "skill:task-management",
         "subagent:build-agent",
         "subagent:coder-agent",
@@ -3559,12 +3486,9 @@
         "subagent:devops-specialist",
         "subagent:documentation",
         "subagent:frontend-specialist",
-        "subagent:image-specialist",
         "subagent:reviewer",
         "subagent:task-manager",
-        "subagent:tester",
-        "tool:env",
-        "tool:gemini"
+        "subagent:tester"
       ]
     }
   },

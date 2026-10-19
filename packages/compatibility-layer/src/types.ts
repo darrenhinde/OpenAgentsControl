@@ -384,6 +384,9 @@ export const OacCategorySchema = z.string().refine(
  */
 export const BuildTargetSchema = z.enum([
   "opencode",
+  // OpenCode v1. An agent that declares `opencode` is also emitted for v1 (see TargetPolicy);
+  // declaring `opencode-v1` ALONE makes an agent v1-only.
+  "opencode-v1",
   "claude-code",
 ]);
 

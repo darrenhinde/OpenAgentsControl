@@ -39,6 +39,7 @@ import {
 } from "../../../src/core/RegistryEmitter.js";
 import { generatedPaths } from "../../../src/core/BuildManifest.js";
 import { CanonicalAgentLoader } from "../../../src/core/AgentLoader.js";
+import { emitsTo } from "../../../src/core/TargetPolicy.js";
 import { repoPath } from "../../support/pending.js";
 
 const COMMITTED_JSON = readFileSync(repoPath("registry.json"), "utf-8");
@@ -114,7 +115,6 @@ const REGISTRY_ONLY_DEPENDENCIES: Readonly<Record<string, readonly string[]>> = 
     "context:context-paths-config",
   ],
   externalscout: ["skill:context7", "context:context-system"],
-  "image-specialist": ["tool:gemini"],
   "context-organizer": ["context:core/context-system/*"],
 };
 
@@ -497,6 +497,7 @@ describe("generation from the canonical tree", () => {
 
     // Act
     const mismatches = agents
+      .filter((agent) => emitsTo(agent, "opencode"))
       .map((agent) => ({ id: agent.oac.id, expected: entryForAgent(agent, ".opencode/agent") }))
       .filter(({ id, expected }) => JSON.stringify(emitted.get(id)) !== JSON.stringify(expected));
 
@@ -548,8 +549,13 @@ describe("generation from the canonical tree", () => {
       ...byId(document, "subagents").keys(),
     ]);
 
-    const unregistered = agents.map((a) => a.oac.id).filter((id) => !registered.has(id));
+    const unregistered = agents
+      .filter((agent) => emitsTo(agent, "opencode"))
+      .map((a) => a.oac.id)
+      .filter((id) => !registered.has(id));
     expect(unregistered, "canonical agents the emitter failed to register").toEqual([]);
+    // v1-only agents are NOT in the v2 registry (image-specialist needs the v1 gemini tool).
+    expect(registered.has("image-specialist")).toBe(false);
   });
 
   it("files an agent under the components key its oac.type names", async () => {
@@ -654,6 +660,56 @@ describe("registry defects", () => {
       expect(subagents.get(id)?.dependencies, `${id} dependency order drifted`).toEqual(
         byId(COMMITTED, "subagents").get(id)?.dependencies
       );
+    }
+  });
+});
+
+describe("the v1 registry", () => {
+  const v1 = (): RegistryEmitter => new RegistryEmitter(repoPath(), { target: "opencode-v1" });
+
+  it("registers every canonical agent, including the v1-only ones, at its nested v1 path", async () => {
+    const document = await v1().emit();
+    const agents = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
+    const subagents = byId(document, "subagents");
+    expect(subagents.get("image-specialist")?.path).toBe("v1-opencode/agent/subagents/utils/image-specialist.md");
+    expect(byId(document, "agents").get("openagent")?.path).toBe("v1-opencode/agent/core/openagent.md");
+    const registered = new Set([...byId(document, "agents").keys(), ...subagents.keys()]);
+    expect(agents.map((a) => a.oac.id).filter((id) => !registered.has(id))).toEqual([]);
+  });
+
+  it("keeps the tools and plugins v2 cannot load, and image-specialist's dependency on gemini", async () => {
+    const document = await v1().emit();
+    expect(byId(document, "tools").has("gemini")).toBe(true);
+    expect(byId(document, "plugins").has("notify")).toBe(true);
+    expect(byId(document, "subagents").get("image-specialist")?.dependencies).toContain("tool:gemini");
+  });
+
+  it("matches the committed registry.v1.json byte-for-byte", async () => {
+    expect(await v1().emitJson()).toBe(readFileSync(repoPath("registry.v1.json"), "utf-8"));
+  });
+
+  it("differs from the v2 registry only in the entries whose files differ", async () => {
+    const v2doc = await new RegistryEmitter(repoPath()).emit();
+    const v1doc = await v1().emit();
+    for (const category of ["contexts", "commands", "skills", "config"]) {
+      const strip = (d: RegistryDocument): string[] =>
+        entries(d, category).map((e) => e.id).sort();
+      expect(strip(v1doc), category).toEqual(strip(v2doc));
+    }
+    expect(entries(v2doc, "tools")).toEqual([]);
+    expect(entries(v2doc, "plugins")).toEqual([]);
+  });
+
+  it("a v2 profile is the v1 profile minus what v2 cannot install", async () => {
+    const v2doc = await new RegistryEmitter(repoPath()).emit();
+    const v1doc = await v1().emit();
+    const profilesOf = (d: RegistryDocument): Record<string, { components: string[] }> =>
+      d.profiles as Record<string, { components: string[] }>;
+    for (const [name, profile] of Object.entries(profilesOf(v1doc))) {
+      const expected = profile.components.filter(
+        (ref) => !ref.startsWith("tool:") && !ref.startsWith("plugin:") && ref !== "subagent:image-specialist",
+      );
+      expect(profilesOf(v2doc)[name]?.components, name).toEqual(expected);
     }
   });
 });

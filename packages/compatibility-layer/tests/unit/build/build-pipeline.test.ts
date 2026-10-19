@@ -97,6 +97,7 @@ const BASE_REGISTRY = {
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "oac-build-"));
   put("registry.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
+  put("registry.v1.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
   put("content/agents/subagents/test/alpha.md", canonicalAgent("alpha", ["opencode"]));
   put("content/agents/subagents/test/beta.md", canonicalAgent("beta", ["opencode", "claude-code"]));
 });
@@ -144,6 +145,16 @@ describe("oac.targets", () => {
     const { files } = await plan({ root, targets: ["opencode"], skipRegistry: true });
 
     expect(files.some((f) => f.target === "opencode-v1")).toBe(false);
+  });
+
+  it("emits registry.v1.json only when the v1 target is built", async () => {
+    const both = await build({ root });
+    const v2Only = await build({ root, targets: ["opencode"] });
+
+    expect(both.has("registry.json")).toBe(true);
+    expect(both.has("registry.v1.json")).toBe(true);
+    expect(v2Only.has("registry.json")).toBe(true);
+    expect(v2Only.has("registry.v1.json")).toBe(false);
   });
 
   it("keeps name: in the v1 sibling", async () => {

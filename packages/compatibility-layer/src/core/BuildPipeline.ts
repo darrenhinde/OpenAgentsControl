@@ -67,6 +67,8 @@ import {
   serializeRegistry,
 } from "./RegistryEmitter.js";
 import { ClaudeAdapter } from "../adapters/ClaudeAdapter.js";
+import type { RegistryTarget } from "./RegistryTargets.js";
+import { emitsTo } from "./TargetPolicy.js";
 import { AgentIdResolver } from "./AgentIdResolver.js";
 import { OpenCodeAdapter } from "../adapters/OpenCodeAdapter.js";
 import { OpenCodeV1Adapter, OPENCODE_V1_AGENT_ROOT } from "../adapters/v1/OpenCodeV1Adapter.js";
@@ -92,8 +94,8 @@ export interface BuildFile {
   path: string;
   /** The exact bytes to write. */
   content: string;
-  /** The target that produced it; `"registry"` for `registry.json`. */
-  target: BuildTarget | "registry";
+  /** The target that produced it; `"registry"` / `"registry-v1"` for the two registry files. */
+  target: BuildTarget | "registry" | "registry-v1";
   /** `oac.id` of the source agent, or `undefined` for whole-tree artefacts. */
   agentId?: string;
   /** Semantics the target could not carry. Never fatal on their own. */
@@ -187,6 +189,7 @@ const TARGET_ROOTS: Readonly<Record<BuildFile["target"], string>> = {
   "opencode-v1": OPENCODE_V1_AGENT_ROOT,
   "claude-code": "plugins/claude-code/agents",
   registry: "registry.json",
+  "registry-v1": "registry.v1.json",
 };
 
 /** Locale-independent ordering. `localeCompare` is locale-dependent — never use it here. */
@@ -246,9 +249,7 @@ async function emitAgent(
   target: BuildTarget,
   resolver: AgentIdResolver
 ): Promise<BuildFile | null> {
-  // `opencode-v1` follows `opencode`: an agent opts into OpenCode once, and gets both builds.
-  const declared = target === "opencode-v1" ? "opencode" : target;
-  if (!agent.oac.targets.includes(declared)) return null;
+  if (!emitsTo(agent, target)) return null;
 
   const source = readFileSync(agent.filePath, "utf-8");
   const sourcePath = `${DEFAULTS.contentRoot}/${agent.relativePath}`;
@@ -311,16 +312,20 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   }
 
   if (options.skipRegistry !== true) {
-    const registry = await new RegistryEmitter(root).emit();
-    // Validate the complete emitted document, not only canonical agent entries: contexts and
-    // other non-owned categories are carried through and remain installable by `type:id`.
-    assertUniqueRegistryIdentities(registry);
-    files.push({
-      path: "registry.json",
-      content: serializeRegistry(registry),
-      target: "registry",
-      warnings: [],
-    });
+    // One registry per OpenCode major. The v1 registry is only built with the v1 target.
+    const registries: Array<{ target: "registry" | "registry-v1"; registryTarget: RegistryTarget; path: string }> = [
+      { target: "registry", registryTarget: "opencode", path: "registry.json" },
+    ];
+    if (targets.includes("opencode-v1")) {
+      registries.push({ target: "registry-v1", registryTarget: "opencode-v1", path: "registry.v1.json" });
+    }
+    for (const { target, registryTarget, path } of registries) {
+      const registry = await new RegistryEmitter(root, { target: registryTarget }).emit();
+      // Validate the complete emitted document, not only canonical agent entries: contexts and
+      // other non-owned categories are carried through and remain installable by `type:id`.
+      assertUniqueRegistryIdentities(registry);
+      files.push({ path, content: serializeRegistry(registry), target, warnings: [] });
+    }
   }
 
   files.sort((a, b) => compare(a.path, b.path));

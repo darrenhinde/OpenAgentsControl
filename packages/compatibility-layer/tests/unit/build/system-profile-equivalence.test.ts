@@ -40,8 +40,10 @@ function agentCategory(id: string, registry: ReturnType<ReferenceResolver["regis
 
 describe("canonical profile equivalence", () => {
   const root = repoPath();
-  const loader = new ProfileLoader(root);
-  const resolver = new ReferenceResolver(root);
+  // The v1 registry carries a profile's full intent (tools and plugins included); the v2
+  // registry's profiles are that minus what v2 cannot load, asserted in RegistryEmitter.test.ts.
+  const resolver = new ReferenceResolver(root, "registry.v1.json");
+  const loader = new ProfileLoader(root, resolver);
   const registry = resolver.registry();
 
   it.each(PROFILES)(
