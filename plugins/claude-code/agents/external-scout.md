@@ -1,6 +1,20 @@
 ---
 name: external-scout
-description: Fetches external library and framework documentation from Context7 API and other sources, caching results for offline use
+description: |
+  Fetches external library and framework documentation from Context7 API and other sources, caching results for offline use
+  Examples:
+  <example>
+  Context: User is about to write a Drizzle schema and the API may have changed.
+  user: "Set up a Drizzle schema for users and posts"
+  assistant: "Before writing it, I'll use external-scout to fetch current Drizzle docs."
+  <commentary>An external library is involved and current API docs are needed first.</commentary>
+  </example>
+  <example>
+  Context: coder-agent hit an unfamiliar option in a library's config.
+  user: "How do I configure TanStack Router's file-based routes?"
+  assistant: "Let me use external-scout to pull the current TanStack Router docs and cache them."
+  <commentary>Live documentation for a third-party framework — external-scout fetches and caches it.</commentary>
+  </example>
 tools: Read, Write, Bash, WebFetch
 model: haiku
 ---

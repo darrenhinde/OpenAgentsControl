@@ -235,6 +235,7 @@ describe("claude-code adapter against the live corpus", () => {
         new RegExp(`^name: ${id}$`, "m")
       );
       expect(text, `${id}: needs an explicit tools: whitelist`).toMatch(/^tools: .+$/m);
+      expect(text, `${id}: lost its <example> dispatch blocks`).toContain("<example>");
       // Text the OpenCode-shaped canonical source carries and a hand-written Claude agent
       // never does: the retired metadata-sidecar pointer (5c7d4cc) and the oac: block.
       expect(text, `${id}: carries the retired agent-metadata sidecar text`).not.toContain(

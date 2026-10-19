@@ -1,6 +1,20 @@
 ---
 name: task-manager
-description: Break down complex features into atomic, verifiable subtasks with dependency tracking and JSON-based progress management
+description: |
+  Break down complex features into atomic, verifiable subtasks with dependency tracking and JSON-based progress management
+  Examples:
+  <example>
+  Context: User asks for a feature that touches several files and components.
+  user: "Build a user dashboard with auth, settings and billing pages"
+  assistant: "This is multi-part, so I'll use task-manager to break it into subtasks with dependencies."
+  <commentary>A feature of 4+ files with parallelisable parts — task-manager plans the subtasks.</commentary>
+  </example>
+  <example>
+  Context: A large refactor needs ordering before anyone writes code.
+  user: "Plan the migration from REST to tRPC"
+  assistant: "Let me use task-manager to create atomic subtasks with acceptance criteria."
+  <commentary>Planning and dependency tracking come before implementation.</commentary>
+  </example>
 tools: Read, Write, Glob, Grep
 model: sonnet
 ---

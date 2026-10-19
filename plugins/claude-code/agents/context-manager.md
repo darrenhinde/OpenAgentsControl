@@ -1,6 +1,20 @@
 ---
 name: context-manager
-description: Manages context files, discovers context roots, validates structure, and organizes project context
+description: |
+  Manages context files, discovers context roots, validates structure, and organizes project context
+  Examples:
+  <example>
+  Context: User wants to add their team's security patterns to the project context.
+  user: "Add our security guidelines doc to the project context"
+  assistant: "I'll use context-manager to find the context root, place the file, and update the navigation."
+  <commentary>Adding or organising context files is context-manager's job, not a coding agent's.</commentary>
+  </example>
+  <example>
+  Context: User suspects the project context has broken links or stale files.
+  user: "Check our context files are still valid"
+  assistant: "Let me use context-manager to validate the context structure and report problems."
+  <commentary>A validation and maintenance request on the context system itself.</commentary>
+  </example>
 tools: Read, Write, Glob, Grep, Bash
 model: sonnet
 ---

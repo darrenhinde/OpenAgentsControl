@@ -1,6 +1,20 @@
 ---
 name: test-engineer
-description: Test authoring and TDD specialist - writes comprehensive tests following project testing standards
+description: |
+  Test authoring and TDD specialist - writes comprehensive tests following project testing standards
+  Examples:
+  <example>
+  Context: coder-agent has finished a new payment service with no tests.
+  user: "Write tests for the payment service"
+  assistant: "I'll use test-engineer to write tests that follow the project's testing standards."
+  <commentary>Test authoring for finished code — test-engineer owns it.</commentary>
+  </example>
+  <example>
+  Context: User wants to work test-first on a new parser.
+  user: "Let's do TDD for the CSV parser"
+  assistant: "Let me use test-engineer to propose a test plan and write the failing tests first."
+  <commentary>TDD request — test-engineer writes the tests before the implementation.</commentary>
+  </example>
 tools: Read, Write, Edit, Bash
 model: sonnet
 ---
