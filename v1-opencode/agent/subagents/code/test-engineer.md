@@ -23,8 +23,8 @@ permission:
     "**/*.key": "deny"
     "**/*.secret": "deny"
   task:
-    contextscout: "allow"
-    externalscout: "allow"
+    ContextScout: "allow"
+    ExternalScout: "allow"
 ---
 
 # TestEngineer

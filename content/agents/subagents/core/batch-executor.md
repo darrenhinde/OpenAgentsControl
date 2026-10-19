@@ -18,8 +18,8 @@ permission:
     "*": "deny"
     contextscout: "allow"
     externalscout: "allow"
-    coderagent: "allow"
-    OpenFrontendSpecialist: "allow"
+    coder-agent: "allow"
+    frontend-specialist: "allow"
 oac:
   id: batch-executor
   name: BatchExecutor

@@ -113,8 +113,8 @@ describe("oac.targets", () => {
   it("emits an agent only to the targets it declares", async () => {
     const files = await build({ root });
 
-    expect(files.has(".opencode/agent/subagents/test/alpha.md")).toBe(true);
-    expect(files.has(".opencode/agent/subagents/test/beta.md")).toBe(true);
+    expect(files.has(".opencode/agent/alpha.md")).toBe(true);
+    expect(files.has(".opencode/agent/beta.md")).toBe(true);
     expect(files.has("plugins/claude-code/agents/beta.md")).toBe(true);
     // alpha declares targets: [opencode] only — it must produce NO claude-code output.
     expect(files.has("plugins/claude-code/agents/alpha.md")).toBe(false);
@@ -146,6 +146,12 @@ describe("oac.targets", () => {
     expect(files.some((f) => f.target === "opencode-v1")).toBe(false);
   });
 
+  it("keeps name: in the v1 sibling", async () => {
+    const files = await build({ root, targets: ["opencode-v1"], skipRegistry: true });
+
+    expect(files.get("v1-opencode/agent/subagents/test/alpha.md")).toContain("name: alpha");
+  });
+
   it("prunes v1 output when its source is deleted, within the v1 root only", async () => {
     write(await plan({ root }), { root });
     expect(existsSync(join(root, "v1-opencode/agent/subagents/test/alpha.md"))).toBe(true);
@@ -159,10 +165,12 @@ describe("oac.targets", () => {
 
   it("strips the oac: block from OpenCode output but keeps the body", async () => {
     const files = await build({ root, targets: ["opencode"], skipRegistry: true });
-    const emitted = files.get(".opencode/agent/subagents/test/alpha.md") ?? "";
+    const emitted = files.get(".opencode/agent/alpha.md") ?? "";
 
     expect(emitted).not.toContain("oac:");
-    expect(emitted).toContain("name: alpha");
+    // v2 ignores `name:` (the file name is the id), so the line is dropped; v1 keeps it.
+    expect(emitted).not.toContain("name: alpha");
+    expect(files.get(".opencode/agent/alpha.md")).toBe(emitted);
     expect(emitted).toContain("Body.");
   });
 });
@@ -231,7 +239,9 @@ describe("staged targets", () => {
 // ============================================================================
 
 describe("orphan removal", () => {
-  const ALPHA_OUT = ".opencode/agent/subagents/test/alpha.md";
+  const ALPHA_OUT = ".opencode/agent/alpha.md";
+  // v2 is flat; v1 keeps the category directories, which is where empty-directory tidying matters.
+  const V1_ALPHA = "v1-opencode/agent/subagents/test/alpha.md";
 
   it("removes generated output when its canonical source is deleted", async () => {
     write(await plan({ root }), { root });
@@ -270,19 +280,21 @@ describe("orphan removal", () => {
     const result = write(await plan({ root }), { root });
 
     expect(result.removed).toContain(ALPHA_OUT);
-    expect(existsSync(join(root, ".opencode/agent/subagents/test"))).toBe(false);
+    expect(result.removed).toContain(V1_ALPHA);
+    expect(existsSync(join(root, "v1-opencode/agent/subagents/test"))).toBe(false);
     expect(existsSync(join(root, ".opencode/agent")), "the output root itself").toBe(true);
+    expect(existsSync(join(root, "v1-opencode/agent")), "the v1 output root itself").toBe(true);
   });
 
   it("leaves a directory alone while it still holds a file the build does not own", async () => {
-    put(".opencode/agent/subagents/test/notes.md", "hand-written, not generated\n");
+    put("v1-opencode/agent/subagents/test/notes.md", "hand-written, not generated\n");
     write(await plan({ root }), { root });
     rmSync(join(root, "content/agents/subagents/test/alpha.md"));
     rmSync(join(root, "content/agents/subagents/test/beta.md"));
 
     write(await plan({ root }), { root });
 
-    expect(existsSync(join(root, ".opencode/agent/subagents/test/notes.md"))).toBe(true);
+    expect(existsSync(join(root, "v1-opencode/agent/subagents/test/notes.md"))).toBe(true);
   });
 
   it("prunes nothing on a first build, when there is no ledger to prune from", async () => {
@@ -435,7 +447,7 @@ describe("root containment", () => {
     );
 
     // Nothing in place was written either: validation runs before the first write.
-    expect(existsSync(join(root, ".opencode/agent/subagents/test/alpha.md"))).toBe(false);
+    expect(existsSync(join(root, ".opencode/agent/alpha.md"))).toBe(false);
     expect(existsSync(join(root, ".oac/build-manifest.json"))).toBe(false);
     expect(existsSync(outside)).toBe(false);
   });

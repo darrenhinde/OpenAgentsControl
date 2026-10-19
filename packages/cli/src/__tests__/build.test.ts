@@ -19,8 +19,8 @@ import { CLAUDE_STAGING_ROOT, outputRootsFor, selectTargets } from '../commands/
 
 describe('selectTargets', () => {
   test('defaults to every wired target', () => {
-    expect(selectTargets(undefined)).toEqual(['opencode', 'claude-code']);
-    expect(selectTargets([])).toEqual(['opencode', 'claude-code']);
+    expect(selectTargets(undefined)).toEqual(['opencode', 'opencode-v1', 'claude-code']);
+    expect(selectTargets([])).toEqual(['opencode', 'opencode-v1', 'claude-code']);
   });
 
   test('honours an explicit --target', () => {
@@ -29,7 +29,7 @@ describe('selectTargets', () => {
 
   test('rejects an unknown target by name, listing the known ones', () => {
     expect(() => selectTargets(['emacs'])).toThrow(/unknown target\(s\): emacs/);
-    expect(() => selectTargets(['emacs'])).toThrow(/opencode, claude-code/);
+    expect(() => selectTargets(['emacs'])).toThrow(/opencode, opencode-v1, claude-code/);
   });
 });
 

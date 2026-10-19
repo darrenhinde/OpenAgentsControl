@@ -1,5 +1,4 @@
 ---
-name: FixtureReviewer
 description: Reviews code for correctness. A golden-file fixture, not a shipped agent.
 mode: subagent
 temperature: 0.1

@@ -8,6 +8,7 @@
 
 import * as yaml from "js-yaml";
 import { desugarPermission, type GranularPermission } from "../../types.js";
+import type { AgentIdResolver } from "../../core/AgentIdResolver.js";
 
 // ============================================================================
 // Constants
@@ -62,6 +63,12 @@ export interface CanonicalEmitResult {
 export interface FromCanonicalOptions {
   /** Source path, used only to make error messages name the offending file. */
   filePath?: string;
+  /**
+   * Resolves delegation references to the target's id space. The build always supplies one.
+   * Without it a reference is emitted as authored and a warning says so: standalone use of an
+   * adapter on one file cannot know about the other agents.
+   */
+  resolver?: AgentIdResolver;
 }
 
 /** Raised when a canonical source cannot be emitted. Never thrown for a recoverable loss. */
@@ -122,27 +129,26 @@ export function splitFrontmatter(source: string, filePath?: string): SplitFile {
 }
 
 /**
- * Remove the top-level `oac:` block from frontmatter lines.
+ * Remove a top-level block (`key:` plus its indented continuation) from frontmatter lines.
  *
- * Consumes the `oac:` line plus its indented continuation. Blank lines are consumed only when
- * more of the block follows them, so a blank SEPARATOR after the block survives — otherwise an
- * `oac:` block sitting mid-frontmatter would silently eat the spacing around the next key.
- * Flow style (`oac: {id: x}`) has no continuation and drops as a single line.
+ * Blank lines are consumed only when more of the block follows them, so a blank SEPARATOR after
+ * the block survives — otherwise a block sitting mid-frontmatter would silently eat the spacing
+ * around the next key. Flow style (`oac: {id: x}`) has no continuation and drops as one line.
  */
-export function stripOacBlock(frontmatter: string[]): string[] {
+export function stripTopLevelKey(frontmatter: string[], key: string): string[] {
   const out: string[] = [];
   let i = 0;
 
   while (i < frontmatter.length) {
     const line = frontmatter[i]!;
 
-    if (!isTopLevelKey(line, OAC_KEY)) {
+    if (!isTopLevelKey(line, key)) {
       out.push(line);
       i += 1;
       continue;
     }
 
-    i += 1; // the `oac:` line itself
+    i += 1; // the `key:` line itself
     let end = i;
     while (end < frontmatter.length) {
       const next = frontmatter[end]!;
@@ -158,6 +164,11 @@ export function stripOacBlock(frontmatter: string[]): string[] {
   }
 
   return out;
+}
+
+/** Remove the top-level `oac:` block from frontmatter lines. */
+export function stripOacBlock(frontmatter: string[]): string[] {
+  return stripTopLevelKey(frontmatter, OAC_KEY);
 }
 
 /** Reassemble a file from stripped frontmatter and an untouched remainder. */

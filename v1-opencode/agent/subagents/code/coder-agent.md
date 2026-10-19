@@ -15,8 +15,8 @@ permission:
     "node_modules/**": "deny"
     ".git/**": "deny"
   task:
-    contextscout: "allow"
-    externalscout: "allow"
+    ContextScout: "allow"
+    ExternalScout: "allow"
     TestEngineer: "allow"
 ---
 

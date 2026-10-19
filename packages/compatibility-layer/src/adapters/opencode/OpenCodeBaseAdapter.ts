@@ -65,6 +65,8 @@
 
 import { BaseAdapter } from "./../BaseAdapter.js";
 import { getToolCapabilities } from "../../core/CapabilityMatrix.js";
+import { AgentIdResolutionError, type IdTarget } from "../../core/AgentIdResolver.js";
+import { rewriteBodyRefs, rewriteTaskKeys } from "../../core/DelegationRewriter.js";
 import {
   CanonicalAgentSchema,
   type ConversionResult,
@@ -81,6 +83,7 @@ import {
   samePermissions,
   splitFrontmatter,
   stripOacBlock,
+  stripTopLevelKey,
   type CanonicalEmitResult,
   type FromCanonicalOptions,
 } from "./surgery.js";
@@ -108,22 +111,66 @@ export abstract class OpenCodeBaseAdapter extends BaseAdapter {
   /** Human notes for the capability report. */
   protected abstract readonly layoutNote: string;
 
+  /** The id space this target registers agents in; selects how references are resolved. */
+  protected abstract readonly idTarget: IdTarget;
+  /** True when the host ignores frontmatter `name:` (v2), so the line is dropped. */
+  protected abstract readonly dropsName: boolean;
+
   /**
-   * Target-specific rewrite of the stripped frontmatter and body. The default is the identity,
-   * which is the whole of the original behaviour: the emission is the source minus `oac:`.
+   * The target rewrite of the stripped frontmatter and body: drop `name:` where the host ignores
+   * it, resolve `permission.task` keys and structured delegation examples into the target's id
+   * space. Everything else is returned byte-for-byte.
    */
-  protected transform(parts: EmitParts, _parsed: Record<string, unknown>, _options: FromCanonicalOptions): Transformed {
-    return { ...parts, warnings: [] };
+  protected transform(parts: EmitParts, _parsed: Record<string, unknown>, options: FromCanonicalOptions): Transformed {
+    const { resolver, filePath } = options;
+    let frontmatter = parts.frontmatter;
+    let rest = parts.rest;
+    const warnings: string[] = [];
+
+    if (this.dropsName) frontmatter = stripTopLevelKey(frontmatter, "name");
+
+    if (resolver === undefined) {
+      warnings.push(
+        "no AgentIdResolver supplied: delegation references are emitted as authored and may not resolve on this target."
+      );
+    } else {
+      try {
+        frontmatter = rewriteTaskKeys(frontmatter, (key) => resolver.idFor(this.idTarget, key));
+        rest = rewriteBodyRefs(rest, this.idTarget, resolver);
+      } catch (cause) {
+        if (cause instanceof AgentIdResolutionError) throw new OpenCodeEmitError(cause.message, filePath);
+        throw cause;
+      }
+    }
+    return { frontmatter, rest, warnings };
   }
 
   /**
    * The frontmatter the emitted file must PARSE to, computed from the parsed source by a path
-   * independent of the text surgery. The default is the source minus `oac:`.
+   * independent of the text surgery: the source minus `oac:` (and minus `name` where dropped),
+   * with `permission.task` keys resolved through the same resolver.
    */
-  protected expectedFrontmatter(parsed: Record<string, unknown>, _options: FromCanonicalOptions): Record<string, unknown> {
+  protected expectedFrontmatter(parsed: Record<string, unknown>, options: FromCanonicalOptions): Record<string, unknown> {
     const out: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(parsed)) if (key !== OAC_KEY) out[key] = value;
+    for (const [key, value] of Object.entries(parsed)) {
+      if (key === OAC_KEY || (this.dropsName && key === "name")) continue;
+      out[key] = key === "permission" ? this.mapPermission(value, options) : value;
+    }
     return out;
+  }
+
+  private mapPermission(value: unknown, options: FromCanonicalOptions): unknown {
+    const { resolver } = options;
+    if (resolver === undefined || typeof value !== "object" || value === null) return value;
+    const permission = value as Record<string, unknown>;
+    const task = permission["task"];
+    if (typeof task !== "object" || task === null) return value;
+
+    const mapped: Record<string, unknown> = {};
+    for (const [key, rule] of Object.entries(task as Record<string, unknown>)) {
+      mapped[resolver.idFor(this.idTarget, key)] = rule;
+    }
+    return { ...permission, task: mapped };
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -214,7 +261,7 @@ export abstract class OpenCodeBaseAdapter extends BaseAdapter {
    * source's path under the content root, not from `oac.category` + `oac.id`: the filesystem is
    * the authority on layout.
    */
-  outputPath(relativePath: string): string {
+  outputPath(relativePath: string, _id: string): string {
     return `${this.agentRoot}/${relativePath}`;
   }
 

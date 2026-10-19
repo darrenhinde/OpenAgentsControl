@@ -15,7 +15,7 @@
         "id": "copywriter",
         "name": "Copywriter",
         "type": "agent",
-        "path": ".opencode/agent/content/copywriter.md",
+        "path": ".opencode/agent/copywriter.md",
         "version": "1.0.0",
         "description": "Expert in persuasive writing, marketing copy, and brand messaging",
         "tags": [
@@ -32,7 +32,7 @@
         "id": "data-analyst",
         "name": "Data Analyst",
         "type": "agent",
-        "path": ".opencode/agent/data/data-analyst.md",
+        "path": ".opencode/agent/data-analyst.md",
         "version": "1.0.0",
         "description": "Expert in data analysis, visualization, and statistical insights",
         "tags": [
@@ -59,7 +59,7 @@
         "id": "openagent",
         "name": "OpenAgent",
         "type": "agent",
-        "path": ".opencode/agent/core/openagent.md",
+        "path": ".opencode/agent/openagent.md",
         "version": "1.0.0",
         "description": "Universal agent for answering queries, executing tasks, and coordinating workflows across any domain",
         "tags": [
@@ -86,7 +86,7 @@
         "id": "opencoder",
         "name": "OpenCoder",
         "type": "agent",
-        "path": ".opencode/agent/core/opencoder.md",
+        "path": ".opencode/agent/opencoder.md",
         "version": "1.0.0",
         "description": "Orchestration agent for complex coding, architecture, and multi-file refactoring",
         "tags": [
@@ -115,7 +115,7 @@
         "id": "repo-manager",
         "name": "Repo Manager",
         "type": "agent",
-        "path": ".opencode/agent/meta/repo-manager.md",
+        "path": ".opencode/agent/repo-manager.md",
         "version": "1.0.0",
         "description": "Meta agent for managing OpenAgents Control repository development with lazy context loading, smart delegation, and automatic documentation",
         "tags": [
@@ -138,7 +138,7 @@
         "id": "system-builder",
         "name": "System Builder",
         "type": "agent",
-        "path": ".opencode/agent/meta/system-builder.md",
+        "path": ".opencode/agent/system-builder.md",
         "version": "1.0.0",
         "description": "Main orchestrator for building complete context-aware AI systems from user requirements",
         "tags": [
@@ -159,7 +159,7 @@
         "id": "technical-writer",
         "name": "Technical Writer",
         "type": "agent",
-        "path": ".opencode/agent/content/technical-writer.md",
+        "path": ".opencode/agent/technical-writer.md",
         "version": "1.0.0",
         "description": "Expert in documentation, API docs, and technical communication",
         "tags": [
@@ -178,7 +178,7 @@
         "id": "adr-manager",
         "name": "ADRManager",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/planning/adr-manager.md",
+        "path": ".opencode/agent/adr-manager.md",
         "version": "1.0.0",
         "description": "Architecture Decision Record specialist capturing decisions, context, alternatives, and consequences in lightweight ADR format",
         "tags": [
@@ -193,7 +193,7 @@
         "id": "agent-generator",
         "name": "AgentGenerator",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/system-builder/agent-generator.md",
+        "path": ".opencode/agent/agent-generator.md",
         "version": "1.0.0",
         "description": "Generates XML-optimized agent files (orchestrator and subagents) following research-backed patterns",
         "tags": [
@@ -208,7 +208,7 @@
         "id": "architecture-analyzer",
         "name": "ArchitectureAnalyzer",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/planning/architecture-analyzer.md",
+        "path": ".opencode/agent/architecture-analyzer.md",
         "version": "1.0.0",
         "description": "DDD-driven architecture analyzer identifying bounded contexts, module boundaries, and domain relationships for multi-stage orchestration",
         "tags": [
@@ -223,7 +223,7 @@
         "id": "batch-executor",
         "name": "BatchExecutor",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/core/batch-executor.md",
+        "path": ".opencode/agent/batch-executor.md",
         "version": "1.0.0",
         "description": "Execute multiple tasks in parallel batches, managing simultaneous CoderAgent delegations and tracking batch completion",
         "tags": [
@@ -241,7 +241,7 @@
         "id": "build-agent",
         "name": "BuildAgent",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/code/build-agent.md",
+        "path": ".opencode/agent/build-agent.md",
         "version": "1.0.0",
         "description": "Type check and build validation agent",
         "tags": [
@@ -256,7 +256,7 @@
         "id": "coder-agent",
         "name": "CoderAgent",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/code/coder-agent.md",
+        "path": ".opencode/agent/coder-agent.md",
         "version": "1.0.0",
         "description": "Executes coding subtasks in sequence, ensuring completion as specified",
         "tags": [
@@ -272,7 +272,7 @@
         "id": "command-creator",
         "name": "CommandCreator",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/system-builder/command-creator.md",
+        "path": ".opencode/agent/command-creator.md",
         "version": "1.0.0",
         "description": "Creates custom slash commands that route to appropriate agents with clear syntax and examples",
         "tags": [
@@ -287,7 +287,7 @@
         "id": "context-manager",
         "name": "ContextManager",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/core/context-manager.md",
+        "path": ".opencode/agent/context-manager.md",
         "version": "1.0.0",
         "description": "Context organization and lifecycle management specialist - discovers, catalogs, validates, and maintains project context structure with dependency tracking",
         "tags": [
@@ -302,7 +302,7 @@
         "id": "context-organizer",
         "name": "ContextOrganizer",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/system-builder/context-organizer.md",
+        "path": ".opencode/agent/context-organizer.md",
         "version": "1.0.0",
         "description": "Organizes and generates context files (domain, processes, standards, templates) for optimal knowledge management",
         "tags": [
@@ -319,7 +319,7 @@
         "id": "context-retriever",
         "name": "Context Retriever",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/core/context-retriever.md",
+        "path": ".opencode/agent/context-retriever.md",
         "version": "1.0.0",
         "description": "Generic context search and retrieval specialist for finding relevant context files, standards, and guides in any repository",
         "tags": [
@@ -334,7 +334,7 @@
         "id": "contextscout",
         "name": "ContextScout",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/core/contextscout.md",
+        "path": ".opencode/agent/contextscout.md",
         "version": "1.0.0",
         "description": "Discovers and recommends context files from .opencode/context/ ranked by priority. Suggests ExternalScout when a framework/library is mentioned but not found internally.",
         "tags": [
@@ -359,7 +359,7 @@
         "id": "contract-manager",
         "name": "ContractManager",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/planning/contract-manager.md",
+        "path": ".opencode/agent/contract-manager.md",
         "version": "1.0.0",
         "description": "API contract management specialist enabling parallel development through contract-first design with OpenAPI/Swagger support",
         "tags": [
@@ -374,7 +374,7 @@
         "id": "devops-specialist",
         "name": "OpenDevopsSpecialist",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/development/devops-specialist.md",
+        "path": ".opencode/agent/devops-specialist.md",
         "version": "1.0.0",
         "description": "DevOps specialist subagent - CI/CD, infrastructure as code, deployment automation",
         "tags": [
@@ -389,7 +389,7 @@
         "id": "documentation",
         "name": "DocWriter",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/core/documentation.md",
+        "path": ".opencode/agent/documentation.md",
         "version": "1.0.0",
         "description": "Documentation authoring agent",
         "tags": [
@@ -405,7 +405,7 @@
         "id": "domain-analyzer",
         "name": "DomainAnalyzer",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/system-builder/domain-analyzer.md",
+        "path": ".opencode/agent/domain-analyzer.md",
         "version": "1.0.0",
         "description": "Analyzes user domains to identify core concepts, recommended agents, and context structure",
         "tags": [
@@ -420,7 +420,7 @@
         "id": "externalscout",
         "name": "ExternalScout",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/core/externalscout.md",
+        "path": ".opencode/agent/externalscout.md",
         "version": "1.0.0",
         "description": "Fetches live, version-specific documentation for external libraries and frameworks using Context7 and other sources. Filters, sorts, and returns relevant documentation.",
         "tags": [
@@ -438,7 +438,7 @@
         "id": "frontend-specialist",
         "name": "OpenFrontendSpecialist",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/development/frontend-specialist.md",
+        "path": ".opencode/agent/frontend-specialist.md",
         "version": "1.0.0",
         "description": "Frontend UI design specialist - subagent for design systems, themes, animations",
         "tags": [
@@ -455,7 +455,7 @@
         "id": "image-specialist",
         "name": "Image Specialist",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/utils/image-specialist.md",
+        "path": ".opencode/agent/image-specialist.md",
         "version": "1.0.0",
         "description": "Specialized agent for image editing and analysis using Gemini AI tools",
         "tags": [
@@ -472,7 +472,7 @@
         "id": "prioritization-engine",
         "name": "PrioritizationEngine",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/planning/prioritization-engine.md",
+        "path": ".opencode/agent/prioritization-engine.md",
         "version": "1.0.0",
         "description": "Scores and prioritizes backlog items using RICE/WSJF frameworks with MVP/post-MVP release slicing",
         "tags": [
@@ -487,7 +487,7 @@
         "id": "reviewer",
         "name": "CodeReviewer",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/code/reviewer.md",
+        "path": ".opencode/agent/reviewer.md",
         "version": "1.0.0",
         "description": "Code review, security, and quality assurance agent",
         "tags": [
@@ -505,7 +505,7 @@
         "id": "simple-responder",
         "name": "Simple Responder",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/test/simple-responder.md",
+        "path": ".opencode/agent/simple-responder.md",
         "version": "1.0.0",
         "description": "Test agent that responds with 'AWESOME TESTING' - for eval framework testing",
         "tags": [
@@ -519,7 +519,7 @@
         "id": "stage-orchestrator",
         "name": "StageOrchestrator",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/core/stage-orchestrator.md",
+        "path": ".opencode/agent/stage-orchestrator.md",
         "version": "1.0.0",
         "description": "Multi-stage workflow orchestrator managing stage transitions, gating rules, validation, and rollback for complex feature development",
         "tags": [
@@ -534,7 +534,7 @@
         "id": "story-mapper",
         "name": "StoryMapper",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/planning/story-mapper.md",
+        "path": ".opencode/agent/story-mapper.md",
         "version": "1.0.0",
         "description": "User journey mapping specialist transforming user needs into epics, stories, and vertical slices with bounded context alignment",
         "tags": [
@@ -549,7 +549,7 @@
         "id": "task-manager",
         "name": "TaskManager",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/core/task-manager.md",
+        "path": ".opencode/agent/task-manager.md",
         "version": "2.0.0",
         "description": "JSON-driven task breakdown specialist transforming complex features into atomic, verifiable subtasks with dependency tracking and CLI integration",
         "tags": [
@@ -566,7 +566,7 @@
         "id": "tester",
         "name": "TestEngineer",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/code/test-engineer.md",
+        "path": ".opencode/agent/tester.md",
         "version": "1.0.0",
         "description": "Test authoring and TDD agent",
         "tags": [
@@ -583,7 +583,7 @@
         "id": "workflow-designer",
         "name": "WorkflowDesigner",
         "type": "subagent",
-        "path": ".opencode/agent/subagents/system-builder/workflow-designer.md",
+        "path": ".opencode/agent/workflow-designer.md",
         "version": "1.0.0",
         "description": "Designs complete workflow definitions with context dependencies and success criteria",
         "tags": [
@@ -3581,7 +3581,7 @@
         "category": "test",
         "type": "utility",
         "version": "1.0.0",
-        "path": ".opencode/agent/subagents/test/simple-responder.md",
+        "path": ".opencode/agent/simple-responder.md",
         "mode": "subagent",
         "status": "stable"
       }

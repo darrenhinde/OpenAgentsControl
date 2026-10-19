@@ -18,9 +18,9 @@ permission:
     "*": "deny"
     contextscout: "allow"
     externalscout: "allow"
-    taskmanager: "allow"
-    batchexecutor: "allow"
-    coderagent: "allow"
+    task-manager: "allow"
+    batch-executor: "allow"
+    coder-agent: "allow"
 oac:
   id: stage-orchestrator
   name: StageOrchestrator

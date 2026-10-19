@@ -11,7 +11,7 @@ permission:
   write:
     "**/*": "deny"
   task:
-    contextscout: "allow"
+    ContextScout: "allow"
 ---
 
 # CodeReviewer

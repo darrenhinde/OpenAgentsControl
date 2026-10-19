@@ -258,7 +258,8 @@ export function entryForAgent(agent: CanonicalAgentFile, agentInstallRoot: strin
     id: agent.oac.id,
     name: agent.oac.name,
     type: agent.oac.type,
-    path: `${agentInstallRoot}/${agent.relativePath}`,
+    // Flat, like the file the v2 adapter writes: v2 derives the agent id from the file name.
+    path: `${agentInstallRoot}/${agent.oac.id}.md`,
     version: agent.oac.version,
     description: agent.frontmatter.description,
     tags: agent.oac.tags,

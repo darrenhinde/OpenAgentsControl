@@ -67,6 +67,7 @@ import {
   serializeRegistry,
 } from "./RegistryEmitter.js";
 import { ClaudeAdapter } from "../adapters/ClaudeAdapter.js";
+import { AgentIdResolver } from "./AgentIdResolver.js";
 import { OpenCodeAdapter } from "../adapters/OpenCodeAdapter.js";
 import { OpenCodeV1Adapter, OPENCODE_V1_AGENT_ROOT } from "../adapters/v1/OpenCodeV1Adapter.js";
 
@@ -242,7 +243,8 @@ function assertContained(root: string, absolute: string, what: string): void {
  */
 async function emitAgent(
   agent: CanonicalAgentFile,
-  target: BuildTarget
+  target: BuildTarget,
+  resolver: AgentIdResolver
 ): Promise<BuildFile | null> {
   // `opencode-v1` follows `opencode`: an agent opts into OpenCode once, and gets both builds.
   const declared = target === "opencode-v1" ? "opencode" : target;
@@ -253,9 +255,9 @@ async function emitAgent(
 
   if (target === "opencode" || target === "opencode-v1") {
     const adapter = target === "opencode" ? new OpenCodeAdapter() : new OpenCodeV1Adapter();
-    const { content, warnings } = await adapter.fromCanonical(source, { filePath: sourcePath });
+    const { content, warnings } = await adapter.fromCanonical(source, { filePath: sourcePath, resolver });
     return {
-      path: adapter.outputPath(agent.relativePath),
+      path: adapter.outputPath(agent.relativePath, agent.oac.id),
       content,
       target,
       agentId: agent.oac.id,
@@ -296,13 +298,14 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   const agents = await new CanonicalAgentLoader(join(root, DEFAULTS.contentRoot))
     .loadFromDirectory();
 
+  const resolver = AgentIdResolver.fromCanonical(agents);
   const files: BuildFile[] = [];
 
   // Agents outer, targets inner, both in a content-determined order. Iterating `oac.targets`
   // instead would make output order depend on the order an author happened to list them in.
   for (const agent of agents) {
     for (const target of targets) {
-      const file = await emitAgent(agent, target);
+      const file = await emitAgent(agent, target, resolver);
       if (file !== null) files.push(file);
     }
   }
@@ -366,7 +369,7 @@ export async function buildAgentIn(
     );
   }
 
-  const file = await emitAgent(agent, target);
+  const file = await emitAgent(agent, target, AgentIdResolver.fromCanonical(agents));
   if (file === null) {
     throw new Error(
       `Agent "${id}" does not declare target "${target}" (declares: ` +

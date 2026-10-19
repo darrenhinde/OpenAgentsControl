@@ -1,5 +1,4 @@
 ---
-name: FixturePlanner
 description: Plans work before implementation. A golden-file fixture, not a shipped agent.
 mode: primary
 temperature: 0.3

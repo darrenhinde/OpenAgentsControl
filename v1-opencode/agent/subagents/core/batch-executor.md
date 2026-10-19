@@ -16,9 +16,9 @@ permission:
     ".git/**": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
-    externalscout: "allow"
-    coderagent: "allow"
+    ContextScout: "allow"
+    ExternalScout: "allow"
+    CoderAgent: "allow"
     OpenFrontendSpecialist: "allow"
 ---
 

@@ -14,7 +14,7 @@ permission:
     ".git/**": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
+    ContextScout: "allow"
 ---
 
 # Prioritization Engine

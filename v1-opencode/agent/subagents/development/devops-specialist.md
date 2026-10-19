@@ -6,7 +6,7 @@ temperature: 0.1
 permission:
   task:
     "*": "deny"
-    contextscout: "allow"
+    ContextScout: "allow"
   bash:
     "*": "deny"
     "docker build *": "allow"

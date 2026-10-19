@@ -16,8 +16,8 @@ permission:
     ".git/**": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
-    externalscout: "allow"
+    ContextScout: "allow"
+    ExternalScout: "allow"
   skill:
     "*": "deny"
 ---

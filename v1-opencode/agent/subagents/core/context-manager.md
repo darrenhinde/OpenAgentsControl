@@ -30,7 +30,7 @@ permission:
     "**/*.secret": "deny"
   task:
     "*": "deny"
-    "contextscout": "allow"
+    "ContextScout": "allow"
 ---
 
 # ContextManager

@@ -17,7 +17,7 @@ permission:
   task:
     contextscout: "allow"
     externalscout: "allow"
-    TestEngineer: "allow"
+    tester: "allow"
 oac:
   id: coder-agent
   name: CoderAgent

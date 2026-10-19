@@ -6,7 +6,7 @@ temperature: 0.1
 permission:
   task:
     "*": "deny"
-    contextscout: "allow"
+    ContextScout: "allow"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"

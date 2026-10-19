@@ -59,7 +59,7 @@ export const CLAUDE_TOOL_ORDER = [
   "Task",
 ] as const;
 
-const TARGETS = ["opencode", "claude-code"] as const;
+const TARGETS = ["opencode", "opencode-v1", "claude-code"] as const;
 const AGENTS = ["fixture-reviewer", "fixture-planner"] as const;
 
 interface Adapter {
@@ -71,6 +71,11 @@ const ADAPTER_MODULE: Record<(typeof TARGETS)[number], { path: string; symbol: s
     path: "src/adapters/OpenCodeAdapter.ts",
     symbol: "OpenCodeAdapter",
     owedBy: "subtask 06 (src/adapters/OpenCodeAdapter.ts)",
+  },
+  "opencode-v1": {
+    path: "src/adapters/v1/OpenCodeV1Adapter.ts",
+    symbol: "OpenCodeV1Adapter",
+    owedBy: "the opencode-v1 target (src/adapters/v1/OpenCodeV1Adapter.ts)",
   },
   "claude-code": {
     path: "src/adapters/ClaudeAdapter.ts",

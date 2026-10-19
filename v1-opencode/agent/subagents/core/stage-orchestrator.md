@@ -16,11 +16,11 @@ permission:
     ".git/**": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
-    externalscout: "allow"
-    taskmanager: "allow"
-    batchexecutor: "allow"
-    coderagent: "allow"
+    ContextScout: "allow"
+    ExternalScout: "allow"
+    TaskManager: "allow"
+    BatchExecutor: "allow"
+    CoderAgent: "allow"
 ---
 
 # StageOrchestrator
