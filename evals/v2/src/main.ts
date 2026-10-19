@@ -14,7 +14,10 @@ import type { CheckDef, CheckRow, RunContext } from "./core/types.ts";
 import { renderJunit } from "./report/junit.ts";
 import { renderSandboxLine, renderSummary } from "./report/summary.ts";
 import { sandboxMode, suiteTmpRoot } from "./sandbox/env.ts";
-import { launchAuthorization } from "./sandbox/gate.ts";
+import { capabilitySummary, policyRecord, probeRecords } from "./sandbox/evidence.ts";
+import { decideLaunch, installProbeReport } from "./sandbox/gate.ts";
+import { currentPolicyId, probeSandbox } from "./sandbox/probe-runner.ts";
+import type { ProbeReport } from "./sandbox/probes.ts";
 import { diffSnapshots, takeSnapshot } from "./sandbox/snapshot.ts";
 import { safetyLedger } from "./sandbox/ledger.ts";
 
@@ -73,9 +76,11 @@ export async function main(): Promise<number> {
   const git = await gitLine();
   const versions = JSON.parse(readFileSync(join(HERE, "..", "versions.json"), "utf8")) as Record<string, string>;
 
-  // Report inputs captured from the orchestration effects: version probes run inside
-  // orchestrate (behind selection — quick performs none), so their results reach
-  // env.json/summary through these wrappers. The legacy selftest is quarantined (P1.2 U3).
+  // Report inputs captured from the orchestration effects: version and boundary probes run
+  // inside orchestrate (behind selection — quick performs none), so their results reach
+  // env.json/summary through these wrappers.
+  const policyId = currentPolicyId();
+  let probeReport: ProbeReport | undefined;
   let oc: string | undefined;
   let cc: string | undefined;
   let outsideChanged: string[] = [];
@@ -109,8 +114,15 @@ export async function main(): Promise<number> {
       if (bin === "claude") cc = v;
       return v;
     },
-    // Unverified backend evidence: contained workloads are refused until P3/P4.
-    authorizeLaunch: (c) => launchAuthorization({ checkId: c.id, workload: c.workload }, sandboxMode()),
+    // Boundary probes (P3-lite): the report is installed once so the inner funnel guards see
+    // the same evidence orchestrate authorizes with. No report → unverified → contained refused.
+    runProbes: async () => {
+      const report = await probeSandbox({ mode: sandboxMode(), repo: REPO, tmpRoot, runId, policyId });
+      // The frozen installed copy is what every later decision and report reads.
+      probeReport = installProbeReport(report);
+      return probeReport;
+    },
+    authorizeLaunch: (c, report) => decideLaunch({ checkId: c.id, workload: c.workload }, sandboxMode(), report),
     runCheck: (check, ctx) => check.run(ctx),
     makeCtx: (c: CheckDef): RunContext => {
       const [areaDir, ...rest] = c.id.split("/");
@@ -154,9 +166,10 @@ export async function main(): Promise<number> {
 
   const agentRuns = ledger.agentRuns;
   const sandboxLine = renderSandboxLine({
-    mode: sandboxMode(), envScrub: envScrubLabel([]), agentRuns, canariesPlanted: ledger.canariesPlanted,
+    mode: sandboxMode(), envScrub: envScrubLabel(probeReport?.probes ?? []), agentRuns, canariesPlanted: ledger.canariesPlanted,
     canaryLeaks: ledger.canaryLeaks.length, authViolations: ledger.authViolations.length,
     egress: ledger.egress.length, outsideChanged: outsideChanged.length,
+    capabilities: probeReport?.probes.length ? capabilitySummary(probeReport) : undefined,
   });
 
   const extra: string[] = [];
@@ -175,7 +188,7 @@ export async function main(): Promise<number> {
     JSON.stringify({
       git, tier: args.tier, flags: { only: args.only, strict: args.strict, rerunFailed: args.rerunFailed, ci: args.ci },
       hosts: { opencode: oc, claude: cc, pins: versions }, node: process.versions.node, os: `${platform()}-${arch()}`,
-      sandbox: { mode: sandboxMode(), selfTest: "quarantined", outsideChanged, ...ledger }, wallMs: wall,
+      sandbox: { mode: sandboxMode(), ...policyRecord(probeReport), probes: probeRecords(probeReport), outsideChanged, ...ledger }, wallMs: wall,
     }, null, 2) + "\n",
   );
   const latest = join(runsRoot, "latest");

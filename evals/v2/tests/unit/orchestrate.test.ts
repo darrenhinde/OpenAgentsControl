@@ -7,7 +7,8 @@ import {
   plan,
   type OrchestratorDeps,
 } from "../../src/core/orchestrate.ts";
-import { LaunchRefused, launchAuthorization } from "../../src/sandbox/gate.ts";
+import { LaunchRefused, decideLaunch } from "../../src/sandbox/gate.ts";
+import { PROBES, PROBE_ORDER, type ProbeId, type ProbeOutcome, type ProbeReport } from "../../src/sandbox/probes.ts";
 import type { Authorization } from "../../src/sandbox/contract.ts";
 import type { Selection } from "../../src/core/selection.ts";
 import type {
@@ -36,10 +37,13 @@ import type {
 //                          hostVersion, authorizeLaunch, runCheck, makeCtx, collectBreaches,
 //                          persist, say, usage, now }
 //
-// U3 additions: the legacy selftest is quarantined (no dependency exists to run it), and
-// every selected check passes authorizeLaunch BEFORE makeCtx/runCheck. The harness default
-// is the production gate (launchAuthorization with unverified evidence), so contained rows
-// are refused; loop-mechanics tests opt into ALLOW_ALL explicitly.
+// U3 additions: every selected check passes authorizeLaunch BEFORE makeCtx/runCheck. The
+// harness default is the production gate (decideLaunch) fed by an unmeasured probe report,
+// so contained rows are refused; loop-mechanics tests opt into ALLOW_ALL explicitly.
+//
+// P3-lite U3: the legacy selftest is gone; hosts and above run the boundary probes once
+// (injected runProbes) after the host version probes and before the first check, and their
+// report is the evidence authorizeLaunch receives. quick runs ZERO probes.
 //
 // Deliberately NOT covered here:
 // - selection semantics (tier bound, --only, rerun, workload gates): covered in
@@ -104,8 +108,24 @@ interface Harness {
   readonly persisted: readonly CheckRow[];
   readonly runCheckCalls: readonly { check: CheckDef; ctx: RunContext }[];
   readonly ctxByCheck: ReadonlyMap<string, RunContext>;
+  /** The probe report each authorizeLaunch call received, in call order. */
+  readonly authorizedWith: readonly (ProbeReport | undefined)[];
   readonly deps: OrchestratorDeps;
 }
+
+/** A seatbelt report in which every probe produced `result` unless overridden per id. */
+function probeReport(overrides: Partial<Record<ProbeId, ProbeOutcome["result"]>> = {}, result: ProbeOutcome["result"] = "pass"): ProbeReport {
+  return {
+    mode: "seatbelt",
+    policyId: "sha256:test-profile",
+    probes: PROBE_ORDER.map((id) => ({
+      id, capability: PROBES[id].capability, result: overrides[id] ?? result, observations: [`${overrides[id] ?? result} (synthetic)`],
+    })),
+  };
+}
+
+/** What the harness's runProbes returns by default: nothing measured, so contained rows are refused. */
+const UNMEASURED: ProbeReport = { mode: "seatbelt", policyId: "sha256:test-profile", probes: [] };
 
 /** Test-only authorizer standing in for verified backend evidence (loop-mechanics tests). */
 const ALLOW_ALL = (check: CheckDef): Authorization => ({
@@ -132,6 +152,7 @@ function harness(
   const persisted: CheckRow[] = [];
   const runCheckCalls: { check: CheckDef; ctx: RunContext }[] = [];
   const ctxByCheck = new Map<string, RunContext>();
+  const authorizedWith: (ProbeReport | undefined)[] = [];
   let tick = 1_000_000;
 
   const deps: OrchestratorDeps = {
@@ -147,9 +168,14 @@ function harness(
       calls.push(`hostVersion:${bin}`);
       return Promise.resolve("1.0.0");
     },
-    authorizeLaunch: (check: CheckDef) => {
+    runProbes: () => {
+      calls.push("probes");
+      return Promise.resolve(UNMEASURED);
+    },
+    authorizeLaunch: (check: CheckDef, report: ProbeReport | undefined) => {
       calls.push(`authorize:${check.id}`);
-      return launchAuthorization({ checkId: check.id, workload: check.workload }, "seatbelt");
+      authorizedWith.push(report);
+      return decideLaunch({ checkId: check.id, workload: check.workload }, "seatbelt", report);
     },
     runCheck: (check: CheckDef, ctx: RunContext) => {
       calls.push(`check:${check.id}`);
@@ -182,13 +208,14 @@ function harness(
     ...overrides,
   };
 
-  return { calls, said, persisted, runCheckCalls, ctxByCheck, deps };
+  return { calls, said, persisted, runCheckCalls, ctxByCheck, authorizedWith, deps };
 }
 
 /** Counts the launch-relevant effects so "zero calls" assertions read plainly. */
-function effectCounts(h: Harness): { hostVersion: number; checks: number } {
+function effectCounts(h: Harness): { hostVersion: number; probes: number; checks: number } {
   return {
     hostVersion: h.calls.filter((c) => c.startsWith("hostVersion:")).length,
+    probes: h.calls.filter((c) => c === "probes").length,
     checks: h.calls.filter((c) => c.startsWith("check:")).length,
   };
 }
@@ -220,7 +247,7 @@ describe("orchestrate: --strict-sandbox/--budget and the live tier exit 2 via us
     // Assert: usage() is the exit-2 mechanism; it fired before any launch-relevant effect.
     expect(caught).toBeInstanceOf(UsageExit);
     expect((caught as UsageExit).code).toBe(2);
-    expect(effectCounts(h)).toEqual({ hostVersion: 0, checks: 0 });
+    expect(effectCounts(h)).toEqual({ hostVersion: 0, probes: 0, checks: 0 });
     expect(h.persisted).toEqual([]);
   });
 
@@ -237,7 +264,7 @@ describe("orchestrate: --strict-sandbox/--budget and the live tier exit 2 via us
     // Assert
     expect(caught).toBeInstanceOf(UsageExit);
     expect((caught as UsageExit).code).toBe(2);
-    expect(effectCounts(h)).toEqual({ hostVersion: 0, checks: 0 });
+    expect(effectCounts(h)).toEqual({ hostVersion: 0, probes: 0, checks: 0 });
   });
 });
 
@@ -246,13 +273,13 @@ describe("orchestrate: --strict-sandbox/--budget and the live tier exit 2 via us
 // ---------------------------------------------------------------------------
 
 describe("orchestrate: selection drives the run loop", () => {
-  it("quick performs ZERO host version probes while still running the quick checks", async () => {
+  it("quick performs ZERO host version probes and ZERO sandbox probes while still running the quick checks", async () => {
     // Arrange
     const h = harness({ argv: ["quick"] });
     // Act
     const code = await orchestrate(h.deps);
     // Assert
-    expect(effectCounts(h)).toEqual({ hostVersion: 0, checks: 2 });
+    expect(effectCounts(h)).toEqual({ hostVersion: 0, probes: 0, checks: 2 });
     expect(runCheckIds(h)).toEqual(["build/one", "build/two"]);
     expect(code).toBe(0);
   });
@@ -341,19 +368,83 @@ describe("orchestrate: version probe results feed the pins line via say", () => 
 });
 
 // ---------------------------------------------------------------------------
-// orchestrate: the legacy selftest is quarantined, never executed
+// orchestrate: boundary probes (P3-lite U3) run once on hosts+, never on quick
 // ---------------------------------------------------------------------------
 
-describe("orchestrate: the legacy selftest is quarantined at every tier", () => {
-  it.each([["quick"], ["hosts"], ["all"]])("tier %s mints no selftest evidence and says so", async (tier) => {
+describe("orchestrate: boundary probes run once per hosts run and feed launch authorization", () => {
+  it("quick runs ZERO sandbox probes and authorizes with no report", async () => {
+    // Arrange
+    const h = harness({ argv: ["quick"] });
+    // Act
+    await orchestrate(h.deps);
+    // Assert
+    expect(effectCounts(h).probes).toBe(0);
+    expect(h.authorizedWith).toEqual([undefined, undefined]);
+    expect(Object.keys(h.deps)).not.toContain("runSelfTests");
+  });
+
+  it.each([["hosts"], ["all"]])("tier %s probes exactly once, after the host versions and before any authorization or check", async (tier) => {
     // Arrange
     const h = harness({ argv: [tier] });
     // Act
     await orchestrate(h.deps);
     // Assert
-    expect(h.calls.some((c) => c.startsWith("selftest"))).toBe(false);
-    expect(Object.keys(h.deps)).not.toContain("runSelfTests");
-    if (tier !== "quick") expect(h.said.join("\n")).toContain("quarantined");
+    expect(effectCounts(h).probes).toBe(1);
+    const probes = h.calls.indexOf("probes");
+    expect(probes).toBeGreaterThan(h.calls.indexOf("hostVersion:claude"));
+    expect(probes).toBeLessThan(h.calls.findIndex((c) => c.startsWith("authorize:")));
+    expect(probes).toBeLessThan(h.calls.findIndex((c) => c.startsWith("check:")));
+  });
+
+  it("passes the probe report to every authorization and prints its headline", async () => {
+    // Arrange
+    const report = probeReport();
+    const h = harness({ argv: ["hosts"], runProbes: () => Promise.resolve(report) });
+    // Act
+    await orchestrate(h.deps);
+    // Assert
+    expect(h.authorizedWith.length).toBeGreaterThan(0);
+    expect(h.authorizedWith.every((r) => r === report)).toBe(true);
+    expect(h.said.join("\n")).toContain("sandbox probes  seatbelt 5/5 capabilities verified");
+  });
+
+  it("runs a contained row when every capability is verified", async () => {
+    // Arrange
+    const h = harness({ argv: ["hosts"], runProbes: () => Promise.resolve(probeReport()) });
+    // Act
+    const code = await orchestrate(h.deps);
+    // Assert
+    expect(runCheckIds(h)).toEqual(["build/one", "build/two", "cc/host-row"]);
+    expect(h.persisted.find((r) => r.id === "cc/host-row")?.status).toBe("pass");
+    expect(code).toBe(0);
+  });
+
+  it("is not a breach when a probe fails: contained rows are refused naming the capability, trusted rows run, exit 1", async () => {
+    // Arrange
+    const h = harness({ argv: ["hosts"], runProbes: () => Promise.resolve(probeReport({ "ipc-keychain": "fail" })) });
+    // Act
+    const code = await orchestrate(h.deps);
+    // Assert
+    expect(runCheckIds(h)).toEqual(["build/one", "build/two"]);
+    const row = h.persisted.find((r) => r.id === "cc/host-row");
+    expect(row?.status).toBe("fail");
+    expect(row?.sandbox).toHaveProperty("refused.code", "capability-unverified");
+    expect(row?.summary).toContain("ipc");
+    expect(row?.summary).not.toContain("network");
+    expect(code).toBe(1);
+  });
+
+  it("keeps going when the probe run itself errors: contained rows refused, trusted rows run, exit 1", async () => {
+    // Arrange
+    const h = harness({ argv: ["hosts"], runProbes: () => Promise.reject(new Error("listener bind failed")) });
+    // Act
+    const code = await orchestrate(h.deps);
+    // Assert
+    expect(h.said.join("\n")).toContain("listener bind failed");
+    expect(h.authorizedWith.every((r) => r === undefined)).toBe(true);
+    expect(runCheckIds(h)).toEqual(["build/one", "build/two"]);
+    expect(h.persisted.find((r) => r.id === "cc/host-row")?.summary).toContain("capability-unverified");
+    expect(code).toBe(1);
   });
 });
 
@@ -802,30 +893,31 @@ describe("decideExit: combines row statuses, breaches and refusals into an exit 
 });
 
 // ---------------------------------------------------------------------------
-// envScrubLabel: the summary's env-scrub mark is derived from selftest evidence
+// envScrubLabel: the summary's env-scrub mark is derived from env-scrub probe evidence
 // ---------------------------------------------------------------------------
 
-describe("envScrubLabel: never shows ✓ without selftest evidence", () => {
-  it("reports 'not run' when no selftest ran (quick, or the quarantined legacy selftest), never ✓", () => {
+describe("envScrubLabel: never shows ✓ without env-scrub probe evidence", () => {
+  const probe = (id: ProbeId, result: ProbeOutcome["result"]): ProbeOutcome => ({
+    id, capability: PROBES[id].capability, result, observations: ["synthetic"],
+  });
+
+  it("reports 'not run' when no probe ran (quick, iso, or a probe-run error), never ✓", () => {
     // Arrange / Act
     const label = envScrubLabel([]);
     // Assert
     expect(label).toBe("not run");
     expect(label).not.toContain("✓");
+    expect(envScrubLabel([probe("net-loopback", "pass")])).toBe("not run");
   });
 
-  it("reports ✓ only when selftests ran and all passed", () => {
+  it("reports ✓ only when the env-scrub probe ran and passed", () => {
     // Arrange / Act / Assert
-    expect(envScrubLabel([{ name: "env-scrub", ok: true, detail: "all names allowlisted" }])).toBe("✓");
+    expect(envScrubLabel([probe("env-names", "pass"), probe("ipc-keychain", "fail")])).toBe("✓");
   });
 
-  it("reports ✗ when any selftest failed", () => {
+  it("reports ✗ when the env-scrub probe failed or was inconclusive", () => {
     // Arrange / Act / Assert
-    expect(
-      envScrubLabel([
-        { name: "env-scrub", ok: true, detail: "ok" },
-        { name: "canary", ok: false, detail: "leaked" },
-      ]),
-    ).toBe("✗");
+    expect(envScrubLabel([probe("env-names", "fail")])).toBe("✗");
+    expect(envScrubLabel([probe("env-names", "inconclusive")])).toBe("✗");
   });
 });

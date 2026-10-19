@@ -32,11 +32,23 @@ vi.mock("../../src/sandbox/canary.ts", () => ({
 import { cmdCheck } from "../../src/checks/helpers.ts";
 import { runHost } from "../../src/checks/host-run.ts";
 import type { RunContext, WorkloadDecl } from "../../src/core/types.ts";
-import { mainCheckoutOf, runIsolated, type IsoDirs } from "../../src/sandbox/env.ts";
+import {
+  PROFILE,
+  WRAPPER,
+  mainCheckoutOf,
+  probeWrapperArgv,
+  runIsolated,
+  runProbeIsolated,
+  sandboxMode,
+  type IsoDirs,
+} from "../../src/sandbox/env.ts";
+import { SCRUB_CANARY } from "../../src/sandbox/policy.ts";
+import { PROBES, PROBE_ORDER, type ProbeContext, type ProbeId, type ProbeOutcome, type ProbeReport } from "../../src/sandbox/probes.ts";
 import {
   LaunchRefused,
   assertContainedLaunch,
   assertLaunchAllowed,
+  decideLaunch,
   launchAuthorization,
   unverifiedBackend,
 } from "../../src/sandbox/gate.ts";
@@ -267,5 +279,210 @@ describe("cmdCheck: refuses non-trusted declarations before PATH lookup or exec"
     // Assert
     expect(outcome.ok).toBe(true);
     expect(execMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// runProbeIsolated: the narrow probe launch path (P3-lite U2). Takes a PROBES id, never an
+// argv, and builds the command from the fixed table through the same wrapper and profile.
+// ---------------------------------------------------------------------------
+
+const PROBE_CTX: ProbeContext = {
+  runId: "261019000000",
+  realHome: "/Users/maint",
+  repo: "/repo-under-test",
+  controlDir: "/nope/work",
+  loopbackPort: 40123,
+  mainCheckout: "/main-checkout",
+  hostConfig: [{ path: "/Users/maint/.ssh", outside: "accessible" }],
+};
+
+describe("probeWrapperArgv: the wrapper command is derived from the PROBES table only", () => {
+  it.each([...PROBE_ORDER])("builds %s as wrapper + profile + deny params + allowlisted env + the table argv", (id) => {
+    // Arrange
+    const sep = (argv: readonly string[]): number[] => argv.flatMap((a, i) => (a === "--" ? [i] : []));
+    // Act
+    const argv = probeWrapperArgv(id, PROBE_CTX, FAKE_DIRS);
+    // Assert
+    expect(argv.slice(0, 7)).toEqual([WRAPPER, PROFILE, FAKE_DIRS.work, "/Users/maint", "/repo-under-test", "/main-checkout", "49374"]);
+    const [envStart, cmdStart] = sep(argv);
+    expect(envStart).toBe(7);
+    expect(argv.slice((cmdStart ?? 0) + 1)).toEqual([...PROBES[id].argv(PROBE_CTX)]);
+    const names = argv.slice(8, cmdStart).map((a) => a.split("=")[0]);
+    expect(names).toContain("HOME");
+    expect(names).not.toContain(SCRUB_CANARY);
+  });
+
+  it("denies exactly what the checks deny: MAIN_DENY is the main checkout, or the repo when unresolved", () => {
+    // Arrange / Act
+    const unresolved = probeWrapperArgv("fs-repo-read", { ...PROBE_CTX, mainCheckout: undefined }, FAKE_DIRS);
+    // Assert
+    expect(unresolved.slice(4, 6)).toEqual(["/repo-under-test", "/repo-under-test"]);
+  });
+
+  it("refuses an id that is not in the PROBES table", () => {
+    // Arrange / Act / Assert
+    expect(() => probeWrapperArgv("curl-anything" as ProbeId, PROBE_CTX, FAKE_DIRS)).toThrow(/unknown probe/);
+  });
+});
+
+describe("runProbeIsolated: refuses before any spawn unless it is a table probe in seatbelt mode", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("accepts exactly (id, ctx, dirs): there is no argv parameter", () => {
+    // Arrange / Act / Assert
+    expect(runProbeIsolated.length).toBe(3);
+  });
+
+  it("rejects an unknown id without spawning", async () => {
+    // Arrange / Act
+    const run = runProbeIsolated("/bin/sh" as ProbeId, PROBE_CTX, FAKE_DIRS);
+    // Assert
+    await expect(run).rejects.toThrow(/unknown probe/);
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects in iso mode (no Seatbelt to probe) without spawning", async () => {
+    // Arrange
+    vi.stubEnv("OAC_SANDBOX", "iso");
+    // Act
+    const run = runProbeIsolated("env-names", PROBE_CTX, FAKE_DIRS);
+    // Assert
+    await expect(run).rejects.toThrow(/seatbelt/);
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
+  it.skipIf(sandboxMode() !== "seatbelt").each([...PROBE_ORDER])(
+    "launches %s once through bash and the wrapper, with the table's timeout, sandbox flag and scrub canary",
+    async (id) => {
+      // Arrange
+      execMock.mockResolvedValue({ code: 0, out: "", ms: 1, timedOut: false });
+      // Act
+      await runProbeIsolated(id, PROBE_CTX, FAKE_DIRS);
+      // Assert
+      expect(execMock).toHaveBeenCalledTimes(1);
+      const [cmd, args, opts] = execMock.mock.calls[0] as [string, string[], { env: Record<string, string>; timeoutMs: number; stdoutOnly: boolean }];
+      expect(cmd).toBe("/bin/bash");
+      expect(args).toEqual(probeWrapperArgv(id, PROBE_CTX, FAKE_DIRS));
+      expect(opts.timeoutMs).toBe(PROBES[id].timeoutMs);
+      expect(opts.stdoutOnly).toBe(PROBES[id].stdoutOnly);
+      expect(opts.env.OAC_SANDBOX).toBe("seatbelt");
+      expect(opts.env[SCRUB_CANARY]).toBe("1");
+    },
+  );
+});
+
+// ---------------------------------------------------------------------------
+// decideLaunch / installProbeReport (P3-lite U3): probe evidence reaches the gate
+// ---------------------------------------------------------------------------
+
+function probed(overrides: Partial<Record<ProbeId, ProbeOutcome["result"]>> = {}, mode: ProbeReport["mode"] = "seatbelt"): ProbeReport {
+  return {
+    mode,
+    policyId: "sha256:test-profile",
+    probes: PROBE_ORDER.map((id) => ({ id, capability: PROBES[id].capability, result: overrides[id] ?? "pass", observations: ["synthetic"] })),
+  };
+}
+
+describe("decideLaunch: the pure gate decision over the supervisor's probe report", () => {
+  it.each(CONTAINED)("allows %s with containment required when every capability is verified", (workload) => {
+    // Arrange / Act
+    const auth = decideLaunch({ checkId: "cc/x", workload }, "seatbelt", probed());
+    // Assert
+    expect(auth).toMatchObject({ allowed: true, checkId: "cc/x", containment: "required" });
+  });
+
+  it("refuses naming exactly the failed capability", () => {
+    // Arrange / Act
+    const auth = decideLaunch({ checkId: "cc/x", workload: "host-scenario" }, "seatbelt", probed({ "proc-tree": "inconclusive" }));
+    // Assert
+    expect(auth.allowed).toBe(false);
+    if (auth.allowed) return;
+    expect(auth.code).toBe("capability-unverified");
+    expect(auth.missing).toEqual(["process-tree"]);
+  });
+
+  it("applies the per-workload filesystem scope: a failed repo read refuses host-check but not installer", () => {
+    // Arrange
+    const report = probed({ "fs-repo-read": "fail" });
+    // Act
+    const hostCheck = decideLaunch({ checkId: "cc/x", workload: "host-check" }, "seatbelt", report);
+    const installer = decideLaunch({ checkId: "inst/x", workload: "installer" }, "seatbelt", report);
+    // Assert
+    expect(hostCheck.allowed).toBe(false);
+    expect(installer.allowed).toBe(true);
+  });
+
+  it("falls back to unverified evidence without a report, or when the report's mode is not the launch mode", () => {
+    // Arrange / Act
+    const none = decideLaunch({ checkId: "cc/x", workload: "host-check" }, "seatbelt", undefined);
+    const otherMode = decideLaunch({ checkId: "cc/x", workload: "host-check" }, "container", probed());
+    // Assert
+    expect(none).toMatchObject({ allowed: false, code: "capability-unverified" });
+    expect(otherMode).toMatchObject({ allowed: false, code: "capability-unverified" });
+  });
+
+  it("still refuses an iso-mode report as unsupported-mode", () => {
+    // Arrange / Act
+    const auth = decideLaunch({ checkId: "cc/x", workload: "host-check" }, "iso", probed({}, "iso"));
+    // Assert
+    expect(auth).toMatchObject({ allowed: false, code: "unsupported-mode" });
+  });
+
+  it("never needs evidence for a trusted declaration, and still refuses deferred ones", () => {
+    // Arrange / Act / Assert
+    expect(decideLaunch({ checkId: "build/x", workload: "trusted-command" }, "seatbelt", undefined).allowed).toBe(true);
+    expect(decideLaunch({ checkId: "inst/net", workload: "deferred" }, "seatbelt", probed()).allowed).toBe(false);
+  });
+});
+
+describe("installProbeReport: the funnel guards consult the supervisor's report, installed once", () => {
+  it("lets assertContainedLaunch admit a verified contained launch only after the report is installed", async () => {
+    // Arrange: a fresh gate module, so this test's install cannot leak into the others.
+    vi.resetModules();
+    const gate = await import("../../src/sandbox/gate.ts");
+    const decl = { checkId: "cc/x", workload: "host-check" as const };
+    // Act
+    const before = gate.launchAuthorization(decl, "seatbelt");
+    gate.installProbeReport(probed());
+    const after = gate.launchAuthorization(decl, "seatbelt");
+    // Assert
+    expect(before.allowed).toBe(false);
+    expect(after).toMatchObject({ allowed: true, containment: "required" });
+    expect(() => gate.assertContainedLaunch(decl, "seatbelt")).not.toThrow();
+  });
+
+  it("deep-freezes the installed report: mutating it throws, and mutating the caller's original has no effect", async () => {
+    // Arrange
+    vi.resetModules();
+    const gate = await import("../../src/sandbox/gate.ts");
+    const original = probed({ "ipc-keychain": "fail" });
+    const decl = { checkId: "cc/x", workload: "host-check" as const };
+    // Act
+    const installed = gate.installProbeReport(original);
+    (original.probes as ProbeOutcome[]).splice(0, original.probes.length, ...probed().probes);
+    // Assert
+    expect(Object.isFrozen(installed)).toBe(true);
+    expect(Object.isFrozen(installed.probes)).toBe(true);
+    expect(Object.isFrozen(installed.probes[0]?.observations)).toBe(true);
+    expect(() => {
+      (installed.probes as ProbeOutcome[]).push(probed().probes[0] as ProbeOutcome);
+    }).toThrow(TypeError);
+    expect(() => {
+      (installed.probes[0] as { result: string }).result = "pass";
+    }).toThrow(TypeError);
+    expect(gate.launchAuthorization(decl, "seatbelt").allowed).toBe(false);
+  });
+
+  it("refuses a second install, so nothing can swap the evidence mid-run", async () => {
+    // Arrange
+    vi.resetModules();
+    const gate = await import("../../src/sandbox/gate.ts");
+    gate.installProbeReport(probed({ "ipc-keychain": "fail" }));
+    // Act / Assert
+    expect(() => gate.installProbeReport(probed())).toThrow(/already installed/);
+    expect(gate.launchAuthorization({ checkId: "cc/x", workload: "host-check" }, "seatbelt").allowed).toBe(false);
   });
 });

@@ -20,12 +20,23 @@ export interface SandboxEvidence {
   authViolations: number;
   egress: number;
   outsideChanged: number;
+  /** Boundary-probe capability states (P3-lite); absent when no probes ran (quick, iso, error). */
+  capabilities?: { readonly verified: readonly string[]; readonly failed: readonly string[] };
 }
 
-/** The summary's sandbox line. The backend mode is never verified before P4; per-run audits only count when host runs happened. */
+/** Pure: "(unverified)" goes only when every probed capability was verified; the profile itself is never audited before P4. */
+function backendLabel(e: SandboxEvidence): string {
+  const c = e.capabilities;
+  if (!c) return `${e.mode} (unverified)`;
+  const probed = `probed: ${c.verified.length}/${c.verified.length + c.failed.length} capabilities`;
+  if (!c.failed.length && c.verified.length) return `${e.mode} (${probed}, profile not audited)`;
+  return `${e.mode} (unverified; ${probed}, failed: ${c.failed.join(", ")})`;
+}
+
+/** The summary's sandbox line. Per-run audits only count when host runs happened. */
 export function renderSandboxLine(e: SandboxEvidence): string {
   const outside = `outside-files ${e.outsideChanged ? "CHANGED ✗" : "unchanged ✓"}`;
-  const head = `sandbox  ${e.mode} (unverified)  env-scrub ${e.envScrub}`;
+  const head = `sandbox  ${backendLabel(e)}  env-scrub ${e.envScrub}`;
   if (!e.agentRuns) return `${head}  not exercised (0 sandboxed host runs)  ${outside}`;
   return (
     `${head}  canary ${e.canaryLeaks}/${e.canariesPlanted} leaks ${e.canaryLeaks ? "✗" : "✓"}  ` +

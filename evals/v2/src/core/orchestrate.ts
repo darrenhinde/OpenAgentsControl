@@ -5,15 +5,19 @@
 // unit-testable without I/O (tests/unit/orchestrate.test.ts). main.ts wires the real effects
 // and keeps runDir/logs, gitLine, known-red loading, snapshot+diff and report writing.
 //
-// Tier discipline: quick performs ZERO host version probes; hosts and above probe each host
-// once before the first check. The legacy selftest is quarantined: no dependency runs it.
-// Every selected check passes authorizeLaunch before makeCtx/runCheck. Selection refusals
+// Tier discipline: quick performs ZERO host version probes and ZERO sandbox boundary probes;
+// hosts and above probe each host once, then run the boundary probes once (P3-lite U3),
+// before the first check. Every selected check passes authorizeLaunch — with that probe
+// report as its evidence — before makeCtx/runCheck. A probe failure is not a breach: contained
+// rows are refused naming the unverified capabilities and trusted rows run. Selection refusals
 // and launch refusals (including a LaunchRefused thrown by an inner funnel guard) are
 // non-waivable fail rows (never known-red, never skip) and a refused check is never run.
 import { arch, platform } from "node:os";
 import { join, relative } from "node:path";
 import type { Authorization } from "../sandbox/contract.ts";
+import { probeHeadline } from "../sandbox/evidence.ts";
 import { LaunchRefused } from "../sandbox/gate.ts";
+import type { ProbeOutcome, ProbeReport } from "../sandbox/probes.ts";
 import { select, type CheckLike, type Selection } from "./selection.ts";
 import {
   TIER_ORDER,
@@ -38,13 +42,6 @@ interface KnownEntry {
   until?: string;
 }
 
-/** Structural shape of a legacy sandbox selftest result (see sandbox/selftest.ts). */
-interface SelfTestResult {
-  name: string;
-  ok: boolean;
-  detail: string;
-}
-
 export interface OrchestratorDeps {
   argv: string[];
   checks: readonly CheckDef[];
@@ -56,8 +53,10 @@ export interface OrchestratorDeps {
   tmpRoot: string;
   runId: string;
   hostVersion: (bin: string) => Promise<string | undefined>;
-  /** Launch-funnel decision for one selected check; called before makeCtx/runCheck. */
-  authorizeLaunch: (check: CheckDef) => Authorization;
+  /** Runs the fixed boundary probes once (hosts and above only). Rejecting is not a breach. */
+  runProbes: () => Promise<ProbeReport>;
+  /** Launch-funnel decision for one selected check, given the run's probe report (none on quick). */
+  authorizeLaunch: (check: CheckDef, report: ProbeReport | undefined) => Authorization;
   runCheck: (check: CheckDef, ctx: RunContext) => Promise<CheckOutcome>;
   makeCtx: (check: CheckDef) => RunContext;
   /** Observed safety breaches (outside files, canary leaks, auth shape, egress); runs after the last check. */
@@ -136,10 +135,23 @@ export function decideExit(
   return unexpected || refusals.length ? 1 : 0;
 }
 
-/** Pure: the summary's env-scrub mark from selftest evidence. No results is "not run", never ✓. */
-export function envScrubLabel(self: readonly SelfTestResult[]): string {
-  if (!self.length) return "not run";
-  return self.every((t) => t.ok) ? "✓" : "✗";
+/** Pure: the summary's env-scrub mark from env-scrub probe evidence. No probe is "not run", never ✓. */
+export function envScrubLabel(probes: readonly ProbeOutcome[]): string {
+  const scrub = probes.filter((p) => p.capability === "env-scrub");
+  if (!scrub.length) return "not run";
+  return scrub.every((p) => p.result === "pass") ? "✓" : "✗";
+}
+
+/** Runs the probes once; an error leaves no report (contained rows are then refused), never a breach. */
+async function probeOnce(deps: OrchestratorDeps): Promise<ProbeReport | undefined> {
+  try {
+    const report = await deps.runProbes();
+    deps.say(probeHeadline(report));
+    return report;
+  } catch (e) {
+    deps.say(`sandbox probes  errored (${e instanceof Error ? e.message : String(e)}); contained checks are refused`);
+    return undefined;
+  }
 }
 
 const sandboxDefaults = (): SandboxInfo => ({ mode: "none", canaryLeaks: 0, outsideChanged: [], egress: [] });
@@ -163,13 +175,14 @@ export async function orchestrate(deps: OrchestratorDeps): Promise<number> {
     return `${name} ${v} (pin ${pin ?? "?"} ${pin === v ? "✓" : "⚠ drift"})`;
   };
 
-  // The quick tier runs no host binaries: no version probes. hosts and above probe each
-  // host once, before the first check. The legacy selftest is quarantined at every tier.
+  // The quick tier runs no host binaries: no version probes and no boundary probes. hosts and
+  // above probe each host once, then the sandbox boundaries once, before the first check.
+  let report: ProbeReport | undefined;
   if (TIER_ORDER.indexOf(args.tier) >= TIER_ORDER.indexOf("hosts")) {
     const oc = await deps.hostVersion("opencode");
     const cc = await deps.hostVersion("claude");
     deps.say(`hosts  ${pinTxt("opencode", oc)}  ${pinTxt("claude", cc)}  ${nodeArch}`);
-    deps.say(`sandbox self-test  quarantined (legacy Boolean results mint no capability evidence; contained checks are refused until P3/P4)`);
+    report = await probeOnce(deps);
     deps.say("");
   } else {
     deps.say(`hosts  not probed (the quick tier runs no host binaries)  ${nodeArch}`);
@@ -203,7 +216,7 @@ export async function orchestrate(deps: OrchestratorDeps): Promise<number> {
     // select() passes the registered CheckDefs through untouched, so a run row's check is
     // the full def; CheckLike is only selection's data slice of it.
     const check = p.check as CheckDef;
-    const auth = deps.authorizeLaunch(check);
+    const auth = deps.authorizeLaunch(check, report);
     if (!auth.allowed) {
       refuse(check.id, auth.code, auth.reason, `launch refused (${auth.code}): ${auth.reason}`);
       continue;

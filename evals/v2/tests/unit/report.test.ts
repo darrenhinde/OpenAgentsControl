@@ -6,6 +6,8 @@ import { loadKnownRed } from "../../src/core/known-red.ts";
 import type { CheckRow } from "../../src/core/types.ts";
 import { renderJunit } from "../../src/report/junit.ts";
 import { renderSandboxLine, renderSummary, totals } from "../../src/report/summary.ts";
+import { capabilitySummary, policyRecord, probeRecords } from "../../src/sandbox/evidence.ts";
+import { PROBES, PROBE_ORDER, type ProbeId, type ProbeOutcome, type ProbeReport } from "../../src/sandbox/probes.ts";
 
 const row = (id: string, area: CheckRow["area"], status: CheckRow["status"], extra: Partial<CheckRow> = {}): CheckRow => ({
   id, area, layer: "L0", status, ms: 1000, log: `logs/${id}.log`,
@@ -125,5 +127,83 @@ describe("renderSandboxLine: no ✓ without evidence", () => {
     expect(dirty).toContain("auth-shape ✗");
     expect(dirty).toContain("egress: loopback-only ✗");
     expect(dirty).toContain("outside-files CHANGED ✗");
+  });
+});
+
+// P3-lite U4: the boundary-probe evidence is reported honestly. "(unverified)" goes away only
+// when all five capabilities were verified, and even then the profile is called not audited.
+function probed(overrides: Partial<Record<ProbeId, ProbeOutcome["result"]>> = {}): ProbeReport {
+  return {
+    mode: "seatbelt",
+    policyId: "sha256:abc123",
+    probes: PROBE_ORDER.map((id) => ({
+      id, capability: PROBES[id].capability, result: overrides[id] ?? "pass", observations: [`obs-${id}-1`, `obs-${id}-2`],
+    })),
+  };
+}
+
+describe("renderSandboxLine: probed capabilities", () => {
+  const base = {
+    mode: "seatbelt", envScrub: "✓", agentRuns: 0, canariesPlanted: 0,
+    canaryLeaks: 0, authViolations: 0, egress: 0, outsideChanged: 0,
+  };
+
+  it("drops (unverified) only when all five capabilities are verified, and says the profile is not audited", () => {
+    // Arrange / Act
+    const line = renderSandboxLine({ ...base, capabilities: capabilitySummary(probed()) });
+    // Assert
+    expect(line).toContain("seatbelt (probed: 5/5 capabilities, profile not audited)");
+    expect(line).not.toContain("unverified");
+  });
+
+  it("keeps (unverified) with the verified count and the failed capability names otherwise", () => {
+    // Arrange / Act
+    const line = renderSandboxLine({ ...base, capabilities: capabilitySummary(probed({ "net-external": "fail", "ipc-keychain": "inconclusive" })) });
+    // Assert
+    expect(line).toContain("seatbelt (unverified; probed: 3/5 capabilities, failed: network, ipc (keychain))");
+    expect(line).not.toContain("profile not audited");
+  });
+
+  it("is unchanged when no probes ran (quick or iso)", () => {
+    // Arrange / Act / Assert
+    expect(renderSandboxLine(base)).toContain("seatbelt (unverified)  env-scrub");
+  });
+});
+
+describe("probeRecords: env.json sandbox.probes", () => {
+  it("records id, capability, observation and result for every probe, in run order", () => {
+    // Arrange
+    const report = probed({ "ipc-keychain": "inconclusive" });
+    // Act
+    const records = probeRecords(report);
+    // Assert
+    expect(records.map((r) => r.id)).toEqual([...PROBE_ORDER]);
+    expect(records.find((r) => r.id === "ipc-keychain")).toEqual({
+      id: "ipc-keychain", capability: "ipc (keychain)", observation: "obs-ipc-keychain-1; obs-ipc-keychain-2", result: "inconclusive",
+    });
+  });
+
+  it("records nothing when no probes ran", () => {
+    // Arrange / Act / Assert
+    expect(probeRecords(undefined)).toEqual([]);
+    expect(probeRecords({ mode: "iso", policyId: "sha256:x", probes: [] })).toEqual([]);
+  });
+});
+
+describe("policyRecord: env.json sandbox.policyId only when a profile was actually probed", () => {
+  it("records the probed profile's policy id", () => {
+    // Arrange / Act / Assert
+    expect(policyRecord(probed())).toEqual({ policyId: "sha256:abc123" });
+  });
+
+  it("records null with a reason on quick, in iso mode, or after a probe-run error", () => {
+    // Arrange / Act
+    const none = policyRecord(undefined);
+    const iso = policyRecord({ mode: "iso", policyId: "sha256:abc123", probes: [] });
+    // Assert
+    expect(none.policyId).toBeNull();
+    expect(iso.policyId).toBeNull();
+    expect("policyIdReason" in none && none.policyIdReason).toMatch(/no probe/);
+    expect("policyIdReason" in iso && iso.policyIdReason).toContain("iso");
   });
 });

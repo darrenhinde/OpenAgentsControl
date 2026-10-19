@@ -5,27 +5,15 @@ import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { exec, type ExecResult } from "../core/exec.ts";
 import { assertContainedLaunch, type LaunchDecl } from "./gate.ts";
+import { ENV_ALLOWLIST, OPENCODE_SERVICE_PORT, SCRUB_CANARY } from "./policy.ts";
+import { PROBES, isProbeId, type ProbeContext, type ProbeId } from "./probes.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const WRAPPER = join(HERE, "run-isolated.sh");
 export const PROFILE = join(HERE, "profiles", "agent.sb");
-/** The user's OpenCode managed-service port (L-006); always denied inside the sandbox. */
-export const OPENCODE_SERVICE_PORT = "49374";
-
-/** Every env name a sandboxed process may see. Anything else is a scrub failure. */
-export const ENV_ALLOWLIST = new Set([
-  "PATH", "HOME", "USER", "LOGNAME", "SHELL", "TMPDIR", "LANG", "LC_ALL", "TERM", "NO_COLOR", "FORCE_COLOR", "CI",
-  "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME", "XDG_CACHE_HOME",
-  "GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM", "GIT_TERMINAL_PROMPT",
-  "CLAUDE_CONFIG_DIR", "DISABLE_AUTOUPDATER", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC", "DISABLE_TELEMETRY", "DISABLE_ERROR_REPORTING",
-  "ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL",
-  "OPENCODE_DISABLE_AUTOUPDATE", "OPENCODE_DISABLE_SHARE",
-  "OAC_FAKE_TOKEN",
-  // installer tests only
-  "OAC_RAW_URL", "REGISTRY_URL", "OPENCODE_BRANCH",
-  // set by macOS itself inside sandbox-exec / env
-  "__CF_USER_TEXT_ENCODING", "PWD", "SHLVL", "_", "OLDPWD",
-]);
+// Policy constants live in policy.ts (shared with the pure probe modules); re-exported here
+// so existing importers keep their paths.
+export { ENV_ALLOWLIST, OPENCODE_SERVICE_PORT } from "./policy.ts";
 
 export interface IsoDirs {
   root: string;
@@ -149,4 +137,39 @@ export async function runIsolated(r: IsolatedRun): Promise<ExecResult> {
     [WRAPPER, PROFILE, r.dirs.work, realpathSync(homedir()), r.target.repoDeny, main, OPENCODE_SERVICE_PORT, "--", ...assignments, "--", ...r.argv],
     { env: { PATH: "/usr/bin:/bin", OAC_SANDBOX: mode }, timeoutMs: r.timeoutMs ?? 120_000, onData: r.onData, stdoutOnly: r.stdoutOnly },
   );
+}
+
+/** PATH inside a probe launch: system binaries only (every probe argv is absolute anyway). */
+const PROBE_PATH = "/usr/bin:/bin:/usr/sbin:/sbin";
+
+/**
+ * Pure: the wrapper argv for one PROBES entry, through the same wrapper and profile the checks
+ * use, with the same deny params host checks get: REPO_DENY = the repo, MAIN_DENY = the main
+ * checkout behind a worktree (the repo itself otherwise). If the supervisor could not resolve
+ * the main checkout, MAIN_DENY falls back to the repo and fs-repo-read says it was not probed.
+ */
+export function probeWrapperArgv(id: ProbeId, ctx: ProbeContext, dirs: IsoDirs): string[] {
+  if (!isProbeId(id)) throw new Error(`sandbox: unknown probe id ${String(id)}`);
+  const assignments = Object.entries(isoEnv(dirs, PROBE_PATH)).map(([k, v]) => `${k}=${v}`);
+  const mainDeny = ctx.mainCheckout ?? ctx.repo;
+  return [WRAPPER, PROFILE, dirs.work, ctx.realHome, ctx.repo, mainDeny, OPENCODE_SERVICE_PORT, "--", ...assignments, "--", ...PROBES[id].argv(ctx)];
+}
+
+/**
+ * The narrow probe launch path (P3-lite U2). Probes produce the evidence the launch gate needs,
+ * so they cannot go through runIsolated's gate. Instead this takes only a PROBES id — never an
+ * argv — and runs only in seatbelt mode. Only sandbox/probe-runner.ts may call it; no file
+ * under src/checks may reach it (pinned in tests/unit/registry.test.ts).
+ */
+export async function runProbeIsolated(id: ProbeId, ctx: ProbeContext, dirs: IsoDirs): Promise<ExecResult> {
+  const argv = probeWrapperArgv(id, ctx, dirs);
+  if (sandboxMode() !== "seatbelt") throw new Error("sandbox: boundary probes run only in seatbelt mode");
+  const spec = PROBES[id];
+  // Every probe runs inside Seatbelt: there is no unsandboxed probe launch.
+  return exec("/bin/bash", argv, {
+    // The scrub canary sits in the wrapper's own env: `env -i` must drop it (env-names probe).
+    env: { PATH: "/usr/bin:/bin", OAC_SANDBOX: "seatbelt", [SCRUB_CANARY]: "1" },
+    timeoutMs: spec.timeoutMs,
+    stdoutOnly: spec.stdoutOnly,
+  });
 }

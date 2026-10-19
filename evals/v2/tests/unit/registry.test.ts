@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { allChecks } from "../../src/checks/index.ts";
 import type { CheckDef } from "../../src/core/types.ts";
@@ -197,5 +199,40 @@ describe("registry: preserved identities", () => {
     const nonHosts = scenarioRows.filter((c) => c.tier !== "hosts");
     // Assert
     expect(nonHosts.map((c) => `${c.id}:${c.tier}`)).toEqual([]);
+  });
+});
+
+// P3-lite U2: the probe launch path bypasses the launch gate (probes produce the evidence the
+// gate needs), so no check may reach it. Static source scan, fs-read only.
+describe("registry: no check can reach the probe launch path", () => {
+  const CHECKS_DIR = join(__dirname, "..", "..", "src", "checks");
+  const MARKERS: readonly RegExp[] = [
+    /\brunProbeIsolated\b/,
+    /\bprobeWrapperArgv\b/,
+    /\binstallProbeReport\b/,
+    /\bprobeSandbox\b/,
+    /["'][^"']*sandbox\/(probes|probe-runner|probe-interpret|evidence)(\.ts)?["']/,
+  ];
+
+  it("finds no import of, or reference to, the probe modules under src/checks", () => {
+    // Arrange
+    const files = readdirSync(CHECKS_DIR, { recursive: true }).map(String).filter((f) => f.endsWith(".ts"));
+    // Act
+    const offenders = files.flatMap((f) => {
+      const text = readFileSync(join(CHECKS_DIR, f), "utf8");
+      return MARKERS.filter((m) => m.test(text)).map((m) => `${f}: ${m.source}`);
+    });
+    // Assert
+    expect(files.length).toBeGreaterThan(5); // the scan is not vacuous
+    expect(offenders).toEqual([]);
+  });
+
+  it("would flag a check that imported the launch path (the scan's own positive control)", () => {
+    // Arrange
+    const sample = 'import { runProbeIsolated } from "../sandbox/env.ts";\nimport { PROBES } from "../sandbox/probes.ts";';
+    // Act
+    const hits = MARKERS.filter((m) => m.test(sample));
+    // Assert
+    expect(hits.length).toBe(2);
   });
 });
