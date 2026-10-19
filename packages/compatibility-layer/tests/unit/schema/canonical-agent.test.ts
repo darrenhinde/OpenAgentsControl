@@ -166,7 +166,7 @@ describe("content/agents corpus", () => {
     expect(rejected.join("\n") || "", "files rejected by CanonicalAgentSchema").toBe("");
   });
 
-  it("deliberately excludes registry-carried eval-runner from the canonical corpus", () => {
+  it("includes eval-runner, which was canonicalised so its extra keys stay out of v2's request.body", () => {
     // Arrange
     const dir = requireDir(
       "content/agents",
@@ -179,10 +179,7 @@ describe("content/agents corpus", () => {
     const hasEvalRunner = canonical.has("eval-runner");
 
     // Assert
-    expect(
-      hasEvalRunner,
-      "eval-runner is deliberately registry-carried and must not become a canonical source requirement"
-    ).toBe(false);
+    expect(hasEvalRunner, "eval-runner has a canonical source").toBe(true);
   });
 
   it("gives every agent a unique oac id", () => {

@@ -123,7 +123,7 @@ describe("the planned trees", () => {
     const text = (target: string): LintFile[] => files.filter((x) => x.target === target).map((x) => ({ path: x.path, text: x.content }));
     expect(lintV1Agents(text("opencode-v1"))).toEqual([]);
     expect(lintV2Agents(text("opencode"))).toEqual([]);
-    expect(text("opencode").length).toBe(32); // image-specialist is v1-only
-    expect(text("opencode-v1").length).toBe(33);
+    expect(text("opencode").length).toBe(33); // image-specialist is v1-only
+    expect(text("opencode-v1").length).toBe(34);
   });
 });

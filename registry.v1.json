@@ -45,15 +45,17 @@
       },
       {
         "id": "eval-runner",
-        "name": "Eval Runner",
+        "name": "eval-runner",
         "type": "agent",
-        "path": ".opencode/agent/eval-runner.md",
+        "path": "v1-opencode/agent/subagents/test/eval-runner.md",
+        "version": "1.0.0",
         "description": "Test harness for evaluation framework - DO NOT USE DIRECTLY",
-        "tags": [],
-        "dependencies": [
-          "context:component-planning"
+        "tags": [
+          "testing",
+          "evals"
         ],
-        "category": "standard"
+        "dependencies": [],
+        "category": "subagents/test"
       },
       {
         "id": "openagent",
