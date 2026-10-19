@@ -453,6 +453,22 @@ mv .opencode ~/.config/opencode
 
 ---
 
+## Uninstalling
+
+OAC is just files, so uninstalling means deleting them.
+
+```bash
+# Local install (default): remove the folder from your project
+rm -rf .opencode
+
+# Global install
+rm -rf ~/.config/opencode
+```
+
+Back up anything you customized first, such as your own agents or `context/project-intelligence/`. If you only want some components gone, delete those files and leave the rest. See also [discussion #193](https://github.com/darrenhinde/OpenAgentsControl/discussions/193).
+
+---
+
 ## Troubleshooting
 
 ### Dependencies Missing
