@@ -15,10 +15,12 @@ This is a template for creating new tools in the modular structure.
    - Export your functions and tool
 
 3. **Add to main index:**
-   - Add exports to `/tool/index.ts`:
+   - Add the tool definition (only the `tool({...})` export) to `/tool/index.ts`:
    ```typescript
-   export { yourTool, yourFunction } from "./your-tool-name"
+   export { yourTool } from "./your-tool-name"
    ```
+   - Do not re-export plain helper functions there: OpenCode treats every export of
+     `/tool/index.ts` as a tool, and 1.14.49+ fails on the first prompt when one is not.
 
 4. **Test your tool:**
    ```bash
