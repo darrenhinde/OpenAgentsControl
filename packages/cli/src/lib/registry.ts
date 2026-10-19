@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { readFile, stat } from "node:fs/promises";
 import { isAbsolute, join, win32 } from "node:path";
+import { DEFAULT_FLAVOR, registryFileFor, V1_SOURCE_ROOT, type OpenCodeFlavor } from "./flavor.js";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
-
-const REGISTRY_FILENAME = "registry.json";
 
 /** The profile `oac init` installs when none is named. */
 export const DEFAULT_PROFILE_ID = "essential";
@@ -114,9 +113,9 @@ export type ProfileResolution = {
 
 // ── Path helpers ───────────────────────────────────────────────────────────────
 
-/** Returns the absolute path to registry.json given the package root. */
-export const getRegistryPath = (packageRoot: string): string =>
-  join(packageRoot, REGISTRY_FILENAME);
+/** Returns the absolute path to the flavor's registry file given the package root. */
+export const getRegistryPath = (packageRoot: string, flavor: OpenCodeFlavor = DEFAULT_FLAVOR): string =>
+  join(packageRoot, registryFileFor(flavor));
 
 /** True when a component path is somewhere `oac` is allowed to write. Pure. */
 export const isInstallablePath = (relativePath: string): boolean => {
@@ -125,7 +124,12 @@ export const isInstallablePath = (relativePath: string): boolean => {
     return false;
   }
 
-  return relativePath.startsWith(INSTALL_PREFIX) || PROJECT_LEVEL_ALLOWLIST.has(relativePath);
+  // `v1-opencode/` is where the v1 build lives in the package; it installs to `.opencode/`.
+  return (
+    relativePath.startsWith(INSTALL_PREFIX) ||
+    relativePath.startsWith(`${V1_SOURCE_ROOT}/`) ||
+    PROJECT_LEVEL_ALLOWLIST.has(relativePath)
+  );
 };
 
 /** Every file a component installs: its `files[]` when listed, else its `path`. Pure. */
@@ -351,13 +355,17 @@ export const resolveProfile = (
  *   - the JSON is malformed
  *   - the schema validation fails
  */
-export const readRegistry = async (packageRoot: string): Promise<Registry> => {
-  const registryPath = getRegistryPath(packageRoot);
+export const readRegistry = async (
+  packageRoot: string,
+  flavor: OpenCodeFlavor = DEFAULT_FLAVOR,
+): Promise<Registry> => {
+  const registryPath = getRegistryPath(packageRoot, flavor);
+  const fileName = registryFileFor(flavor);
 
   const exists = await stat(registryPath).then((s) => s.isFile()).catch(() => false);
   if (!exists) {
     throw new Error(
-      `registry.json not found at "${registryPath}".\n` +
+      `${fileName} not found at "${registryPath}".\n` +
         `This file should be bundled with the @controlstack/oac package.\n` +
         `Try reinstalling: npm install -g @controlstack/oac`,
     );
@@ -368,7 +376,7 @@ export const readRegistry = async (packageRoot: string): Promise<Registry> => {
     .catch((err: unknown) => {
       const msg = err instanceof Error ? err.message : String(err);
       throw new Error(
-        `Failed to parse registry.json at "${registryPath}": ${msg}\n` +
+        `Failed to parse ${fileName} at "${registryPath}": ${msg}\n` +
           `The file may be corrupted. Try reinstalling: npm install -g @controlstack/oac`,
       );
     });
@@ -379,7 +387,7 @@ export const readRegistry = async (packageRoot: string): Promise<Registry> => {
       .map((i) => `  • ${i.path.join(".")}: ${i.message}`)
       .join("\n");
     throw new Error(
-      `Invalid registry.json at "${registryPath}":\n${issues}\n` +
+      `Invalid ${fileName} at "${registryPath}":\n${issues}\n` +
         `The registry schema may have changed. Try reinstalling: npm install -g @controlstack/oac`,
     );
   }

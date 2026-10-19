@@ -11,6 +11,8 @@ import {
   type ComponentType,
 } from '../lib/registry.js';
 import { getPackageRoot } from '../lib/bundled.js';
+import { toDestPath, type OpenCodeFlavor } from '../lib/flavor.js';
+import { readProjectFlavor } from '../lib/project-flavor.js';
 import { backupFile, syncFiles } from '../lib/installer.js';
 import {
   readManifest,
@@ -49,7 +51,7 @@ const isAlreadyInstalled = (
 ): boolean => manifest?.files[destRelativePath] !== undefined;
 
 /** The directory a component's primary file lands in, for messages. */
-const destDirOf = (component: RegistryComponent): string => path.dirname(component.path);
+const destDirOf = (component: RegistryComponent): string => path.dirname(toDestPath(component.path));
 
 // ── List display ──────────────────────────────────────────────────────────────
 
@@ -57,9 +59,9 @@ const destDirOf = (component: RegistryComponent): string => path.dirname(compone
 const LISTED_TYPES: ComponentType[] = ['agent', 'subagent', 'context', 'skill', 'command', 'tool'];
 
 /** Prints all available components grouped by type. */
-const printAvailableComponents = async (): Promise<void> => {
+const printAvailableComponents = async (flavor: OpenCodeFlavor): Promise<void> => {
   const packageRoot = getPackageRoot();
-  const registry = await loadRegistry(packageRoot);
+  const registry = await loadRegistry(packageRoot, flavor);
 
   log('');
   log('Available components:');
@@ -84,9 +86,10 @@ const printAvailableComponents = async (): Promise<void> => {
 /** Resolves the component from the registry or exits with a clear error. */
 const resolveOrFail = async (
   ref: string,
+  flavor: OpenCodeFlavor,
 ): Promise<{ component: RegistryComponent; packageRoot: string }> => {
   const packageRoot = getPackageRoot();
-  const registry = await loadRegistry(packageRoot);
+  const registry = await loadRegistry(packageRoot, flavor);
   const component = resolveComponent(registry, ref);
 
   if (component === null) {
@@ -164,9 +167,10 @@ export async function addCommand(
   options: AddOptions,
 ): Promise<void> {
   const projectRoot = process.cwd();
+  const { flavor } = await readProjectFlavor(projectRoot);
 
   if (ref === undefined) {
-    await printAvailableComponents();
+    await printAvailableComponents(flavor);
     return;
   }
 
@@ -174,7 +178,7 @@ export async function addCommand(
   spinner.start();
 
   try {
-    const { component, packageRoot } = await resolveOrFail(ref);
+    const { component, packageRoot } = await resolveOrFail(ref, flavor);
     spinner.stop();
 
     if (!filesForComponent(component).every(isInstallablePath)) {
@@ -184,7 +188,7 @@ export async function addCommand(
 
     const manifest = (await readManifest(projectRoot)) ?? createEmptyManifest(readCliVersion());
 
-    const shouldAbort = checkAlreadyInstalled(manifest, component.path, options.force);
+    const shouldAbort = checkAlreadyInstalled(manifest, toDestPath(component.path), options.force);
     if (shouldAbort) return;
 
     await performInstall(component, packageRoot, projectRoot, manifest, options);
@@ -205,6 +209,7 @@ export async function removeCommand(
   options: RemoveOptions,
 ): Promise<void> {
   const projectRoot = process.cwd();
+  const { flavor } = await readProjectFlavor(projectRoot);
 
   if (ref === undefined) {
     error('Please specify a component to remove. Example: oac remove context:react-patterns');
@@ -215,12 +220,12 @@ export async function removeCommand(
   spinner.start();
 
   try {
-    const { component } = await resolveOrFail(ref);
+    const { component } = await resolveOrFail(ref, flavor);
     spinner.stop();
 
     const manifest = await readManifest(projectRoot);
 
-    if (!isAlreadyInstalled(manifest, component.path)) {
+    if (!isAlreadyInstalled(manifest, toDestPath(component.path))) {
       warn(`'${ref}' is not installed — nothing to remove.`);
       return;
     }
@@ -233,7 +238,8 @@ export async function removeCommand(
     info(`Removing ${component.type}:${component.id} from ${destDirOf(component)}/ (${files.length} file${files.length !== 1 ? 's' : ''})`);
 
     let updatedManifest = manifest!;
-    for (const relativePath of files) {
+    for (const sourcePath of files) {
+      const relativePath = toDestPath(sourcePath);
       const destPath = path.join(projectRoot, relativePath);
       const entry = updatedManifest.files[relativePath];
       if (options.verbose) verbose(`Removing: ${destPath}`);

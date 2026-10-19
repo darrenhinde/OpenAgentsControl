@@ -38,6 +38,29 @@ describe('published package profile contents', () => {
     expect(missing).toEqual([]);
   });
 
+  test('packs every file the v1 flavor installs from, and both registries', async () => {
+    // Arrange
+    const [registry, bundledFiles, command] = await Promise.all([
+      readRegistry(PACKAGE_ROOT, 'v1'),
+      listBundledFiles(PACKAGE_ROOT, 'v1'),
+      execFile('npm', ['pack', '--dry-run', '--json'], { cwd: PACKAGE_ROOT, encoding: 'utf8' }),
+    ]);
+    const packed = JSON.parse(command.stdout) as PackResult[];
+    const packedPaths = new Set(packed[0]?.files.map(({ path }) => path) ?? []);
+    const profileFiles = Object.values(registry.profiles)
+      .flatMap((profile) => resolveProfile(registry, profile).files);
+
+    // Act
+    const missing = missingFromPackage(
+      [...profileFiles, ...bundledFiles, 'registry.json', 'registry.v1.json'],
+      packedPaths,
+    );
+
+    // Assert
+    expect(missing).toEqual([]);
+    expect(bundledFiles.some((f) => f.startsWith('v1-opencode/tool/'))).toBe(true);
+  });
+
   test('reports a profile file that npm did not package', () => {
     // Arrange
     const packedPaths = new Set(['.opencode/context/navigation.md']);

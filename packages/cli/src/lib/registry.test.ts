@@ -13,6 +13,8 @@ import {
   isInstallablePath,
   listComponents,
   expandRef,
+  readRegistry,
+  getRegistryPath,
   type Registry,
 } from './registry.js';
 
@@ -267,5 +269,34 @@ describe('resolveProfile — wildcards', () => {
       '.opencode/context/navigation.md',
     ]);
     expect(unresolved).toEqual(['context:missing/*']);
+  });
+});
+
+// ── Flavor-aware registry ─────────────────────────────────────────────────────
+
+describe('flavor-aware registry', () => {
+  test('v1 reads registry.v1.json from the package root', async () => {
+    const { mkdtemp, writeFile, rm } = await import('node:fs/promises');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const root = await mkdtemp(join(tmpdir(), 'oac-registry-flavor-'));
+    try {
+      const doc = (id: string) => JSON.stringify({ version: '1', components: { agents: [{ id, name: id, type: 'agent', path: `.opencode/agent/${id}.md` }] } });
+      await writeFile(join(root, 'registry.json'), doc('v2agent'));
+      await writeFile(join(root, 'registry.v1.json'), doc('v1agent'));
+      expect((await readRegistry(root)).components.agents[0]?.id).toBe('v2agent');
+      expect((await readRegistry(root, 'v2')).components.agents[0]?.id).toBe('v2agent');
+      expect((await readRegistry(root, 'v1')).components.agents[0]?.id).toBe('v1agent');
+      expect(getRegistryPath(root, 'v1')).toBe(join(root, 'registry.v1.json'));
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test('a v1-opencode source path is installable; traversal out of it is not', () => {
+    expect(isInstallablePath('v1-opencode/agent/core/openagent.md')).toBe(true);
+    expect(isInstallablePath('v1-opencode/../README.md')).toBe(false);
+    expect(isInstallablePath('v1-opencode')).toBe(false);
+    expect(isInstallablePath('other/v1-opencode/x')).toBe(false);
   });
 });

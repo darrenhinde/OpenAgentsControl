@@ -2,7 +2,11 @@ import { type Command } from 'commander';
 import { updateFiles } from '../lib/installer.js';
 import { getPackageRoot, listBundledFiles } from '../lib/bundled.js';
 import { readManifest, writeManifest } from '../lib/manifest.js';
-import { readConfig, writeConfig, type OacConfig } from '../lib/config.js';
+import { readConfig, writeConfig, withOpenCodeFlavor, createDefaultConfig, type OacConfig } from '../lib/config.js';
+import { parseFlavor, transitionFlavor, type OpenCodeFlavor } from '../lib/flavor.js';
+import { mapTrackedFiles } from '../lib/flavor-map.js';
+import { detectOpenCodeMajor } from '../lib/opencode-host.js';
+import { readProjectFlavor } from '../lib/project-flavor.js';
 import { FULL_PROFILE_ID, getProfile, loadRegistry, resolveProfile, type Registry } from '../lib/registry.js';
 import { log, info, warn, error, success, dim, bold, verbose, setVerbose } from '../ui/logger.js';
 import { createSpinner, setDryRun } from '../ui/spinner.js';
@@ -19,7 +23,12 @@ export type UpdateOptions = {
   check: boolean;
   /** Add a profile to the cumulative installation scope before synchronizing. */
   profile?: string;
+  /** Switch (or first record) the OpenCode flavor: v1 or v2. */
+  opencode?: string;
 };
+
+/** What a flavor change means for this run. */
+export type FlavorPlan = { flavor: OpenCodeFlavor; pruneStale: boolean; record: boolean };
 
 export type UpdateScope = { files: string[]; config: OacConfig | null; originalTierUnknown: boolean };
 
@@ -31,8 +40,9 @@ export const resolveUpdateScope = (
   config: OacConfig | null,
   profile?: string,
 ): UpdateScope => {
-  if (config === null && profile === undefined) {
-    return { files: Object.keys(manifest.files).sort(), config: null, originalTierUnknown: true };
+  // No persisted tier (no config, or one written only to record the flavor): only tracked files.
+  if ((config === null || config.installationScope.profiles.length === 0) && profile === undefined) {
+    return { files: Object.keys(manifest.files).sort(), config, originalTierUnknown: true };
   }
 
   const baseScope = config?.installationScope;
@@ -74,9 +84,10 @@ async function assertManifestExists(projectRoot: string): Promise<void> {
 // ── Plan announcement ─────────────────────────────────────────────────────────
 
 /** Prints what the command is about to do BEFORE making any changes. */
-function printPlan(opts: UpdateOptions): void {
+function printPlan(opts: UpdateOptions, plan: FlavorPlan): void {
   const mode = opts.dryRun ? ' (dry-run — no changes will be made)' : '';
   bold(`\noac update${mode}`);
+  info(`OpenCode: ${plan.flavor}${plan.pruneStale ? ' (moving the install to this layout: OAC-owned files of the other layout will be removed, edited ones backed up first)' : ''}`);
   info('Checking installed files against the latest OAC bundle...');
   if (opts.yolo) {
     warn('--yolo mode: user-modified files will be backed up and overwritten.');
@@ -108,6 +119,7 @@ function printSummary(result: InstallResult, isDryRun: boolean): void {
   printFileList(`  ${prefix}New files installed`, result.installed, success);
   printFileList(`  ${prefix}Backed up (--yolo)`, result.backed_up, info);
   printFileList(`  Skipped (user-modified)`, result.skipped, warn);
+  printFileList(`  ${prefix}Removed (other OpenCode layout)`, result.pruned, info);
   printFileList(`  Removed from manifest (no longer in bundle)`, result.removed_from_manifest, warn);
   printFileList(`  Errors`, result.errors, error);
 
@@ -117,6 +129,7 @@ function printSummary(result: InstallResult, isDryRun: boolean): void {
   const backedUpCount = result.backed_up.length;
 
   const parts: string[] = [];
+  if (result.pruned.length > 0) parts.push(`${result.pruned.length} removed`);
   if (updatedCount > 0) parts.push(`${updatedCount} file(s) updated`);
   if (skippedCount > 0) parts.push(`${skippedCount} skipped (user-modified)`);
   if (backedUpCount > 0) parts.push(`${backedUpCount} backed up`);
@@ -138,7 +151,12 @@ const resolveOptions = (opts: UpdateOptions): UpdateOptions => ({
 });
 
 /** Runs the update and writes the manifest (unless dry-run). */
-async function runUpdate(projectRoot: string, opts: UpdateOptions, scope: UpdateScope): Promise<InstallResult> {
+async function runUpdate(
+  projectRoot: string,
+  opts: UpdateOptions,
+  scope: UpdateScope,
+  plan: FlavorPlan,
+): Promise<InstallResult> {
   const packageRoot = getPackageRoot();
 
   const spinner = createSpinner('Scanning files...', { dryRun: opts.dryRun });
@@ -153,6 +171,8 @@ async function runUpdate(projectRoot: string, opts: UpdateOptions, scope: Update
       dryRun: opts.dryRun,
       yolo: opts.yolo,
       verbose: opts.verbose,
+      flavor: plan.flavor,
+      pruneStale: plan.pruneStale,
     }, scope.files));
   } catch (err: unknown) {
     spinner.fail('Update failed.');
@@ -168,7 +188,9 @@ async function runUpdate(projectRoot: string, opts: UpdateOptions, scope: Update
   // Write updated manifest only when not in dry-run mode
   if (!opts.dryRun && result.errors.length === 0) {
     await writeManifest(projectRoot, updatedManifest);
-    if (scope.config !== null) await writeConfig(projectRoot, scope.config);
+    // Record the flavor whenever it is new information; otherwise leave the config as it was.
+    const base = scope.config ?? (plan.record ? legacyConfig() : null);
+    if (base !== null) await writeConfig(projectRoot, plan.record ? withOpenCodeFlavor(base, plan.flavor) : base);
     verbose('Manifest written.');
   } else if (!opts.dryRun && result.errors.length > 0) {
     warn('Manifest not written due to errors above. Fix the issues and re-run.');
@@ -176,6 +198,15 @@ async function runUpdate(projectRoot: string, opts: UpdateOptions, scope: Update
 
   return result;
 }
+
+/**
+ * A config written only to record the flavor on an install that never had one. Its empty profile
+ * list keeps the update scope at "tracked files only" instead of silently adding a tier.
+ */
+const legacyConfig = (): OacConfig => ({
+  ...createDefaultConfig(),
+  installationScope: { profile: 'essential', contextOnly: false, profiles: [] },
+});
 
 // ── Command handler ───────────────────────────────────────────────────────────
 
@@ -199,14 +230,51 @@ async function handleUpdate(opts: UpdateOptions): Promise<void> {
 
   const manifest = await readManifest(projectRoot);
   if (manifest === null) return;
+
+  // Which OpenCode flavor this run installs: the recorded one, an explicit request, or the
+  // migration of an install that predates the record. Never a silent move to or from v1.
+  const requested = finalOpts.opencode === undefined ? undefined : parseFlavor(finalOpts.opencode);
+  if (finalOpts.opencode !== undefined && requested === null) {
+    error(`Unknown OpenCode version '${finalOpts.opencode}'. Use v1 or v2.`);
+    process.exit(1);
+    return;
+  }
+  const project = await readProjectFlavor(projectRoot);
+  const hostMajor = await detectOpenCodeMajor();
+  const transition = transitionFlavor({
+    recorded: project.recorded,
+    current: project.flavor,
+    requested: requested ?? undefined,
+    hostMajor,
+  });
+  if (transition.action === 'refuse') {
+    error(transition.message);
+    process.exit(1);
+    return;
+  }
+  const plan: FlavorPlan = {
+    flavor: transition.flavor,
+    pruneStale: transition.action === 'migrate' || transition.action === 'switch',
+    record: transition.action !== 'keep' || !project.recorded,
+  };
+  if (hostMajor !== null && ((plan.flavor === 'v1') !== (hostMajor === 1))) {
+    warn(`Updating for OpenCode ${plan.flavor}, but OpenCode ${hostMajor} is on PATH. \`oac doctor\` explains the mismatch.`);
+  }
+
   const packageRoot = getPackageRoot();
   const [registry, bundledFiles] = await Promise.all([
-    loadRegistry(packageRoot),
-    listBundledFiles(packageRoot),
+    loadRegistry(packageRoot, plan.flavor),
+    listBundledFiles(packageRoot, plan.flavor),
   ]);
   let scope: UpdateScope;
   try {
     scope = resolveUpdateScope(registry, bundledFiles, manifest, config, finalOpts.profile);
+    if (scope.originalTierUnknown) {
+      // Tracked paths are destinations in the layout on disk; translate them to the target's sources.
+      // A pre-record install is the v1 layout.
+      const onDisk = await loadRegistry(packageRoot, project.recorded ? project.flavor : 'v1');
+      scope = { ...scope, files: mapTrackedFiles(Object.keys(manifest.files), onDisk, registry) };
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     error(`${msg} Run \`oac init --list-profiles\` to see available profiles.`);
@@ -218,10 +286,10 @@ async function handleUpdate(opts: UpdateOptions): Promise<void> {
   }
 
   // Announce plan BEFORE doing anything
-  printPlan(finalOpts);
+  printPlan(finalOpts, plan);
 
   // Run the update
-  const result = await runUpdate(projectRoot, finalOpts, scope);
+  const result = await runUpdate(projectRoot, finalOpts, scope, plan);
 
   // Print summary AFTER
   printSummary(result, finalOpts.dryRun);
@@ -246,14 +314,16 @@ export function registerUpdateCommand(program: Command): void {
     .option('--check', 'Alias for --dry-run: show what would change')
     .option('--yolo', 'Back up user-modified files and overwrite them anyway')
     .option('-p, --profile <id>', 'Add a profile to the installation scope before updating')
+    .option('--opencode <version>', 'Switch or record the OpenCode flavor: v1 or v2')
     .option('--verbose', 'Show SHA256 comparison details per file')
-    .action(async (cmdOpts: { dryRun?: boolean; check?: boolean; yolo?: boolean; verbose?: boolean; profile?: string }) => {
+    .action(async (cmdOpts: { dryRun?: boolean; check?: boolean; yolo?: boolean; verbose?: boolean; profile?: string; opencode?: string }) => {
       await handleUpdate({
         dryRun: cmdOpts.dryRun ?? false,
         check: cmdOpts.check ?? false,
         yolo: cmdOpts.yolo ?? false,
         verbose: cmdOpts.verbose ?? false,
         profile: cmdOpts.profile,
+        opencode: cmdOpts.opencode,
       });
     });
 }

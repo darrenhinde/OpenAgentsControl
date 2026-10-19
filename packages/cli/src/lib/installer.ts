@@ -1,5 +1,6 @@
 import path from "node:path";
-import { copyFile, mkdir, stat } from "node:fs/promises";
+import { copyFile, mkdir, readdir, rmdir, rm, stat } from "node:fs/promises";
+import { DEFAULT_FLAVOR, toDestPath, type OpenCodeFlavor } from "./flavor.js";
 import { computeFileHash, hashesMatch } from "./sha256.js";
 import {
   type ManifestFile,
@@ -27,6 +28,13 @@ export type InstallOptions = {
   verbose: boolean;
   /** Ownership recorded for files copied through this synchronization path. */
   source?: FileEntry["source"];
+  /** Which OpenCode build the bundle is read as (default v2). `updateFiles` only. */
+  flavor?: OpenCodeFlavor;
+  /**
+   * Remove OAC-owned files that belong to the other layout (nested v1 agents, tools, plugins).
+   * Set only when an install is deliberately moved between flavors. `updateFiles` only.
+   */
+  pruneStale?: boolean;
 };
 
 export type InstallResult = {
@@ -40,6 +48,8 @@ export type InstallResult = {
   backed_up: string[];
   /** Relative paths removed from manifest (no longer in bundle). */
   removed_from_manifest: string[];
+  /** Relative paths of OAC-owned files removed because they belong to the other layout. */
+  pruned: string[];
   /** Human-readable error messages for any failures. */
   errors: string[];
 };
@@ -52,6 +62,7 @@ const EMPTY_RESULT: InstallResult = {
   skipped: [],
   backed_up: [],
   removed_from_manifest: [],
+  pruned: [],
   errors: [],
 };
 
@@ -81,6 +92,7 @@ const mergeResult = (
     ...base.removed_from_manifest,
     ...(patch.removed_from_manifest ?? []),
   ],
+  pruned: [...base.pruned, ...(patch.pruned ?? [])],
   errors: [...base.errors, ...(patch.errors ?? [])],
 });
 
@@ -341,8 +353,11 @@ export async function syncFiles(
   const installableFiles = files.filter(isInstallablePath);
 
   const outcomes = await Promise.all(
-    installableFiles.map(async (relativePath) => {
-      const sourcePath = getBundledFilePath(options.packageRoot, relativePath);
+    installableFiles.map(async (sourceRelative) => {
+      // The manifest, backups and user-facing messages all speak in DESTINATION paths: a file
+      // from the v1 source folder is recorded where it lands, so the folder name never leaks.
+      const relativePath = toDestPath(sourceRelative);
+      const sourcePath = getBundledFilePath(options.packageRoot, sourceRelative);
       const destPath = path.join(options.projectRoot, relativePath);
       const { patch, entry } = await processOneFile({
         relativePath,
@@ -392,7 +407,7 @@ export async function updateFiles(
   eligibleFiles?: readonly string[],
 ): Promise<{ result: InstallResult; updatedManifest: ManifestFile }> {
   const manifest = await readManifest(options.projectRoot);
-  const bundledFiles = await listBundledFiles(options.packageRoot);
+  const bundledFiles = await listBundledFiles(options.packageRoot, options.flavor ?? DEFAULT_FLAVOR);
   const isScopeRestricted = eligibleFiles !== undefined;
   const eligibleSet = new Set(eligibleFiles ?? bundledFiles);
   const filesToSync = bundledFiles.filter((file) => eligibleSet.has(file));
@@ -402,30 +417,110 @@ export async function updateFiles(
     ({ result, updatedManifest }) => ({ result, workingManifest: updatedManifest }),
   );
 
-  // Phase 2: handle files in manifest that are no longer in the bundle
-  const bundledSet = new Set(filesToSync);
-  const manifestPaths = Object.keys(phase1.workingManifest.files);
+  // Phase 2: handle files in manifest that are no longer in the bundle. The manifest is keyed by
+  // destination path, so the bundle is compared as destinations too.
+  const bundledSet = new Set(filesToSync.map(toDestPath));
+  const wholeBundle = new Set(bundledFiles.map(toDestPath));
+  const eligibleDest = new Set([...eligibleSet].map(toDestPath));
+  const timestamp = buildTimestamp();
+  let acc = { result: phase1.result, updatedManifest: phase1.workingManifest };
 
-  const { result, updatedManifest } = manifestPaths.reduce(
-    (acc, trackedPath) => {
-      // An unscoped update owns every bundled path, so it retains the historic
-      // removal behavior. A profile-scoped update must retain entries belonging
-      // to another selected (or previously selected) profile.
-      if ((!isScopeRestricted || eligibleSet.has(trackedPath)) && !bundledSet.has(trackedPath)) {
-        process.stdout.write(
-          `[oac] warn: "${trackedPath}" is no longer maintained by OAC — your copy is untouched\n`,
-        );
-        return {
-          result: mergeResult(acc.result, { removed_from_manifest: [trackedPath] }),
-          updatedManifest: removeFileFromManifest(acc.updatedManifest, trackedPath),
-        };
-      }
-      return acc;
-    },
-    { result: phase1.result, updatedManifest: phase1.workingManifest },
-  );
+  for (const trackedPath of Object.keys(phase1.workingManifest.files)) {
+    if (bundledSet.has(trackedPath)) continue;
 
-  return { result, updatedManifest };
+    const entry = phase1.workingManifest.files[trackedPath]!;
+    if (options.pruneStale === true && isPrunable(trackedPath, entry, wholeBundle)) {
+      const patch = await pruneFile(trackedPath, entry, options, timestamp);
+      acc = {
+        result: mergeResult(acc.result, patch),
+        updatedManifest: removeFileFromManifest(acc.updatedManifest, trackedPath),
+      };
+      continue;
+    }
+
+    // An unscoped update owns every bundled path, so it retains the historic removal behavior.
+    // A profile-scoped update must retain entries belonging to another selected (or previously
+    // selected) profile.
+    if (!isScopeRestricted || eligibleDest.has(trackedPath)) {
+      process.stdout.write(
+        `[oac] warn: "${trackedPath}" is no longer maintained by OAC — your copy is untouched\n`,
+      );
+      acc = {
+        result: mergeResult(acc.result, { removed_from_manifest: [trackedPath] }),
+        updatedManifest: removeFileFromManifest(acc.updatedManifest, trackedPath),
+      };
+    }
+  }
+
+  return acc;
+}
+
+// ── Pruning (moving an install between OpenCode layouts) ──────────────────────
+
+/** The directories whose contents differ by flavor, and so the only ones a migration may prune. */
+const FLAVOR_SENSITIVE_PREFIXES = [
+  ".opencode/agent/",
+  ".opencode/tool/",
+  ".opencode/plugin/",
+  ".opencode/plugins/",
+] as const;
+
+/**
+ * True when a tracked file may be removed during a flavor move: OAC installed it (not custom,
+ * not a pre-existing file OAC merely observed), it sits in a flavor-sensitive directory, and
+ * the target flavor's bundle no longer ships that destination. Pure.
+ */
+const isPrunable = (trackedPath: string, entry: FileEntry, targetBundle: ReadonlySet<string>): boolean =>
+  entry.source !== "custom" &&
+  entry.protected !== true &&
+  FLAVOR_SENSITIVE_PREFIXES.some((prefix) => trackedPath.startsWith(prefix)) &&
+  !targetBundle.has(trackedPath);
+
+/**
+ * Removes one stale OAC-owned file. A file the user edited is copied to `.oac/backups/` first, so
+ * nothing is lost and no stale agent is left next to its replacement (OpenCode v2 would load both).
+ */
+async function pruneFile(
+  trackedPath: string,
+  entry: FileEntry,
+  options: InstallOptions,
+  timestamp: string,
+): Promise<Partial<InstallResult>> {
+  const absolute = path.join(options.projectRoot, trackedPath);
+  const onDisk = await stat(absolute).then((s) => s.isFile()).catch(() => false);
+  if (!onDisk) return { pruned: [trackedPath] };
+
+  try {
+    const untouched = hashesMatch(await computeFileHash(absolute), entry.sha256);
+    if (options.dryRun) {
+      log(options, `[dry-run] would remove: ${trackedPath}${untouched ? "" : " (after backing it up)"}`);
+      return { pruned: [trackedPath] };
+    }
+    const backed_up: string[] = [];
+    if (!untouched) {
+      const backupPath = buildBackupPath(options.projectRoot, timestamp, trackedPath);
+      await copyFileCreatingDirs(absolute, backupPath);
+      backed_up.push(backupPath);
+    }
+    await rm(absolute);
+    await removeEmptyParents(options.projectRoot, absolute);
+    log(options, `remove: ${trackedPath}`);
+    return { pruned: [trackedPath], backed_up };
+  } catch (err) {
+    return { errors: [`${trackedPath}: ${err instanceof Error ? err.message : String(err)}`] };
+  }
+}
+
+/** Removes now-empty directories above `file`, stopping at (and never removing) `.opencode`. */
+async function removeEmptyParents(projectRoot: string, file: string): Promise<void> {
+  const stop = path.join(projectRoot, ".opencode");
+  let dir = path.dirname(file);
+  while (dir.startsWith(stop + path.sep)) {
+    const entries = await readdir(dir).catch(() => null);
+    if (entries === null || entries.length > 0) return;
+    await rmdir(dir);
+    dir = path.dirname(dir);
+  }
 }
 
 /**

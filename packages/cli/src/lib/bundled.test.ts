@@ -325,12 +325,13 @@ describe('listBundledFiles', () => {
     expect(files).toContain('.opencode/agent/helper.md');
     expect(files).toContain('.opencode/command/clean.md');
     expect(files).toContain('.opencode/context/standards.md');
-    expect(files).toContain('.opencode/plugin/notify.ts');
     expect(files).toContain('.opencode/skills/sub/skill.md');
-    expect(files).toContain('.opencode/tool/env/index.ts');
     expect(files).toContain('env.example');
+    // v2 never scans .opencode/tool/ and does not run v1 plugins, so they are not part of its bundle.
+    expect(files).not.toContain('.opencode/plugin/notify.ts');
+    expect(files).not.toContain('.opencode/tool/env/index.ts');
     expect(files).not.toContain('.opencode/tool/env/node_modules/dependency/index.js');
-    expect(files).toHaveLength(8);
+    expect(files).toHaveLength(6);
   });
 
   // ✅ Positive: paths are relative (not absolute)
@@ -371,25 +372,25 @@ describe('listBundledFiles', () => {
     const filteredRoot = await mkdtemp(join(tmpdir(), 'oac-filtered-pkg-'));
     try {
       await mkdir(join(filteredRoot, '.opencode', 'context', 'core', 'standards'), { recursive: true });
-      await mkdir(join(filteredRoot, '.opencode', 'plugin'), { recursive: true });
-      await mkdir(join(filteredRoot, '.opencode', 'tool'), { recursive: true });
+      await mkdir(join(filteredRoot, 'v1-opencode', 'plugin'), { recursive: true });
+      await mkdir(join(filteredRoot, 'v1-opencode', 'tool'), { recursive: true });
       await writeFile(join(filteredRoot, '.opencode', 'context', 'core', 'standards', 'code-quality.md'), '# Code', 'utf8');
-      await writeFile(join(filteredRoot, '.opencode', 'plugin', 'notify.ts'), 'export {};', 'utf8');
-      await writeFile(join(filteredRoot, '.opencode', 'plugin', 'package.json'), '{"name":"plugin"}', 'utf8');
-      await writeFile(join(filteredRoot, '.opencode', 'plugin', '.env'), 'SECRET=1', 'utf8');
-      await writeFile(join(filteredRoot, '.opencode', 'plugin', '.gitignore'), 'node_modules', 'utf8');
-      await writeFile(join(filteredRoot, '.opencode', 'tool', 'package.json'), '{"name":"tool"}', 'utf8');
+      await writeFile(join(filteredRoot, 'v1-opencode', 'plugin', 'notify.ts'), 'export {};', 'utf8');
+      await writeFile(join(filteredRoot, 'v1-opencode', 'plugin', 'package.json'), '{"name":"plugin"}', 'utf8');
+      await writeFile(join(filteredRoot, 'v1-opencode', 'plugin', '.env'), 'SECRET=1', 'utf8');
+      await writeFile(join(filteredRoot, 'v1-opencode', 'plugin', '.gitignore'), 'node_modules', 'utf8');
+      await writeFile(join(filteredRoot, 'v1-opencode', 'tool', 'package.json'), '{"name":"tool"}', 'utf8');
       await symlink('code-quality.md', join(filteredRoot, '.opencode', 'context', 'core', 'standards', 'code.md'));
 
-      const files = await listBundledFiles(filteredRoot);
+      const files = await listBundledFiles(filteredRoot, 'v1');
 
       expect(files).toContain('.opencode/context/core/standards/code-quality.md');
-      expect(files).toContain('.opencode/plugin/notify.ts');
+      expect(files).toContain('v1-opencode/plugin/notify.ts');
       expect(files).not.toContain('.opencode/context/core/standards/code.md');
-      expect(files).not.toContain('.opencode/plugin/package.json');
-      expect(files).not.toContain('.opencode/tool/package.json');
-      expect(files).not.toContain('.opencode/plugin/.env');
-      expect(files).not.toContain('.opencode/plugin/.gitignore');
+      expect(files).not.toContain('v1-opencode/plugin/package.json');
+      expect(files).not.toContain('v1-opencode/tool/package.json');
+      expect(files).not.toContain('v1-opencode/plugin/.env');
+      expect(files).not.toContain('v1-opencode/plugin/.gitignore');
     } finally {
       await rm(filteredRoot, { recursive: true, force: true });
     }
@@ -480,5 +481,64 @@ describe('toManifestType', () => {
     expect(toManifestType('command')).toBe('other');
     expect(toManifestType('tool')).toBe('other');
     expect(toManifestType('plugin')).toBe('other');
+  });
+});
+
+// ── Flavor-aware bundle view ──────────────────────────────────────────────────
+
+describe('listBundledFiles by flavor', () => {
+  let pkg: string;
+  const put = async (rel: string, text = 'x'): Promise<void> => {
+    await mkdir(join(pkg, rel, '..'), { recursive: true });
+    await writeFile(join(pkg, rel), text);
+  };
+  const registry = (agents: Array<[string, string]>): string =>
+    JSON.stringify({
+      version: '1',
+      components: { agents: agents.map(([id, path]) => ({ id, name: id, type: 'agent', path })) },
+    });
+
+  beforeAll(async () => {
+    pkg = await mkdtemp(join(tmpdir(), 'oac-bundle-flavor-'));
+    await put('.opencode/agent/openagent.md'); // v2-generated, flat
+    await put('.opencode/agent/eval-runner.md'); // hand-authored, shared by both
+    await put('.opencode/command/c.md');
+    await put('.opencode/command/openagents/x.md', 'v2 text');
+    await put('v1-opencode/agent/core/openagent.md');
+    await put('v1-opencode/command/openagents/x.md', 'v1 text');
+    await put('v1-opencode/tool/gemini/index.ts');
+    await put('v1-opencode/tool/package.json'); // never installable
+    await put('registry.json', registry([['openagent', '.opencode/agent/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
+    await put('registry.v1.json', registry([['openagent', 'v1-opencode/agent/core/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
+  });
+  afterAll(async () => {
+    await rm(pkg, { recursive: true, force: true });
+  });
+
+  test('v2 (the default) is the .opencode tree and never mentions v1-opencode', async () => {
+    const expected = [
+      '.opencode/agent/eval-runner.md',
+      '.opencode/agent/openagent.md',
+      '.opencode/command/c.md',
+      '.opencode/command/openagents/x.md',
+    ];
+    expect(await listBundledFiles(pkg)).toEqual(expected);
+    expect(await listBundledFiles(pkg, 'v2')).toEqual(expected);
+  });
+
+  test('v1 is the shared files plus v1-opencode, minus v2-only agents, with v1 winning a collision', async () => {
+    expect(await listBundledFiles(pkg, 'v1')).toEqual([
+      '.opencode/agent/eval-runner.md',
+      '.opencode/command/c.md',
+      'v1-opencode/agent/core/openagent.md',
+      'v1-opencode/command/openagents/x.md',
+      'v1-opencode/tool/gemini/index.ts',
+    ]);
+  });
+
+  test('classifies a v1 source path by where it installs', () => {
+    expect(classifyBundledFile('v1-opencode/agent/core/openagent.md')).toBe('agent');
+    expect(classifyBundledFile('v1-opencode/tool/gemini/index.ts')).toBe('tool');
+    expect(classifyBundledFile('v1-opencode/plugin/notify.ts')).toBe('plugin');
   });
 });

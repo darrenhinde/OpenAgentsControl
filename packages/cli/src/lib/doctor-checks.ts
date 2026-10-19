@@ -172,6 +172,62 @@ export const ideCheckResults = (ides: DetectedIde[]): CheckResult[] => {
   return detected.map(ideCheckResult);
 };
 
+// ── OpenCode flavor ───────────────────────────────────────────────────────────
+
+/**
+ * Compares the OpenCode flavor an install is built for with the OpenCode actually on PATH. Pure.
+ *
+ * A mismatch is an ERROR, not a warning: a v2 install on a v1 host resolves delegation by a
+ * different id space, and a v1 install on a v2 host ships tools and plugins v2 never loads
+ * (#362, #367). Either way the install looks healthy and misbehaves.
+ */
+export const openCodeFlavorCheck = (input: {
+  flavor: 'v1' | 'v2';
+  recorded: boolean;
+  hostMajor: number | null;
+}): CheckResult => {
+  const { flavor, recorded, hostMajor } = input;
+  const name = 'OpenCode version';
+
+  if (hostMajor === null) {
+    return {
+      name,
+      status: 'info',
+      message: `OpenCode not found on PATH (installed for OpenCode ${flavor}) — could not compare`,
+    };
+  }
+
+  if (!recorded) {
+    return hostMajor === 1
+      ? {
+          name,
+          status: 'warn',
+          message: 'install predates OpenCode v2 support and OpenCode v1 is installed — run \'oac update --opencode v1\' to record that choice',
+        }
+      : {
+          name,
+          status: 'warn',
+          message: `install uses the v1 layout but OpenCode ${hostMajor} is installed — run 'oac update' to move it to v2`,
+        };
+  }
+
+  if (flavor === 'v2' && hostMajor === 1) {
+    return {
+      name,
+      status: 'error',
+      message: "installed for OpenCode v2 but OpenCode v1 is on PATH — run 'oac update --opencode v1', or upgrade OpenCode",
+    };
+  }
+  if (flavor === 'v1' && hostMajor >= 2) {
+    return {
+      name,
+      status: 'error',
+      message: `installed for OpenCode v1 but OpenCode ${hostMajor} is on PATH; v1 agents, tools and plugins do not load there — run 'oac update --opencode v2'`,
+    };
+  }
+  return { name, status: 'ok', message: `OpenCode ${hostMajor} matches the ${flavor} install` };
+};
+
 // ── Summary ───────────────────────────────────────────────────────────────────
 
 /** Computes summary counts from check results. Pure. */

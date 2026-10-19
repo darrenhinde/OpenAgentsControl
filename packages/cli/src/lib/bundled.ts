@@ -1,5 +1,6 @@
+import { DEFAULT_FLAVOR, toDestPath, V1_SOURCE_ROOT, type OpenCodeFlavor } from "./flavor.js";
 import { existsSync, readFileSync } from "node:fs";
-import { readdir, stat } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -23,17 +24,29 @@ export type ManifestType = "agent" | "context" | "skill" | "config" | "other";
 
 // --- Constants ---
 
-/** Subdirectories under the package root that contain bundled OAC files. */
+/**
+ * Subdirectories under the package root that contain bundled OAC files for OpenCode v2.
+ * There is no `tool/` or `plugin/` here on purpose: v2 never scans `.opencode/tool/` and does not
+ * run v1 plugins (#367), so those ship only in the v1 build (`V1_BUNDLED_SUBDIRS`).
+ */
 const BUNDLED_SUBDIRS = [
   ".opencode/agent",
   ".opencode/command",
   ".opencode/context",
-  ".opencode/plugin",
   ".opencode/skills",
-  ".opencode/tool",
 ] as const;
 
 /** Root files that are deliberately safe to install into a user's project. */
+/** The v1 build's counterparts: same layout, under the v1 source folder (see `./flavor.ts`). */
+const V1_BUNDLED_SUBDIRS = [
+  `${V1_SOURCE_ROOT}/agent`,
+  `${V1_SOURCE_ROOT}/command`,
+  `${V1_SOURCE_ROOT}/plugin`,
+  `${V1_SOURCE_ROOT}/plugins`,
+  `${V1_SOURCE_ROOT}/skills`,
+  `${V1_SOURCE_ROOT}/tool`,
+] as const;
+
 const BUNDLED_ROOT_FILES = ["env.example"] as const;
 
 /**
@@ -163,16 +176,10 @@ async function collectFiles(dir: string): Promise<string[]> {
   return nested.flat().filter((file) => !isNonInstallableBundleFile(file));
 }
 
-/**
- * Lists every installable bundled file: supported `.opencode/` directories and
- * explicitly allowlisted root files. Missing paths are silently skipped.
- *
- * Returns relative paths like `.opencode/agent/core/openagent.md`.
- * Subdirectories that do not exist are silently skipped.
- */
-export async function listBundledFiles(packageRoot: string): Promise<string[]> {
-  const directoryResults = await Promise.all(
-    BUNDLED_SUBDIRS.map(async (subdir) => {
+/** Every installable file under `subdirs`, as package-relative paths. Missing dirs are skipped. */
+async function collectSubdirs(packageRoot: string, subdirs: readonly string[]): Promise<string[]> {
+  const results = await Promise.all(
+    subdirs.map(async (subdir) => {
       const absSubdir = join(packageRoot, subdir);
       const exists = await stat(absSubdir).then((s) => s.isDirectory()).catch(() => false);
       if (!exists) return [];
@@ -181,7 +188,48 @@ export async function listBundledFiles(packageRoot: string): Promise<string[]> {
       return absFiles.map((absFile) => relative(packageRoot, absFile));
     }),
   );
+  return results.flat();
+}
 
+/** Every `path` and `files[]` entry of a registry file, or an empty set when it cannot be read. */
+async function registryPaths(packageRoot: string, file: string): Promise<Set<string>> {
+  try {
+    const raw = JSON.parse(await readFile(join(packageRoot, file), "utf8")) as {
+      components?: Record<string, Array<{ path?: unknown; files?: unknown }>>;
+    };
+    const paths = Object.values(raw.components ?? {}).flatMap((entries) =>
+      entries.flatMap((e) => [e.path, ...(Array.isArray(e.files) ? e.files : [])]),
+    );
+    return new Set(paths.filter((p): p is string => typeof p === "string"));
+  } catch {
+    return new Set();
+  }
+}
+
+/**
+ * Files that exist only for v2: registered by the v2 registry and not by the v1 one. These are
+ * the flat generated agents; they must not be installed next to the v1 build's nested agents.
+ */
+async function v2OnlyPaths(packageRoot: string): Promise<Set<string>> {
+  const [v2, v1] = await Promise.all([
+    registryPaths(packageRoot, "registry.json"),
+    registryPaths(packageRoot, "registry.v1.json"),
+  ]);
+  return new Set([...v2].filter((p) => !v1.has(p)));
+}
+
+/**
+ * Lists every installable bundled file as package-relative SOURCE paths (installers map them to
+ * their destination with `toDestPath`).
+ *
+ * v2 (the default) is the `.opencode/` tree. v1 is that tree minus the files only v2 uses, plus
+ * everything under `v1-opencode/`; where both provide the same destination, v1 wins.
+ * Allowlisted root files are included for both. Missing directories are silently skipped.
+ */
+export async function listBundledFiles(
+  packageRoot: string,
+  flavor: OpenCodeFlavor = DEFAULT_FLAVOR,
+): Promise<string[]> {
   const rootFiles = await Promise.all(
     BUNDLED_ROOT_FILES.map(async (file) => {
       const filePath = join(packageRoot, file);
@@ -189,7 +237,16 @@ export async function listBundledFiles(packageRoot: string): Promise<string[]> {
     }),
   );
 
-  return [...directoryResults.flat(), ...rootFiles.flat()].sort();
+  const shared = await collectSubdirs(packageRoot, BUNDLED_SUBDIRS);
+  if (flavor === "v2") return [...shared, ...rootFiles.flat()].sort();
+
+  const [v1Files, excluded] = await Promise.all([
+    collectSubdirs(packageRoot, V1_BUNDLED_SUBDIRS),
+    v2OnlyPaths(packageRoot),
+  ]);
+  const overridden = new Set(v1Files.map(toDestPath));
+  const kept = shared.filter((file) => !excluded.has(file) && !overridden.has(file));
+  return [...kept, ...v1Files, ...rootFiles.flat()].sort();
 }
 
 // --- Existence check ---
@@ -221,7 +278,8 @@ export const bundledFileExists = async (
  *
  * Pure function — no I/O.
  */
-export const classifyBundledFile = (relativePath: string): BundledFileType => {
+export const classifyBundledFile = (sourcePath: string): BundledFileType => {
+  const relativePath = toDestPath(sourcePath);
   if (relativePath.startsWith(".opencode/agent/")) return "agent";
   if (relativePath.startsWith(".opencode/context/")) return "context";
   if (relativePath.startsWith(".opencode/skills/")) return "skill";

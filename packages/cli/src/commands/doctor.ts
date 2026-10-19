@@ -5,6 +5,8 @@ import semver from 'semver';
 
 import { readCliVersion } from '../lib/version.js';
 import { readConfig } from '../lib/config.js';
+import { flavorOfConfig } from '../lib/flavor.js';
+import { detectOpenCodeMajor } from '../lib/opencode-host.js';
 import { computeFileHash, hashesMatch } from '../lib/sha256.js';
 import { detectIdes } from '../lib/ide-detect.js';
 import {
@@ -12,6 +14,7 @@ import {
   checkClaudeDiscoveryConfig,
   checkContextRootNavigation,
   manifestUnavailable,
+  openCodeFlavorCheck,
   overallStatus,
   safeReadManifest,
   summariseResults,
@@ -33,6 +36,8 @@ export type DoctorOptions = {
 
 /** Fetches the latest version from the npm registry. Returns null if offline. */
 const fetchLatestNpmVersion = async (packageName: string): Promise<string | null> => {
+  // CI and tests set OAC_OFFLINE so the check never touches the network.
+  if (process.env['OAC_OFFLINE'] === '1') return null;
   try {
     const url = `https://registry.npmjs.org/${packageName}/latest`;
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
@@ -74,6 +79,12 @@ const checkOacVersion = async (): Promise<CheckResult> => {
     status: 'ok',
     message: `${current} (latest)`,
   };
+};
+
+/** Check: the OpenCode flavor this install was built for vs the OpenCode on PATH. */
+const checkOpenCodeFlavor = async (projectRoot: string): Promise<CheckResult> => {
+  const config = await readConfig(projectRoot).catch(() => null);
+  return openCodeFlavorCheck({ ...flavorOfConfig(config), hostMajor: await detectOpenCodeMajor() });
 };
 
 /** Check 2: Node runtime version >= 20.0.0. */
@@ -286,7 +297,7 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
   const projectRoot = process.cwd();
 
   // Run all independent async checks in parallel for speed
-  const [configResult, manifestResult, filesResult, modifiedResult, contextNavigationResult, claudeDiscoveryResult, ideResults, versionResult] =
+  const [configResult, manifestResult, filesResult, modifiedResult, contextNavigationResult, claudeDiscoveryResult, ideResults, versionResult, flavorResult] =
     await Promise.all([
       checkConfig(projectRoot),
       checkManifest(projectRoot),
@@ -296,6 +307,7 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
       checkClaudeDiscoveryConfig(projectRoot),
       checkIdes(projectRoot),
       checkOacVersion(),
+      checkOpenCodeFlavor(projectRoot),
     ]);
 
   const allResults: CheckResult[] = [
@@ -307,6 +319,7 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
     contextNavigationResult,
     claudeDiscoveryResult,
     ...ideResults,    // checkIdes returns CheckResult[]
+    flavorResult,
     versionResult,
   ];
 

@@ -5,7 +5,10 @@ import { readCliVersion } from '../lib/version.js';
 import { isProjectRoot, installFiles, syncFiles, type InstallResult } from '../lib/installer.js';
 import { getPackageRoot, listBundledFiles, classifyBundledFile } from '../lib/bundled.js';
 import { readManifest, writeManifest, type ManifestFile } from '../lib/manifest.js';
-import { readConfig, writeConfig, createDefaultConfig, type OacInstallationScope } from '../lib/config.js';
+import { readConfig, writeConfig, createDefaultConfig, withOpenCodeFlavor, type OacInstallationScope } from '../lib/config.js';
+import { parseFlavor, resolveInitFlavor, type OpenCodeFlavor } from '../lib/flavor.js';
+import { detectOpenCodeMajor } from '../lib/opencode-host.js';
+import { readProjectFlavor } from '../lib/project-flavor.js';
 import { detectIdes } from '../lib/ide-detect.js';
 import {
   loadRegistry,
@@ -32,6 +35,8 @@ export type InitOptions = {
   contextOnly: boolean;
   /** Print the available profiles and exit. */
   listProfiles: boolean;
+  /** Which OpenCode major to install for. Unset means: the recorded flavor, else v2. */
+  opencode?: string;
 };
 
 /** The files `oac init` will copy, plus anything worth telling the user about the choice. */
@@ -129,12 +134,14 @@ const printPlan = (
   plan: InstallPlan,
   ides: Awaited<ReturnType<typeof detectIdes>>,
   options: InitOptions,
+  flavor: OpenCodeFlavor,
 ): void => {
   const detectedIdes = ides.filter((i) => i.detected).map((i) => i.type);
 
   log('');
   log(options.dryRun ? '  [dry-run] oac init — no files will be written' : '  oac init');
   log('');
+  info(`OpenCode:     ${flavor === 'v1' ? 'v1 (opt-in)' : 'v2'}`);
   info(`Profile:      ${plan.profileId} (${plan.profileName})${options.contextOnly ? ', context files only' : ''}`);
   info(`Will install: ${formatFileSummary(countByType(plan.files))}`);
   info(`Destination:  .opencode/ (relative to project root)`);
@@ -199,6 +206,7 @@ const ensureConfig = async (
   projectRoot: string,
   dryRun: boolean,
   selection: Pick<OacInstallationScope, 'profile' | 'contextOnly'>,
+  flavor: OpenCodeFlavor,
 ): Promise<void> => {
   const existing = await readConfig(projectRoot);
   if (dryRun) {
@@ -207,10 +215,10 @@ const ensureConfig = async (
   }
   const base = existing ?? createDefaultConfig();
   const profiles = [...new Set([...base.installationScope.profiles, selection.profile])];
-  await writeConfig(projectRoot, {
+  await writeConfig(projectRoot, withOpenCodeFlavor({
     ...base,
     installationScope: { ...selection, profiles },
-  });
+  }, flavor));
   verbose(existing === null ? 'Wrote .oac/config.json with installation scope.' : 'Updated installation scope.');
 };
 
@@ -289,14 +297,40 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
   const projectRoot = process.cwd();
 
+  // Step 0: which OpenCode major. v2 unless v1 is explicitly requested; never inferred from the host.
+  const requested = effectiveOptions.opencode === undefined ? undefined : parseFlavor(effectiveOptions.opencode);
+  if (effectiveOptions.opencode !== undefined && requested === null) {
+    error(`Unknown OpenCode version '${effectiveOptions.opencode}'. Use v1 or v2.`);
+    process.exit(1);
+  }
+  const project = await readProjectFlavor(projectRoot);
+  const hasInstall = (await readManifest(projectRoot).catch(() => null)) !== null;
+  const decision = resolveInitFlavor({
+    requested: requested ?? undefined,
+    recorded: project.recorded,
+    current: project.flavor,
+    hasInstall,
+  });
+  if (!decision.ok) {
+    error(decision.message);
+    process.exit(1);
+  }
+  const flavor = decision.flavor;
+  const hostMajor = await detectOpenCodeMajor();
+  if (flavor === 'v2' && hostMajor === 1) {
+    warn('OpenCode v1 is installed, but OAC installs for OpenCode v2 by default. For v1, run: oac init --opencode v1');
+  } else if (flavor === 'v1' && hostMajor !== null && hostMajor >= 2) {
+    warn(`Installing for OpenCode v1, but OpenCode ${hostMajor} is installed; v1 agents, tools and plugins do not load there.`);
+  }
+
   // Step 1: locate the bundle and its registry
   let packageRoot: string;
   let registry: Registry;
   let bundledFiles: string[];
   try {
     packageRoot = getPackageRoot();
-    registry = await loadRegistry(packageRoot);
-    bundledFiles = await listBundledFiles(packageRoot);
+    registry = await loadRegistry(packageRoot, flavor);
+    bundledFiles = await listBundledFiles(packageRoot, flavor);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     error(`Could not locate bundled files: ${msg}`);
@@ -328,7 +362,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
   // Step 4: detect IDEs and print plan
   const ides = await detectIdes(projectRoot);
-  printPlan(plan, ides, effectiveOptions);
+  printPlan(plan, ides, effectiveOptions, flavor);
 
   // Step 5: install files
   const existing = await readManifest(projectRoot).catch((err: unknown): never => {
@@ -383,7 +417,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
   await ensureConfig(projectRoot, effectiveOptions.dryRun, {
     profile: plan.profileId,
     contextOnly: effectiveOptions.contextOnly,
-  }).catch((err: unknown) => {
+  }, flavor).catch((err: unknown) => {
     const msg = err instanceof Error ? err.message : String(err);
     error(`Failed to write config: ${msg}`);
     error('Fix: check write permissions for the .oac/ directory.');
@@ -417,6 +451,7 @@ export function registerInitCommand(program: Command): void {
     .description('Set up OAC agents and context files in the current project')
     .option('-p, --profile <id>', `Install tier: essential, developer, business, advanced or full`, DEFAULT_PROFILE_ID)
     .option('--context-only', "Install only the profile's context files (no agents, skills or commands)", false)
+    .option('--opencode <version>', 'OpenCode major to install for: v2 (default) or v1 (opt-in)')
     .option('--list-profiles', 'Show the available profiles and exit', false)
     .option('--yolo', 'Back up and overwrite files you have modified (re-runs only)', false)
     .option('--dry-run', 'Print what would happen without making any changes', false)
@@ -426,6 +461,7 @@ export function registerInitCommand(program: Command): void {
         profile: string;
         contextOnly: boolean;
         listProfiles: boolean;
+        opencode?: string;
         yolo: boolean;
         dryRun: boolean;
         verbose: boolean;
@@ -434,6 +470,7 @@ export function registerInitCommand(program: Command): void {
           profile: opts.profile,
           contextOnly: opts.contextOnly,
           listProfiles: opts.listProfiles,
+          opencode: opts.opencode,
           yolo: opts.yolo,
           dryRun: opts.dryRun,
           verbose: opts.verbose,

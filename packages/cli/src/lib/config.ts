@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import type { OpenCodeFlavor } from "./flavor.js";
 import { join, dirname } from "node:path";
 
 export const OacPreferencesSchema = z.object({
@@ -23,11 +24,21 @@ export const OacInstallationScopeSchema = z.object({
   profiles: z.array(z.string()),
 });
 
+/**
+ * Which OpenCode major this installation targets. ABSENT on installs that predate OpenCode v2
+ * support, which is how `oac update` recognises them; read it through `flavorOfConfig`, which
+ * defaults to v2. Never inferred from the host: v1 is only ever an explicit choice.
+ */
+export const OacOpenCodeSchema = z.object({
+  target: z.enum(["v1", "v2"]),
+});
+
 export const OacConfigSchema = z.object({
   version: z.literal("1"),
   preferences: OacPreferencesSchema,
   // Version-1 configs predate installation scope. Defaulting keeps them readable.
   installationScope: OacInstallationScopeSchema.default(DEFAULT_INSTALLATION_SCOPE),
+  opencode: OacOpenCodeSchema.optional(),
 });
 
 export type OacPreferences = z.infer<typeof OacPreferencesSchema>;
@@ -44,6 +55,12 @@ export const createDefaultConfig = (): OacConfig => ({
     ...DEFAULT_INSTALLATION_SCOPE,
     profiles: [...DEFAULT_INSTALLATION_SCOPE.profiles],
   },
+});
+
+/** Records the OpenCode flavor. Pure — returns a new object. */
+export const withOpenCodeFlavor = (config: OacConfig, target: OpenCodeFlavor): OacConfig => ({
+  ...config,
+  opencode: { target },
 });
 
 // Pure — returns new object, no mutation

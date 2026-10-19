@@ -8,6 +8,7 @@ import {
   checkContextRootNavigation,
   checkClaudeDiscoveryConfig,
   manifestUnavailable,
+  openCodeFlavorCheck,
   overallStatus,
   safeReadManifest,
   summariseResults,
@@ -216,5 +217,43 @@ describe('summariseResults / overallStatus', () => {
 
   test('an error wins over warnings', () => {
     expect(overallStatus(summariseResults([mk('warn'), mk('error')]))).toBe('error');
+  });
+});
+
+// ── OpenCode flavor vs the host ───────────────────────────────────────────────
+
+describe('openCodeFlavorCheck', () => {
+  const check = (flavor: 'v1' | 'v2', recorded: boolean, hostMajor: number | null) =>
+    openCodeFlavorCheck({ flavor, recorded, hostMajor });
+
+  test('a matching pair is ok, for both flavors', () => {
+    expect(check('v2', true, 2).status).toBe('ok');
+    expect(check('v1', true, 1).status).toBe('ok');
+  });
+
+  test('v2 recorded on a v1 host is an error that names both ways out', () => {
+    const r = check('v2', true, 1);
+    expect(r.status).toBe('error');
+    expect(r.message).toContain('--opencode v1');
+    expect(r.message.toLowerCase()).toContain('upgrade');
+  });
+
+  test('v1 recorded on a v2 host is an error: v1 agents, tools and plugins do not load there', () => {
+    const r = check('v1', true, 2);
+    expect(r.status).toBe('error');
+    expect(r.message).toContain('--opencode v2');
+  });
+
+  test('no host found is informational, not a failure', () => {
+    expect(check('v2', true, null).status).toBe('info');
+    expect(check('v1', true, null).status).toBe('info');
+  });
+
+  test('an install with no recorded flavor is flagged, by host', () => {
+    expect(check('v2', false, 1).status).toBe('warn');
+    expect(check('v2', false, 1).message).toContain('oac update --opencode v1');
+    expect(check('v2', false, 2).status).toBe('warn');
+    expect(check('v2', false, 2).message).toContain('oac update');
+    expect(check('v2', false, null).status).toBe('info');
   });
 });
