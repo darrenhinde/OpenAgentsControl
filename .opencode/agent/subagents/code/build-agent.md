@@ -5,6 +5,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash:
+    "*": "deny"
     "tsc": "allow"
     "mypy": "allow"
     "go build": "allow"
@@ -14,14 +15,13 @@ permission:
     "yarn build": "allow"
     "pnpm build": "allow"
     "python -m build": "allow"
-    "*": "deny"
   edit:
     "**/*": "deny"
   write:
     "**/*": "deny"
   task:
-    contextscout: "allow"
     "*": "deny"
+    contextscout: "allow"
 ---
 
 # BuildAgent

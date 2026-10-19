@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **A full sweep of changes is coming soon.** Expect a new system. This version of OAC targets **OpenCode v1**; the upcoming release will replace much of what is here.
+
 <div align="center">
 
 ![OpenAgents Control Hero](docs/images/hero-image.png)
