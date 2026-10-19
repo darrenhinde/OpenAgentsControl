@@ -526,7 +526,7 @@ MIT License - see [LICENSE](../LICENSE) for details.
 - ✅ 6 custom subagents (task-manager, context-scout, external-scout, coder-agent, test-engineer, code-reviewer)
 - ✅ 8 workflow skills (using-oac, context-discovery, external-scout, task-breakdown, code-execution, test-generation, code-review, install-context, parallel-execution)
 - ✅ 4 user commands (/install-context, /oac:help, /oac:status, /oac:cleanup)
-- ✅ SessionStart hook for auto-loading using-oac skill
+- ✅ SessionStart hook: a 3-line notice that OAC is active (skills load on demand)
 - ✅ Context download and verification scripts
 - ✅ Flat delegation hierarchy (skills invoke subagents via context: fork)
 

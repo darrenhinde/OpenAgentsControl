@@ -22,11 +22,6 @@ oc/no-v1-artifacts:
   until: "v1.2"
   note: ".opencode/tool/** and v1 @opencode-ai/plugin modules never load on OpenCode v2"
 
-cc/sessionstart-payload:
-  ref: "v1.1"
-  until: "v1.1"
-  note: "SessionStart hook injects the whole using-oac skill: 158 lines / 9,227 B context (19,145 B stdout), limit 3 lines"
-
 oc/flat-ids:
   ref: "#362"
   until: "v1.2"
