@@ -25,7 +25,7 @@ oc/flat-ids:
 inst/doctor-flags-v2:
   ref: "v1.2"
   until: "v1.2"
-  note: "oac doctor says healthy on trees v2 can't fully load (essential: 3 problems, developer: 6: hidden tools, .opencode/tool/**)"
+  note: "oac doctor says healthy on trees v2 can't fully load (essential: 1 problem, developer: 1: .opencode/tool/** is never scanned)"
 
 # --- scenario runner rows (packages/compatibility-layer/src/verify/scenarios); keep in step with each
 # file's `today:` block (scn/catalog-valid checks that).

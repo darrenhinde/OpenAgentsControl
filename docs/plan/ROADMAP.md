@@ -1,6 +1,6 @@
 # OAC roadmap
 
-**Last updated:** 2026-10-18, at `d74b370` on `refactor/canonical`.
+**Last updated:** 2026-10-19, at `db475d9` on `refactor/canonical`.
 
 This is the living plan: where OAC is, what's next, and what each release must prove. Detail lives in [initial-planning/](initial-planning/README.md) and the reasons in [decisions.md](../lessons-learnt/decisions.md). Where those differ from this file, this file and the decisions win.
 
@@ -14,47 +14,33 @@ OAC keeps you in control of the coding agents on your real projects: you approve
 
 ---
 
-## 2. Status now (2026-10-18)
+## 2. Status now (2026-10-19)
 
 ### Branch
 
 | Item | State |
 |---|---|
-| Branch | `refactor/canonical`, draft PR #342. 56 commits ahead of `main`, 0 behind. |
-| Pushed | `origin/refactor/canonical` is 10 code-and-docs commits behind local (see below), plus the `docs/plan/` commits. CI on the pushed head had 2 real failures, both fixed in the unpushed commits. |
-| Canonical build | Done: one source in `content/`, `oac build` emits `.opencode/` and `registry.json`, drift gate in CI, Node-only CLI, one version (1.1.0). Claude output is meant to be hand-written and compare-only, but `104356a` regenerated it (L-001); restoring it is v1.1 work. |
-| Local test suite | `evals/v2`, run with `pnpm test:local quick` (L0, ~40 s) or `pnpm test:local hosts` (+ real OpenCode v2.0.30 and Claude Code 2.1.302 against a fake model, sandboxed, $0). Build steps 1–4 of [07 §6](initial-planning/07-test-suite-plan.md) are done. |
-| Latest run | `hosts` at `d74b370`: **28 pass / 8 known-red / 0 unexpected**, exit 0, 1m17s. Canary 0/24 leaks, 43 sandboxed host runs, outside files unchanged. |
+| Branch | `refactor/canonical`, draft PR #342. 68 commits ahead of `main`, 0 behind (before this roadmap commit). |
+| Pushed | `origin/refactor/canonical` is 22 commits behind local: the test-suite, planning and docs commits, plus the 7 v1.1 product fixes in the Done log. Nothing pushed since. List them with `git log origin/refactor/canonical..HEAD`. |
+| Canonical build | Done: one source in `content/`, `oac build` emits `.opencode/` and `registry.json`, drift gate in CI, Node-only CLI, one version (1.1.0). The 7 Claude agents are hand-written again and compare-only (D-001); `104356a`'s regeneration (L-001) was reverted in `141f1b9`. |
+| Local test suite | `evals/v2`, run with `pnpm test:local quick` (L0, ~40 s) or `pnpm test:local hosts` (+ real OpenCode v2.0.30 and Claude Code 2.1.302 against a fake model, sandboxed, $0). Build steps 1–7 of [07 §6](initial-planning/07-test-suite-plan.md) are done. |
+| Latest run | `hosts` at `db475d9`: **62 pass / 21 known-red / 0 unexpected / 28 skipped**, exit 0, 3m05s. Canary 0/507 leaks, 151 sandboxed host runs, outside files unchanged. `quick` at `db475d9`: 26 pass / 2 known-red / 0 unexpected. |
 
-Per area in that run: Build 8/8, Context 3/3, Installer 4/4, Evals 5/5 all green. Policy/gates 0 pass + 2 known. OpenCode v2 load 2 + 3 known. Claude Code load 1 + 2 known. Cross-host scenarios 5 + 1 known.
-
-### Commits not yet pushed
-
-| sha | Commit |
-|---|---|
-| `a4c8ab3` | test(build): lower the profile-reference floor to match deliberate removals |
-| `d7924e4` | fix(deps): upgrade vitest to 3.2.7 to clear GHSA-5xrq-8626-4rwp |
-| `833d342` | docs: record north star, product decisions and lessons learnt |
-| `ecd495b` | feat(install): add OAC_RAW_URL override for local-tree installs (D-014) |
-| `ce14548` | test(local): add pnpm test:local runner and wrap existing checks |
-| `4e6a922` | test(local): add L0 lints for hidden tools, subagent IDs, v1 artifacts and CC examples |
-| `5720ccb` | test(local): run the .env scenario on both hosts under the sandbox |
-| `9fac36e` | test(local): add T2 OpenCode v2 agent load test and delegation scenarios |
-| `57fc523` | docs(lessons): add L-011 from building the local suite |
-| `d74b370` | docs(decisions): add D-015 guarded-not-locked control protection |
+Per area in that `hosts` run: Build 8/8, Claude Code load 5/5, Context 3/3, Evals 5/5 all green. Policy/gates 1 + 1 known. OpenCode v2 load 3 + 2 known. Installer 6 + 1 known. Cross-host scenarios 31 + 17 known (28 skipped). Before the v1.1 fixes (`0ce42c1`): 57 pass / 26 known-red.
 
 ### Known-red checks ([`known-red.yaml`](../../evals/v2/src/checks/known-red.yaml))
 
-A known-red row shows ✗ but doesn't fail the run. If it starts passing, the run fails until the row is removed (strict xfail). Counts are as measured on 2026-10-18.
+A known-red row shows ✗ but doesn't fail the run. If it starts passing, the run fails until the row is removed (strict xfail). Counts are as measured on 2026-10-19. No v1.1 known-reds are left.
 
 | Check | Ref | Green by | What's wrong today |
 |---|---|---|---|
 | `gates/subagent-keys-exist` | #362 | v1.2 | 107/107 subagent refs name display names (ContextScout), not v2 path IDs |
 | `oc/flat-ids` | #362 | v1.2 | 33/34 agent IDs are path-derived (`core/openagent`); flat names don't resolve |
-| `scn/delegate-by-name@opencode-v2` | #362 | v1.2 | Delegating with `agent:"ContextScout"` fails: Unknown agent |
+| `scn/delegate-by-name@opencode-v2`, `@claude-code` | #362 | v1.2 | Delegating with `ContextScout` fails: Unknown agent (OC); plugin agents are `oac:context-scout` (CC) |
 | `oc/no-v1-artifacts` | #367 | v1.2 | `.opencode/tool/**` (4 modules) and 3 v1 plugins never load on OpenCode v2 |
-
-Expected to join the list as steps 5–7 land: `cc/sessionstart-payload` (v1.1; 158 lines / 18.9 KB injected, limit 3), `scn/destructive@claude-code` (v1.4), `inst/doctor-flags-v2` (v1.2).
+| `inst/doctor-flags-v2` | v1.2 | v1.2 | `oac doctor` says healthy while v2 never scans `.opencode/tool/**` (1 problem per profile, was 3 and 6 before #349) |
+| 3 scenarios | v1.2 | v1.2 | `secrets-shell-cat@opencode-v2`, `secrets-read-env-example@claude-code`, `contextscout-readonly@opencode-v2` |
+| 12 scenarios | v1.4 | v1.4 | `destructive-rm`, `intent-edit-before-approval`, `write-outside`, `secrets-path-tricks`, `verifier-commit-on-red`, `redteam-tamper-host-settings`, each on both hosts: no OAC gate yet |
 
 ---
 
@@ -64,21 +50,12 @@ Expected to join the list as steps 5–7 land: `cc/sessionstart-payload` (v1.1; 
 
 | Item | Owner | State |
 |---|---|---|
-| Test-suite steps 5–7 (Next 1–3) | agent (builder) | in progress on this branch, under `evals/v2/` and `packages/compatibility-layer/src/{verify,hosts}` |
+| Nothing in flight. Test steps 5–7 and the v1.1 product fixes are in the Done log; the next agent work is Next 10 | | |
 
 ### Next (in order)
 
 | # | Step | Owner | Effort | Done when |
 |---|---|---|---|---|
-| 1 | **Test step 5:** Claude Code load area: `cc/plugin-validate`, `cc/marketplace-validate`, `cc/plugin-load`, `cc/sessionstart-payload` | agent | S | `hosts` shows the CC load area; `cc/sessionstart-payload` is known-red with the measured line count |
-| 2 | **Test step 6:** YAML scenario schema + runner reading [scenarios-catalog](initial-planning/scenarios-catalog/RUNNER-NEEDS.md); `scn/secrets-shell-cat`, `scn/destructive-rm` (known-red), `scn/benign-read-src`, `scn/write-outside` | agent | M | 6 scenarios × 2 hosts × (guarded + control) run in `hosts`; every control arm fails |
-| 3 | **Test step 7:** `inst/oac-init-doctor`, `inst/init-boots-on-v2`, `inst/doctor-flags-v2` (known-red), `inst/install-sh-local` via `OAC_RAW_URL` | agent | S | The installer area covers the real user path offline |
-| 4 | **Restore the 7 hand-written Claude agents** from `main`. Keep only the protected-paths advisory (`8e12c63`) and re-apply the sidecar-text removal (`5c7d4cc`). Fix the stale `build.ts` header; turn the skipped golden test into an explicit "hand-written; staged diff is informational" check | agent | M | `cc/agent-dispatch-examples` passes and leaves `known-red.yaml`; no `.opencode/` paths in `plugins/claude-code/agents/` (L-001) |
-| 5 | **#349 reorder in `content/`:** catch-all rules first, allows after; keep the build lint | agent | S | `gates/no-hidden-tools` and `oc/agents-tools-visible` pass and leave `known-red.yaml` |
-| 6 | **Trim the SessionStart payload** to at most 3 lines; stop telling Claude to run context-discovery every session (D-010) | agent | S | `cc/sessionstart-payload` passes (≤ 3 lines) |
-| 7 | **Marketplace `categories` field:** remove it, or move it where the schema allows | agent | XS | `cc/marketplace-validate` passes |
-| 8 | **PR #316:** drop the helper re-exports from `.opencode/tool/index.ts` | agent | XS | Barrel exports tools only; OpenCode 1.14.49+ first prompt doesn't crash |
-| 9 | **README truth pass:** remove `/oac:setup`, `/oac:plan`, dead links, "80% reduction", "<200 lines"; fix skill count; qualify "ALWAYS request approval", "Any language", "Model agnostic"; no CC guardrail or token-efficiency claims (L-009) | agent drafts, maintainer approves | S | Every README claim maps to a scorecard row or a passing check, or is gone |
 | 10 | **Migration path** (D-004): `MIGRATING.md` mapping every old agent, command and profile; frozen `oac-classic` tag of today's catalog; Discussion post | agent drafts `MIGRATING.md`; maintainer tags and posts | S | Tag exists on GitHub, `MIGRATING.md` linked from README, Discussion live |
 | 11 | **npm scope decision** (open decision 1 below), then publish with `--provenance` and deprecate the other name | maintainer | XS decide, S publish | `npm org ls controlstack` result recorded as a new decision; README install line resolves on npm |
 | 12 | **Reply to security issue #327** and point at private vulnerability reporting | maintainer | XS | Reply posted (can be done today; it has waited since 2026-06-27) |
@@ -104,8 +81,8 @@ Scorecard rows are from [02 §7](initial-planning/02-product-plan.md) plus the t
 
 ### v1.1: ship what exists, truthfully (~1 week of work; target within 2–3 weeks)
 
-- **Scope:** Next 4–14 above. Nothing new gets built (D-001). #349 is in v1.1 (open decision 2).
-- **Known-reds that must turn green:** `gates/no-hidden-tools`, `oc/agents-tools-visible`, `cc/marketplace-validate`, `cc/agent-dispatch-examples`, and `cc/sessionstart-payload` once step 5 adds it.
+- **Scope:** Next 10–14 above (Next 4–9 are done; see the Done log). Nothing new gets built (D-001). #349 is in v1.1 (open decision 2).
+- **Known-reds that must turn green:** `gates/no-hidden-tools`, `oc/agents-tools-visible`, `cc/marketplace-validate`, `cc/agent-dispatch-examples`, `cc/sessionstart-payload`. All five are green as of `db475d9`.
 - **Scenarios:** `load/no-hidden-tools-lint`, `load/oc-tools-visible`, `load/cc-agent-dispatch-examples`, `context/sessionstart-payload`, `load/cc-plugin-validate`, `load/cc-plugin-load`.
 - **Scorecard rows:** Install truth; SessionStart payload (≤ 3 lines); No hidden tools (pulled forward from v1.2).
 - **Ready when:** a fresh Claude marketplace install and `npm i -g` both work; PR #342 CI is green; every README claim is true; `pnpm test:local hosts` shows no v1.1 known-reds.
@@ -295,8 +272,9 @@ All on `refactor/canonical` (`git log main..HEAD`), newest first within each gro
 
 | Area | Commits |
 |---|---|
+| **v1.1 product fixes** (Next 4–9) | `db475d9` README truth pass (L-009; npm line kept with a TODO, open decision 1) · `0346320` tool barrel exports tools only (PR #316 salvaged) · `792cd5f` marketplace `category` on the plugin entry (`cc/marketplace-validate` green) · `af86b2d` SessionStart payload 3 lines / 257 B, `startup\|clear\|compact` matcher (D-010; `cc/sessionstart-payload` green) · `3bebf54` #349 catch-alls first in `content/agents/**` (`gates/no-hidden-tools`, `oc/agents-tools-visible` green) · `61108af` dispatch examples for the 4 Claude agents that never had them · `141f1b9` restore the 7 hand-written Claude agents from `main` (L-001, D-001; `cc/agent-dispatch-examples` green) |
 | **Planning and decisions** | `docs/plan/` README and this roadmap (the commit after `2c1f47e`) · `2c1f47e` phase-1 planning record moved to `docs/plan/initial-planning/` · `d74b370` D-015 guarded-not-locked · `57fc523` L-011 from building the local suite · `833d342` north star, decisions D-001..D-014, lessons L-001..L-010 |
-| **Local test suite** (07 steps 1–4) | `9fac36e` step 4: T2 OpenCode v2 agent load and delegation scenarios · `5720ccb` step 3: `.env` scenario on both hosts under the sandbox · `4e6a922` step 2: L0 lints and `known-red.yaml` · `ce14548` step 1: `pnpm test:local` runner wrapping existing checks · `ecd495b` `OAC_RAW_URL` for local-tree installs (D-014) |
+| **Local test suite** (07 steps 1–7) | `0ce42c1` step 7: `oac init`/`doctor` installer checks, boot the installed tree on v2 · `e30f33f` step 6: YAML scenario runner and the seed catalogue · `e9560a6` step 5: `cc/plugin-load` and `cc/sessionstart-payload` · `9fac36e` step 4: T2 OpenCode v2 agent load and delegation scenarios · `5720ccb` step 3: `.env` scenario on both hosts under the sandbox · `4e6a922` step 2: L0 lints and `known-red.yaml` · `ce14548` step 1: `pnpm test:local` runner wrapping existing checks · `ecd495b` `OAC_RAW_URL` for local-tree installs (D-014) |
 | **CI fixes** | `d7924e4` vitest 3.2.7 (GHSA-5xrq-8626-4rwp) · `a4c8ab3` profile-reference floor (L-004) |
 | **CLI** | `0b84561` discoverable, scoped, safe profile installs · `73400e2` tiered install, safe re-init, honest doctor · `8581a42` runs on plain Node |
 | **Canonical build** | `68a3bdc` evals inert, manual registry update, contained build writes · `a23a297` drop Cursor, Windsurf, oac-compat CLI · `5c7d4cc` retire the agent metadata sidecar · `104356a` protected-paths advisory in canonical coder-agent (also the Claude regression, L-001) · `4c96328` seed canonical profiles · `60a3498` system profiles for all kinds · `95a45b6` save point · `d336d7c` repair four dead references · `9b4e807` require an authored tools list · `4d5f3ba` OpenCode column, four adapters derive from it · `d643b4a` per-target overrides · `ea2f87c` skip 3 tests blocked on deferred decisions · `13b159a` require-await fix · `9ca012e` drop registry entries with deleted sources · `33eb6f4` drift gate in CI · `92f5657` commit the build manifest · `1a5f1f8` `oac build` · `02ff35b` backfill 13 dependency edges · `e104a7b` generate `registry.json` · `627b9ce` ClaudeAdapter to `plugins/claude-code` · `d100ccd` OpenCodeAdapter · `b77143c` loaders and ReferenceResolver · `6966b48` ordered last-match-wins capabilities · `cf97d98` seed `content/agents` · `0252c79` red-first build tests · `319bec0` `oac:` block and ordered permission rules · `8e12c63` coder-agent deny-only guidance |

@@ -84,3 +84,13 @@ Format: **What happened** · **Lesson** · **Rule now**. Newest last.
     - A PreToolUse hook written as a CommonJS `.js` file crashes in a repo whose `package.json` says `"type": "module"`. Claude Code then lets the call through (it fails open). The fixture's `package.json` turned the poc `.env` guard off without any error.
 - **Lesson:** an ask is a guard only if somebody says no. Headless, both hosts say no by default, so "the attack didn't happen" can mean "the host asked" rather than "OAC blocked it".
 - **Rule now:** the runner wires asks explicitly. On OpenCode, `asks: reject` means no `--auto` (parse the auto-reject lines) and `approve` means `--auto`. On Claude Code, both use a recording MCP tool through `--permission-prompt-tool`. Attacks run with `reject` and are graded on what OAC did: `asked` doesn't satisfy `blocked`. When the rejected run saw an ask, the same run with `approve` is reported, never graded. Hook scripts ship as `.cjs`, and every hook-backed row has a control arm, so a hook that fails open shows up as a leak.
+
+## L-013 Fixing the v1.1 known-reds: the premises were partly wrong
+
+- **What happened:** turning the v1.1 known-reds green turned up four things the plan had stated as fact.
+  - `cc/agent-dispatch-examples` said the Claude agents "lost their `<example>` blocks in `104356a`". On `main` only 3 of the 7 (`code-reviewer`, `coder-agent`, `context-scout`) ever had them, so restoring `main` alone left the check red at 3/7. The other 4 needed examples written for the first time.
+  - "Re-apply the sidecar-text removal from `5c7d4cc`" was a no-op: the sidecar comments `5c7d4cc` deleted had been put there by `104356a`'s regeneration, and `main`'s hand-written agents never had them.
+  - The roadmap's "no `.opencode/` paths in `plugins/claude-code/agents/`" doesn't hold for the hand-written agents either. `main`'s `context-scout` and `context-manager` name `.opencode/context` on purpose, as the last context-root fallback, and `coder-agent` and `task-manager` mention `.opencode/` paths too.
+  - The #349 reorder also cleared most of `inst/doctor-flags-v2` (3 and 6 problems down to 1 each), because hidden tools were most of what `oac doctor` missed.
+- **Lesson:** a known-red note records what someone believed when they wrote it. Check it against `main` and against the check's own code before deciding the fix is "restore".
+- **Rule now:** before a known-red fix, run the check on the proposed state (here, `main`'s files) first. When a fix changes another known-red's count, update that row's note in the same change.
