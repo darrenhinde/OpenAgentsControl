@@ -425,3 +425,7 @@ export const VERSION = "0.1.0";
 export { AgentIdResolver, AgentIdResolutionError, normalizeAlias, isGlob } from "./core/AgentIdResolver.js";
 export type { IdTarget, ResolverAgent } from "./core/AgentIdResolver.js";
 export { rewriteBodyRefs, rewriteTaskKeys } from "./core/DelegationRewriter.js";
+
+// Static lints over emitted OpenCode trees (v1 validity is checked here; no v1 host is pinned).
+export { lintV1Agents, lintV1Artifacts, lintV2Agents } from "./verify/lint/opencode.js";
+export type { LintFile, LintFinding } from "./verify/lint/opencode.js";
