@@ -99,6 +99,17 @@ Format: **Decision** · **Why** · **Rules out** · **Revisit when**. Newest las
 - **Rules out:** hard-denying config edits by default; anything that blocks normal config work without a clear way for the user to allow it.
 - **Revisit when:** `oac report` shows config-edit asks are being rubber-stamped, or a real bypass is reported.
 
+## D-016 OpenCode v2 by default, v1 only on request
+
+- **Decision:** `oac build` compiles the canonical source for both OpenCode versions.
+  - **v2 is the default.** The repo's own `.opencode/` and every default install are v2.
+  - **v1 is an explicit opt-in.** When a user selects it, the installer writes the full v1 build (agents, context, tools, plugins and everything else v1 needs) into that user's project `.opencode/`. The user's choice is recorded, so later updates keep it.
+  - **The in-repo `v1-opencode/` folder is for display only.** It shows what the v1 compile produces and is never installed under that name.
+  - **v1 must be verifiable**, with a concrete check that a v1 install works, not just that it compiles.
+- **Why:** v2 broke delegation by name, custom tools and v1 plugins (#362, #367), and v1 users still exist. The maintainer: "if user wants opencode v1 it should be not the default but if they select it then should build the .opencode folder with everything and we should have a way to make sure it works."
+- **Rules out:** auto-selecting v1; maintaining v1 beyond the one release cycle set in D-008. The v1 target is built so it can be deleted as one unit.
+- **Revisit when:** the v1 support window ends, or v1 usage is negligible.
+
 ---
 
 ## Open decisions
