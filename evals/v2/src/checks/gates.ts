@@ -10,6 +10,7 @@ const noHiddenTools: CheckDef = {
   area: "gates",
   layer: "L0",
   tier: "quick",
+  workload: "trusted-static",
   run: (ctx: RunContext): Promise<CheckOutcome> => {
     const canonical = lintNoHiddenTools(listFiles(ctx.repo, "content/agents", md));
     const emitted = lintNoHiddenTools(listFiles(ctx.repo, ".opencode/agent", md));
@@ -32,6 +33,7 @@ const subagentKeysExist: CheckDef = {
   area: "gates",
   layer: "L0",
   tier: "quick",
+  workload: "trusted-static",
   run: (ctx: RunContext): Promise<CheckOutcome> => {
     const agents = listFiles(ctx.repo, ".opencode/agent", md);
     const prompts = [

@@ -15,6 +15,20 @@ export const AREAS: { id: Area; label: string }[] = [
   { id: "evals", label: "Evals" },
 ];
 
+/**
+ * Declared trust class of a check's workload (P1.2 U1): what running the check may touch.
+ * `trusted-static`/`trusted-command` map to the sandbox contract's "trusted-check" workload;
+ * host classes (`host-check`/`host-scenario`/`installer`) require the launch-funnel gate and
+ * must never be admissible in the quick tier; `deferred` rows are never selected at all.
+ */
+export type WorkloadDecl =
+  | "trusted-static"
+  | "trusted-command"
+  | "host-check"
+  | "host-scenario"
+  | "installer"
+  | "deferred";
+
 export type Layer = "L0" | "L1" | "L2" | "L3";
 export type HostId = "opencode-v2" | "claude-code" | "codex";
 export type Status = "pass" | "fail" | "known" | "skip" | "fixed";
@@ -75,5 +89,7 @@ export interface CheckDef {
   host?: HostId;
   /** Lowest tier that runs this check. */
   tier: Tier;
+  /** Declared trust class of this check's workload (see WorkloadDecl); required for every row. */
+  workload: WorkloadDecl;
   run: (ctx: RunContext) => Promise<CheckOutcome>;
 }

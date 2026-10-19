@@ -14,6 +14,7 @@ const noV1Artifacts: CheckDef = {
   area: "oc-load",
   layer: "L0",
   tier: "quick",
+  workload: "trusted-static",
   run: (ctx: RunContext): Promise<CheckOutcome> => {
     const found = lintNoV1Artifacts(
       listFiles(ctx.repo, ".opencode/tool"),
@@ -96,6 +97,7 @@ const configSources: CheckDef = {
   layer: "L1",
   host: "opencode-v2",
   tier: "hosts",
+  workload: "host-check",
   run: async (ctx: RunContext): Promise<CheckOutcome> => {
     const bin = await cachedWhich("opencode");
     if (!bin) return { ok: false, skip: "opencode not on PATH" };

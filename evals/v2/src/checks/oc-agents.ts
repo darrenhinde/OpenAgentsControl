@@ -140,7 +140,7 @@ async function probeAll(ctx: RunContext): Promise<T2Result | undefined> {
 }
 
 const agentsBoot: CheckDef = {
-  id: "oc/agents-boot", area: "oc-load", layer: "L1", host: "opencode-v2", tier: "hosts",
+  id: "oc/agents-boot", area: "oc-load", layer: "L1", host: "opencode-v2", tier: "hosts", workload: "host-check",
   run: async (ctx) => {
     const r = await probeAll(ctx);
     if (!r) return { ok: false, skip: "opencode not on PATH" };
@@ -156,7 +156,7 @@ const agentsBoot: CheckDef = {
 };
 
 const agentsToolsVisible: CheckDef = {
-  id: "oc/agents-tools-visible", area: "oc-load", layer: "L1", host: "opencode-v2", tier: "hosts",
+  id: "oc/agents-tools-visible", area: "oc-load", layer: "L1", host: "opencode-v2", tier: "hosts", workload: "host-check",
   run: async (ctx) => {
     const r = await probeAll(ctx);
     if (!r) return { ok: false, skip: "opencode not on PATH" };
@@ -174,7 +174,7 @@ const agentsToolsVisible: CheckDef = {
 };
 
 const flatIds: CheckDef = {
-  id: "oc/flat-ids", area: "oc-load", layer: "L1", host: "opencode-v2", tier: "hosts",
+  id: "oc/flat-ids", area: "oc-load", layer: "L1", host: "opencode-v2", tier: "hosts", workload: "host-check",
   run: async (ctx) => {
     const r = await probeAll(ctx);
     if (!r) return { ok: false, skip: "opencode not on PATH" };

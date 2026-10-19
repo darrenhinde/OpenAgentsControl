@@ -33,7 +33,8 @@ const compatibility: CheckDef = {
   id: "inst/compatibility",
   area: "installer",
   layer: "L0",
-  tier: "quick",
+  tier: "all",
+  workload: "installer",
   run: async (ctx: RunContext): Promise<CheckOutcome> => {
     const absent = await missing(["curl", "jq"]);
     if (absent) return { ok: false, skip: absent };
@@ -60,7 +61,8 @@ const installShLocal: CheckDef = {
   id: "inst/install-sh-local",
   area: "installer",
   layer: "L1",
-  tier: "quick",
+  tier: "hosts",
+  workload: "installer",
   run: async (ctx: RunContext): Promise<CheckOutcome> => {
     const absent = await missing(["curl", "jq"]);
     if (absent) return { ok: false, skip: absent };
@@ -155,7 +157,8 @@ const initDoctor: CheckDef = {
   id: "inst/oac-init-doctor",
   area: "installer",
   layer: "L1",
-  tier: "quick",
+  tier: "hosts",
+  workload: "installer",
   run: async (ctx) => {
     const absent = cliMissing(ctx) ?? (await missing(["node", "git"]));
     if (absent) return { ok: false, skip: absent };
@@ -241,6 +244,7 @@ const initBootsOnV2: CheckDef = {
   layer: "L1",
   host: "opencode-v2",
   tier: "hosts",
+  workload: "installer",
   run: async (ctx) => {
     const trees = await initTrees(ctx);
     if (!trees) return { ok: false, skip: (await cachedWhich("opencode")) ? cliMissing(ctx) ?? "?" : "opencode not on PATH" };
@@ -279,6 +283,7 @@ const doctorFlagsV2: CheckDef = {
   layer: "L1",
   host: "opencode-v2",
   tier: "hosts",
+  workload: "installer",
   run: async (ctx) => {
     const trees = await initTrees(ctx);
     if (!trees) return { ok: false, skip: (await cachedWhich("opencode")) ? cliMissing(ctx) ?? "?" : "opencode not on PATH" };
@@ -300,10 +305,10 @@ export const installerHostChecks: CheckDef[] = [initBootsOnV2, doctorFlagsV2];
 
 export const installerChecks: CheckDef[] = [
   cmdCheck({
-    id: "inst/shell-syntax", area: "installer",
+    id: "inst/shell-syntax", area: "installer", workload: "trusted-command",
     cmd: ["bash", "-c", 'bash -n install.sh && bash -n update.sh && for f in scripts/tests/*.sh; do bash -n "$f" || exit 1; done'],
   }),
-  cmdCheck({ id: "inst/shellcheck", area: "installer", needs: ["shellcheck"], cmd: ["shellcheck", "-S", "error", "install.sh"] }),
+  cmdCheck({ id: "inst/shellcheck", area: "installer", workload: "trusted-command", needs: ["shellcheck"], cmd: ["shellcheck", "-S", "error", "install.sh"] }),
   compatibility,
   installShLocal,
   initDoctor,
@@ -315,5 +320,6 @@ export const installerNetworkChecks: CheckDef[] = ["inst/install-sh-e2e", "inst/
   area: "installer" as const,
   layer: "L1" as const,
   tier: "all" as const,
+  workload: "deferred" as const,
   run: (): Promise<CheckOutcome> => Promise.resolve({ ok: false, skip: "network tier (all) not implemented in this suite yet" }),
 }));

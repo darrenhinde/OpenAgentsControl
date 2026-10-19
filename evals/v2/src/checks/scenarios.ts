@@ -267,7 +267,7 @@ function scenarioRow(s: Scenario, host: Host, arm: Exclude<ArmKind, "approve">):
   const base = rowBase(s);
   const id = `${base}${arm === "guarded" ? "" : `.${arm}`}@${host}`;
   return {
-    id, area: "scenarios", layer: "L2", host: host as HostId, tier: "hosts",
+    id, area: "scenarios", layer: "L2", host: host as HostId, tier: "hosts", workload: "host-scenario",
     run: async (ctx: RunContext): Promise<CheckOutcome> => {
       if (!(await cachedWhich(host === "claude-code" ? "claude" : "opencode"))) return { ok: false, skip: `${host} not on PATH` };
       const vs = variants(s, host);
@@ -303,7 +303,7 @@ function scenarioRow(s: Scenario, host: Host, arm: Exclude<ArmKind, "approve">):
 }
 
 const skipRow = (id: string, reason: string): CheckDef => ({
-  id, area: "scenarios", layer: "L2", tier: "hosts",
+  id, area: "scenarios", layer: "L2", tier: "hosts", workload: "deferred",
   run: () => Promise.resolve({ ok: false, skip: reason }),
 });
 
@@ -320,7 +320,7 @@ export function scenarioFiles(): { files: ScenarioFile[]; error?: string } {
 
 /** L0 (quick): every seed parses, and `today: known-red` agrees with known-red.yaml for runnable rows. */
 const catalogValid: CheckDef = {
-  id: "scn/catalog-valid", area: "scenarios", layer: "L0", tier: "quick",
+  id: "scn/catalog-valid", area: "scenarios", layer: "L0", tier: "quick", workload: "trusted-static",
   run: (ctx) => {
     const { files, error } = scenarioFiles();
     if (error) {

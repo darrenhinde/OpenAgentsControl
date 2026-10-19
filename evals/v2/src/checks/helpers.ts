@@ -1,11 +1,13 @@
 import { exec, which } from "../core/exec.ts";
-import type { Area, CheckDef, CheckOutcome, Layer, RunContext, Tier } from "../core/types.ts";
+import type { Area, CheckDef, CheckOutcome, Layer, RunContext, Tier, WorkloadDecl } from "../core/types.ts";
 
 export interface CmdCheckSpec {
   id: string;
   area: Area;
   layer?: Layer;
   tier?: Tier;
+  /** Declared trust class of the wrapped command's workload (P1.2 U1). */
+  workload: WorkloadDecl;
   /** Program and args, run with cwd = repo root. */
   cmd: string[];
   timeoutMs?: number;
@@ -37,6 +39,7 @@ export function cmdCheck(spec: CmdCheckSpec): CheckDef {
     area: spec.area,
     layer: spec.layer ?? "L0",
     tier: spec.tier ?? "quick",
+    workload: spec.workload,
     run: async (ctx: RunContext): Promise<CheckOutcome> => {
       const absent = await missing(spec.needs);
       if (absent) return { ok: false, skip: absent };

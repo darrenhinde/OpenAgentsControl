@@ -18,7 +18,8 @@ function validate(id: string, what: "plugin" | "marketplace"): CheckDef {
     id,
     area: "cc-load",
     layer: "L0",
-    tier: "quick",
+    tier: "hosts",
+    workload: "host-check",
     run: async (ctx: RunContext): Promise<CheckOutcome> => {
       const claude = await cachedWhich("claude");
       if (!claude) return { ok: false, skip: "claude not on PATH" };
@@ -53,6 +54,7 @@ const agentDispatchExamples: CheckDef = {
   area: "cc-load",
   layer: "L0",
   tier: "quick",
+  workload: "trusted-static",
   run: (ctx: RunContext): Promise<CheckOutcome> => {
     const dir = join(ctx.repo, "plugins", "claude-code", "agents");
     const files = readdirSync(dir).filter((f) => f.endsWith(".md")).map((f) => ({ name: f, text: readFileSync(join(dir, f), "utf8") }));
@@ -123,6 +125,7 @@ const pluginLoad: CheckDef = {
   layer: "L1",
   host: "claude-code",
   tier: "hosts",
+  workload: "host-check",
   run: async (ctx) => {
     const r = await pluginRun(ctx);
     if (!r) return { ok: false, skip: "claude not on PATH" };
@@ -174,6 +177,7 @@ const sessionStartPayloadCheck: CheckDef = {
   layer: "L1",
   host: "claude-code",
   tier: "hosts",
+  workload: "host-check",
   run: async (ctx) => {
     const r = await pluginRun(ctx);
     if (!r) return { ok: false, skip: "claude not on PATH" };
