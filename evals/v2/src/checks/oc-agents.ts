@@ -14,7 +14,7 @@ import { safetyLedger } from "../sandbox/ledger.ts";
 import { cachedWhich } from "./helpers.ts";
 import { auditHostRun } from "./host-run.ts";
 
-interface AgentProbe {
+export interface AgentProbe {
   id: string;
   booted: boolean;
   error?: string;
@@ -29,7 +29,7 @@ interface T2Result {
   ms: number;
 }
 
-interface Tree {
+export interface Tree {
   dirs: IsoDirs;
   canaries: Canaries;
   decoys: Record<string, string>;
@@ -68,7 +68,7 @@ async function tree(ctx: RunContext): Promise<Tree | undefined> {
   return t;
 }
 
-async function runAgent(ctx: RunContext, t: Tree, agent: string, script: ScriptTurn[], prompt = "hi"): Promise<{ out: string; requests: ReturnType<typeof modelTurns>; all: number }> {
+export async function runAgent(ctx: RunContext, t: Tree, agent: string, script: ScriptTurn[], prompt = "hi"): Promise<{ out: string; requests: ReturnType<typeof modelTurns>; all: number }> {
   const mock = await startFakeModel({
     script, canaries: allCanaries(t.canaries), expectedAuth: { openaiKey: t.canaries.openaiKey }, subSessionMarker: "DELEGATED-TASK",
   });
@@ -87,15 +87,10 @@ async function runAgent(ctx: RunContext, t: Tree, agent: string, script: ScriptT
   }
 }
 
-async function probeAll(ctx: RunContext): Promise<T2Result | undefined> {
-  const cached = ctx.shared.get("t2") as T2Result | undefined;
-  if (cached) return cached;
-  const t = await tree(ctx);
-  if (!t) return undefined;
-  const start = Date.now();
+/** T2a/b for one tree: boot every agent under .opencode/agent on real v2 and record the tools offered. */
+export async function probeAgents(ctx: RunContext, t: Tree): Promise<AgentProbe[]> {
   const files = listFiles(t.dirs.work, ".opencode/agent", (p) => p.endsWith(".md"));
   const agents: AgentProbe[] = [];
-  const raw: string[] = [];
   for (const f of files) {
     const id = emittedId(f.path);
     const r = await runAgent(ctx, t, id, []);
@@ -107,8 +102,28 @@ async function probeAll(ctx: RunContext): Promise<T2Result | undefined> {
     const probe: AgentProbe = { id, booted, offered, expected, hidden: booted ? expected.filter((x) => !offered.includes(x)) : [] };
     if (p.errors.length) probe.error = p.errors.join(" | ").slice(0, 200);
     agents.push(probe);
-    raw.push(JSON.stringify(probe));
   }
+  return agents;
+}
+
+/** A Tree over an existing iso dir whose workdir already holds a .opencode/ tree. */
+export async function treeAt(ctx: RunContext, dirs: IsoDirs, name: string): Promise<Tree | undefined> {
+  const bin = await cachedWhich("opencode");
+  if (!bin) return undefined;
+  const canaries = makeCanaries(ctx.runId, name);
+  const decoys = plantDecoys(dirs, canaries);
+  safetyLedger().canariesPlanted += Object.keys(canaries.decoys).length;
+  return { dirs, canaries, decoys, bin };
+}
+
+async function probeAll(ctx: RunContext): Promise<T2Result | undefined> {
+  const cached = ctx.shared.get("t2") as T2Result | undefined;
+  if (cached) return cached;
+  const t = await tree(ctx);
+  if (!t) return undefined;
+  const start = Date.now();
+  const agents = await probeAgents(ctx, t);
+  const raw = agents.map((a) => JSON.stringify(a));
   // Flat-ID probe: v2 ignores `name:`; the canonical flat name of a nested agent must resolve.
   const nested = agents.find((a) => a.id === "core/openagent") ?? agents.find((a) => a.id.includes("/"));
   let flatProbe: T2Result["flatProbe"] = { id: "", flat: "", booted: true };

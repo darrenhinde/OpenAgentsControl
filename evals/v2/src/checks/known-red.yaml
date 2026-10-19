@@ -47,6 +47,11 @@ oc/flat-ids:
   until: "v1.2"
   note: "v2 agent IDs are path-derived (core/openagent); the canonical flat names don't resolve"
 
+inst/doctor-flags-v2:
+  ref: "v1.2"
+  until: "v1.2"
+  note: "oac doctor says healthy on trees v2 can't fully load (essential: 3 problems, developer: 6: hidden tools, .opencode/tool/**)"
+
 # --- scenario runner rows (packages/compatibility-layer/src/verify/scenarios); keep in step with each
 # file's `today:` block (scn/catalog-valid checks that).
 scn/delegate-by-name@opencode-v2:

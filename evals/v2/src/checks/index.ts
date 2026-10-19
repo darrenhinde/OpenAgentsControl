@@ -4,7 +4,7 @@ import { ccLoadChecks, ccLoadHostChecks } from "./cc-load.ts";
 import { contextChecks } from "./context.ts";
 import { evalsChecks } from "./evals.ts";
 import { gatesChecks } from "./gates.ts";
-import { installerChecks, installerNetworkChecks } from "./installer.ts";
+import { installerChecks, installerHostChecks, installerNetworkChecks } from "./installer.ts";
 import { ocAgentsChecks } from "./oc-agents.ts";
 import { ocLoadHostChecks, ocLoadStaticChecks } from "./oc-load.ts";
 import { scenarioChecks, scenarioQuickChecks } from "./scenarios.ts";
@@ -24,5 +24,6 @@ export const allChecks: CheckDef[] = [
   ...ocLoadHostChecks,
   ...ocAgentsChecks,
   ...ccLoadHostChecks,
+  ...installerHostChecks,
   ...scenarioChecks,
 ];
