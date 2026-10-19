@@ -62,37 +62,68 @@ export interface GitView {
   readonly readText: (path: string) => string | undefined;
 }
 
+/** Largest `.git` / `commondir` file read; real ones are one short line. */
+const MAX_GIT_FILE_BYTES = 4096;
+
+export interface GitFsOps {
+  readonly lstat: (path: string) => { isSymbolicLink(): boolean; isFile(): boolean; isDirectory(): boolean; readonly size: number };
+  readonly readFile: (path: string) => string;
+}
+
+/**
+ * L-011: lstat first and never follow a symlink, so a planted `commondir → ~/.ssh/id_rsa`
+ * is refused unread; only small regular files are read at all.
+ */
+export function makeGitView(fs: GitFsOps): GitView {
+  const meta = (p: string): ReturnType<GitFsOps["lstat"]> | undefined => {
+    try {
+      return fs.lstat(p);
+    } catch {
+      return undefined;
+    }
+  };
+  return {
+    isDirectory: (p) => {
+      const m = meta(p);
+      return !!m && !m.isSymbolicLink() && m.isDirectory();
+    },
+    readText: (p) => {
+      const m = meta(p);
+      if (!m || m.isSymbolicLink() || !m.isFile() || m.size > MAX_GIT_FILE_BYTES) return undefined;
+      try {
+        const text = fs.readFile(p);
+        return text.length > MAX_GIT_FILE_BYTES ? undefined : text;
+      } catch {
+        return undefined;
+      }
+    },
+  };
+}
+
+const GITDIR_LINE = /^gitdir: ([^\n\r\0]+)\r?\n?$/;
+const PATH_LINE = /^([^\n\r\0]+)\r?\n?$/;
+
 /**
  * The main checkout behind a worktree, without spawning git: `.git` is a directory → the repo
  * itself; a `gitdir: <path>` file → that gitdir's `commondir` → its parent. Mirrors
- * env.ts mainCheckoutOf (dirname of --git-common-dir). Anything unresolvable → undefined.
+ * env.ts mainCheckoutOf (dirname of --git-common-dir). Only a single `gitdir:` line and a single
+ * path line are accepted, and only the resolved path is ever returned (never file contents);
+ * anything else → undefined (MAIN_DENY falls back to the repo, reported as not probed).
  */
 export function resolveMainCheckout(repo: string, view: GitView): string | undefined {
   const dotGit = join(repo, ".git");
   if (view.isDirectory(dotGit)) return repo;
-  const gitdir = /^gitdir:\s*(.+?)\s*$/m.exec(view.readText(dotGit) ?? "")?.[1];
+  const gitdir = GITDIR_LINE.exec(view.readText(dotGit) ?? "")?.[1];
   if (!gitdir) return undefined;
   const absGitdir = resolve(repo, gitdir);
-  const common = view.readText(join(absGitdir, "commondir"))?.trim();
+  const common = PATH_LINE.exec(view.readText(join(absGitdir, "commondir")) ?? "")?.[1];
   return common ? dirname(resolve(absGitdir, common)) : undefined;
 }
 
-const REAL_GIT_VIEW: GitView = {
-  isDirectory: (p) => {
-    try {
-      return lstatSync(p).isDirectory();
-    } catch {
-      return false;
-    }
-  },
-  readText: (p) => {
-    try {
-      return readFileSync(p, "utf8");
-    } catch {
-      return undefined;
-    }
-  },
-};
+const REAL_GIT_VIEW = makeGitView({
+  lstat: (p) => lstatSync(p),
+  readFile: (p) => readFileSync(p, "utf8"),
+});
 
 /** The repo when the main checkout is the same directory, so the probe does not list it twice. */
 function mainCheckoutFor(repo: string): string | undefined {

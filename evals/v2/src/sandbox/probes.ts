@@ -144,9 +144,13 @@ export const hostConfigPaths = (realHome: string): readonly string[] => HOST_CON
 export const homeWriteTarget = (ctx: ProbeContext): string => `${ctx.realHome}/.oac-sandbox-probe-${ctx.runId}`;
 export const writeControl = (ctx: ProbeContext): string => `${ctx.controlDir}/write-control-${ctx.runId}`;
 
-/** Prints `rc<TAB>eperm<TAB>path` per argument; listings and error text are never echoed. */
+/**
+ * Prints `rc<TAB>path<TAB>error` per argument, the error flattened to one line; listings are
+ * never echoed. The errno classification is the pure parser's (probe-interpret.ts pathResult),
+ * never a shell pattern, so a path whose text contains the errno phrase cannot forge it.
+ */
 const pathScript = (op: string): string =>
-  String.raw`for p in "$@"; do err=$(${op} -- "$p" 2>&1 >/dev/null); rc=$?; case "$err" in *"Operation not permitted"*) e=1;; *) e=0;; esac; printf '%s\t%s\t%s\n' "$rc" "$e" "$p"; done`;
+  String.raw`for p in "$@"; do err=$(${op} -- "$p" 2>&1 >/dev/null); rc=$?; err=$(printf '%s' "$err" | /usr/bin/tr '\n\t' '  '); printf '%s\t%s\t%s\n' "$rc" "$p" "$err"; done`;
 const READ_SCRIPT = pathScript("/bin/ls");
 const WRITE_SCRIPT = pathScript("/usr/bin/touch");
 /** The grandchild drops the output pipe so only the group kill (not EOF) can end the probe. */

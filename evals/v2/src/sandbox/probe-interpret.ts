@@ -95,13 +95,22 @@ interface PathLine {
   readonly eperm: boolean;
 }
 
-/** One `rc<TAB>eperm<TAB>path` line per path from the fixed read/write scripts. */
-export function parsePathLines(out: string): ReadonlyMap<string, PathLine> {
-  const entries = out.split("\n").flatMap((line): [string, PathLine][] => {
-    const m = /^(\d+)\t([01])\t(.+)$/.exec(line);
-    return m ? [[m[3] as string, { rc: Number(m[1]), eperm: m[2] === "1" }]] : [];
-  });
-  return new Map(entries);
+/** The binary each path probe runs; its BSD error format is `<tool>: <path>: <strerror>`. */
+const TOOL = { read: "ls", write: "touch" } as const;
+
+/**
+ * The script's `rc<TAB>path<TAB>error` line for exactly `path`. EPERM only when the whole
+ * error equals `<tool>: <path>: Operation not permitted`, so neither the path text nor any
+ * appended error can supply the phrase.
+ */
+export function pathResult(out: string, path: string, tool: string): PathLine | undefined {
+  for (const line of out.split("\n")) {
+    const m = /^(\d+)\t/.exec(line);
+    const rest = m ? line.slice(m[0].length) : "";
+    if (!m || !rest.startsWith(`${path}\t`)) continue;
+    return { rc: Number(m[1]), eperm: rest.slice(path.length + 1) === `${tool}: ${path}: Operation not permitted` };
+  }
+  return undefined;
 }
 
 function denial(line: PathLine | undefined, path: string, verb: string): { result: ProbeResult; note: string } {
@@ -118,8 +127,8 @@ function denial(line: PathLine | undefined, path: string, verb: string): { resul
  */
 export function interpretPathProbe(e: ProbeExec, verb: "read" | "write", control: string, population: readonly HostPath[]): Verdict {
   if (e.timedOut) return verdict("inconclusive", `probe timed out (rc ${e.code})`);
-  const lines = parsePathLines(e.out);
-  if (lines.get(control)?.rc !== 0) {
+  const line = (path: string): PathLine | undefined => pathResult(e.out, path, TOOL[verb]);
+  if (line(control)?.rc !== 0) {
     return verdict("inconclusive", `positive control failed: ${verb} of throwaway ${control} did not succeed`);
   }
   const observations = [`control: ${verb} of throwaway ${control} succeeded`];
@@ -128,7 +137,7 @@ export function interpretPathProbe(e: ProbeExec, verb: "read" | "write", control
     if (p.outside === "absent") observations.push(`not present: ${p.path}`);
     else if (p.outside === "inaccessible") observations.push(`not attributable (inaccessible outside the sandbox too): ${p.path}`);
     else {
-      const d = denial(lines.get(p.path), p.path, verb);
+      const d = denial(line(p.path), p.path, verb);
       results.push(d.result);
       observations.push(d.note);
     }
@@ -169,7 +178,7 @@ export function interpretHomeWrite(e: ProbeExec, facts: ProbeFacts, control: str
 // - "No keychain is available. You may need to restart your computer." (errSecNotAvailable,
 //   -25291) is Security.framework's error when it cannot reach securityd at all, which is what
 //   (deny mach-lookup (global-name "com.apple.SecurityServer")) should produce. Only this, with a
-//   nonzero exit and no other keychain error in the output, counts as a denial.
+//   nonzero exit and as the ONLY `security:` error line(s), counts as a denial.
 // - "could not be found in the keychain" (errSecItemNotFound) or exit 0: securityd ANSWERED → fail.
 // - Anything else, including -25307 "A default keychain could not be found" (a throwaway HOME
 //   with no keychain looks like that), is inconclusive.
@@ -184,7 +193,9 @@ export function interpretKeychain(e: ProbeExec): Verdict {
   if (e.timedOut) return verdict("inconclusive", `keychain probe timed out (rc ${e.code})`);
   if (e.code === 0) return verdict("fail", "securityd answered inside the sandbox and returned an item");
   if (ITEM_NOT_FOUND.test(e.out)) return verdict("fail", `securityd answered inside the sandbox (item-not-found, rc ${e.code}): mach-lookup NOT denied`);
-  if (SECURITYD_UNAVAILABLE.test(e.out) && !OTHER_KEYCHAIN_ERROR.test(e.out)) {
+  const securityErrors = e.out.split("\n").filter((l) => l.startsWith("security:"));
+  const soleDenial = securityErrors.length > 0 && securityErrors.every((l) => SECURITYD_UNAVAILABLE.test(l));
+  if (soleDenial && !OTHER_KEYCHAIN_ERROR.test(e.out)) {
     return verdict("pass", `securityd unreachable inside the sandbox (errSecNotAvailable -25291, rc ${e.code}) [signal UNCONFIRMED until U5]`);
   }
   return verdict("inconclusive", `keychain probe ambiguous (rc ${e.code}): ${firstLine(e.out)}`);

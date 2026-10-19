@@ -26,7 +26,16 @@ import {
   type ProbeRunner,
 } from "../../src/sandbox/probes.ts";
 import { SCRUB_CANARY } from "../../src/sandbox/policy.ts";
-import { holdPort, outsideAccess, portFree, probeSandbox, resolveMainCheckout, waitForPidGone, type BindPort } from "../../src/sandbox/probe-runner.ts";
+import {
+  holdPort,
+  makeGitView,
+  outsideAccess,
+  portFree,
+  probeSandbox,
+  resolveMainCheckout,
+  waitForPidGone,
+  type BindPort,
+} from "../../src/sandbox/probe-runner.ts";
 
 // P3-lite U1, tests-first (component-p3-lite.md): the boundary-probe module. The fixed PROBES
 // table is the single source of truth (id, capability, applicability, argv, interpretation);
@@ -59,7 +68,11 @@ const HOME_TARGET = `${HOME}/.oac-sandbox-probe-${RUN_ID}`;
 const WRITE_CONTROL = `${CONTROL}/write-control-${RUN_ID}`;
 
 const exit = (code: number, out = "", timedOut = false): ProbeExec => ({ code, out, timedOut });
-const pathLine = (rc: number, eperm: boolean, path: string): string => `${rc}\t${eperm ? 1 : 0}\t${path}`;
+/** One `rc<TAB>path<TAB>error` line, as the fixed read/write scripts print it (error flattened to one line). */
+const pathLine = (rc: number, eperm: boolean, path: string, tool = "ls"): string => {
+  const err = eperm ? `${tool}: ${path}: Operation not permitted` : rc ? `${tool}: ${path}: No such file or directory` : "";
+  return `${rc}\t${path}\t${err}`;
+};
 const lines = (...l: string[]): string => l.join("\n") + "\n";
 
 const ITEM_NOT_FOUND = "security: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.";
@@ -76,7 +89,7 @@ const HELD: Readonly<Record<ProbeId, ProbeExec>> = {
   "net-loopback": exit(0, `oac-loopback-${RUN_ID}`),
   "net-external": exit(7, EPERM_CURL),
   "net-service-port": exit(1, EPERM_NC),
-  "fs-home-write": exit(0, lines(pathLine(0, false, WRITE_CONTROL), pathLine(1, true, HOME_TARGET))),
+  "fs-home-write": exit(0, lines(pathLine(0, false, WRITE_CONTROL, "touch"), pathLine(1, true, HOME_TARGET, "touch"))),
   "fs-host-config-read": exit(0, lines(pathLine(0, false, CONTROL), pathLine(1, true, `${HOME}/.claude`), pathLine(1, true, `${HOME}/.ssh`))),
   "fs-repo-read": exit(0, lines(pathLine(0, false, CONTROL), pathLine(1, true, REPO), pathLine(1, true, MAIN))),
   "ipc-keychain": exit(53, SECURITYD_UNAVAILABLE),
@@ -363,6 +376,41 @@ describe("interpret filesystem: positive controls and named populations", () => 
     expect(verdict("fs-host-config-read", missing).result).toBe("inconclusive");
   });
 
+  it("never takes the EPERM text from the path itself: only the exact `<tool>: <path>: Operation not permitted` error counts", () => {
+    // Arrange: paths whose own text contains the phrase, failing for a different reason.
+    const forged = [`${HOME}/Operation not permitted`, `${HOME}/x: Operation not permitted`];
+    const ctx: ProbeContext = { ...CTX, hostConfig: forged.map((path) => ({ path, outside: "accessible" as const })) };
+    const notFound = exit(0, lines(pathLine(0, false, CONTROL), ...forged.map((p) => pathLine(1, false, p))));
+    // Act
+    const v = PROBES["fs-host-config-read"].interpret(notFound, {}, ctx);
+    // Assert
+    expect(v.result).toBe("inconclusive");
+    expect(v.observations.join("\n")).not.toContain("blocked (EPERM)");
+  });
+
+  it("rejects an EPERM error from the wrong tool, for another path, or with anything appended", () => {
+    // Arrange
+    const claude = `${HOME}/.claude`;
+    const ssh = pathLine(1, true, `${HOME}/.ssh`);
+    const variants = [
+      `1\t${claude}\ttouch: ${claude}: Operation not permitted`,
+      `1\t${claude}\tls: ${HOME}/.other: Operation not permitted`,
+      `1\t${claude}\tls: ${claude}: Operation not permitted ls: ${claude}/x: No such file or directory`,
+    ];
+    // Act / Assert
+    for (const line of variants) {
+      expect(verdict("fs-host-config-read", exit(0, lines(pathLine(0, false, CONTROL), line, ssh))).result, line).toBe("inconclusive");
+    }
+  });
+
+  it("leaves the errno classification to the pure parser, not to a shell pattern over the error text", () => {
+    // Arrange / Act
+    const script = PROBES["fs-repo-read"].argv(CTX)[2] ?? "";
+    // Assert
+    expect(script).not.toContain("Operation not permitted");
+    expect(script).toContain("/usr/bin/tr");
+  });
+
   it("is inconclusive when no host-config path is present to probe", () => {
     // Arrange
     const empty: ProbeContext = { ...CTX, hostConfig: [{ path: `${HOME}/.aws`, outside: "absent" }] };
@@ -405,7 +453,7 @@ describe("interpret filesystem: positive controls and named populations", () => 
 
   it("is inconclusive when the write control in the throwaway dir fails", () => {
     // Arrange
-    const e = exit(0, lines(pathLine(1, false, WRITE_CONTROL), pathLine(1, true, HOME_TARGET)));
+    const e = exit(0, lines(pathLine(1, false, WRITE_CONTROL, "touch"), pathLine(1, true, HOME_TARGET, "touch")));
     // Act / Assert
     expect(verdict("fs-home-write", e, { leaked: false }).result).toBe("inconclusive");
   });
@@ -437,6 +485,17 @@ describe("interpret ipc: Keychain mach-lookup denial vs item-not-found (signal U
     expect(verdict("ipc-keychain", exit(134, "")).result).toBe("inconclusive");
     expect(verdict("ipc-keychain", exit(51, NO_DEFAULT_KEYCHAIN)).result).toBe("inconclusive");
     expect(verdict("ipc-keychain", exit(51, `${SECURITYD_UNAVAILABLE}\n${NO_DEFAULT_KEYCHAIN}`)).result).toBe("inconclusive");
+  });
+
+  it("verifies only when the denial is the sole security: error line", () => {
+    // Arrange
+    const extra = `security: SecKeychainCopyDefault: Some other failure.\n${SECURITYD_UNAVAILABLE}`;
+    const unprefixedNoise = `${SECURITYD_UNAVAILABLE}\n(some diagnostic without the prefix)`;
+    // Act / Assert
+    expect(verdict("ipc-keychain", exit(53, extra)).result).toBe("inconclusive");
+    expect(verdict("ipc-keychain", exit(53, `${SECURITYD_UNAVAILABLE}\n${SECURITYD_UNAVAILABLE}`)).result).toBe("pass");
+    expect(verdict("ipc-keychain", exit(53, unprefixedNoise)).result).toBe("pass");
+    expect(verdict("ipc-keychain", exit(53, "No keychain is available.")).result).toBe("inconclusive");
     expect(verdict("ipc-keychain", exit(127, "")).result).toBe("inconclusive");
     expect(verdict("ipc-keychain", exit(124, SECURITYD_UNAVAILABLE, true)).result).toBe("inconclusive");
   });
@@ -754,6 +813,30 @@ describe("probeSandbox: iso mode probes nothing", () => {
   });
 });
 
+/** fs members probe-runner.ts may import; readFileSync is further limited to READ_FILE_SCOPES. */
+const FS_ALLOWED = new Set(["lstatSync", "accessSync", "realpathSync", "existsSync", "rmSync", "readFileSync", "constants"]);
+/** The only declarations whose bodies may call readFileSync (the profile hash and the git view). */
+const READ_FILE_SCOPES = [/export function currentPolicyId\(\)[^]*?\n\}\n/, /const REAL_GIT_VIEW[^]*?\n\}\);\n/];
+
+function fsViolations(src: string): string[] {
+  const violations: string[] = [];
+  if (/\brequire\s*\(|\bimport\s*\(/.test(src)) violations.push("dynamic require/import");
+  for (const m of src.matchAll(/import\s+([^;]*?)\s+from\s+["'](?:node:)?fs(\/promises)?["']/g)) {
+    if (m[2]) violations.push("node:fs/promises import");
+    const named = /^\{([^}]*)\}$/.exec((m[1] ?? "").trim());
+    if (!named) {
+      violations.push(`non-named fs import: ${m[1]}`);
+      continue;
+    }
+    for (const name of (named[1] ?? "").split(",").map((n) => n.trim().split(/\s+as\s+/)[0] ?? "").filter(Boolean)) {
+      if (!FS_ALLOWED.has(name)) violations.push(`fs member not allowlisted: ${name}`);
+    }
+  }
+  const scoped = READ_FILE_SCOPES.reduce((text, scope) => text.replace(scope, ""), src).replace(/^import[^;]*;$/gm, "");
+  if (/\breadFileSync\b/.test(scoped)) violations.push("readFileSync outside currentPolicyId / REAL_GIT_VIEW");
+  return violations;
+}
+
 describe("outsideAccess: metadata only, never opens, reads or lists a credential path (L-011)", () => {
   const errno = (code: string): Error => Object.assign(new Error(code), { code });
 
@@ -770,13 +853,33 @@ describe("outsideAccess: metadata only, never opens, reads or lists a credential
     expect(outsideAccess(`${HOME}/.ssh`, unreadable)).toBe("inaccessible");
   });
 
-  it("has no open/read/list primitive anywhere in the probe runner source", () => {
+  it("uses only allowlisted fs calls, and readFileSync only for the profile and the git view", () => {
     // Arrange
     const src = readFileSync(join(__dirname, "..", "..", "src", "sandbox", "probe-runner.ts"), "utf8");
     // Act
-    const hits = src.match(/\b(openSync|readdirSync|readdir|createReadStream|statSync)\b/g) ?? [];
+    const violations = fsViolations(src);
     // Assert
-    expect(hits).toEqual([]);
+    expect(violations).toEqual([]);
+    expect(src).toMatch(/from "node:fs"/); // the scan saw the real import
+  });
+
+  it("flags every other fs access pattern (the scan's own positive control)", () => {
+    // Arrange
+    const samples = [
+      'import { readFileSync, openSync } from "node:fs";',
+      'import { opendirSync } from "fs";',
+      'import { open } from "node:fs/promises";',
+      'import * as fs from "node:fs";',
+      'import fs from "node:fs";',
+      'const m = require("node:fs");',
+      'const m = await import("node:fs");',
+      'import { promises } from "node:fs";',
+      'import { readFileSync } from "node:fs";\nfunction leak(p: string) { return readFileSync(p); }',
+    ];
+    // Act
+    const flagged = samples.filter((sample) => fsViolations(sample).length > 0);
+    // Assert
+    expect(flagged).toEqual(samples);
   });
 });
 
@@ -810,6 +913,79 @@ describe("holdPort / portFree: injected bind and release of the service port", (
     expect(await portFree(49374, free.bind)).toBe(true);
     expect(free.closed).toEqual([49374]);
     expect(await portFree(49374, stillHeld.bind)).toBe(false);
+  });
+});
+
+describe("makeGitView: lstat first, never follow a symlink, cap and refuse oversized or non-regular files (L-011)", () => {
+  interface Entry {
+    readonly kind: "file" | "dir" | "symlink";
+    readonly size?: number;
+    readonly text?: string;
+  }
+  function fsOps(entries: Record<string, Entry>) {
+    const readFile = vi.fn((p: string) => entries[p]?.text ?? "");
+    const lstat = vi.fn((p: string) => {
+      const e = entries[p];
+      if (!e) throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+      return { isSymbolicLink: () => e.kind === "symlink", isFile: () => e.kind === "file", isDirectory: () => e.kind === "dir", size: e.size ?? (e.text ?? "").length };
+    });
+    return { lstat, readFile };
+  }
+  const gitdir = `${MAIN}/.git/worktrees/repo`;
+
+  it("resolves a regular worktree layout", () => {
+    // Arrange
+    const ops = fsOps({ [`${REPO}/.git`]: { kind: "file", text: `gitdir: ${gitdir}\n` }, [`${gitdir}/commondir`]: { kind: "file", text: "../..\n" } });
+    // Act / Assert
+    expect(resolveMainCheckout(REPO, makeGitView(ops))).toBe(MAIN);
+  });
+
+  it("refuses a symlinked .git or commondir without reading it", () => {
+    // Arrange
+    const dotGitLink = fsOps({ [`${REPO}/.git`]: { kind: "symlink", text: `gitdir: ${gitdir}` } });
+    const commondirLink = fsOps({ [`${REPO}/.git`]: { kind: "file", text: `gitdir: ${gitdir}` }, [`${gitdir}/commondir`]: { kind: "symlink", text: "../.." } });
+    // Act
+    const a = resolveMainCheckout(REPO, makeGitView(dotGitLink));
+    const b = resolveMainCheckout(REPO, makeGitView(commondirLink));
+    // Assert
+    expect(a).toBeUndefined();
+    expect(b).toBeUndefined();
+    expect(dotGitLink.readFile).not.toHaveBeenCalled();
+    expect(commondirLink.readFile).not.toHaveBeenCalledWith(`${gitdir}/commondir`);
+  });
+
+  it("refuses an oversized file without reading it, and anything that is not a regular file", () => {
+    // Arrange
+    const big = fsOps({ [`${REPO}/.git`]: { kind: "file", size: 4097, text: `gitdir: ${gitdir}` } });
+    const dirCommondir = fsOps({ [`${REPO}/.git`]: { kind: "file", text: `gitdir: ${gitdir}` }, [`${gitdir}/commondir`]: { kind: "dir" } });
+    // Act / Assert
+    expect(resolveMainCheckout(REPO, makeGitView(big))).toBeUndefined();
+    expect(big.readFile).not.toHaveBeenCalled();
+    expect(resolveMainCheckout(REPO, makeGitView(dirCommondir))).toBeUndefined();
+  });
+
+  it("accepts only a single gitdir line and a single path line; never returns raw file contents", () => {
+    // Arrange
+    const key = "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAA\n-----END OPENSSH PRIVATE KEY-----\n";
+    const cases = [
+      fsOps({ [`${REPO}/.git`]: { kind: "file", text: `gitdir: ${gitdir}\nextra line\n` } }),
+      fsOps({ [`${REPO}/.git`]: { kind: "file", text: key } }),
+      fsOps({ [`${REPO}/.git`]: { kind: "file", text: `gitdir: ${gitdir}` }, [`${gitdir}/commondir`]: { kind: "file", text: key } }),
+      fsOps({ [`${REPO}/.git`]: { kind: "file", text: `gitdir: ${gitdir}` }, [`${gitdir}/commondir`]: { kind: "file", text: "../..\u0000x" } }),
+    ];
+    // Act
+    const resolved = cases.map((ops) => resolveMainCheckout(REPO, makeGitView(ops)));
+    // Assert
+    expect(resolved).toEqual([undefined, undefined, undefined, undefined]);
+  });
+
+  it("reports a .git directory only via lstat (a symlink to a directory is not one)", () => {
+    // Arrange
+    const real = fsOps({ [`${REPO}/.git`]: { kind: "dir" } });
+    const link = fsOps({ [`${REPO}/.git`]: { kind: "symlink" } });
+    // Act / Assert
+    expect(resolveMainCheckout(REPO, makeGitView(real))).toBe(REPO);
+    expect(resolveMainCheckout(REPO, makeGitView(link))).toBeUndefined();
   });
 });
 
