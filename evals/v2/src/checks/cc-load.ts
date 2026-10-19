@@ -43,7 +43,7 @@ function validate(id: string, what: "plugin" | "marketplace"): CheckDef {
       let summary = r.code === 0 ? undefined : lastLine(r.out);
       const m = /"message"\s*:\s*"([^"]+)"/.exec(r.out);
       if (r.code !== 0 && m?.[1]) summary = m[1].slice(0, 100);
-      return { ok: r.code === 0, summary, sandbox: { mode: "seatbelt" } };
+      return { ok: r.code === 0, summary, sandbox: { mode: sandboxMode() } };
     },
   };
 }

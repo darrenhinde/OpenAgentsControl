@@ -54,7 +54,9 @@ export function diffSnapshots(a: Snapshot, b: Snapshot): string[] {
   const changed: string[] = [];
   for (const [k, v] of Object.entries(a.files)) if (b.files[k] !== v) changed.push(k);
   const before = new Set(a.homeEntries);
+  const after = new Set(b.homeEntries);
   for (const n of b.homeEntries) if (!before.has(n)) changed.push(`~/${n} (new in $HOME)`);
+  for (const n of a.homeEntries) if (!after.has(n)) changed.push(`~/${n} (removed from $HOME)`);
   if (a.repoHead !== b.repoHead) changed.push("repo HEAD moved");
   if (a.repoStatus !== b.repoStatus) changed.push("repo git status changed");
   return changed;
