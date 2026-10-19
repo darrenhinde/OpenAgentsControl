@@ -218,37 +218,40 @@ describe("claude-code adapter against the live corpus", () => {
     expect((warnings ?? []).filter((w) => /permission|enforce/i.test(w))).toEqual([]);
   });
 
-  // SKIPPED — blocked on a deferred product decision, not a bug. Two things must be settled
-  // before this can pass, and both change what the shipped agents ARE:
-  //   1. Four shipped agents (coder-agent, context-manager, external-scout, test-engineer)
-  //      grant Bash/Edit unscoped where canonical scopes them. Regenerating tightens them.
-  //   2. Four canonical ids differ from their shipped filenames (externalscout ->
-  //      external-scout, reviewer -> code-reviewer, tester -> test-engineer, contextscout ->
-  //      context-scout), so a rebuild ADDS files rather than replacing them.
-  // Un-skip when those land. Until then this stays skipped rather than red: a permanently red
-  // CI teaches people to ignore it, which is the failure this whole build exists to prevent.
-  it.skip("regenerates all 7 committed agents byte-for-byte [BLOCKED: permission + id/name decisions]", async () => {
-    // The strongest gate in this file: no expectation was authored, so nothing here can be
-    // wrong-by-guess. If the rebuild does not reproduce these bytes, the build is not yet a
-    // faithful replacement for what is already shipping.
+  // The 7 committed Claude Code agents are HAND-WRITTEN, and the build only COMPARES against
+  // them (D-001, L-001). They are target-adapted on purpose: `<example>` dispatch blocks in
+  // `description:`, and bodies written against each agent's Claude tool surface. `104356a`
+  // overwrote them with staged build output and lost both; this test pins the opposite
+  // contract, so a regeneration fails here instead of shipping. The staged diff `oac build`
+  // prints for this target is informational, not a gate: it is never asserted equal.
+  it("keeps the 7 committed agents hand-written; the staged claude-code diff is informational", async () => {
     const live = listFiles(LIVE_CC_AGENTS);
     expect(live.length, "expected the 7 committed Claude Code agents").toBe(7);
 
-    const { buildAgent } = await importPendingSymbols<{
-      buildAgent: (id: string, target: string) => Promise<string>;
-    }>(
-      "src/core/BuildPipeline.ts",
-      ["buildAgent"],
-      OWED_BY,
-      "rebuilding each of the 7 committed Claude Code agents from content/agents/ reproduces " +
-        "the file already on disk, byte-for-byte"
-    );
-
     for (const file of live) {
+      const text = readFileSync(file, "utf-8");
       const id = basename(file, ".md");
-      expect(await buildAgent(id, "claude-code"), `${id} drifted from its committed file`).toBe(
-        readFileSync(file, "utf-8")
+      expect(text, `${id}: frontmatter name must match its filename`).toMatch(
+        new RegExp(`^name: ${id}$`, "m")
       );
+      expect(text, `${id}: needs an explicit tools: whitelist`).toMatch(/^tools: .+$/m);
+      // Text the OpenCode-shaped canonical source carries and a hand-written Claude agent
+      // never does: the retired metadata-sidecar pointer (5c7d4cc) and the oac: block.
+      expect(text, `${id}: carries the retired agent-metadata sidecar text`).not.toContain(
+        "agent-metadata.json"
+      );
+      expect(text, `${id}: leaks the oac: authoring block`).not.toMatch(/^oac:/m);
     }
+
+    // The build still plans this target (into the staging root), so the comparison stays
+    // available. Whether the staged bytes match the committed ones is reported, never asserted.
+    const { plan } = await importPendingSymbols<{
+      plan: (options: { root: string; targets: string[]; skipRegistry: boolean }) => Promise<{
+        files: { path: string; target: string }[];
+      }>;
+    }>("src/core/BuildPipeline.ts", ["plan"], OWED_BY, "the claude-code target still plans");
+    const built = await plan({ root: repoPath(), targets: ["claude-code"], skipRegistry: true });
+    const staged = built.files.filter((file) => file.target === "claude-code");
+    expect(staged.length, "the claude-code target should still plan 7 agents").toBe(7);
   });
 });

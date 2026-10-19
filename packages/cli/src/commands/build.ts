@@ -5,50 +5,38 @@
  *
  * The pipeline itself lives in `@controlstack/compatibility-layer`
  * (`src/core/BuildPipeline.ts`): loading, adapting, orphan pruning and drift detection are all
- * there, under vitest, Node-clean. This module parses flags, chooses roots, and prints. That
- * split is deliberate — `packages/cli` still runs on Bun (12-DISPATCH, Stage 5 owns the
- * removal), and the build must not acquire a Bun dependency on its way to the user. Nothing
+ * there, under vitest, Node-clean. This module parses flags, chooses roots, and prints. Nothing
  * here uses a Bun API.
  *
  * ## Why Claude Code is staged rather than emitted
  *
  * `.opencode/agent/**` and `registry.json` are emitted IN PLACE: they are build output, and
- * the subtask-11 CI gate rebuilds them and diffs.
+ * the CI drift gate (`make check-canonical-drift`) rebuilds them and diffs.
  *
- * `plugins/claude-code/agents/**` is NOT — and the original reason for that is now GONE, so
- * do not remove this staging on the strength of the old comment. What used to block it was
- * permissions: the canonical sources scope `Bash`/`Edit`, the shipped files granted them
- * unscoped, and the adapter had to guess. `oac.overrides.claude-code` fixed exactly that.
- * Every override reproduces its agent's shipped `tools:` list byte-for-byte; permissions no
- * longer block anything.
+ * `plugins/claude-code/agents/**` is NOT build output. Those 7 files are HAND-WRITTEN, and the
+ * build only compares against them (D-001). The staged copy under {@link CLAUDE_STAGING_ROOT}
+ * and the "would change" report below are informational; the drift gate does not cover this
+ * target, and there is deliberately no flag to emit it in place.
  *
- * What blocks it now is PROMPT CONTENT, found 2026-07-15 by running the emission and reading
- * the diff. The shipped Claude files are not stale copies of the canonical ones — they are
- * target-adapted, in two ways a rebuild would silently destroy:
+ * The shipped Claude files are not stale copies of the canonical ones. They are target-adapted,
+ * in ways a rebuild silently destroys:
  *
- * 1. **`description:` carries agent-dispatch examples.** 4 of the 7 (`code-reviewer`,
- *    `coder-agent`, `context-scout`, plus `context-manager`'s body) embed `<example>` blocks
- *    that are how Claude Code SELECTS an agent. Canonical's `description` is OpenCode's — a
- *    single line, with no examples anywhere in the corpus. Emitting would replace a dispatch
- *    spec with a summary.
+ * 1. **`description:` carries agent-dispatch examples.** Each shipped agent embeds `<example>`
+ *    blocks, which are how Claude Code SELECTS an agent. Canonical's `description` is
+ *    OpenCode's: a single line, with no examples anywhere in the corpus.
  * 2. **The body is written against the target's capabilities.** Claude's `code-reviewer` has
  *    `disallowedTools: Task`, so its prompt says context is "pre-loaded by the main agent".
- *    The canonical body says "ALWAYS call ContextScout BEFORE reviewing any code" — an
+ *    The canonical body says "ALWAYS call ContextScout BEFORE reviewing any code", an
  *    instruction that agent cannot follow, because it cannot delegate.
+ * 3. **Tool lists.** The adapter emits EXHAUSTIVE tools/disallowedTools pairs (9b4e807), while
+ *    the shipped files list only the denials their author chose. No security impact either
+ *    way: the shipped `tools:` whitelist already confines each agent.
  *
- * Both are the same shape as the permission problem: content that is a function of the target,
- * with no canonical field to carry the variance. The fix is the same shape too — extend
- * `oac.overrides` to the prompt — but it is a real design decision, not a default a build
- * command should pick. So this target keeps staging to {@link CLAUDE_STAGING_ROOT} and
- * REPORTING the comparison, and there is deliberately no flag to emit it in place.
- *
- * A third difference is mechanical, added 2026-07-17 (9b4e807): the adapter now emits
- * EXHAUSTIVE tools/disallowedTools pairs — every bound tool lands in one list or the other —
- * while the shipped files list only some denials (four list none, and none mention WebFetch).
- * So the staged comparison reports all 7 files as "would change" even where the `tools:` line
- * matches byte-for-byte. Converging the trees means accepting the exhaustive lists too, not
- * just resolving the prompt variance. No security impact either way: the shipped `tools:`
- * whitelist already confines each agent; the exhaustive deny list only makes it explicit.
+ * So the staged comparison reports every file as "would change", and that is expected. This
+ * is not hypothetical: `104356a` copied the staged output over the shipped tree and lost the
+ * dispatch examples (L-001); the 7 were restored from `main`'s hand-written versions in v1.1.
+ * Converging the trees would need prompt-level `oac.overrides`, a design decision a build
+ * command must not make by default. `tests/golden/golden-files.test.ts` pins this contract.
  */
 
 import { type Command } from 'commander'
