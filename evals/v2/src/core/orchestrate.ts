@@ -178,7 +178,7 @@ export async function orchestrate(deps: OrchestratorDeps): Promise<number> {
   const rows: CheckRow[] = [];
   // Non-waivable: the refusal reason stands even when known-red names the id, and the check
   // is never run (zero launch-funnel side effects).
-  const refuse = (checkId: string, reason: string, log = "", ms = 0): void => {
+  const refuse = (checkId: string, code: string, reason: string, summary: string, log = "", ms = 0): void => {
     const def = deps.checks.find((c) => c.id === checkId);
     const row: CheckRow = {
       id: checkId,
@@ -188,16 +188,16 @@ export async function orchestrate(deps: OrchestratorDeps): Promise<number> {
       status: "fail",
       ms,
       log,
-      sandbox: sandboxDefaults(),
-      summary: reason,
+      sandbox: { mode: "none", refused: { code, reason } },
+      summary,
     };
     rows.push(row);
     deps.persist(row);
-    deps.say(`  ${"✗ (refused)".padEnd(10)} ${checkId.padEnd(40)}  ${reason}`);
+    deps.say(`  ${"REFUSED".padEnd(10)} ${checkId.padEnd(40)}  (${code}) ${reason}`);
   };
   for (const p of plan(selection)) {
     if (p.kind === "refused") {
-      refuse(p.checkId, p.reason);
+      refuse(p.checkId, "selection", p.reason, p.reason);
       continue;
     }
     // select() passes the registered CheckDefs through untouched, so a run row's check is
@@ -205,7 +205,7 @@ export async function orchestrate(deps: OrchestratorDeps): Promise<number> {
     const check = p.check as CheckDef;
     const auth = deps.authorizeLaunch(check);
     if (!auth.allowed) {
-      refuse(check.id, `launch refused (${auth.code}): ${auth.reason}`);
+      refuse(check.id, auth.code, auth.reason, `launch refused (${auth.code}): ${auth.reason}`);
       continue;
     }
     const ctx = deps.makeCtx(check);
@@ -216,7 +216,7 @@ export async function orchestrate(deps: OrchestratorDeps): Promise<number> {
     } catch (e) {
       if (e instanceof LaunchRefused) {
         ctx.log(`# ${e.message}`);
-        refuse(check.id, e.message, p.logRel, deps.now() - started);
+        refuse(check.id, e.code, e.reason, e.message, p.logRel, deps.now() - started);
         continue;
       }
       ctx.log(`# check threw: ${e instanceof Error ? e.stack ?? e.message : String(e)}`);

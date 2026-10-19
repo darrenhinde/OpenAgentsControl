@@ -12,7 +12,7 @@ import { loadKnownRed } from "./core/known-red.ts";
 import { envScrubLabel, orchestrate, parseArgs } from "./core/orchestrate.ts";
 import type { CheckDef, CheckRow, RunContext } from "./core/types.ts";
 import { renderJunit } from "./report/junit.ts";
-import { renderSummary } from "./report/summary.ts";
+import { renderSandboxLine, renderSummary } from "./report/summary.ts";
 import { sandboxMode, suiteTmpRoot } from "./sandbox/env.ts";
 import { launchAuthorization } from "./sandbox/gate.ts";
 import { diffSnapshots, takeSnapshot } from "./sandbox/snapshot.ts";
@@ -153,10 +153,11 @@ export async function main(): Promise<number> {
   const wall = Date.now() - t0;
 
   const agentRuns = ledger.agentRuns;
-  const sandboxLine =
-    `sandbox  ${sandboxMode()} ✓  env-scrub ${envScrubLabel([])}  canary ${ledger.canaryLeaks.length}/${ledger.canariesPlanted} leaks ${ledger.canaryLeaks.length ? "✗" : "✓"}  ` +
-    `auth-shape ${ledger.authViolations.length ? "✗" : "✓"}  egress: loopback-only ${ledger.egress.length ? "✗" : "✓"}  ` +
-    `outside-files ${outsideChanged.length ? "CHANGED ✗" : "unchanged ✓"}  (${agentRuns} sandboxed host runs)`;
+  const sandboxLine = renderSandboxLine({
+    mode: sandboxMode(), envScrub: envScrubLabel([]), agentRuns, canariesPlanted: ledger.canariesPlanted,
+    canaryLeaks: ledger.canaryLeaks.length, authViolations: ledger.authViolations.length,
+    egress: ledger.egress.length, outsideChanged: outsideChanged.length,
+  });
 
   const extra: string[] = [];
   if (breaches.length) {

@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadKnownRed } from "../../src/core/known-red.ts";
 import type { CheckRow } from "../../src/core/types.ts";
-import { renderSummary, totals } from "../../src/report/summary.ts";
+import { renderJunit } from "../../src/report/junit.ts";
+import { renderSandboxLine, renderSummary, totals } from "../../src/report/summary.ts";
 
 const row = (id: string, area: CheckRow["area"], status: CheckRow["status"], extra: Partial<CheckRow> = {}): CheckRow => ({
   id, area, layer: "L0", status, ms: 1000, log: `logs/${id}.log`,
@@ -48,5 +49,81 @@ describe("known-red.yaml", () => {
     const d = mkdtempSync(join(tmpdir(), "kr-"));
     writeFileSync(join(d, "k.yaml"), "gates/x:\n  until: v1\n  note: n\n");
     expect(() => loadKnownRed(join(d, "k.yaml"))).toThrow(/ref/);
+  });
+});
+
+// U4 (component-p1-2.md): refusals are visible, honest and never read as skipped or green.
+const refusedRow = (id: string, code: string, reason: string): CheckRow => ({
+  id, area: "cc-load", layer: "L0", status: "fail", ms: 0, log: "",
+  sandbox: { mode: "none", refused: { code, reason } },
+  summary: `launch refused (${code}): ${reason}`,
+});
+
+describe("summary: refused rows", () => {
+  const rows = [
+    row("build/a", "build", "pass"),
+    row("build/b", "build", "fail", { summary: "exit 1: boom" }),
+    refusedRow("cc/x", "capability-unverified", "required capabilities lack verified evidence"),
+  ];
+  const text = renderSummary({ tier: "hosts", git: "", started: "", hostsLine: "", sandboxLine: "" }, rows, 1, 1, "r");
+
+  it("lists refused rows in their own section as REFUSED (code), not as a bare ✗ failure", () => {
+    expect(text).toContain("REFUSED (not run)");
+    expect(text).not.toContain("launch not authorized");
+    expect(text).toMatch(/REFUSED \(capability-unverified\)\s+cc\/x\s+required capabilities lack verified evidence/);
+    const failures = text.slice(text.indexOf("UNEXPECTED FAILURES"), text.indexOf("REFUSED (not run)"));
+    expect(failures).toContain("build/b");
+    expect(failures).not.toContain("cc/x");
+  });
+
+  it("still counts a refusal as an unexpected failure in the totals", () => {
+    expect(text).toMatch(/exit 1 \(0 known-red, 2 unexpected\)/);
+    expect(text).toMatch(/^Claude Code load\s+✗\s+0\s+1/m);
+  });
+});
+
+describe("junit: refused rows", () => {
+  it("maps a refusal to a failure with type=refused, never skipped", () => {
+    const xml = renderJunit([refusedRow("cc/x", "capability-unverified", "no evidence")]);
+    expect(xml).toContain('failures="1" skipped="0"');
+    expect(xml).toContain('<failure type="refused" message="REFUSED (capability-unverified): no evidence"/>');
+    expect(xml).not.toContain("<skipped");
+  });
+
+  it("keeps a refusal a failure even when the row also names a known-red entry", () => {
+    const xml = renderJunit([{ ...refusedRow("cc/x", "capability-unverified", "no evidence"), known: { ref: "#349", note: "red" } }]);
+    expect(xml).toContain('failures="1" skipped="0"');
+    expect(xml).toContain('type="refused"');
+    expect(xml).not.toContain("known-red");
+  });
+});
+
+describe("renderSandboxLine: no ✓ without evidence", () => {
+  const base = {
+    mode: "seatbelt", envScrub: "not run", agentRuns: 0, canariesPlanted: 0,
+    canaryLeaks: 0, authViolations: 0, egress: 0, outsideChanged: 0,
+  };
+
+  it("with zero sandboxed host runs, says the sandbox was not exercised and claims no canary/auth/egress ✓", () => {
+    const line = renderSandboxLine(base);
+    expect(line).toContain("seatbelt (unverified)");
+    expect(line).not.toContain("seatbelt ✓");
+    expect(line).toContain("not exercised (0 sandboxed host runs)");
+    expect(line).not.toMatch(/canary|auth-shape|egress/);
+    expect(line).toContain("env-scrub not run");
+    expect(line).toContain("outside-files unchanged ✓");
+  });
+
+  it("with host runs, reports each measured audit and marks failures ✗", () => {
+    const clean = renderSandboxLine({ ...base, agentRuns: 2, canariesPlanted: 6 });
+    expect(clean).toContain("canary 0/6 leaks ✓");
+    expect(clean).toContain("auth-shape ✓");
+    expect(clean).toContain("egress: loopback-only ✓");
+    expect(clean).toContain("(2 sandboxed host runs)");
+    const dirty = renderSandboxLine({ ...base, agentRuns: 1, canariesPlanted: 3, canaryLeaks: 1, authViolations: 1, egress: 1, outsideChanged: 2 });
+    expect(dirty).toContain("canary 1/3 leaks ✗");
+    expect(dirty).toContain("auth-shape ✗");
+    expect(dirty).toContain("egress: loopback-only ✗");
+    expect(dirty).toContain("outside-files CHANGED ✗");
   });
 });

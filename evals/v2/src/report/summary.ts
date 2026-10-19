@@ -10,6 +10,30 @@ export interface SummaryHeader {
   sandboxLine: string;
 }
 
+/** What the run's safety audits actually measured (P1.2 U4: no ✓ without evidence). */
+export interface SandboxEvidence {
+  mode: string;
+  envScrub: string;
+  agentRuns: number;
+  canariesPlanted: number;
+  canaryLeaks: number;
+  authViolations: number;
+  egress: number;
+  outsideChanged: number;
+}
+
+/** The summary's sandbox line. The backend mode is never verified before P4; per-run audits only count when host runs happened. */
+export function renderSandboxLine(e: SandboxEvidence): string {
+  const outside = `outside-files ${e.outsideChanged ? "CHANGED ✗" : "unchanged ✓"}`;
+  const head = `sandbox  ${e.mode} (unverified)  env-scrub ${e.envScrub}`;
+  if (!e.agentRuns) return `${head}  not exercised (0 sandboxed host runs)  ${outside}`;
+  return (
+    `${head}  canary ${e.canaryLeaks}/${e.canariesPlanted} leaks ${e.canaryLeaks ? "✗" : "✓"}  ` +
+    `auth-shape ${e.authViolations ? "✗" : "✓"}  egress: loopback-only ${e.egress ? "✗" : "✓"}  ` +
+    `${outside}  (${e.agentRuns} sandboxed host runs)`
+  );
+}
+
 export interface Totals {
   pass: number;
   fail: number;
@@ -55,11 +79,21 @@ export function renderSummary(h: SummaryHeader, rows: CheckRow[], wallMs: number
     const target = r.artifacts ?? r.log;
     return `✗ ${pad(r.id, 30)} ${pad(note.slice(0, 70), 71)}${pad(ref, 6)}→ ${target}`;
   };
-  const fails = rows.filter((r) => r.status === "fail");
+  const fails = rows.filter((r) => r.status === "fail" && !("refused" in r.sandbox));
   if (fails.length) {
     L.push("");
     L.push("UNEXPECTED FAILURES");
     for (const r of fails) L.push(line(r, r.summary ?? "failed", r.known?.ref ?? ""));
+  }
+  const refused = rows.filter((r) => "refused" in r.sandbox);
+  if (refused.length) {
+    L.push("");
+    L.push("REFUSED (not run)");
+    for (const r of refused) {
+      if (!("refused" in r.sandbox)) continue;
+      const { code, reason } = r.sandbox.refused;
+      L.push(`${pad(`REFUSED (${code})`, 32)} ${pad(r.id, 30)} ${reason.slice(0, 90)}`);
+    }
   }
   const fixed = rows.filter((r) => r.status === "fixed");
   if (fixed.length) {

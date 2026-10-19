@@ -378,6 +378,20 @@ describe("orchestrate: launch-gate refusals are non-waivable fail rows with zero
     expect(code).toBe(1);
   });
 
+  it("records the refusal on the row's sandbox field with no fabricated audit zeros", async () => {
+    // Arrange
+    const h = harness({ argv: ["hosts"] });
+    // Act
+    await orchestrate(h.deps);
+    // Assert
+    const row = h.persisted.find((r) => r.id === "cc/host-row");
+    expect(row?.sandbox.mode).toBe("none");
+    expect(row?.sandbox).toHaveProperty("refused.code", "capability-unverified");
+    expect(row?.sandbox).not.toHaveProperty("canaryLeaks");
+    expect(row?.sandbox).not.toHaveProperty("egress");
+    expect(row?.sandbox).not.toHaveProperty("outsideChanged");
+  });
+
   it("authorizes each check before building its context", async () => {
     // Arrange
     const h = harness({ argv: ["quick"] });
@@ -421,6 +435,7 @@ describe("orchestrate: launch-gate refusals are non-waivable fail rows with zero
     expect(row?.status).toBe("fail");
     expect(row?.known).toBeUndefined();
     expect(row?.summary).toContain("capability-unverified");
+    expect(row?.sandbox).toHaveProperty("refused.code", "capability-unverified");
     expect(code).toBe(1);
   });
 
@@ -554,6 +569,7 @@ describe("orchestrate: selection refusals become non-waivable fail rows without 
     expect(row.id).toBe("zz/drift");
     expect(row.status).toBe("fail");
     expect(row.summary).toContain("totally-unknown-workload");
+    expect(row.sandbox).toEqual({ mode: "none", refused: { code: "selection", reason: row.summary } });
   });
 
   it("does not let a known-red entry absorb a refusal row (non-waivable)", async () => {

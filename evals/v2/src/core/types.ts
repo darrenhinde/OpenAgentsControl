@@ -40,6 +40,13 @@ export interface SandboxInfo {
   egress: string[];
 }
 
+/** A refused row's sandbox field: nothing launched, so no audit numbers exist (P1.2 U4). */
+export interface RefusedSandbox {
+  mode: "none";
+  /** `code` is the contract RefusalCode for launch refusals, or "selection" for selection refusals. */
+  refused: { code: string; reason: string };
+}
+
 export interface CheckRow {
   id: string;
   area: Area;
@@ -51,7 +58,7 @@ export interface CheckRow {
   log: string;
   artifacts?: string;
   metrics?: Record<string, number>;
-  sandbox: SandboxInfo;
+  sandbox: SandboxInfo | RefusedSandbox;
   skipReason?: string;
   /** One-line human summary of what the check saw (shown next to failures). */
   summary?: string;

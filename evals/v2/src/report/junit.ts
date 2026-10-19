@@ -10,7 +10,8 @@ export function renderJunit(rows: CheckRow[]): string {
     const skipped = rs.filter((r) => r.status === "skip" || r.status === "known").length;
     const cases = rs.map((r) => {
       const inner =
-        r.status === "fail" ? `<failure message="${esc(r.summary ?? "failed")}"/>`
+        "refused" in r.sandbox ? `<failure type="refused" message="REFUSED (${esc(r.sandbox.refused.code)}): ${esc(r.sandbox.refused.reason)}"/>`
+        : r.status === "fail" ? `<failure message="${esc(r.summary ?? "failed")}"/>`
         : r.status === "fixed" ? `<failure message="known-red now passes; remove it from known-red.yaml"/>`
         : r.status === "known" ? `<skipped message="known-red ${esc(r.known?.ref ?? "")}: ${esc(r.summary ?? r.known?.note ?? "")}"/>`
         : r.status === "skip" ? `<skipped message="${esc(r.skipReason ?? "")}"/>`
