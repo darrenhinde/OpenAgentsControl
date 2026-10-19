@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.7.2] - 2026-10-19
+
+### Changes
+- fix: put catch-all deny first in agent permissions, drop missing .Building path, add README banner (#369)
+
 ## [0.7.1] - 2026-01-30
 
 ### Changes
