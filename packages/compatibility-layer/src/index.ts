@@ -420,3 +420,7 @@ export {
  * Package version (injected at build time)
  */
 export const VERSION = "0.1.0";
+
+// Delegation id resolution — one alias table, v1 and v2 id spaces.
+export { AgentIdResolver, AgentIdResolutionError, normalizeAlias, isGlob } from "./core/AgentIdResolver.js";
+export type { IdTarget, ResolverAgent } from "./core/AgentIdResolver.js";
