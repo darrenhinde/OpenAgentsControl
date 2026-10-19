@@ -108,8 +108,24 @@ export function rewriteTaskKeys(
 // Body: code-example delegation
 // ============================================================================
 
-function resolveValue(resolver: AgentIdResolver, target: IdTarget, value: string): string {
-  return PLACEHOLDER.test(value) ? value : resolver.idFor(target, value);
+/** What to do with a `subagent_type` value that names no agent. */
+export interface RewriteOptions {
+  /**
+   * `"error"` (default) fails the build, which is right for canonical agents. `"keep"` leaves the
+   * value as authored and reports it to `onUnknown`, for hand-authored carried files that already
+   * contain a dead reference this build did not introduce.
+   */
+  unknown?: "error" | "keep";
+  onUnknown?: (value: string) => void;
+}
+
+function resolveValue(resolver: AgentIdResolver, target: IdTarget, value: string, options: RewriteOptions): string {
+  if (PLACEHOLDER.test(value)) return value;
+  if (options.unknown === "keep" && resolver.resolve(value) === undefined) {
+    options.onUnknown?.(value);
+    return value;
+  }
+  return resolver.idFor(target, value);
 }
 
 /** Resolve an identifier if it names an agent; otherwise leave it (it may be a variable). */
@@ -122,14 +138,19 @@ function resolveLoose(resolver: AgentIdResolver, target: IdTarget, ident: string
  *
  * @param target - the host the text is being emitted for.
  */
-export function rewriteBodyRefs(text: string, target: IdTarget, resolver: AgentIdResolver): string {
+export function rewriteBodyRefs(
+  text: string,
+  target: IdTarget,
+  resolver: AgentIdResolver,
+  options: RewriteOptions = {},
+): string {
   const v2 = target === "opencode";
 
   // subagent_type="Name"  (also `:` and single quotes)
   let out = text.replace(
     /\bsubagent_type(\s*[=:]\s*)(["'])([^"'\n]*)\2/g,
     (_m, sep: string, q: string, value: string) =>
-      `${v2 ? "agent" : "subagent_type"}${sep}${q}${resolveValue(resolver, target, value)}${q}`,
+      `${v2 ? "agent" : "subagent_type"}${sep}${q}${resolveValue(resolver, target, value, options)}${q}`,
   );
 
   if (v2) {

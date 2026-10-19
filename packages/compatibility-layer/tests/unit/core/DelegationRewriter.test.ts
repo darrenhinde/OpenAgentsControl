@@ -134,6 +134,15 @@ describe("rewriteBodyRefs, v2", () => {
   it("is idempotent", () => {
     expect(rewriteBodyRefs(out, "opencode", R)).toBe(out);
   });
+
+  it("with unknown: keep, leaves a dead reference as authored and reports it", () => {
+    const seen: string[] = [];
+    const text = 'task(subagent_type="Ghost", x=1)\ntask(subagent_type="ContextScout")';
+    expect(rewriteBodyRefs(text, "opencode", R, { unknown: "keep", onUnknown: (v) => seen.push(v) })).toBe(
+      'subagent(agent="Ghost", x=1)\nsubagent(agent="contextscout")',
+    );
+    expect(seen).toEqual(["Ghost"]);
+  });
 });
 
 describe("rewriteBodyRefs, v1", () => {

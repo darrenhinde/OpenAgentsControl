@@ -364,8 +364,8 @@ const prioContext = getContextForAgent('auth-system', 'PrioritizationEngine');
 const context = getContextForAgent(feature, agentType);
 
 // Delegate with minimal context
-task(
-  subagent_type=agentType,
+subagent(
+  agent=agentType,
   description="...",
   prompt=`
     Context files to load:
@@ -474,7 +474,7 @@ createContextIndex('auth-system', {
 ```typescript
 // BAD: Agent gets everything
 const index = getFullContext('auth-system');
-task(subagent_type="StoryMapper", prompt=JSON.stringify(index));
+subagent(agent="story-mapper", prompt=JSON.stringify(index));
 ```
 
 **Why bad:** Agent wastes time parsing irrelevant data
@@ -494,7 +494,7 @@ addAgentOutput('auth-system', 'ArchitectureAnalyzer', outputPath, {
 
 ```typescript
 // BAD: Agent completes but orchestrator doesn't update index
-task(subagent_type="ArchitectureAnalyzer", ...);
+subagent(agent="architecture-analyzer", ...);
 // ... agent completes ...
 // (orchestrator forgets to call addAgentOutput)
 ```
@@ -519,7 +519,7 @@ console.log("Review this:", JSON.stringify(index));
 
 ```typescript
 // Agent completes
-const result = await task(subagent_type="ArchitectureAnalyzer", ...);
+const result = await subagent(agent="architecture-analyzer", ...);
 
 // Immediately update index
 addAgentOutput(
@@ -551,15 +551,15 @@ addAgentOutput('auth-system', 'ArchitectureAnalyzer', outputPath, {
 ```typescript
 // GOOD: Agent reads the file
 const context = getContextForAgent('auth-system', 'StoryMapper');
-task(
-  subagent_type="StoryMapper",
+subagent(
+  agent="story-mapper",
   prompt=`Read architecture analysis: ${context.agentOutputs[0]}`
 );
 
 // BAD: Orchestrator reads and passes content
 const archOutput = fs.readFileSync('.tmp/architecture/...', 'utf-8');
-task(
-  subagent_type="StoryMapper",
+subagent(
+  agent="story-mapper",
   prompt=`Here's the full architecture: ${archOutput}`
 );
 ```

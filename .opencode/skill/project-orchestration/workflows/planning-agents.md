@@ -61,8 +61,8 @@ Feature Request
 ### Input Format
 
 ```javascript
-task(
-  subagent_type="ArchitectureAnalyzer",
+subagent(
+  agent="architecture-analyzer",
   description="Analyze architecture for {feature}",
   prompt="Analyze domain structure for {feature}.
          Requirements: {requirements}
@@ -203,8 +203,8 @@ StoryMapper maps user stories to bounded contexts for service boundary alignment
 ### Input Format
 
 ```javascript
-task(
-  subagent_type="StoryMapper",
+subagent(
+  agent="story-mapper",
   description="Map user journeys for {feature}",
   prompt="Transform user requirements into user journeys, epics, and stories for {feature}.
          Requirements: {requirements}
@@ -401,8 +401,8 @@ TaskManager converts stories into implementation subtasks.
 ### Input Format
 
 ```javascript
-task(
-  subagent_type="PrioritizationEngine",
+subagent(
+  agent="prioritization-engine",
   description="Prioritize backlog for {feature}",
   prompt="Score and prioritize backlog items for {feature} using RICE and WSJF.
          Input: {path-to-story-mapper-output}
@@ -580,8 +580,8 @@ TaskManager creates subtasks for MVP features first.
 ### Input Format
 
 ```javascript
-task(
-  subagent_type="ContractManager",
+subagent(
+  agent="contract-manager",
   description="Define API contracts for {service}",
   prompt="Create API contracts for {service} to enable parallel development.
          Bounded contexts: {contexts-from-architecture-analyzer}
@@ -742,8 +742,8 @@ TaskManager creates parallel frontend/backend subtasks using contracts.
 ### Input Format
 
 ```javascript
-task(
-  subagent_type="ADRManager",
+subagent(
+  agent="adr-manager",
   description="Document decision for {topic}",
   prompt="Create ADR for {decision topic}.
          Context: {problem statement}
@@ -951,8 +951,8 @@ Tasks reference ADRs for implementation constraints.
 
 ```javascript
 // Before any planning work
-task(
-  subagent_type="ContextScout",
+subagent(
+  agent="contextscout",
   description="Find context for {agent-task}",
   prompt="Find {standards/patterns/conventions} for {agent-task}.
          I need to understand {specific-requirements}."

@@ -38,6 +38,8 @@ interface Parsed {
 
 /** A value that is a template placeholder (`[agent-name]`), not a reference. */
 const PLACEHOLDER = /[[\]<>{}$]/;
+const IMPORTS_V1_PLUGIN = /from\s+["']@opencode-ai\/plugin(\/[\w-]+)?["']/;
+const USES_PLUGIN_API = /(?<![\w.$])tool\(|:\s*Plugin\b/;
 const SUBAGENT_TYPE = /\bsubagent_type\s*[=:]\s*(["'])([^"'\n]*)\1/g;
 const AGENT_VALUE = /(?<![\w])agent\s*=\s*(["'])([^"'\n]*)\1/g;
 
@@ -131,7 +133,11 @@ export function lintV1Agents(files: readonly LintFile[]): LintFinding[] {
   return findings;
 }
 
-/** Lint v1 tool modules and plugins: they must be written against the v1 plugin API. */
+/**
+ * Lint v1 tool modules and plugins: they must be written against the v1 plugin API. Helper
+ * modules and barrels that merely re-export are fine; what is wrong is v2 API use, or v1 API use
+ * with no import to back it.
+ */
 export function lintV1Artifacts(files: readonly LintFile[]): LintFinding[] {
   const findings: LintFinding[] = [];
   for (const file of files) {
@@ -139,8 +145,8 @@ export function lintV1Artifacts(files: readonly LintFile[]): LintFinding[] {
     if (/(^|\/)(tests?|__tests__)\//.test(file.path)) continue;
     if (/from\s+["']@opencode\/plugin["']/.test(file.text) || /Plugin\.define\(/.test(file.text)) {
       findings.push({ path: file.path, rule: "v2-plugin-api", message: "this uses the v2 plugin API; it does not run on v1" });
-    } else if (!/["']@opencode-ai\/plugin["']/.test(file.text)) {
-      findings.push({ path: file.path, rule: "no-plugin-import", message: "a v1 tool or plugin module imports @opencode-ai/plugin" });
+    } else if (USES_PLUGIN_API.test(file.text) && !IMPORTS_V1_PLUGIN.test(file.text)) {
+      findings.push({ path: file.path, rule: "plugin-api-not-imported", message: "this calls tool() or types a Plugin without importing @opencode-ai/plugin" });
     }
   }
   return findings;

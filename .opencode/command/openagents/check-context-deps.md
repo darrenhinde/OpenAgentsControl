@@ -273,8 +273,8 @@ jq '.components.agents[] | select(.id == "opencoder") | .dependencies[]?' regist
 This command delegates to an analysis agent to perform the work:
 
 ```javascript
-task(
-  subagent_type="PatternAnalyst",
+subagent(
+  agent="PatternAnalyst",
   description="Analyze context dependencies",
   prompt=`
     Analyze context file usage across all agents in this repository.

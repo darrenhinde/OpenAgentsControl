@@ -78,8 +78,18 @@ describe("lintV1Artifacts", () => {
     expect(rules(r)).toEqual(["v2-plugin-api"]);
   });
 
-  it("flags a tool or plugin that imports no plugin package at all", () => {
-    expect(rules(lintV1Artifacts([f("tool/y/index.ts", "export const x = 1")]))).toEqual(["no-plugin-import"]);
+  it("accepts the tool subpath import and plain helper modules", () => {
+    expect(
+      lintV1Artifacts([
+        f("tool/g/index.ts", 'import { tool } from "@opencode-ai/plugin/tool"\nexport const g = tool({})'),
+        f("tool/env/index.ts", "export const loadEnv = () => 1"),
+        f("tool/index.ts", 'export { g } from "./g"'),
+      ]),
+    ).toEqual([]);
+  });
+
+  it("flags v1 API use with no import behind it", () => {
+    expect(rules(lintV1Artifacts([f("tool/y/index.ts", "export const x = tool({})")]))).toEqual(["plugin-api-not-imported"]);
   });
 });
 
