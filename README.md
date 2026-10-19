@@ -115,7 +115,7 @@ Use any AI model (Claude, GPT, Gemini, local). No vendor lock-in.
 
 ## 🚀 Quick Start
 
-**Prerequisites:** [OpenCode CLI](https://opencode.ai/docs) (free, open-source) • Bash 3.2+ • Git
+**Prerequisites:** [OpenCode CLI](https://opencode.ai/docs) (free, open-source) • Bash 3.2+ • Git • [jq](https://jqlang.github.io/jq/download/) (`brew install jq` / `sudo apt install jq`)
 
 ### Step 1: Install
 
