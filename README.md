@@ -14,8 +14,8 @@
 📝 **Editable Agents** - Full control over AI behavior  
 👥 **Team-Ready** - Everyone uses the same patterns
 
-**Multi-language:** TypeScript • Python • Go • Rust  • C# • Any language*  
-**Model Agnostic:** Claude • GPT • Gemini • MiniMax • Local models
+**Multi-language:** TypeScript • Python • Go • Rust • C# (other languages work but are less tested; see the [FAQ](#getting-started))  
+**Models:** whatever your host runs. OpenCode supports any provider it is configured for (Claude, GPT, Gemini, MiniMax, local); the Claude Code plugin runs Claude models.
 
 
 [![GitHub stars](https://img.shields.io/github/stars/darrenhinde/OpenAgentsControl?style=flat-square&logo=github&labelColor=black&color=ffcb47)](https://github.com/darrenhinde/OpenAgentsControl/stargazers)
@@ -69,16 +69,16 @@ Agents load YOUR patterns before generating code. Code matches your project from
 Full control over agent behavior. Everything installed into your project is plain markdown you edit in place, with no vendor lock-in. Change workflows, add constraints, customize for your team. (Repo maintainers author agents once under `content/` and run `oac build` to generate every tool's copy; you never need that step.)
 
 **✋ Approval Gates (Human-Guided AI)**  
-Agents ALWAYS request approval before execution. Propose → Approve → Execute. You stay in control. No "oh no, what did the AI just do?" moments.
+The core agents are written to propose a plan and ask before they execute: Propose → Approve → Execute. Today this is prompt guidance plus your host's permission settings, not an enforced gate (that is planned for v1.4).
 
 **⚡ Token Efficient (MVI Principle)**  
-Minimal Viable Information design. Only load what's needed, when it's needed. Context files <200 lines, lazy loading, faster responses.
+Minimal Viable Information design: context files are kept short and loaded lazily, only when a task needs them. We have not published token measurements yet.
 
 **👥 Team-Ready (Repeatable Patterns)**  
 Store YOUR coding patterns once. Entire team uses same standards. Commit context to repo. New developers inherit team patterns automatically.
 
-**🔄 Model Agnostic**  
-Use any AI model (Claude, GPT, Gemini, local). No vendor lock-in.
+**🔄 Your Choice of Model**  
+OAC's agents are plain markdown, so they run on whatever models your host supports: any configured provider on OpenCode, Claude models on Claude Code. They are not tuned or tested equally on every model.
 
 **Full-stack development:** OAC handles both frontend and backend work. The agents coordinate to build complete features from UI to database.
 
@@ -89,11 +89,11 @@ Use any AI model (Claude, GPT, Gemini, local). No vendor lock-in.
 | Feature | OpenAgentsControl | Cursor/Copilot | Aider | Oh My OpenCode |
 |---------|-------------------|----------------|-------|----------------|
 | **Learn Your Patterns** | ✅ Built-in context system | ❌ No pattern learning | ❌ No pattern learning | ⚠️ Manual setup |
-| **Approval Gates** | ✅ Always required | ⚠️ Optional (default off) | ❌ Auto-executes | ❌ Fully autonomous |
-| **Token Efficiency** | ✅ MVI principle (80% reduction) | ❌ Full context loaded | ❌ Full context loaded | ❌ High token usage |
+| **Approval Gates** | ⚠️ Prompt-guided (enforced gate planned) | ⚠️ Optional (default off) | ❌ Auto-executes | ❌ Fully autonomous |
+| **Token Efficiency** | ⚠️ Lazy-loaded context (not yet measured) | ❌ Full context loaded | ❌ Full context loaded | ❌ High token usage |
 | **Team Standards** | ✅ Shared context files | ❌ Per-user settings | ❌ No team support | ⚠️ Manual config per user |
 | **Edit Agent Behavior** | ✅ Markdown files you edit | ❌ Proprietary/baked-in | ⚠️ Limited prompts | ✅ Config files |
-| **Model Choice** | ✅ Any model, any provider | ⚠️ Limited options | ⚠️ OpenAI/Claude only | ✅ Multiple models |
+| **Model Choice** | ✅ Whatever your host supports | ⚠️ Limited options | ⚠️ OpenAI/Claude only | ✅ Multiple models |
 | **Execution Speed** | ⚠️ Sequential with approval | Fast | Fast | ✅ Parallel agents |
 | **Error Recovery** | ✅ Human-guided validation | ⚠️ Auto-retry (can loop) | ⚠️ Auto-retry | ✅ Self-correcting |
 | **Best For** | Production code, teams | Quick prototypes | Solo developers | Power users, complex projects |
@@ -122,7 +122,7 @@ Use any AI model (Claude, GPT, Gemini, local). No vendor lock-in.
 **With the `oac` CLI (recommended):**
 
 ```bash
-npm i -g @controlstack/oac
+npm i -g @controlstack/oac    # TODO: package name not final (npm scope is an open decision, see docs/plan/ROADMAP.md)
 cd your-project
 oac init                      # essential tier: one agent, core subagents, core standards
 oac init --profile developer  # or: business, advanced, full
@@ -202,9 +202,9 @@ opencode --agent OpenAgent
 /plugin install oac
 ```
 
-3. Download context files:
+3. Set up context files (detects your project type and recommends a profile):
 ```bash
-/oac:setup --core
+/oac:context-setup
 ```
 
 4. Start building:
@@ -213,18 +213,15 @@ Add a login endpoint
 ```
 
 **Features:**
-- ✅ 6-stage workflow with approval gates
+- ✅ 6-stage workflow that asks for approval before implementing (prompt-guided)
 - ✅ Context-aware code generation
 - ✅ 7 specialized subagents (task-manager, context-scout, context-manager, coder-agent, test-engineer, code-reviewer, external-scout)
-- ✅ 9 workflow skills + 6 user commands
+- ✅ 12 skills + 6 user commands
 - ✅ Flexible context discovery (.oac config, .claude/context, context, .opencode/context)
 - ✅ Add context from GitHub, worktrees, local files, or URLs
-- ✅ Easy feature planning with `/oac:plan`
 
 **Documentation:**
 - [Plugin README](./plugins/claude-code/README.md) - Complete plugin documentation
-- [First-Time Setup](./plugins/claude-code/FIRST-TIME-SETUP.md) - Step-by-step guide
-- [Quick Start](./plugins/claude-code/QUICK-START.md) - Quick reference
 
 **Status:** BETA - Actively tested and ready for early adopters
 
@@ -277,9 +274,8 @@ Ships without refactoring ✅
 
 **OAC approach:**
 - Loads only relevant patterns
-- Context files <200 lines (quick to load)
+- Short context files (quick to load)
 - Lazy loading (agents load what they need)
-- 80% of tasks use isolation context (minimal overhead)
 
 **Real benefits:**
 - **Efficiency:** Lower token usage vs loading entire codebase
@@ -344,8 +340,8 @@ ContextScout discovers relevant patterns. Agents load YOUR standards before gene
 **🔁 Repeatable**  
 Same patterns → Same results. Configure once, use forever. Perfect for teams.
 
-**⚡ Token Efficient (80% Reduction)**  
-MVI principle: Only load what's needed. 8,000 tokens → 750 tokens. Massive cost savings.
+**⚡ Token Conscious**  
+MVI principle: only load what's needed. Savings depend on your project; we have not published measurements yet.
 
 **✋ Human-Guided**  
 Agents propose plans, you approve before execution. Quality gates prevent mistakes. No auto-execution surprises.
@@ -374,21 +370,19 @@ Working with external libraries? ExternalScout fetches current documentation:
 - Supports frameworks, APIs, libraries, and more
 
 **4. Approval Gates - No Surprises**  
-Agents ALWAYS request approval before:
+The core agents are instructed to ask for approval before:
 - Writing/editing files
 - Running bash commands
 - Delegating to subagents
 - Making any changes
 
-You stay in control. Review plans before execution.
+This is prompt guidance, not enforcement: what actually prompts you depends on your host's permission settings. An enforced intent gate is planned for v1.4.
 
 **5. MVI Principle - Token Efficiency**  
-Files designed for quick loading:
-- Concepts: <100 lines
-- Guides: <150 lines
-- Examples: <80 lines
-
-Result: Lower token usage vs loading entire codebase.
+Files are written to be short and quick to load (authoring guidelines, not guarantees):
+- Concepts: aim for under 100 lines
+- Guides: aim for under 150 lines
+- Examples: aim for under 80 lines
 
 **6. Team Patterns - Repeatable Results**  
 Store patterns in `.opencode/context/project/`. Commit to repo. Entire team uses same standards. New developers inherit patterns automatically.
@@ -488,7 +482,7 @@ Your coding standards automatically loaded by agents:
 - **Project-specific** - Your team's patterns
 
 **Key features:**
-- 80% token reduction via MVI
+- Short files, loaded only when needed (MVI)
 - Smart discovery via ContextScout
 - Lazy loading (only what's needed)
 - Team-ready (commit to repo)
@@ -718,7 +712,7 @@ A: No, but it's highly recommended. Without context, agents write generic code. 
 A: Yes, it works out of the box. But you'll get the most value after adding your patterns (10-15 minutes with `/add-context`).
 
 **Q: What models are supported?**
-A: Any model from any provider (Claude, GPT, Gemini, MiniMax, local models). No vendor lock-in.
+A: Whatever your host supports. On OpenCode, any provider it is configured for (Claude, GPT, Gemini, MiniMax, local models); on Claude Code, Claude models. The prompts are not tested equally on every model.
 
 ### For Teams
 
@@ -734,7 +728,7 @@ A: Yes! Use project-specific context (`.opencode/` in project root) to override 
 ### Technical
 
 **Q: How does token efficiency work?**  
-A: MVI principle: Only load what's needed, when it's needed. Context files <200 lines (scannable in 30s). ContextScout discovers relevant patterns. Lazy loading prevents context bloat. 80% of tasks use isolation context (minimal overhead).
+A: MVI principle: only load what's needed, when it's needed. Context files are kept short, ContextScout finds the relevant ones, and lazy loading avoids loading everything up front. We have not published token measurements yet.
 
 **Q: What's ContextScout?**  
 A: Smart pattern discovery agent. Finds relevant context files before code generation. Ranks by priority. Prevents wasted work.
@@ -743,7 +737,7 @@ A: Smart pattern discovery agent. Finds relevant context files before code gener
 A: Yes! Agents are markdown files. Edit them directly: `nano .opencode/agent/core/opencoder.md` (local) or `nano ~/.config/opencode/agent/core/opencoder.md` (global)
 
 **Q: How do approval gates work?**  
-A: Agents ALWAYS request approval before execution (write/edit/bash). You review plans before implementation. No surprises.
+A: The core agents' prompts tell them to propose a plan and ask for approval before they write files or run commands. This is prompt guidance, not enforcement: what actually needs approval depends on your host's permission settings. An enforced intent gate is planned for v1.4.
 
 **Q: How do I update my context?**  
 A: Run `/add-context --update` anytime your patterns change. Agents automatically use updated patterns.
