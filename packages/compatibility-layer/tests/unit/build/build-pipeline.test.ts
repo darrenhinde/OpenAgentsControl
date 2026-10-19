@@ -130,6 +130,33 @@ describe("oac.targets", () => {
     for (const [path, content] of only) expect(content).toBe(all.get(path));
   });
 
+  it("emits an opencode-v1 sibling for every agent that declares opencode", async () => {
+    const { files } = await plan({ root });
+    const v1 = files.filter((f) => f.target === "opencode-v1").map((f) => f.path);
+
+    expect(v1).toEqual([
+      "v1-opencode/agent/subagents/test/alpha.md",
+      "v1-opencode/agent/subagents/test/beta.md",
+    ]);
+  });
+
+  it("does not emit opencode-v1 when the build is narrowed to other targets", async () => {
+    const { files } = await plan({ root, targets: ["opencode"], skipRegistry: true });
+
+    expect(files.some((f) => f.target === "opencode-v1")).toBe(false);
+  });
+
+  it("prunes v1 output when its source is deleted, within the v1 root only", async () => {
+    write(await plan({ root }), { root });
+    expect(existsSync(join(root, "v1-opencode/agent/subagents/test/alpha.md"))).toBe(true);
+
+    rmSync(join(root, "content/agents/subagents/test/alpha.md"));
+    const result = write(await plan({ root }), { root });
+
+    expect(result.removed).toContain("v1-opencode/agent/subagents/test/alpha.md");
+    expect(existsSync(join(root, "v1-opencode/agent/subagents/test/alpha.md"))).toBe(false);
+  });
+
   it("strips the oac: block from OpenCode output but keeps the body", async () => {
     const files = await build({ root, targets: ["opencode"], skipRegistry: true });
     const emitted = files.get(".opencode/agent/subagents/test/alpha.md") ?? "";

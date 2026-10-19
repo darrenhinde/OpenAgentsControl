@@ -264,6 +264,7 @@ export {
   OpenCodeEmitError,
   OPENCODE_AGENT_ROOT,
 } from "./adapters/OpenCodeAdapter.js";
+export { OpenCodeV1Adapter, OPENCODE_V1_AGENT_ROOT } from "./adapters/v1/OpenCodeV1Adapter.js";
 
 export type {
   CanonicalEmitResult,

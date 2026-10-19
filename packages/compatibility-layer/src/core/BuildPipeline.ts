@@ -68,13 +68,20 @@ import {
 } from "./RegistryEmitter.js";
 import { ClaudeAdapter } from "../adapters/ClaudeAdapter.js";
 import { OpenCodeAdapter } from "../adapters/OpenCodeAdapter.js";
+import { OpenCodeV1Adapter, OPENCODE_V1_AGENT_ROOT } from "../adapters/v1/OpenCodeV1Adapter.js";
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-/** The targets `oac build` wires up today. A subset of `BuildTargetSchema`'s vocabulary. */
-export const BUILD_TARGETS = ["opencode", "claude-code"] as const;
+/**
+ * The targets `oac build` wires up today.
+ *
+ * `opencode` is OpenCode v2 (the default), `opencode-v1` its v1 sibling. `opencode-v1` is a
+ * BUILD-level target, not an `oac.targets` value: it is emitted for every agent that declares
+ * `opencode`. Removing v1 support means dropping it here (see `adapters/v1/`).
+ */
+export const BUILD_TARGETS = ["opencode", "opencode-v1", "claude-code"] as const;
 
 export type BuildTarget = (typeof BUILD_TARGETS)[number];
 
@@ -176,6 +183,7 @@ const DEFAULTS = {
  */
 const TARGET_ROOTS: Readonly<Record<BuildFile["target"], string>> = {
   opencode: ".opencode/agent",
+  "opencode-v1": OPENCODE_V1_AGENT_ROOT,
   "claude-code": "plugins/claude-code/agents",
   registry: "registry.json",
 };
@@ -236,13 +244,15 @@ async function emitAgent(
   agent: CanonicalAgentFile,
   target: BuildTarget
 ): Promise<BuildFile | null> {
-  if (!agent.oac.targets.includes(target)) return null;
+  // `opencode-v1` follows `opencode`: an agent opts into OpenCode once, and gets both builds.
+  const declared = target === "opencode-v1" ? "opencode" : target;
+  if (!agent.oac.targets.includes(declared)) return null;
 
   const source = readFileSync(agent.filePath, "utf-8");
   const sourcePath = `${DEFAULTS.contentRoot}/${agent.relativePath}`;
 
-  if (target === "opencode") {
-    const adapter = new OpenCodeAdapter();
+  if (target === "opencode" || target === "opencode-v1") {
+    const adapter = target === "opencode" ? new OpenCodeAdapter() : new OpenCodeV1Adapter();
     const { content, warnings } = await adapter.fromCanonical(source, { filePath: sourcePath });
     return {
       path: adapter.outputPath(agent.relativePath),

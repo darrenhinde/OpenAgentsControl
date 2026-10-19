@@ -66,7 +66,7 @@ import { bold, dim, error, info, log, setVerbose, success, verbose, warn } from 
 export const CLAUDE_STAGING_ROOT = '.tmp/oac-build'
 
 /** Targets emitted in place. Everything else stages. */
-const IN_PLACE_TARGETS: readonly BuildTarget[] = ['opencode']
+const IN_PLACE_TARGETS: readonly BuildTarget[] = ['opencode', 'opencode-v1']
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -95,6 +95,7 @@ type StagedComparison = {
 /** The in-place tree each staged target is being compared AGAINST. */
 const SHIPPED_ROOTS: Readonly<Record<BuildTarget, string>> = {
   opencode: '.opencode/agent',
+  'opencode-v1': 'v1-opencode/agent',
   'claude-code': 'plugins/claude-code/agents',
 }
 
