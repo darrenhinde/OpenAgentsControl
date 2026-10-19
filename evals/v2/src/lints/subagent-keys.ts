@@ -25,9 +25,11 @@ export function lintSubagentKeys(agentFiles: SourceFile[], promptFiles: SourceFi
       if (!exists(k)) bad.push({ path: f.path, kind: "task-key", name: k });
     }
   }
-  const re = /\b(?:subagent_type|agent)\s*[=:]\s*["']([A-Za-z0-9_./-]+)["']/g;
+  // A delegation value, not a word that merely ends in "agent": `coder-agent: "allow"` is a task
+  // key. Only the body is scanned; frontmatter keys are checked above.
+  const re = /(?<![\w-])(?:subagent_type|agent)\s*[=:]\s*["']([A-Za-z0-9_./-]+)["']/g;
   for (const f of promptFiles) {
-    for (const m of f.text.matchAll(re)) {
+    for (const m of frontmatter(f.text).body.matchAll(re)) {
       const name = m[1] ?? "";
       refs++;
       if (!exists(name)) bad.push({ path: f.path, kind: "body-ref", name });

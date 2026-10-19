@@ -44,6 +44,17 @@ describe("gates/subagent-keys-exist (#362)", () => {
     expect(r.bad.map((b) => b.name)).toEqual(["contextscout", "ContextScout"]);
     expect(r.refs).toBe(4);
   });
+  it("does not read a hyphenated task key such as coder-agent: allow as a delegation value", () => {
+    const ids = [agent(".opencode/agent/coder-agent.md", 'permission:\n  task:\n    "*": "deny"\n    coder-agent: "allow"'), agent(".opencode/agent/x.md", "name: x")];
+    const r = lintSubagentKeys(ids, ids);
+    expect(r.bad).toEqual([]);
+  });
+  it("scans only the body for delegation values, never the frontmatter", () => {
+    const f = agent(".opencode/agent/a.md", 'description: "agent: \\"zzz\\""', 'call agent="a"');
+    const r = lintSubagentKeys([f], [f]);
+    expect(r.refs).toBe(1);
+    expect(r.bad).toEqual([]);
+  });
   it("supports glob keys", () => {
     const r = lintSubagentKeys([agents[0]!, agent(".opencode/agent/x.md", 'permission:\n  task:\n    "subagents/*": allow')], []);
     expect(r.bad).toEqual([]);

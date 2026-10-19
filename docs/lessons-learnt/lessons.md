@@ -94,3 +94,10 @@ Format: **What happened** · **Lesson** · **Rule now**. Newest last.
   - The #349 reorder also cleared most of `inst/doctor-flags-v2` (3 and 6 problems down to 1 each), because hidden tools were most of what `oac doctor` missed.
 - **Lesson:** a known-red note records what someone believed when they wrote it. Check it against `main` and against the check's own code before deciding the fix is "restore".
 - **Rule now:** before a known-red fix, run the check on the proposed state (here, `main`'s files) first. When a fix changes another known-red's count, update that row's note in the same change.
+
+## L-014 Two hosts, one resolver: references are per-target data, not text
+
+- **What happened:** building for OpenCode v1 and v2 from one source showed that a delegation reference (a `task:` key, a `subagent_type` string) is an id in the host's id space, and the source had spelled it three ways. 31 of 33 `task:` keys matched no agent name exactly, so under v1's case-sensitive matching those allow rules likely never fired, long before v2 existed. A lint that read the whole file also took `coder-agent: "allow"` for a delegation to an agent named `allow`.
+- **Lesson:** resolve references through one table per build and fail on a miss; a reference that names nothing is a rule that silently never fires.
+- **Rule now:** `permission.task` keys are `oac.id`s in the canonical source; `AgentIdResolver` maps them to each target's id space, and an unknown reference fails the build. Lints scan the body for delegation values, not the frontmatter.
+

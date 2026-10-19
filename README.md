@@ -169,9 +169,11 @@ curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/
 ### Step 2: Start Building
 
 ```bash
-opencode --agent OpenAgent
+opencode --agent openagent
 > "Create a user authentication system"
 ```
+
+> OAC installs for **OpenCode v2** by default (agents are addressed by id, e.g. `openagent`). On OpenCode v1, install with `oac init --opencode v1` (or `install.sh --opencode v1`); there the agent is `OpenAgent`. See [OpenCode v1 and v2](docs/features/opencode-v1-and-v2.md).
 
 ### Step 3: Approve & Ship
 

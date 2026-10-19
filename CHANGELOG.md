@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **OpenCode v2 by default, v1 on request (D-016).** `oac build` now compiles the canonical agents for both OpenCode majors: flat `.opencode/agent/<id>.md` and `registry.json` for v2 (default), and `v1-opencode/` with `registry.v1.json` for v1. `oac init --opencode v1`, `oac update --opencode v1|v2` and `install.sh --opencode v1` install the full v1 build into a project's `.opencode/`; the choice is recorded and `oac doctor` flags a mismatch with `opencode --version`. See `docs/features/opencode-v1-and-v2.md`.
+
+### Changed
+- Agent files install flat on v2 (`.opencode/agent/openagent.md`, not `agent/core/openagent.md`), and `permission.task` keys, `subagent_type` values and `task(` examples use the target's agent ids. `--agent OpenAgent` becomes `--agent openagent` on v2.
+- v1 output: `permission.task` keys are written as the exact registered `name:` (they were lowercase and did not match under v1's case-sensitive matching).
+- The tools, plugins and `image-specialist` that OpenCode v2 cannot load are v1-only.
+- `eval-runner` is now a canonical agent.
+
 ### Security
 - **Advisory: Claude Code `coder-agent` file-edit scoping** — Claude Code subagent frontmatter cannot express path-scoped permissions, so the shipped plugin's `coder-agent` (`plugins/claude-code/agents/coder-agent.md`) granted `Write`/`Edit` without the five security deny globs its OpenCode counterpart enforces (`**/*.env*`, `**/*.key`, `**/*.secret`, `node_modules/**`, `.git/**`) — it could edit secret files the authored agent is explicitly denied. Claude Code plugins cannot ship permission rules, so full enforcement requires a one-time user opt-in. Mitigations shipped in this release: the agent now declares an explicit `disallowedTools: Bash, Task` (making the existing fail-closed shell posture explicit; `Bash` remains omitted from `tools:`), a hard protected-paths rule in the agent prompt (stop-and-report if a subtask targets those paths), and a new `plugins/claude-code/RECOMMENDED-PERMISSIONS.md` (linked from the plugin README) with copy-paste **deny-only** `settings.json` rules — users should add these to `.claude/settings.json`; never hoist per-agent allow rules to project scope, as that re-creates the escalation one layer up.
 
