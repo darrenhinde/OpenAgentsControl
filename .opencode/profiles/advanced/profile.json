@@ -55,7 +55,6 @@
     "context:context-system"
   ],
   "additionalPaths": [
-    ".Building/",
     ".github/workflows/"
   ]
 }

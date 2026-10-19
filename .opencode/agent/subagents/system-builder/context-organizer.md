@@ -5,8 +5,8 @@ mode: subagent
 temperature: 0.1
 permission:
   task:
-    contextscout: "allow"
     "*": "deny"
+    contextscout: "allow"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"

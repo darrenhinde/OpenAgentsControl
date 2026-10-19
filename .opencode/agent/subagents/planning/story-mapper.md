@@ -17,9 +17,9 @@ permission:
     "node_modules/**": "deny"
     ".git/**": "deny"
   task:
+    "*": "deny"
     contextscout: "allow"
     externalscout: "allow"
-    "*": "deny"
   skill:
     "*": "deny"
 ---

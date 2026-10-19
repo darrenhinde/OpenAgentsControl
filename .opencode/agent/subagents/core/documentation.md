@@ -13,8 +13,8 @@ permission:
     "**/*.key": "deny"
     "**/*.secret": "deny"
   task:
-    contextscout: "allow"
     "*": "deny"
+    contextscout: "allow"
 ---
 
 # DocWriter

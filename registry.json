@@ -3400,7 +3400,6 @@
         "config:readme"
       ],
       "additionalPaths": [
-        ".Building/",
         ".github/workflows/"
       ]
     }
