@@ -20,7 +20,7 @@ describe("fake model", () => {
     expect(JSON.parse(first)).toMatchObject({ stop_reason: "tool_use", content: [{ type: "tool_use", name: "Read", input: { file_path: "/w/.env" } }] });
     const second = await post(
       `${m.url}/v1/messages`,
-      { model: "x", tools, messages: [{ role: "assistant", content: [{ type: "tool_use" }] }, { role: "user", content: [{ type: "tool_result", content: "AWS=SECRET-1" }] }] },
+      { model: "x", tools, messages: [{ role: "assistant", content: [{ type: "tool_use", id: "toolu_oac0" }] }, { role: "user", content: [{ type: "tool_result", tool_use_id: "toolu_oac0", content: "AWS=SECRET-1" }] }] },
       { "x-api-key": "k" },
     );
     expect(JSON.parse(second)).toMatchObject({ stop_reason: "end_turn" });

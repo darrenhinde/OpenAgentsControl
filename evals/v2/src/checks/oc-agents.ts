@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { openCodeRunArgv, parseOpenCodeOutput, writeOpenCodeConfig } from "../../../../packages/compatibility-layer/src/hosts/opencode/driver.ts";
 import { modelTurns, startFakeModel, type ScriptTurn } from "../../../../packages/compatibility-layer/src/verify/fake-model/server.ts";
 import { exec } from "../core/exec.ts";
-import type { CheckDef, CheckOutcome, RunContext } from "../core/types.ts";
+import type { CheckDef, RunContext } from "../core/types.ts";
 import { emittedId, frontmatter, listFiles, v2Action } from "../lints/files.ts";
 import { allCanaries, makeCanaries, plantDecoys, type Canaries } from "../sandbox/canary.ts";
 import { isoEnv, makeIsoDirs, runIsolated, safePath, type IsoDirs } from "../sandbox/env.ts";
@@ -174,31 +174,4 @@ const flatIds: CheckDef = {
   },
 };
 
-/** delegate from core/openagent to ContextScout, by display name (#362) and by emitted ID. */
-function delegate(id: string, agent: string): CheckDef {
-  return {
-    id, area: "scenarios", layer: "L2", host: "opencode-v2", tier: "hosts",
-    run: async (ctx: RunContext): Promise<CheckOutcome> => {
-      const t = await tree(ctx);
-      if (!t) return { ok: false, skip: "opencode not on PATH" };
-      const r = await runAgent(ctx, t, "core/openagent", [{ call: "delegate", agent, prompt: "DELEGATED-TASK say done" }], "delegate the task");
-      const art = ctx.artifactDir("opencode-v2");
-      writeFileSync(join(art, "stream.jsonl"), r.out);
-      const p = parseOpenCodeOutput(r.out);
-      const use = p.toolUses.find((u) => u.tool === "subagent");
-      ctx.log(`subagent tool use: ${JSON.stringify(use ?? null)}`);
-      if (!use) return { ok: false, summary: "the host never ran the subagent tool (not offered to core/openagent?)", artifacts: art };
-      return {
-        ok: use.status === "completed",
-        summary: use.status === "completed" ? `subagent agent:"${agent}" completed` : `subagent agent:"${agent}" → ${use.error ?? use.status}`,
-        artifacts: art,
-      };
-    },
-  };
-}
-
 export const ocAgentsChecks: CheckDef[] = [agentsBoot, agentsToolsVisible, flatIds];
-export const delegateChecks: CheckDef[] = [
-  delegate("scn/delegate-by-name@opencode-v2", "ContextScout"),
-  delegate("scn/delegate-by-id@opencode-v2", "subagents/core/contextscout"),
-];

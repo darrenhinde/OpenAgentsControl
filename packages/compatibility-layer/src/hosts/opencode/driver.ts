@@ -60,6 +60,7 @@ export interface OpenCodeToolUse {
   tool: string;
   status: string;
   error?: string;
+  output?: string;
   input?: unknown;
 }
 
@@ -69,6 +70,11 @@ export interface OpenCodeRunResult {
   toolUses: OpenCodeToolUse[];
   /** Any sign the host denied a permission. */
   denied: boolean;
+  /**
+   * Asks the host raised. Without `--auto`, `opencode run` auto-rejects every ask and prints
+   * `permission requested: <tool> (<resource>); auto-rejecting` (verified on 2.0.30, L-012).
+   */
+  asks: { tool: string; resource: string }[];
   unparsed: number;
 }
 
@@ -77,9 +83,11 @@ const isObj = (v: unknown): v is Json => typeof v === 'object' && v !== null && 
 
 /** Parse `opencode run --format json` output (one JSON event per line; other lines ignored). */
 export function parseOpenCodeOutput(out: string): OpenCodeRunResult {
-  const r: OpenCodeRunResult = { events: 0, errors: [], toolUses: [], denied: false, unparsed: 0 };
+  const r: OpenCodeRunResult = { events: 0, errors: [], toolUses: [], denied: false, asks: [], unparsed: 0 };
   for (const line of out.split('\n')) {
     const t = line.trim();
+    const ask = /permission requested: (\S+) \((.*)\); auto-rejecting/.exec(t.replace(new RegExp(String.fromCharCode(27) + '\\[[0-9;]*m', 'g'), ''));
+    if (ask) r.asks.push({ tool: ask[1] ?? '', resource: ask[2] ?? '' });
     if (!t.startsWith('{')) {
       if (t) r.unparsed++;
       continue;
@@ -102,6 +110,7 @@ export function parseOpenCodeOutput(out: string): OpenCodeRunResult {
       const st = ev.part.state;
       const use: OpenCodeToolUse = { tool: String(ev.part.tool), status: String(st.status), input: st.input };
       if (typeof st.error === 'string') use.error = st.error;
+      if (typeof st.output === 'string') use.output = st.output;
       r.toolUses.push(use);
     }
   }

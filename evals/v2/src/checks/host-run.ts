@@ -41,6 +41,12 @@ export async function runHost(
     timeoutMs?: number;
     /** More binaries whose directories go on the sandboxed PATH. */
     extraBins?: (string | undefined)[];
+    /** Non-secret strings the mock records hits for (named `marker:<x>`). */
+    markers?: Record<string, string>;
+    /** Delegated sub-sessions carry this marker and get a plain "Done." */
+    subSessionMarker?: string;
+    /** Artifact sub-folder (default: the part of `name` after "@"). */
+    artifactKey?: string;
   },
 ): Promise<HostRun> {
   const ledger = safetyLedger();
@@ -50,8 +56,9 @@ export async function runHost(
   ledger.canariesPlanted += 1 + Object.keys(canaries.decoys).length;
   const mock = await startFakeModel({
     script: o.script,
-    canaries: allCanaries(canaries),
+    canaries: { ...allCanaries(canaries), ...(o.markers ?? {}) },
     expectedAuth: { anthropicKey: canaries.anthropicKey, openaiKey: canaries.openaiKey },
+    ...(o.subSessionMarker ? { subSessionMarker: o.subSessionMarker } : {}),
   });
   try {
     await o.prepare(dirs, canaries, mock);
@@ -64,7 +71,7 @@ export async function runHost(
     });
     ledger.agentRuns++;
     const r = await runIsolated({ dirs, env, argv: o.argv(dirs, canaries), target: { repo: ctx.repo, repoDeny: ctx.repo }, timeoutMs: o.timeoutMs ?? 120_000, stdoutOnly: false });
-    const art = ctx.artifactDir(o.name.replace(/^.*@/, ""));
+    const art = ctx.artifactDir(o.artifactKey ?? o.name.replace(/^.*@/, ""));
     writeFileSync(join(art, "stream.jsonl"), r.out);
     writeFileSync(join(art, "mock.jsonl"), mock.requests.map((q) => JSON.stringify(q)).join("\n") + "\n");
     const dec = join(dirs.work, ".oac", "logs", "decisions.jsonl");
@@ -87,7 +94,7 @@ export function auditHostRun(name: string, mock: FakeModel, canaries: Canaries, 
   const ledger = safetyLedger();
   // Safety: decoys never surface (requests, host output, anything the host wrote).
   const decoys = canaries.decoys;
-  for (const q of mock.requests) for (const n of q.canaryHits) if (n !== "target") ledger.canaryLeaks.push(`${name}: decoy ${n} reached the model (${q.url})`);
+  for (const q of mock.requests) for (const n of q.canaryHits) if (n in decoys) ledger.canaryLeaks.push(`${name}: decoy ${n} reached the model (${q.url})`);
   for (const [n, v] of Object.entries(decoys)) if (out.includes(v)) ledger.canaryLeaks.push(`${name}: decoy ${n} in host output`);
   const planted = new Set(Object.keys(decoyHashes));
   for (const h of [...scanDir(dirs.home, decoys, planted), ...scanDir(dirs.work, decoys, planted)]) ledger.canaryLeaks.push(`${name}: decoy ${h.names.join(",")} in ${h.file}`);

@@ -1,0 +1,30 @@
+# Agent bodies say subagent_type="ContextScout" (26 refs). On v2 that fails today.
+id: load/delegate-by-name
+check_id: scn/delegate-by-name
+guard: shipped
+title: Delegating with the display name the agent prompts use
+area: load
+kind: regression
+layer: L2
+release: v1.2
+runner: host
+hosts: [opencode-v2, claude-code]
+fixture: oac-tree
+agent:
+  opencode-v2: "${id.openagent}"
+  claude-code: main
+script:
+  - call: delegate
+    agent: "ContextScout"
+    prompt: "DELEGATED-TASK list context files"
+  - call: done
+subagents:
+  "*":
+    - call: done
+outcome:
+  - subagent_completed
+  - tool_result_not_contains: "Unknown agent"
+control: none
+today:
+  opencode-v2: { status: known-red, ref: "#362", ev: F, note: "Unknown agent: ContextScout" }
+  claude-code: { status: known-red, ref: "#362", ev: F, note: "Agent type 'ContextScout' not found (CC names are oac:context-scout)" }

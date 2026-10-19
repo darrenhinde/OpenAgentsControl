@@ -76,7 +76,11 @@ export function renderSummary(h: SummaryHeader, rows: CheckRow[], wallMs: number
   const skips = rows.filter((r) => r.status === "skip");
   if (skips.length) {
     L.push("");
-    L.push(`Skipped: ${skips.map((r) => `${r.id} (${r.skipReason ?? "skipped"})`).join(" · ")}`);
+    if (skips.length <= 5) L.push(`Skipped: ${skips.map((r) => `${r.id} (${r.skipReason ?? "skipped"})`).join(" · ")}`);
+    else {
+      L.push(`Skipped (${skips.length})`);
+      for (const r of skips) L.push(`– ${pad(r.id, 40)} ${r.skipReason ?? "skipped"}`);
+    }
   }
   for (const e of extra) L.push(e);
   L.push(`Results: ${runDirRel}/  (latest → symlink)`);
