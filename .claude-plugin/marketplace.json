@@ -16,14 +16,8 @@
         "url": "https://github.com/darrenhinde"
       },
       "license": "MIT",
-      "repository": "https://github.com/darrenhinde/OpenAgentsControl"
-    }
-  ],
-  "categories": [
-    {
-      "name": "Development Tools",
-      "description": "Tools for software development and automation",
-      "plugins": ["oac"]
+      "repository": "https://github.com/darrenhinde/OpenAgentsControl",
+      "category": "development"
     }
   ]
 }

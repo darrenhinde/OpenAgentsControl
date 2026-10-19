@@ -7,11 +7,6 @@
 #   until: release by which it must be green
 #   note:  one line, what is wrong today
 
-cc/marketplace-validate:
-  ref: "v1.1"
-  until: "v1.1"
-  note: "claude plugin validate --strict rejects the unknown marketplace field `categories`"
-
 gates/subagent-keys-exist:
   ref: "#362"
   until: "v1.2"
