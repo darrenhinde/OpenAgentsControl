@@ -48,7 +48,7 @@ else
     NC='\033[0m'
 fi
 
-BRANCH="${OPENCODE_BRANCH:-main}"
+BRANCH="${OPENCODE_BRANCH:-v1-opencode}"
 REPO_URL="https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/${BRANCH}"
 
 # CLI argument for custom install dir (overrides env var)

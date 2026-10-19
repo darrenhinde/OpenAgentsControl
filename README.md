@@ -122,14 +122,14 @@ Use any AI model (Claude, GPT, Gemini, local). No vendor lock-in.
 **One command:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh | bash -s developer
 ```
 
 <sub>The installer will set up OpenCode CLI if you don't have it yet.</sub>
 
 **Or interactive:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh -o install.sh
 bash install.sh
 ```
 

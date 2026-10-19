@@ -10,10 +10,10 @@ Complete guide to installing OpenAgents Control components using the automated i
 
 ```bash
 # Interactive mode - choose components
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh)
 
 # Quick install with profile
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) developer
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh) developer
 ```
 
 Installs to `.opencode/` in your current directory.
@@ -27,7 +27,7 @@ Installs to `.opencode/` in your current directory.
 Run the installer without arguments to get an interactive experience:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh | bash
 ```
 
 **Interactive Flow:**
@@ -55,26 +55,26 @@ Install a pre-configured set of components:
 
 ```bash
 # Essential - Minimal setup with core agents
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) essential
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh) essential
 
 # Developer - Code-focused development tools
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) developer
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh) developer
 
 # Business - Content and business-focused tools
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) business
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh) business
 
 # Full - Everything except system-builder
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) full
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh) full
 
 # Advanced - Complete system with all components
-bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh) advanced
+bash <(curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh) advanced
 ```
 
 ### 3. Download & Run (For Offline or Repeated Use)
 
 ```bash
 # Download the installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh -o install.sh
 
 # Make it executable
 chmod +x install.sh
@@ -239,7 +239,7 @@ Installation directory is determined by (highest to lowest priority):
 
 ```bash
 # Standard installation
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh | bash -s developer
 
 # Global installation
 ./install.sh developer --install-dir ~/.config/opencode
@@ -252,7 +252,7 @@ sudo ./install.sh developer --install-dir /opt/opencode
 
 ```bash
 # Standard installation
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh | bash -s developer
 
 # Global installation (XDG standard)
 ./install.sh developer --install-dir ~/.config/opencode
@@ -265,7 +265,7 @@ curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/
 
 ```bash
 # Standard installation
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh | bash -s developer
 
 # Global installation
 ./install.sh developer --install-dir ~/.config/opencode
@@ -278,7 +278,7 @@ curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/
 
 ```bash
 # Same as Linux
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh | bash -s developer
 
 # Global installation
 ./install.sh developer --install-dir ~/.config/opencode
@@ -580,7 +580,7 @@ export OPENCODE_BRANCH=main
 ### Example 1: First-Time Local Installation
 ```bash
 # Download and run installer
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/v1-opencode/install.sh | bash -s developer
 
 # Result: Installs to .opencode/ in current directory
 ```
