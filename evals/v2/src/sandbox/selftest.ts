@@ -1,5 +1,7 @@
-// Sandbox self-tests (plan §4.4). They run first in every tier, before any host process,
-// and prove each isolation layer actually holds on this machine today.
+// Sandbox self-tests (plan §4.4). QUARANTINED (P1.2 U3): the orchestrator has no dependency
+// that runs them, and their Boolean results may not mint verified capability evidence. Their
+// own runIsolated launches are declared host-check, so the funnel gate refuses them too.
+// Kept for P3, which replaces them with evidence-producing probes.
 import { existsSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
@@ -18,7 +20,7 @@ const SENSITIVE = /^(ANTHROPIC_(?!API_KEY$|BASE_URL$)|OPENAI_|CLAUDE_(?!CONFIG_D
 export async function runSelfTests(repo: string, tmpRoot: string, runId: string): Promise<SelfTest[]> {
   const d = makeIsoDirs(tmpRoot, "sandbox-selftest");
   const env = isoEnv(d, "/usr/bin:/bin:/usr/sbin:/sbin", { ANTHROPIC_API_KEY: `sk-ant-dummy-${runId}` });
-  const target = { repo, repoDeny: repo };
+  const target = { repo, repoDeny: repo, launch: { checkId: "sandbox/selftest", workload: "host-check" as const } };
   const realHome = homedir();
   const out: SelfTest[] = [];
   const seatbelt = sandboxMode() === "seatbelt";

@@ -1,4 +1,6 @@
 import { exec, which } from "../core/exec.ts";
+import { sandboxMode } from "../sandbox/env.ts";
+import { assertLaunchAllowed } from "../sandbox/gate.ts";
 import type { Area, CheckDef, CheckOutcome, Layer, RunContext, Tier, WorkloadDecl } from "../core/types.ts";
 
 export interface CmdCheckSpec {
@@ -41,6 +43,8 @@ export function cmdCheck(spec: CmdCheckSpec): CheckDef {
     tier: spec.tier ?? "quick",
     workload: spec.workload,
     run: async (ctx: RunContext): Promise<CheckOutcome> => {
+      // Only trusted declarations reach exec; this spawn is unsandboxed.
+      assertLaunchAllowed({ checkId: spec.id, workload: spec.workload }, sandboxMode());
       const absent = await missing(spec.needs);
       if (absent) return { ok: false, skip: absent };
       const [cmd, ...args] = spec.cmd;

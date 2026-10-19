@@ -4,6 +4,7 @@ import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { exec, type ExecResult } from "../core/exec.ts";
+import { assertContainedLaunch, type LaunchDecl } from "./gate.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const WRAPPER = join(HERE, "run-isolated.sh");
@@ -104,11 +105,14 @@ export interface SandboxTarget {
   repo: string;
   /** Directory the sandboxed process must never read (the repo under test, or "/nonexistent"). */
   repoDeny: string;
+  /** The launching check's declaration; runIsolated refuses before any spawn unless authorized. */
+  launch: LaunchDecl;
 }
 
 let mainCheckout: string | undefined;
 /** The main checkout behind a git worktree (also denied), or the repo itself. */
-export async function mainCheckoutOf(repo: string): Promise<string> {
+export async function mainCheckoutOf(repo: string, launch: LaunchDecl): Promise<string> {
+  assertContainedLaunch(launch, sandboxMode());
   if (mainCheckout) return mainCheckout;
   const r = await exec("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: repo, stdoutOnly: true, timeoutMs: 10_000 });
   const common = r.out.trim();
@@ -133,7 +137,8 @@ export interface IsolatedRun {
 }
 
 export async function runIsolated(r: IsolatedRun): Promise<ExecResult> {
-  const m = await mainCheckoutOf(r.target.repo);
+  assertContainedLaunch(r.target.launch, sandboxMode());
+  const m = await mainCheckoutOf(r.target.repo, r.target.launch);
   // When the suite runs in the main checkout itself, an installer run that may read the repo
   // must not have it denied through the MAIN_DENY slot either.
   const main = realpathSync(m) === realpathSync(r.target.repo) ? r.target.repoDeny : m;

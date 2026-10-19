@@ -78,7 +78,7 @@ export async function runAgent(ctx: RunContext, t: Tree, agent: string, script: 
     safetyLedger().agentRuns++;
     const r = await runIsolated({
       dirs: t.dirs, env, argv: openCodeRunArgv({ bin: t.bin, prompt, agent, auto: true }),
-      target: { repo: ctx.repo, repoDeny: ctx.repo }, timeoutMs: 60_000, stdoutOnly: false,
+      target: { repo: ctx.repo, repoDeny: ctx.repo, launch: { checkId: ctx.checkId, workload: ctx.workload } }, timeoutMs: 60_000, stdoutOnly: false,
     });
     auditHostRun(`oc-agents:${agent}`, mock, t.canaries, t.decoys, t.dirs, r.out);
     return { out: r.out, requests: modelTurns(mock.requests), all: mock.requests.length };

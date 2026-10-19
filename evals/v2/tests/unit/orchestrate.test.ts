@@ -7,6 +7,8 @@ import {
   plan,
   type OrchestratorDeps,
 } from "../../src/core/orchestrate.ts";
+import { LaunchRefused, launchAuthorization } from "../../src/sandbox/gate.ts";
+import type { Authorization } from "../../src/sandbox/contract.ts";
 import type { Selection } from "../../src/core/selection.ts";
 import type {
   CheckDef,
@@ -31,17 +33,20 @@ import type {
 //              refusals: readonly unknown[]): 0 | 1 | 3
 //   orchestrate(deps: OrchestratorDeps): Promise<number>
 //     OrchestratorDeps = { argv, checks, failedIds, knownRed, pins, repo, tmpRoot, runId,
-//                          hostVersion, runSelfTests, runCheck, makeCtx, collectBreaches,
+//                          hostVersion, authorizeLaunch, runCheck, makeCtx, collectBreaches,
 //                          persist, say, usage, now }
+//
+// U3 additions: the legacy selftest is quarantined (no dependency exists to run it), and
+// every selected check passes authorizeLaunch BEFORE makeCtx/runCheck. The harness default
+// is the production gate (launchAuthorization with unverified evidence), so contained rows
+// are refused; loop-mechanics tests opt into ALLOW_ALL explicitly.
 //
 // Deliberately NOT covered here:
 // - selection semantics (tier bound, --only, rerun, workload gates): covered in
 //   selection.test.ts; these tests only pin that orchestrate CALLS select() correctly
 //   with its inputs and honors its output.
-// - authorize/dispatch launch-funnel gating (backendFactory/authorize wiring), the
-//   CLI-import-side-effect-free test (cli.ts is not imported here — it stays the entry
-//   and is not yet rewired), and the cmdCheck host-class gate: all belong to U3 tests
-//   when the launch funnel is actually guarded.
+// - the funnel guards themselves (runHost/runIsolated/mainCheckoutOf/cmdCheck) and the
+//   CLI-import-side-effect-free test: launch-gates.test.ts and cli-import.test.ts.
 //
 // Everything is data-in/data-out with injected effect mocks: no fs, no network, no
 // process.exit, no registry import, no clocks. AAA per test.
@@ -78,6 +83,8 @@ const DEFAULT_CHECKS: readonly CheckDef[] = [
 
 function makeCtx(check: CheckDef): RunContext {
   return {
+    checkId: check.id,
+    workload: check.workload,
     repo: "/repo",
     runDir: "/run/dir",
     tmpRoot: "/tmp/oac-throwaway",
@@ -100,24 +107,24 @@ interface Harness {
   readonly deps: OrchestratorDeps;
 }
 
-/** Scripted shape of one injected selftest result (structurally the legacy SelfTest). */
-interface SelfTestFixture {
-  readonly name: string;
-  readonly ok: boolean;
-  readonly detail: string;
-}
+/** Test-only authorizer standing in for verified backend evidence (loop-mechanics tests). */
+const ALLOW_ALL = (check: CheckDef): Authorization => ({
+  allowed: true,
+  checkId: check.id,
+  workload: "host-check",
+  containment: "required",
+});
 
 /**
  * Builds a full OrchestratorDeps mock. Every effect records an ordered event in `calls`,
- * so ordering (probes before checks, breaches after checks) is assertable. `outcomes`
- * (keyed by check id) scripts what runCheck returns or throws per check,
- * `selfTestResults` scripts the injected selftest results, and `breaches` scripts what
- * collectBreaches observes — all without replacing the recording behavior.
+ * so ordering (probes before checks, authorization before makeCtx, breaches after checks)
+ * is assertable. `outcomes` (keyed by check id) scripts what runCheck returns or throws per
+ * check, and `breaches` scripts what collectBreaches observes — both without replacing the
+ * recording behavior. authorizeLaunch defaults to the production gate.
  */
 function harness(
   overrides: Partial<OrchestratorDeps> = {},
   outcomes?: Readonly<Record<string, CheckOutcome | Error>>,
-  selfTestResults?: readonly SelfTestFixture[],
   breaches?: readonly string[],
 ): Harness {
   const calls: string[] = [];
@@ -140,9 +147,9 @@ function harness(
       calls.push(`hostVersion:${bin}`);
       return Promise.resolve("1.0.0");
     },
-    runSelfTests: (repo: string, tmpRoot: string, runId: string) => {
-      calls.push(`selftest:${repo}|${tmpRoot}|${runId}`);
-      return Promise.resolve([...(selfTestResults ?? [{ name: "env-scrub", ok: true, detail: "all names allowlisted" }])]);
+    authorizeLaunch: (check: CheckDef) => {
+      calls.push(`authorize:${check.id}`);
+      return launchAuthorization({ checkId: check.id, workload: check.workload }, "seatbelt");
     },
     runCheck: (check: CheckDef, ctx: RunContext) => {
       calls.push(`check:${check.id}`);
@@ -152,6 +159,7 @@ function harness(
       return Promise.resolve(scripted ?? { ok: true });
     },
     makeCtx: (check: CheckDef) => {
+      calls.push(`ctx:${check.id}`);
       const ctx = makeCtx(check);
       ctxByCheck.set(check.id, ctx);
       return ctx;
@@ -178,10 +186,9 @@ function harness(
 }
 
 /** Counts the launch-relevant effects so "zero calls" assertions read plainly. */
-function effectCounts(h: Harness): { hostVersion: number; selfTests: number; checks: number } {
+function effectCounts(h: Harness): { hostVersion: number; checks: number } {
   return {
     hostVersion: h.calls.filter((c) => c.startsWith("hostVersion:")).length,
-    selfTests: h.calls.filter((c) => c.startsWith("selftest:")).length,
     checks: h.calls.filter((c) => c.startsWith("check:")).length,
   };
 }
@@ -200,7 +207,7 @@ describe("orchestrate: --strict-sandbox/--budget and the live tier exit 2 via us
     ["--sandbox=container"],
     ["--budget"],
     ["--budget=100"],
-  ])("rejects via usage for argv %s with zero host probes, zero selftests, zero checks", async (flag) => {
+  ])("rejects via usage for argv %s with zero host probes and zero checks", async (flag) => {
     // Arrange
     const h = harness({ argv: [flag] });
     let caught: unknown;
@@ -213,7 +220,7 @@ describe("orchestrate: --strict-sandbox/--budget and the live tier exit 2 via us
     // Assert: usage() is the exit-2 mechanism; it fired before any launch-relevant effect.
     expect(caught).toBeInstanceOf(UsageExit);
     expect((caught as UsageExit).code).toBe(2);
-    expect(effectCounts(h)).toEqual({ hostVersion: 0, selfTests: 0, checks: 0 });
+    expect(effectCounts(h)).toEqual({ hostVersion: 0, checks: 0 });
     expect(h.persisted).toEqual([]);
   });
 
@@ -230,7 +237,7 @@ describe("orchestrate: --strict-sandbox/--budget and the live tier exit 2 via us
     // Assert
     expect(caught).toBeInstanceOf(UsageExit);
     expect((caught as UsageExit).code).toBe(2);
-    expect(effectCounts(h)).toEqual({ hostVersion: 0, selfTests: 0, checks: 0 });
+    expect(effectCounts(h)).toEqual({ hostVersion: 0, checks: 0 });
   });
 });
 
@@ -239,45 +246,34 @@ describe("orchestrate: --strict-sandbox/--budget and the live tier exit 2 via us
 // ---------------------------------------------------------------------------
 
 describe("orchestrate: selection drives the run loop", () => {
-  it("quick performs ZERO host version probes and ZERO selftests while still running the quick checks", async () => {
+  it("quick performs ZERO host version probes while still running the quick checks", async () => {
     // Arrange
     const h = harness({ argv: ["quick"] });
     // Act
     const code = await orchestrate(h.deps);
     // Assert
-    expect(effectCounts(h)).toEqual({ hostVersion: 0, selfTests: 0, checks: 2 });
+    expect(effectCounts(h)).toEqual({ hostVersion: 0, checks: 2 });
     expect(runCheckIds(h)).toEqual(["build/one", "build/two"]);
     expect(code).toBe(0);
   });
 
-  it("hosts tier probes each host version exactly once and runs the selftest exactly once, all before the first check", async () => {
+  it("hosts tier probes each host version exactly once, before the first check", async () => {
     // Arrange
     const h = harness({ argv: ["hosts"] });
     // Act
     await orchestrate(h.deps);
     // Assert
-    expect(effectCounts(h)).toEqual({ hostVersion: 2, selfTests: 1, checks: 3 });
     expect(h.calls.filter((c) => c === "hostVersion:opencode").length).toBe(1);
     expect(h.calls.filter((c) => c === "hostVersion:claude").length).toBe(1);
     const firstCheck = h.calls.findIndex((c) => c.startsWith("check:"));
     expect(firstCheck).toBeGreaterThan(-1);
     expect(h.calls.indexOf("hostVersion:opencode")).toBeLessThan(firstCheck);
     expect(h.calls.indexOf("hostVersion:claude")).toBeLessThan(firstCheck);
-    expect(h.calls.findIndex((c) => c.startsWith("selftest:"))).toBeLessThan(firstCheck);
-  });
-
-  it("passes the injected repo/tmpRoot/runId through to runSelfTests", async () => {
-    // Arrange
-    const h = harness({ argv: ["hosts"] });
-    // Act
-    await orchestrate(h.deps);
-    // Assert
-    expect(h.calls).toContain("selftest:/repo|/tmp/oac-throwaway|261019000000");
   });
 
   it("honors --only narrowing produced by select (only the prefix-matching check runs)", async () => {
     // Arrange
-    const h = harness({ argv: ["hosts", "--only", "cc/"] });
+    const h = harness({ argv: ["hosts", "--only", "cc/"], authorizeLaunch: ALLOW_ALL });
     // Act
     await orchestrate(h.deps);
     // Assert
@@ -295,7 +291,7 @@ describe("orchestrate: selection drives the run loop", () => {
 
   it("never runs a deferred row, even at the all tier", async () => {
     // Arrange
-    const h = harness({ argv: ["all"] });
+    const h = harness({ argv: ["all"], authorizeLaunch: ALLOW_ALL });
     // Act
     await orchestrate(h.deps);
     // Assert
@@ -345,33 +341,96 @@ describe("orchestrate: version probe results feed the pins line via say", () => 
 });
 
 // ---------------------------------------------------------------------------
-// orchestrate: legacy selftest gates every tier that runs it
+// orchestrate: the legacy selftest is quarantined, never executed
 // ---------------------------------------------------------------------------
 
-describe("orchestrate: a failed selftest refuses the whole run", () => {
-  it("returns exit 3, runs no checks, persists no rows and reports the failing selftest", async () => {
+describe("orchestrate: the legacy selftest is quarantined at every tier", () => {
+  it.each([["quick"], ["hosts"], ["all"]])("tier %s mints no selftest evidence and says so", async (tier) => {
     // Arrange
+    const h = harness({ argv: [tier] });
+    // Act
+    await orchestrate(h.deps);
+    // Assert
+    expect(h.calls.some((c) => c.startsWith("selftest"))).toBe(false);
+    expect(Object.keys(h.deps)).not.toContain("runSelfTests");
+    if (tier !== "quick") expect(h.said.join("\n")).toContain("quarantined");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// orchestrate: every selected check passes the launch gate before any effect
+// ---------------------------------------------------------------------------
+
+describe("orchestrate: launch-gate refusals are non-waivable fail rows with zero check effects", () => {
+  it("refuses a contained row under the production gate: no makeCtx, no runCheck, fail row, exit 1", async () => {
+    // Arrange
+    const h = harness({ argv: ["hosts"] });
+    // Act
+    const code = await orchestrate(h.deps);
+    // Assert
+    expect(h.calls).toContain("authorize:cc/host-row");
+    expect(h.calls).not.toContain("ctx:cc/host-row");
+    expect(runCheckIds(h)).toEqual(["build/one", "build/two"]);
+    const row = h.persisted.find((r) => r.id === "cc/host-row");
+    expect(row?.status).toBe("fail");
+    expect(row?.summary).toContain("capability-unverified");
+    expect(row?.log).toBe("");
+    expect(code).toBe(1);
+  });
+
+  it("authorizes each check before building its context", async () => {
+    // Arrange
+    const h = harness({ argv: ["quick"] });
+    // Act
+    await orchestrate(h.deps);
+    // Assert
+    expect(h.calls.indexOf("authorize:build/one")).toBeLessThan(h.calls.indexOf("ctx:build/one"));
+    expect(h.calls.indexOf("authorize:build/two")).toBeLessThan(h.calls.indexOf("ctx:build/two"));
+  });
+
+  it("does not let a known-red entry absorb a launch refusal", async () => {
+    // Arrange
+    const h = harness({
+      argv: ["hosts"], // non-strict on purpose
+      knownRed: { "cc/host-row": { ref: "#349", note: "red", until: "v1.1" } },
+    });
+    // Act
+    const code = await orchestrate(h.deps);
+    // Assert
+    const row = h.persisted.find((r) => r.id === "cc/host-row");
+    expect(row?.status).toBe("fail");
+    expect(row?.known).toBeUndefined();
+    expect(code).toBe(1);
+  });
+
+  it("maps a LaunchRefused thrown by an inner funnel guard to a non-waivable fail row", async () => {
+    // Arrange
+    const refused = new LaunchRefused("cc/host-row", "capability-unverified", "required capabilities lack verified evidence");
     const h = harness(
-      { argv: ["hosts"] },
-      undefined,
-      [{ name: "egress", ok: false, detail: "EXTERNAL HTTPS REACHABLE" }],
+      {
+        argv: ["hosts"],
+        authorizeLaunch: ALLOW_ALL,
+        knownRed: { "cc/host-row": { ref: "#349", note: "red", until: "v1.1" } },
+      },
+      { "cc/host-row": refused },
     );
     // Act
     const code = await orchestrate(h.deps);
     // Assert
-    expect(code).toBe(3);
-    expect(effectCounts(h)).toEqual({ hostVersion: 2, selfTests: 1, checks: 0 });
-    expect(h.persisted).toEqual([]);
-    expect(h.said.join("\n")).toContain("egress");
+    const row = h.persisted.find((r) => r.id === "cc/host-row");
+    expect(row?.status).toBe("fail");
+    expect(row?.known).toBeUndefined();
+    expect(row?.summary).toContain("capability-unverified");
+    expect(code).toBe(1);
   });
 
-  it("runs the checks when every selftest passes (contrast case)", async () => {
+  it("still lets breaches override launch refusals with exit 3", async () => {
     // Arrange
-    const h = harness({ argv: ["hosts"] });
+    const h = harness({ argv: ["hosts"] }, undefined, ["outside file changed: p"]);
     // Act
-    await orchestrate(h.deps);
+    const code = await orchestrate(h.deps);
     // Assert
-    expect(effectCounts(h).checks).toBe(3);
+    expect(code).toBe(3);
   });
 });
 
@@ -419,7 +478,7 @@ describe("orchestrate: check loop passes the injected RunContext and persists ma
   it("carries outcome summary, metrics and sandbox data onto the row", async () => {
     // Arrange
     const h = harness(
-      { argv: ["hosts"] },
+      { argv: ["hosts"], authorizeLaunch: ALLOW_ALL },
       {
         "cc/host-row": {
           ok: false,
@@ -443,7 +502,7 @@ describe("orchestrate: check loop passes the injected RunContext and persists ma
   it("relative-izes outcome artifacts against the run dir", async () => {
     // Arrange
     const h = harness(
-      { argv: ["hosts"] },
+      { argv: ["hosts"], authorizeLaunch: ALLOW_ALL },
       { "cc/host-row": { ok: true, artifacts: "/run/dir/artifacts/cc/host-row/x" } },
     );
     // Act
@@ -576,7 +635,7 @@ describe("orchestrate: known-red mapping (strict flag and outcome flow through c
 describe("orchestrate: observed breaches (safetyLedger-style input) force exit 3", () => {
   it("returns 3 even when all checks passed, and evaluates breaches after the checks ran", async () => {
     // Arrange
-    const h = harness({ argv: ["quick"] }, undefined, undefined, ["canary leak: sk-ant-dummy"]);
+    const h = harness({ argv: ["quick"] }, undefined, ["canary leak: sk-ant-dummy"]);
     // Act
     const code = await orchestrate(h.deps);
     // Assert
@@ -731,11 +790,11 @@ describe("decideExit: combines row statuses, breaches and refusals into an exit 
 // ---------------------------------------------------------------------------
 
 describe("envScrubLabel: never shows ✓ without selftest evidence", () => {
-  it("reports 'not run' when no selftest ran (the quick tier), never ✓", () => {
+  it("reports 'not run' when no selftest ran (quick, or the quarantined legacy selftest), never ✓", () => {
     // Arrange / Act
     const label = envScrubLabel([]);
     // Assert
-    expect(label).toBe("not run (quick)");
+    expect(label).toBe("not run");
     expect(label).not.toContain("✓");
   });
 

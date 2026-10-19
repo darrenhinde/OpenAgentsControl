@@ -43,7 +43,7 @@ const compatibility: CheckDef = {
       dirs: { ...d, work: ctx.repo },
       env: isoEnv(d, await toolPath(), { CI: "1" }),
       argv: ["/bin/bash", "scripts/tests/test-compatibility.sh"],
-      target: { repo: ctx.repo, repoDeny: "/nonexistent" },
+      target: { repo: ctx.repo, repoDeny: "/nonexistent", launch: { checkId: ctx.checkId, workload: ctx.workload } },
       timeoutMs: 180_000,
       onData: (s) => ctx.log(s.replace(/\n$/, "")),
     });
@@ -72,7 +72,7 @@ const installShLocal: CheckDef = {
       dirs: d,
       env: isoEnv(d, await toolPath(), { OAC_RAW_URL: `file://${ctx.repo}`, REGISTRY_URL: `file://${ctx.repo}/registry.json` }),
       argv: ["/bin/bash", join(ctx.repo, "install.sh"), "essential", `--install-dir=${target}`],
-      target: { repo: ctx.repo, repoDeny: "/nonexistent" },
+      target: { repo: ctx.repo, repoDeny: "/nonexistent", launch: { checkId: ctx.checkId, workload: ctx.workload } },
       timeoutMs: 120_000,
       onData: (s) => ctx.log(s.replace(/\n$/, "")),
     });
@@ -113,7 +113,7 @@ async function oac(ctx: RunContext, d: IsoDirs, args: string[], extraBins: (stri
     dirs: d,
     env: isoEnv(d, safePath([node, await cachedWhich("git"), ...extraBins])),
     argv: [node ?? "node", join(ctx.repo, "packages", "cli", "dist", "index.js"), ...args],
-    target: { repo: ctx.repo, repoDeny: "/nonexistent" },
+    target: { repo: ctx.repo, repoDeny: "/nonexistent", launch: { checkId: ctx.checkId, workload: ctx.workload } },
     timeoutMs: 60_000,
     stdoutOnly: true,
   });

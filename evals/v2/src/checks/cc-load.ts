@@ -35,7 +35,7 @@ function validate(id: string, what: "plugin" | "marketplace"): CheckDef {
           ANTHROPIC_BASE_URL: "http://127.0.0.1:9",
         }),
         argv: [claude, "plugin", "validate", "--strict", "--json", target],
-        target: { repo: ctx.repo, repoDeny: ctx.repo },
+        target: { repo: ctx.repo, repoDeny: ctx.repo, launch: { checkId: ctx.checkId, workload: ctx.workload } },
         timeoutMs: 60_000,
         onData: (s) => ctx.log(s.replace(/\n$/, "")),
       });

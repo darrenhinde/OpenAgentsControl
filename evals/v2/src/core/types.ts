@@ -68,6 +68,9 @@ export interface CheckOutcome {
 }
 
 export interface RunContext {
+  /** The check this context belongs to and its declared workload (P1.2 U3 launch funnel). */
+  checkId: string;
+  workload: WorkloadDecl;
   repo: string;
   runDir: string;
   /** Root for throwaway dirs, under $TMPDIR (outside $HOME and the repo). */

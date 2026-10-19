@@ -60,7 +60,7 @@ async function listSources(ctx: RunContext, bin: string, name: string, ancestor:
     writeFileSync(planted, JSON.stringify({ $schema: "https://opencode.ai/config.json" }) + "\n");
   }
   const env = isoEnv(d, safePath([bin]));
-  const target = { repo: ctx.repo, repoDeny: ctx.repo };
+  const target = { repo: ctx.repo, repoDeny: ctx.repo, launch: { checkId: ctx.checkId, workload: ctx.workload } };
   const port = await freePort();
   const oc = (args: string[], timeoutMs = 20_000): ReturnType<typeof runIsolated> =>
     runIsolated({ dirs: d, env, argv: [bin, ...args], target, timeoutMs, stdoutOnly: true });

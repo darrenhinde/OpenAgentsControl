@@ -1,17 +1,19 @@
-// CLI orchestration seam (P1.2 U2, component-p1-2.md): pure planning (plan), pure
+// CLI orchestration seam (P1.2 U2/U3, component-p1-2.md): pure planning (plan), pure
 // known-red/safety classification (classify), pure exit-code decision (decideExit) and the
-// dependency-injected run loop (orchestrate). Every effect — fs, host version probes, the
-// legacy selftest, check execution, persistence and output — is injected, so the module
-// stays unit-testable without I/O (tests/unit/orchestrate.test.ts). cli.ts remains the
-// executable entry and wires the real effects; it keeps runDir/logs, gitLine, known-red
-// loading, snapshot+diff and report writing.
+// dependency-injected run loop (orchestrate). Every effect — fs, host version probes, launch
+// authorization, check execution, persistence and output — is injected, so the module stays
+// unit-testable without I/O (tests/unit/orchestrate.test.ts). main.ts wires the real effects
+// and keeps runDir/logs, gitLine, known-red loading, snapshot+diff and report writing.
 //
-// Tier discipline: quick performs ZERO host version probes and ZERO selftests; hosts and
-// above probe each host once and run the selftest once, all before the first check. A failed
-// selftest refuses the whole run (exit 3, no check, no persisted row). Selection refusals are
-// non-waivable fail rows (never known-red, never skip) and their check is never run.
+// Tier discipline: quick performs ZERO host version probes; hosts and above probe each host
+// once before the first check. The legacy selftest is quarantined: no dependency runs it.
+// Every selected check passes authorizeLaunch before makeCtx/runCheck. Selection refusals
+// and launch refusals (including a LaunchRefused thrown by an inner funnel guard) are
+// non-waivable fail rows (never known-red, never skip) and a refused check is never run.
 import { arch, platform } from "node:os";
 import { join, relative } from "node:path";
+import type { Authorization } from "../sandbox/contract.ts";
+import { LaunchRefused } from "../sandbox/gate.ts";
 import { select, type CheckLike, type Selection } from "./selection.ts";
 import {
   TIER_ORDER,
@@ -54,7 +56,8 @@ export interface OrchestratorDeps {
   tmpRoot: string;
   runId: string;
   hostVersion: (bin: string) => Promise<string | undefined>;
-  runSelfTests: (repo: string, tmpRoot: string, runId: string) => Promise<SelfTestResult[]>;
+  /** Launch-funnel decision for one selected check; called before makeCtx/runCheck. */
+  authorizeLaunch: (check: CheckDef) => Authorization;
   runCheck: (check: CheckDef, ctx: RunContext) => Promise<CheckOutcome>;
   makeCtx: (check: CheckDef) => RunContext;
   /** Observed safety breaches (outside files, canary leaks, auth shape, egress); runs after the last check. */
@@ -133,15 +136,15 @@ export function decideExit(
   return unexpected || refusals.length ? 1 : 0;
 }
 
-/** Pure: the summary's env-scrub mark from selftest evidence. No results (quick) is "not run", never ✓. */
+/** Pure: the summary's env-scrub mark from selftest evidence. No results is "not run", never ✓. */
 export function envScrubLabel(self: readonly SelfTestResult[]): string {
-  if (!self.length) return "not run (quick)";
+  if (!self.length) return "not run";
   return self.every((t) => t.ok) ? "✓" : "✗";
 }
 
 const sandboxDefaults = (): SandboxInfo => ({ mode: "none", canaryLeaks: 0, outsideChanged: [], egress: [] });
 
-/** The dependency-injected main flow: parse → select → header → [probes+selftest] → loop → breaches → exit. */
+/** The dependency-injected main flow: parse → select → header → [probes] → authorize → loop → breaches → exit. */
 export async function orchestrate(deps: OrchestratorDeps): Promise<number> {
   const args = parseArgs(deps.argv, deps.usage);
   if (args.tier === "live") deps.usage("the live tier (real model, metering proxy, --budget) is not implemented yet (plan step 9)");
@@ -160,58 +163,62 @@ export async function orchestrate(deps: OrchestratorDeps): Promise<number> {
     return `${name} ${v} (pin ${pin ?? "?"} ${pin === v ? "✓" : "⚠ drift"})`;
   };
 
-  // The quick tier runs no host binaries: no version probes, no legacy selftest. hosts and
-  // above probe each host once and selftest once, all before the first check.
-  let self: SelfTestResult[] = [];
+  // The quick tier runs no host binaries: no version probes. hosts and above probe each
+  // host once, before the first check. The legacy selftest is quarantined at every tier.
   if (TIER_ORDER.indexOf(args.tier) >= TIER_ORDER.indexOf("hosts")) {
     const oc = await deps.hostVersion("opencode");
     const cc = await deps.hostVersion("claude");
     deps.say(`hosts  ${pinTxt("opencode", oc)}  ${pinTxt("claude", cc)}  ${nodeArch}`);
-    self = await deps.runSelfTests(deps.repo, deps.tmpRoot, deps.runId);
-    const selfBad = self.filter((t) => !t.ok);
-    if (selfBad.length) {
-      deps.say("");
-      deps.say(`!!! SANDBOX SELF-TEST FAILED — refusing to run any check !!!`);
-      for (const t of selfBad) deps.say(`  ✗ ${t.name}: ${t.detail}`);
-      return 3;
-    }
-    deps.say(`sandbox self-test  ✓  ${self.map((t) => t.name).join(" ")} ✓`);
+    deps.say(`sandbox self-test  quarantined (legacy Boolean results mint no capability evidence; contained checks are refused until P3/P4)`);
     deps.say("");
   } else {
     deps.say(`hosts  not probed (the quick tier runs no host binaries)  ${nodeArch}`);
   }
 
   const rows: CheckRow[] = [];
+  // Non-waivable: the refusal reason stands even when known-red names the id, and the check
+  // is never run (zero launch-funnel side effects).
+  const refuse = (checkId: string, reason: string, log = "", ms = 0): void => {
+    const def = deps.checks.find((c) => c.id === checkId);
+    const row: CheckRow = {
+      id: checkId,
+      area: def?.area ?? "build",
+      layer: def?.layer ?? "L0",
+      host: def?.host,
+      status: "fail",
+      ms,
+      log,
+      sandbox: sandboxDefaults(),
+      summary: reason,
+    };
+    rows.push(row);
+    deps.persist(row);
+    deps.say(`  ${"✗ (refused)".padEnd(10)} ${checkId.padEnd(40)}  ${reason}`);
+  };
   for (const p of plan(selection)) {
     if (p.kind === "refused") {
-      // Non-waivable: the refusal reason stands even when known-red names the id, and the
-      // check is never run (zero launch-funnel side effects).
-      const def = deps.checks.find((c) => c.id === p.checkId);
-      const row: CheckRow = {
-        id: p.checkId,
-        area: def?.area ?? "build",
-        layer: def?.layer ?? "L0",
-        host: def?.host,
-        status: "fail",
-        ms: 0,
-        log: "",
-        sandbox: sandboxDefaults(),
-        summary: p.reason,
-      };
-      rows.push(row);
-      deps.persist(row);
-      deps.say(`  ${"✗ (refused)".padEnd(10)} ${p.checkId.padEnd(40)}  ${p.reason}`);
+      refuse(p.checkId, p.reason);
       continue;
     }
     // select() passes the registered CheckDefs through untouched, so a run row's check is
     // the full def; CheckLike is only selection's data slice of it.
     const check = p.check as CheckDef;
+    const auth = deps.authorizeLaunch(check);
+    if (!auth.allowed) {
+      refuse(check.id, `launch refused (${auth.code}): ${auth.reason}`);
+      continue;
+    }
     const ctx = deps.makeCtx(check);
     const started = deps.now();
     let outcome: CheckOutcome;
     try {
       outcome = await deps.runCheck(check, ctx);
     } catch (e) {
+      if (e instanceof LaunchRefused) {
+        ctx.log(`# ${e.message}`);
+        refuse(check.id, e.message, p.logRel, deps.now() - started);
+        continue;
+      }
       ctx.log(`# check threw: ${e instanceof Error ? e.stack ?? e.message : String(e)}`);
       outcome = { ok: false, summary: `check threw: ${e instanceof Error ? e.message : String(e)}`.slice(0, 120) };
     }

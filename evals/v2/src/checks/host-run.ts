@@ -5,7 +5,8 @@ import { startFakeModel, type FakeModel, type ScriptTurn } from "../../../../pac
 import { exec } from "../core/exec.ts";
 import type { HostId, RunContext } from "../core/types.ts";
 import { allCanaries, makeCanaries, plantDecoys, scanDir, sha, type Canaries } from "../sandbox/canary.ts";
-import { isoEnv, makeIsoDirs, runIsolated, safePath, type IsoDirs } from "../sandbox/env.ts";
+import { isoEnv, makeIsoDirs, runIsolated, safePath, sandboxMode, type IsoDirs } from "../sandbox/env.ts";
+import { assertContainedLaunch } from "../sandbox/gate.ts";
 import { safetyLedger } from "../sandbox/ledger.ts";
 import { cachedWhich } from "./helpers.ts";
 
@@ -49,6 +50,8 @@ export async function runHost(
     artifactKey?: string;
   },
 ): Promise<HostRun> {
+  const launch = { checkId: ctx.checkId, workload: ctx.workload };
+  assertContainedLaunch(launch, sandboxMode());
   const ledger = safetyLedger();
   const dirs = makeIsoDirs(ctx.tmpRoot, o.name);
   const canaries = makeCanaries(ctx.runId, o.name);
@@ -70,7 +73,7 @@ export async function runHost(
       OAC_FAKE_TOKEN: canaries.decoys.envToken ?? "",
     });
     ledger.agentRuns++;
-    const r = await runIsolated({ dirs, env, argv: o.argv(dirs, canaries), target: { repo: ctx.repo, repoDeny: ctx.repo }, timeoutMs: o.timeoutMs ?? 120_000, stdoutOnly: false });
+    const r = await runIsolated({ dirs, env, argv: o.argv(dirs, canaries), target: { repo: ctx.repo, repoDeny: ctx.repo, launch }, timeoutMs: o.timeoutMs ?? 120_000, stdoutOnly: false });
     const art = ctx.artifactDir(o.artifactKey ?? o.name.replace(/^.*@/, ""));
     writeFileSync(join(art, "stream.jsonl"), r.out);
     writeFileSync(join(art, "mock.jsonl"), mock.requests.map((q) => JSON.stringify(q)).join("\n") + "\n");
