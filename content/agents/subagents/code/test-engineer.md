@@ -5,6 +5,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash:
+    "*": "deny"
     "npx vitest *": "allow"
     "npx jest *": "allow"
     "pytest *": "allow"
@@ -17,7 +18,6 @@ permission:
     "cargo test *": "allow"
     "rm -rf *": "ask"
     "sudo *": "deny"
-    "*": "deny"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"

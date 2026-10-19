@@ -37,7 +37,7 @@
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/code/build-agent.md": {
-      "sha256": "1f61e83d854c57d422a52f89c2e680bb6d601cbcce3828abf3f551b8e507b1e9",
+      "sha256": "c5bf625800d799f5dcac68bc1288c4c51169d3a79496c6f9e8fc4a84ec0aca3f",
       "target": "opencode",
       "root": ".opencode/agent"
     },
@@ -52,7 +52,7 @@
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/code/test-engineer.md": {
-      "sha256": "a2f5a6904f7d35a7f347d47490d02320fe1dfffe2d911855faca1945328f6202",
+      "sha256": "71dff5df791ef2fa9c8f9724d60297ce0e479489a0b846cdc69e17d62d473196",
       "target": "opencode",
       "root": ".opencode/agent"
     },
@@ -62,7 +62,7 @@
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/core/context-manager.md": {
-      "sha256": "2211bf59259c2e6a8ef3542e6a2fb826520a49f0c35e65dbdffadde60cc394ef",
+      "sha256": "1ba4e6af1dbc154479fb2a990675d358c882068a2e2b55c6fdfdc952a2ad78c3",
       "target": "opencode",
       "root": ".opencode/agent"
     },
@@ -77,7 +77,7 @@
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/core/documentation.md": {
-      "sha256": "2dcfb7e65c1a24ddcd9f32a6f0568b53cf7223026eb967c578586c28cca46301",
+      "sha256": "2922cc978b68c0887d243c2e2c9f764009fdfeba86c526501260af0d664ccd0d",
       "target": "opencode",
       "root": ".opencode/agent"
     },
@@ -92,7 +92,7 @@
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/core/task-manager.md": {
-      "sha256": "647a9a4993aac60b441d44d5e9e93f4abdc1ecadefd29e985241bfb3a1838eb2",
+      "sha256": "bf6a1c9f363ec9294d326110b0134b2327d542e683c70f4f6e6da601db499761",
       "target": "opencode",
       "root": ".opencode/agent"
     },
@@ -107,27 +107,27 @@
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/planning/adr-manager.md": {
-      "sha256": "dce68ca574f628e885df344f44b9b68a98dcf605a155918fbc0b1986c23653e2",
+      "sha256": "3cbbeec8d4051d828307d8918299ae99cbee60826468d690a4f6257c27bd91c0",
       "target": "opencode",
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/planning/architecture-analyzer.md": {
-      "sha256": "277d1997d76e4b4f9f09e658bb2a208bc75b32819f20621401f4d7461fa9085c",
+      "sha256": "4e1cd6380e9c99b5620356f830939ed5d801055ad8ec1e393de19453c58bd925",
       "target": "opencode",
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/planning/contract-manager.md": {
-      "sha256": "dcc46cb16ce8a56263b4a9ddc36bf605d4b00dbe664819d82e2d7d8573c16fb3",
+      "sha256": "0d5c214c6160e0462a4152888c1b94b697eabf9bfc44794ab81be0d6cc7daa40",
       "target": "opencode",
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/planning/prioritization-engine.md": {
-      "sha256": "0622e2fbce7b0def55b34ccb6296c2c12fca68794a2801a870ca36fd49033ebf",
+      "sha256": "bef25bd1fb101778cb2344301725506f5223e4d36303b0b557d954ed9f80374e",
       "target": "opencode",
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/planning/story-mapper.md": {
-      "sha256": "0cd1bbcc6f0186c02ff3d4c0e44718ba720d280b1d1341d3ffbb18dedd66b98c",
+      "sha256": "4bd8c4c67793bf51e17668eb29c220f837bd6c9a0fcb35e404202343cb3caf7b",
       "target": "opencode",
       "root": ".opencode/agent"
     },
@@ -142,7 +142,7 @@
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/system-builder/context-organizer.md": {
-      "sha256": "fbcf3dd6d5a6ea26a48be0d9820a59b801661be06456d67a0423579a24eb0047",
+      "sha256": "317dcb99c70b445ecae101c1dc60a0a0918020a3aec05052b15f870581f5d679",
       "target": "opencode",
       "root": ".opencode/agent"
     },
@@ -152,7 +152,7 @@
       "root": ".opencode/agent"
     },
     ".opencode/agent/subagents/system-builder/workflow-designer.md": {
-      "sha256": "2e11d4d8165a273ae33fa1ea344737a5ea18ee35f1aa7e52ea4bc5990a522c3f",
+      "sha256": "31d1dac8400d24d03340c44acacbd088f27e3f31ed57f366a5a1dea748384a93",
       "target": "opencode",
       "root": ".opencode/agent"
     },

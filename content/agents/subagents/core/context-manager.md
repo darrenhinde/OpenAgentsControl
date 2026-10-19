@@ -11,11 +11,11 @@ permission:
   glob:
     "*": "allow"
   bash:
+    "*": "deny"
     "find .opencode/context*": "allow"
     "ls -la .opencode/context*": "allow"
     "mkdir -p .opencode/context*": "allow"
     "mv .opencode/context*": "allow"
-    "*": "deny"
   edit:
     ".opencode/context/**/*.md": "allow"
     ".opencode/context/**/*.json": "allow"

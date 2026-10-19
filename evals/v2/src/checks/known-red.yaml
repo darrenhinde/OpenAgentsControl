@@ -12,11 +12,6 @@ cc/marketplace-validate:
   until: "v1.1"
   note: "claude plugin validate --strict rejects the unknown marketplace field `categories`"
 
-gates/no-hidden-tools:
-  ref: "#349"
-  until: "v1.1"
-  note: "permission blocks end in \"*\": deny after allows, so OpenCode hides the whole tool"
-
 gates/subagent-keys-exist:
   ref: "#362"
   until: "v1.2"
@@ -31,11 +26,6 @@ cc/sessionstart-payload:
   ref: "v1.1"
   until: "v1.1"
   note: "SessionStart hook injects the whole using-oac skill: 158 lines / 9,227 B context (19,145 B stdout), limit 3 lines"
-
-oc/agents-tools-visible:
-  ref: "#349"
-  until: "v1.1"
-  note: "on real OpenCode v2 agents lose shell/subagent despite allow rules (trailing \"*\": deny)"
 
 oc/flat-ids:
   ref: "#362"

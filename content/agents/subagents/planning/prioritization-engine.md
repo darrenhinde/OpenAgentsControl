@@ -13,8 +13,8 @@ permission:
     "node_modules/**": "deny"
     ".git/**": "deny"
   task:
-    contextscout: "allow"
     "*": "deny"
+    contextscout: "allow"
 oac:
   id: prioritization-engine
   name: PrioritizationEngine

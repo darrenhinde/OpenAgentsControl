@@ -49,8 +49,6 @@ A known-red row shows ✗ but doesn't fail the run. If it starts passing, the ru
 
 | Check | Ref | Green by | What's wrong today |
 |---|---|---|---|
-| `gates/no-hidden-tools` | #349 | v1.1 | 12 agents end a permission block in `"*": deny` after allows, so OpenCode hides the tool |
-| `oc/agents-tools-visible` | #349 | v1.1 | On real OpenCode v2, 12/34 agents lose a tool they allow: `shell` 3, `subagent` 10 |
 | `cc/marketplace-validate` | v1.1 | v1.1 | `claude plugin validate --strict` rejects the unknown marketplace field `categories` |
 | `gates/subagent-keys-exist` | #362 | v1.2 | 107/107 subagent refs name display names (ContextScout), not v2 path IDs |
 | `oc/flat-ids` | #362 | v1.2 | 33/34 agent IDs are path-derived (`core/openagent`); flat names don't resolve |
