@@ -119,7 +119,7 @@ test_essential_profile() {
     
     bash "$REPO_ROOT/install.sh" essential --install-dir="$install_dir" > "$TEST_DIR/essential.log" 2>&1
     
-    if [ -f "$install_dir/agent/core/openagent.md" ]; then
+    if [ -f "$install_dir/agent/openagent.md" ]; then
         pass "Essential profile installed canonical OpenAgent"
     else
         fail "Essential profile missing canonical OpenAgent"
@@ -135,7 +135,7 @@ test_developer_profile() {
     
     bash "$REPO_ROOT/install.sh" developer --install-dir="$install_dir" > "$TEST_DIR/developer.log" 2>&1
     
-    if [ -f "$install_dir/agent/core/openagent.md" ] && [ -f "$install_dir/agent/core/opencoder.md" ]; then
+    if [ -f "$install_dir/agent/openagent.md" ] && [ -f "$install_dir/agent/opencoder.md" ]; then
         pass "Developer profile installed canonical OpenAgent and OpenCoder"
     else
         fail "Developer profile missing canonical agent files"
@@ -157,7 +157,7 @@ test_custom_install_dir() {
         fail "Custom directory not created"
     fi
     
-    if [ -f "$custom_dir/agent/core/openagent.md" ]; then
+    if [ -f "$custom_dir/agent/openagent.md" ]; then
         pass "Files installed to custom location"
     else
         fail "Files not found in custom location"
@@ -168,14 +168,14 @@ test_skip_existing_files() {
     echo -e "\n${BOLD}Test: Skip Existing Files Strategy${NC}"
     
     local install_dir="$TEST_DIR/skip-test/.opencode"
-    mkdir -p "$install_dir/agent/core"
+    mkdir -p "$install_dir/agent"
     
-    echo "CUSTOM CONTENT - DO NOT OVERWRITE" > "$install_dir/agent/core/openagent.md"
+    echo "CUSTOM CONTENT - DO NOT OVERWRITE" > "$install_dir/agent/openagent.md"
     
     bash "$REPO_ROOT/install.sh" essential --install-dir="$install_dir" > "$TEST_DIR/skip.log" 2>&1
     
     local content
-    content=$(cat "$install_dir/agent/core/openagent.md")
+    content=$(cat "$install_dir/agent/openagent.md")
     
     if [[ "$content" == "CUSTOM CONTENT - DO NOT OVERWRITE" ]]; then
         pass "Existing file preserved (skip strategy working)"
@@ -191,7 +191,7 @@ test_file_content_validity() {
     
     bash "$REPO_ROOT/install.sh" essential --install-dir="$install_dir" > "$TEST_DIR/content.log" 2>&1
     
-    local agent_file="$install_dir/agent/core/openagent.md"
+    local agent_file="$install_dir/agent/openagent.md"
     
     if [ -f "$agent_file" ]; then
         if grep -q "OpenAgent\|openagent" "$agent_file"; then
@@ -221,8 +221,6 @@ test_directory_structure() {
     
     local expected_dirs=(
         "agent"
-        "agent/core"
-        "agent/subagents"
         "command"
         "context"
         "context/core"

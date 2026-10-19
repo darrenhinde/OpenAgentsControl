@@ -50,18 +50,16 @@ BRANCH="${OPENCODE_BRANCH:-main}"  # Allow override via environment variable
 # or http://127.0.0.1:8000 for installer tests against a local tree (D-014). Default unchanged.
 RAW_URL="${OAC_RAW_URL:-https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/${BRANCH}}"
 
-# Registry URL - supports local fallback for development
-# Priority: 1) REGISTRY_URL env var, 2) Local registry.json, 3) Remote GitHub
-if [ -n "$REGISTRY_URL" ]; then
-    # Use explicitly set REGISTRY_URL (for testing)
-    :
-elif [ -f "./registry.json" ]; then
-    # Use local registry.json if it exists (for development)
-    REGISTRY_URL="file://$(pwd)/registry.json"
-else
-    # Default to remote GitHub registry
-    REGISTRY_URL="${RAW_URL}/registry.json"
-fi
+# Which OpenCode major to install for. v2 is the default and is never inferred from the host;
+# v1 is an explicit opt-in (--opencode v1 or OAC_OPENCODE=v1). The v1 build lives under
+# v1-opencode/ in the repository and installs into the user's .opencode/ - the folder name is
+# never used in a project.
+OPENCODE_FLAVOR="${OAC_OPENCODE:-v2}"
+
+# Registry URL - supports local fallback for development.
+# Priority: 1) REGISTRY_URL env var, 2) Local registry file, 3) Remote GitHub.
+# The registry file depends on the flavor, so it is resolved in fetch_registry once the
+# arguments are parsed: registry.json for v2, registry.v1.json for v1.
 
 INSTALL_DIR="${OPENCODE_INSTALL_DIR:-.opencode}"  # Allow override via environment variable
 TEMP_DIR="/tmp/opencode-installer-$$"
@@ -75,6 +73,7 @@ INSTALL_MODE=""
 PROFILE=""
 NON_INTERACTIVE=false
 CUSTOM_INSTALL_DIR=""  # Set via --install-dir argument
+LIST_ONLY=false
 
 #############################################################################
 # Utility Functions
@@ -266,10 +265,78 @@ check_dependencies() {
 # Registry Functions
 #############################################################################
 
+# Normalise and validate an OpenCode flavor ("v1", "v2", "1", "2"); echoes v1 or v2, or nothing.
+normalize_flavor() {
+    case "$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" in
+        v1|1) echo "v1" ;;
+        v2|2) echo "v2" ;;
+        *) echo "" ;;
+    esac
+}
+
+registry_file_name() {
+    if [ "$OPENCODE_FLAVOR" = "v1" ]; then
+        echo "registry.v1.json"
+    else
+        echo "registry.json"
+    fi
+}
+
+# Major version of the OpenCode on PATH, or empty. OAC_OPENCODE_VERSION overrides detection
+# (CI and tests set it so a real opencode is never run); "none" means no host.
+detect_opencode_major() {
+    local out
+    if [ -n "${OAC_OPENCODE_VERSION:-}" ]; then
+        out="$OAC_OPENCODE_VERSION"
+    else
+        out=$(opencode --version 2>/dev/null || true)
+    fi
+    [ "$out" = "none" ] && return 0
+    printf '%s' "$out" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | cut -d. -f1
+}
+
+warn_flavor_host_mismatch() {
+    local major
+    major=$(detect_opencode_major)
+    [ -z "$major" ] && return 0
+    if [ "$OPENCODE_FLAVOR" = "v2" ] && [ "$major" = "1" ]; then
+        print_warning "OpenCode v1 is installed, but this installs for OpenCode v2 (the default). For v1, run again with --opencode v1."
+    elif [ "$OPENCODE_FLAVOR" = "v1" ] && [ "$major" != "1" ]; then
+        print_warning "Installing for OpenCode v1, but OpenCode ${major} is installed; v1 agents, tools and plugins do not load there."
+    fi
+}
+
+# An earlier OAC layout nested agents by category (agent/core/openagent.md). OpenCode v2 loads
+# every file under agent/, so leaving those next to the flat v2 files would register each agent
+# twice. The shell installer never deletes files it did not just write; it says what to do.
+warn_legacy_agent_layout() {
+    [ "$OPENCODE_FLAVOR" = "v2" ] || return 0
+    if [ -d "${INSTALL_DIR}/agent/core" ] || [ -d "${INSTALL_DIR}/agent/subagents" ]; then
+        print_warning "Found nested agents from an earlier install in ${INSTALL_DIR}/agent/. OpenCode v2 would load them next to the new ones. Run 'oac update --opencode v2' to migrate safely, or remove them."
+    fi
+}
+
+record_flavor() {
+    mkdir -p "$INSTALL_DIR"
+    printf '%s\n' "$OPENCODE_FLAVOR" > "${INSTALL_DIR}/.oac-opencode"
+}
+
 fetch_registry() {
     print_step "Fetching component registry..."
     
     mkdir -p "$TEMP_DIR"
+
+    local registry_file
+    registry_file=$(registry_file_name)
+    if [ -n "$REGISTRY_URL" ]; then
+        # Explicit REGISTRY_URL (for testing) wins.
+        :
+    elif [ -f "./${registry_file}" ]; then
+        # Local registry file if it exists (for development)
+        REGISTRY_URL="file://$(pwd)/${registry_file}"
+    else
+        REGISTRY_URL="${RAW_URL}/${registry_file}"
+    fi
     
     # Handle local file:// URLs
     if [[ "$REGISTRY_URL" == file://* ]]; then
@@ -354,8 +421,10 @@ get_registry_key() {
 # We need to replace ".opencode" with the actual INSTALL_DIR
 get_install_path() {
     local registry_path=$1
-    # Strip leading .opencode/ if present
+    # Strip the leading .opencode/ - or v1-opencode/, the repository folder of the v1 build,
+    # whose files install to the same place - if present
     local relative_path="${registry_path#.opencode/}"
+    relative_path="${relative_path#v1-opencode/}"
     # Return INSTALL_DIR + relative path
     echo "${INSTALL_DIR}/${relative_path}"
 }
@@ -1232,8 +1301,14 @@ perform_installation() {
         fi
     fi
     
+    if [ "$installed" -gt 0 ]; then
+        record_flavor
+        warn_legacy_agent_layout
+    fi
+
     echo ""
     print_success "Installation complete!"
+    echo -e "  OpenCode:  ${OPENCODE_FLAVOR}"
     echo -e "  Installed: ${GREEN}${installed}${NC}"
     [ $skipped -gt 0 ] && echo -e "  Skipped: ${CYAN}${skipped}${NC}"
     [ $failed -gt 0 ] && echo -e "  Failed: ${RED}${failed}${NC}"
@@ -1356,6 +1431,19 @@ main() {
                     exit 1
                 fi
                 ;;
+            --opencode=*)
+                OPENCODE_FLAVOR="${1#*=}"
+                shift
+                ;;
+            --opencode)
+                if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+                    OPENCODE_FLAVOR="$2"
+                    shift 2
+                else
+                    echo "Error: --opencode requires v1 or v2"
+                    exit 1
+                fi
+                ;;
             essential|--essential)
                 INSTALL_MODE="profile"
                 PROFILE="essential"
@@ -1387,10 +1475,9 @@ main() {
                 shift
                 ;;
             list|--list)
-                check_dependencies
-                fetch_registry
-                list_components
-                cleanup_and_exit 0
+                # Deferred until every option is parsed, so `list --opencode v1` works too.
+                LIST_ONLY=true
+                shift
                 ;;
             --help|-h|help)
                 print_header
@@ -1406,12 +1493,16 @@ main() {
                 echo -e "${BOLD}Options:${NC}"
                 echo "  --install-dir PATH        Custom installation directory"
                 echo "                            (default: .opencode)"
+                echo "  --opencode v1|v2          OpenCode major to install for (default: v2)."
+                echo "                            v1 is an explicit opt-in and installs the full v1 build"
+                echo "                            (agents, tools, plugins, skills, commands) into .opencode/"
                 echo "  list, --list              List all available components"
                 echo "  help, --help, -h          Show this help message"
                 echo ""
                 echo -e "${BOLD}Environment Variables:${NC}"
                 echo "  OPENCODE_INSTALL_DIR      Installation directory"
                 echo "  OPENCODE_BRANCH           Git branch to install from (default: main)"
+                echo "  OAC_OPENCODE              OpenCode major, v1 or v2 (same as --opencode; default: v2)"
                 echo "  OAC_RAW_URL               Base URL for component files (default: GitHub raw for the branch)"
                 echo ""
                 echo -e "${BOLD}Examples:${NC}"
@@ -1468,6 +1559,23 @@ main() {
         fi
     fi
     
+    local normalized_flavor
+    normalized_flavor=$(normalize_flavor "$OPENCODE_FLAVOR")
+    if [ -z "$normalized_flavor" ]; then
+        print_error "Unknown OpenCode version '${OPENCODE_FLAVOR}'. Use v1 or v2."
+        exit 1
+    fi
+    OPENCODE_FLAVOR="$normalized_flavor"
+
+    if [ "$LIST_ONLY" = true ]; then
+        check_dependencies
+        fetch_registry
+        list_components
+        cleanup_and_exit 0
+    fi
+
+    warn_flavor_host_mismatch
+
     check_bash_version
     check_dependencies
     fetch_registry

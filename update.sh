@@ -12,6 +12,8 @@
 # Usage:
 #   ./update.sh                          # Auto-detect install location
 #   ./update.sh --install-dir PATH       # Update a specific install path
+#   ./update.sh --opencode v1            # Update an OpenCode v1 install (default: the recorded
+#                                        # version, else v2; v1 is never chosen implicitly)
 #
 # Environment variables:
 #   OPENCODE_INSTALL_DIR                 # Override default install directory
@@ -49,10 +51,16 @@ else
 fi
 
 BRANCH="${OPENCODE_BRANCH:-main}"
-REPO_URL="https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/${BRANCH}"
+# OAC_RAW_URL overrides where files are fetched from (e.g. file:///path/to/checkout), as in install.sh.
+REPO_URL="${OAC_RAW_URL:-https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/${BRANCH}}"
 
 # CLI argument for custom install dir (overrides env var)
 CUSTOM_INSTALL_DIR=""
+
+# OpenCode major this install targets: --opencode, else the marker install.sh wrote, else v2.
+# v1 is never chosen implicitly; its files live under v1-opencode/ in the repository and
+# install into the same .opencode/ paths as everything else.
+OPENCODE_FLAVOR=""
 
 # Track backup files for cleanup on exit
 BACKUP_FILES=()
@@ -86,10 +94,11 @@ print_header() {
 }
 
 print_usage() {
-    echo "Usage: $0 [--install-dir PATH]"
+    echo "Usage: $0 [--install-dir PATH] [--opencode v1|v2]"
     echo ""
     echo "Options:"
     echo "  --install-dir PATH   Update a specific installation directory"
+    echo "  --opencode v1|v2     OpenCode major of the install (default: the recorded one, else v2)"
     echo "  --help               Show this help message"
     echo ""
     echo "Environment variables:"
@@ -194,6 +203,41 @@ resolve_install_dir() {
 }
 
 #############################################################################
+# OpenCode flavor
+#############################################################################
+
+# Settle OPENCODE_FLAVOR to v1 or v2. An explicit --opencode wins; otherwise the marker written
+# by install.sh; otherwise v2. An install that predates the marker and still has nested agents
+# is the v1 layout: it is left alone and the user is pointed at the tool that migrates safely.
+resolve_flavor() {
+    local install_dir="$1"
+    local requested
+    requested=$(printf '%s' "$OPENCODE_FLAVOR" | tr '[:upper:]' '[:lower:]')
+    case "$requested" in
+        v1|1) OPENCODE_FLAVOR="v1"; return 0 ;;
+        v2|2) OPENCODE_FLAVOR="v2"; return 0 ;;
+        "") ;;
+        *) print_error "Unknown OpenCode version '${OPENCODE_FLAVOR}'. Use v1 or v2."; exit 1 ;;
+    esac
+
+    if [ -f "$install_dir/.oac-opencode" ]; then
+        requested=$(tr -d '[:space:]' < "$install_dir/.oac-opencode")
+        if [ "$requested" = "v1" ] || [ "$requested" = "v2" ]; then
+            OPENCODE_FLAVOR="$requested"
+            return 0
+        fi
+    fi
+
+    OPENCODE_FLAVOR="v2"
+    if [ -d "$install_dir/agent/core" ] || [ -d "$install_dir/agent/subagents" ]; then
+        print_warning "This install predates OpenCode v2 support (nested agents, no recorded version)."
+        print_warning "Updating as v1 would need --opencode v1; v2 files are flat. Run 'oac update' to migrate it safely."
+        print_error "Not updating an install of unknown OpenCode version. Re-run with --opencode v1 to stay on v1."
+        exit 1
+    fi
+}
+
+#############################################################################
 # Update Logic
 #############################################################################
 
@@ -214,7 +258,17 @@ update_component() {
     cp "$path" "$backup"
     BACKUP_FILES+=("$backup")
 
-    if curl -fsSL "$url" -o "$path" 2>/dev/null; then
+    # v1 prefers its own build of a file (nested agents, tools, plugins) and falls back to the
+    # files both flavors share.
+    if [ "$OPENCODE_FLAVOR" = "v1" ] && curl -fsSL "${REPO_URL}/v1-opencode/${relative_path}" -o "$path" 2>/dev/null; then
+        print_success "Updated $path"
+        rm -f "$backup"
+        local v1_backups=()
+        for f in "${BACKUP_FILES[@]}"; do
+            [ "$f" != "$backup" ] && v1_backups+=("$f")
+        done
+        BACKUP_FILES=("${v1_backups[@]+"${v1_backups[@]}"}")
+    elif curl -fsSL "$url" -o "$path" 2>/dev/null; then
         print_success "Updated $path"
         rm -f "$backup"
         # Remove from tracking array (bash 3.2 compatible)
@@ -289,6 +343,19 @@ parse_args() {
                     exit 1
                 fi
                 ;;
+            --opencode=*)
+                OPENCODE_FLAVOR="${1#*=}"
+                shift
+                ;;
+            --opencode)
+                if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+                    OPENCODE_FLAVOR="$2"
+                    shift 2
+                else
+                    print_error "--opencode requires v1 or v2"
+                    exit 1
+                fi
+                ;;
             --help|-h)
                 print_usage
                 exit 0
@@ -333,7 +400,8 @@ main() {
         exit 1
     fi
 
-    print_info "Updating installation at: ${CYAN}${install_dir}${NC}"
+    resolve_flavor "$install_dir"
+    print_info "Updating installation at: ${CYAN}${install_dir}${NC} (OpenCode ${OPENCODE_FLAVOR})"
     print_step "Updating components..."
 
     update_all_components "$install_dir"

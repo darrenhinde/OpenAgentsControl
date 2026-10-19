@@ -101,8 +101,8 @@ test_collision_non_interactive() {
     echo -e "\n${BOLD}Test 2: Collision Handling in Non-Interactive Mode${NC}"
     
     local install_dir="$TEST_DIR/collision-test/.opencode"
-    mkdir -p "$install_dir/agent/core"
-    echo "existing content" > "$install_dir/agent/core/openagent.md"
+    mkdir -p "$install_dir/agent"
+    echo "existing content" > "$install_dir/agent/openagent.md"
     
     local output
     output=$(echo "" | bash "$REPO_ROOT/install.sh" essential --install-dir="$install_dir" 2>&1)
@@ -123,7 +123,7 @@ test_collision_non_interactive() {
     fi
     
     local original_content
-    original_content=$(cat "$install_dir/agent/core/openagent.md" 2>/dev/null || echo "")
+    original_content=$(cat "$install_dir/agent/openagent.md" 2>/dev/null || echo "")
     if [ "$original_content" = "existing content" ]; then
         pass "Existing file preserved (skip strategy worked)"
     else
