@@ -10,7 +10,7 @@
     "build:watch": "tsc --watch",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:ci": "vitest run src/__tests__/error-handling.test.ts src/evaluators/__tests__/evaluator-reliability.test.ts src/evaluators/__tests__/context-loading-evaluator.test.ts src/evaluators/__tests__/tool-usage-enhanced.test.ts src/sdk/__tests__/yaml-loader.test.ts src/sdk/__tests__/suite-validator.test.ts src/sdk/__tests__/validate-suites-cli.test.ts",
+    "test:ci": "vitest run src/__tests__/error-handling.test.ts src/evaluators/__tests__/evaluator-reliability.test.ts src/evaluators/__tests__/context-loading-evaluator.test.ts src/evaluators/__tests__/tool-usage-enhanced.test.ts src/sdk/__tests__/yaml-loader.test.ts src/sdk/__tests__/suite-validator.test.ts src/sdk/__tests__/validate-suites-cli.test.ts src/sdk/__tests__/minimax-*.test.ts",
     "test:integration": "vitest --config vitest.integration.config.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",

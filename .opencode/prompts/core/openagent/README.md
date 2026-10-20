@@ -193,8 +193,10 @@ open ../results/index.html
 ### `minimax.md` - MiniMax Optimized
 
 **Target Models:**
-- `minimax/MiniMax-M2.7` (latest, 1M context window)
-- `minimax/MiniMax-M2.7-highspeed` (same performance, faster)
+- `minimax/MiniMax-M3.1-Flash` (default — 1000000 context window, 524288 maximum output, text/image/video input, adaptive-only thinking)
+- `minimax/MiniMax-M3` (alternative — 1000000 context window, text/image/video input, adaptive/disabled thinking)
+
+Explicit saved or custom model selections, including legacy MiniMax IDs, remain unchanged.
 
 **Optimizations:**
 - Structured with clear sections and explicit instructions
@@ -214,12 +216,14 @@ open ../results/index.html
 
 **Known Issues:** None documented yet
 
-**Use When:** Using MiniMax models (M2.7 family)
+**Use When:** Using MiniMax models (M3.1 Flash recommended, M3 alternative)
 
 **Setup:**
 1. Get your API key from [MiniMax Platform](https://platform.minimax.io)
 2. Set `MINIMAX_API_KEY` in your environment
-3. Configure model: `minimax/MiniMax-M2.7` or `minimax/MiniMax-M2.7-highspeed`
+3. Configure model: `minimax/MiniMax-M3.1-Flash` (recommended) or `minimax/MiniMax-M3`.
+
+The evaluation CLI selects Flash for this prompt variant when no model is supplied. An explicit `--model` still takes precedence. Provider endpoints and request options are configured in your installed OpenCode runtime; this repository forwards the selected model to that runtime. Flash requires adaptive thinking and supports effort `low`, `medium`, `high`, `xhigh`, or `max` (default). See the [MiniMax model guide](https://platform.minimax.io/docs/guides/models-intro.md) and [pricing](https://platform.minimax.io/docs/pricing/overview).
 
 ---
 
