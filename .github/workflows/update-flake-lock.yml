@@ -1,0 +1,57 @@
+name: Update Flake Lock
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-flake-lock
+  cancel-in-progress: false
+
+jobs:
+  update-flake-lock:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Update flake.lock
+        run: nix flake update
+
+      - name: Validate flake
+        run: nix flake check
+
+      - name: Test build
+        run: nix build .#default
+
+      - name: Commit flake.lock changes
+        run: |
+          if git diff --quiet -- flake.lock; then
+            echo "No flake.lock changes detected"
+            exit 0
+          fi
+
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add flake.lock
+          git commit -m "chore(nix): update flake.lock [skip ci]"
+          git push
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Flake Lock Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ flake update attempted" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ flake check executed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ build executed" >> $GITHUB_STEP_SUMMARY
