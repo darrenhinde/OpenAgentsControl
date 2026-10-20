@@ -18,7 +18,9 @@ function captureRequests(): Request[] {
   return requests;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('MiniMax SDK HTTP boundary', () => {
   it('sends the prompt variant default as Flash through the real SDK', async () => {
