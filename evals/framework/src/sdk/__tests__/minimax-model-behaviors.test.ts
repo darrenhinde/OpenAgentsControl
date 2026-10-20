@@ -54,6 +54,15 @@ describe('MiniMax Model Behaviors', () => {
   });
 
   describe('getModelBehavior()', () => {
+    it.each(['MiniMax-M3.1-Flash', 'minimax/MiniMax-M3.1-Flash'])(
+      'resolves %s to the Flash entry instead of the M3 prefix', (model) => {
+        expect(MODEL_BEHAVIORS['MiniMax-M3.1-Flash']).toBeDefined();
+        expect(getModelBehavior(model)).toBe(MODEL_BEHAVIORS['MiniMax-M3.1-Flash']);
+        expect(getModelBehavior(model)).not.toBe(MODEL_BEHAVIORS['MiniMax-M3']);
+        expect(calculateModelTimeout(30000, model)).toBe(30000);
+      },
+    );
+
     it('should return exact match for MiniMax-M3', () => {
       const behavior = getModelBehavior('MiniMax-M3');
       expect(behavior).toBe(MODEL_BEHAVIORS['MiniMax-M3']);

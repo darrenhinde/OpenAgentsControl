@@ -28,28 +28,36 @@ permissions:
 # Prompt Metadata
 model_family: "minimax"
 recommended_models:
-  - "minimax/MiniMax-M3"                 # Latest flagship, default (1000000 context, text/image/video input, adaptive thinking)
-  - "minimax/MiniMax-M2.7"               # Previous generation, peak performance (204800 context, text input, always-on thinking)
-  - "minimax/MiniMax-M2.7-highspeed"     # Previous generation, faster and more agile
+  - "minimax/MiniMax-M3.1-Flash"         # Default (1000000 context, adaptive thinking)
+  - "minimax/MiniMax-M3"                 # Alternative (1000000 context, adaptive/disabled thinking)
 model_specs:
+  - model_id: "MiniMax-M3.1-Flash"
+    context_window: 1000000
+    max_output_tokens: 524288
+    input_modalities: ["text", "image", "video"]
+    thinking: ["adaptive"]
+    reasoning_effort: ["low", "medium", "high", "xhigh", "max"]
+    default_reasoning_effort: "max"
+    pricing_usd_per_million_tokens:
+      input: 0.15
+      output: 0.60
+      cache_read: 0.015
+      cache_write: null
   - model_id: "MiniMax-M3"
     context_window: 1000000
     input_modalities: ["text", "image", "video"]
     thinking: ["adaptive", "disabled"]
     pricing_usd_per_million_tokens:
+      # Standard pricing for input up to 512k; larger inputs use the tier below.
+      input: 0.3
+      output: 1.2
+      cache_read: 0.06
+      cache_write: null
+    pricing_above_512k_usd_per_million_tokens:
       input: 0.6
       output: 2.4
       cache_read: 0.12
       cache_write: null
-  - model_id: "MiniMax-M2.7"
-    context_window: 204800
-    input_modalities: ["text"]
-    thinking: ["always_on"]
-    pricing_usd_per_million_tokens:
-      input: 0.3
-      output: 1.2
-      cache_read: 0.06
-      cache_write: 0.375
 endpoints:
   - region: "global_en"
     openai_base_url: "https://api.minimax.io/v1"

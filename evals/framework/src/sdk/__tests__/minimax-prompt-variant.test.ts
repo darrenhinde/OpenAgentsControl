@@ -8,6 +8,8 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { parse } from 'yaml';
+import { PromptManager } from '../prompt-manager.js';
 
 const PROMPTS_DIR = join(__dirname, '..', '..', '..', '..', '..', '.opencode', 'prompts', 'core', 'openagent');
 
@@ -29,24 +31,33 @@ describe('MiniMax Prompt Variant', () => {
       expect(content).toContain('model_family: "minimax"');
     });
 
-    it('should recommend MiniMax-M3 as primary model', () => {
-      expect(content).toContain('minimax/MiniMax-M3');
+    it('should offer only Flash first and M3 through the runtime metadata reader', () => {
+      const manager = new PromptManager(join(PROMPTS_DIR, '..', '..', '..', '..'));
+      expect(manager.readMetadata('core/openagent', 'minimax').recommended_models).toEqual([
+        'minimax/MiniMax-M3.1-Flash',
+        'minimax/MiniMax-M3',
+      ]);
+      expect(manager.getRecommendedModel('core/openagent', 'minimax')).toBe('minimax/MiniMax-M3.1-Flash');
     });
 
-    it('should retain MiniMax-M2.7 as legacy alternative', () => {
-      expect(content).toContain('minimax/MiniMax-M2.7');
-    });
-
-    it('should retain MiniMax-M2.7-highspeed as legacy alternative', () => {
-      expect(content).toContain('minimax/MiniMax-M2.7-highspeed');
-    });
-
-    it('should document the correct context window for MiniMax-M3', () => {
-      expect(content).toContain('1000000 context');
-    });
-
-    it('should document the correct context window for MiniMax-M2.7', () => {
-      expect(content).toContain('204800 context');
+    it('should describe Flash limits and adaptive-only thinking', () => {
+      const metadata = parse(content.split('---')[1]);
+      expect(metadata.model_specs[0]).toMatchObject({
+        model_id: 'MiniMax-M3.1-Flash',
+        context_window: 1000000,
+        max_output_tokens: 524288,
+        input_modalities: ['text', 'image', 'video'],
+        thinking: ['adaptive'],
+        reasoning_effort: ['low', 'medium', 'high', 'xhigh', 'max'],
+        default_reasoning_effort: 'max',
+        pricing_usd_per_million_tokens: { input: 0.15, output: 0.6, cache_read: 0.015, cache_write: null },
+      });
+      expect(metadata.model_specs[1]).toMatchObject({
+        model_id: 'MiniMax-M3',
+        thinking: ['adaptive', 'disabled'],
+        pricing_usd_per_million_tokens: { input: 0.3, output: 1.2, cache_read: 0.06 },
+        pricing_above_512k_usd_per_million_tokens: { input: 0.6, output: 2.4, cache_read: 0.12 },
+      });
     });
 
     it('should have YAML frontmatter delimiters', () => {
