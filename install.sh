@@ -21,8 +21,10 @@ case "$PLATFORM" in
     *)          PLATFORM="Unknown";;
 esac
 
-# Colors for output (disable on Windows if not supported)
-if [ "$PLATFORM" = "Windows" ] && [ -z "$WT_SESSION" ] && [ -z "$ConEmuPID" ]; then
+# Colors for output (disable on Windows if not supported, or if NO_COLOR is set)
+if [ -n "${NO_COLOR:-}" ] || [ "${TERM:-dumb}" = "dumb" ]; then
+    RED='' GREEN='' YELLOW='' BLUE='' MAGENTA='' CYAN='' BOLD='' NC=''
+elif [ "$PLATFORM" = "Windows" ] && [ -z "$WT_SESSION" ] && [ -z "$ConEmuPID" ]; then
     # Basic Windows terminal without color support
     RED=''
     GREEN=''
@@ -62,10 +64,12 @@ else
 fi
 
 INSTALL_DIR="${OPENCODE_INSTALL_DIR:-.opencode}"  # Allow override via environment variable
-TEMP_DIR="/tmp/opencode-installer-$$"
+TEMP_DIR="$(mktemp -d /tmp/opencode-installer-XXXXXXXX 2>/dev/null || echo /tmp/opencode-installer-$$)"
 
 # Cleanup temp directory on exit (success or failure)
-trap 'rm -rf "$TEMP_DIR" 2>/dev/null || true' EXIT INT TERM
+trap 'rm -rf "$TEMP_DIR" 2>/dev/null || true' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # Global variables
 SELECTED_COMPONENTS=()
@@ -206,8 +210,10 @@ get_global_install_path() {
 
 check_bash_version() {
     # Check bash version (need 3.2+)
-    local bash_version="${BASH_VERSION%%.*}"
-    if [ "$bash_version" -lt 3 ]; then
+    local major="${BASH_VERSION%%.*}"
+    local minor="${BASH_VERSION#*.}"
+    minor="${minor%%.*}"
+    if [ "$major" -lt 3 ] || { [ "$major" -eq 3 ] && [ "$minor" -lt 2 ]; }; then
         echo "Error: This script requires Bash 3.2 or higher"
         echo "Current version: $BASH_VERSION"
         echo ""
@@ -419,8 +425,15 @@ expand_selected_components() {
 
 resolve_dependencies() {
     local component=$1
+    local _visited="${2:-}"
     local type="${component%%:*}"
     local id="${component##*:}"
+    
+    # Cycle detection: skip if already processing this component
+    if [[ ",${_visited}," == *",${component},"* ]]; then
+        return 0
+    fi
+    _visited="${_visited},${component}"
     
     # Get the correct registry key (handles singular/plural)
     local registry_key
@@ -456,7 +469,7 @@ resolve_dependencies() {
                         done
                         if [ "$found" -eq 0 ]; then
                             SELECTED_COMPONENTS+=("$expanded_dep")
-                            resolve_dependencies "$expanded_dep"
+                            resolve_dependencies "$expanded_dep" "$_visited"
                         fi
                     done <<< "$matched"
                     continue
@@ -474,7 +487,7 @@ resolve_dependencies() {
             if [ "$found" -eq 0 ]; then
                 SELECTED_COMPONENTS+=("$dep")
                 # Recursively resolve dependencies
-                resolve_dependencies "$dep"
+                resolve_dependencies "$dep" "$_visited"
             fi
         done
     fi
@@ -760,7 +773,9 @@ show_custom_menu() {
     echo "  $((${#categories[@]}+3))) Back to main menu"
     echo ""
     
-    read -r -p "Enter category numbers (space-separated) or option: " -a selections
+    local _cat_input
+    read -r -p "Enter category numbers (space-separated) or option: " _cat_input
+    local selections=($_cat_input)
     
     for sel in "${selections[@]}"; do
         if [ "$sel" -eq $((${#categories[@]}+1)) ]; then
@@ -824,7 +839,9 @@ show_component_selection() {
     done
     
     echo "Enter component numbers (space-separated), 'all' for all, or 'done' to continue:"
-    read -r -a selections
+    local _comp_input
+    read -r _comp_input
+    local selections=($_comp_input)
     
     for sel in "${selections[@]}"; do
         if [ "$sel" = "all" ]; then
@@ -1322,11 +1339,9 @@ list_components() {
 #############################################################################
 
 cleanup_and_exit() {
-    rm -rf "$TEMP_DIR"
+    rm -rf "$TEMP_DIR" 2>/dev/null || true
     exit "$1"
 }
-
-trap 'cleanup_and_exit 1' INT TERM
 
 #############################################################################
 # Main
@@ -1441,6 +1456,11 @@ main() {
                 echo "  ✓ Windows (Git Bash, WSL)"
                 echo ""
                 exit 0
+                ;;
+            @*)
+                # Silently ignore @-prefixed component selectors (e.g., @explore, @general)
+                # These are piped from curl | bash -s and should not cause errors
+                shift
                 ;;
             *)
                 echo "Unknown option: $1"
