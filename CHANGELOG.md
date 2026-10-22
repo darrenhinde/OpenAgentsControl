@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.7.2] - 2026-07-14
+
+### Changes
+- fix(evals): repair deterministic eval baseline (behavioral regressions + tsc build) (#334)
+
 ## [0.7.1] - 2026-01-30
 
 ### Changes
