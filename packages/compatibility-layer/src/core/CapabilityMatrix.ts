@@ -17,7 +17,7 @@ import type { OpenAgent, ToolCapabilities } from "../types.js";
 // Types
 // ============================================================================
 
-export type Platform = "oac" | "claude" | "cursor" | "windsurf";
+export type Platform = "oac" | "claude" | "cursor" | "windsurf" | "openclaw";
 
 /**
  * Feature categories for the capability matrix
@@ -79,21 +79,21 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "multipleAgents",
     category: "agents",
     description: "Support for multiple agent definitions",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "full" },
+    support: { oac: "full", claude: "full", cursor: "none", windsurf: "full", openclaw: "full" },
     notes: { cursor: "Single .cursorrules file only - agents will be merged" },
   },
   {
     name: "agentModes",
     category: "agents",
     description: "Primary/subagent mode distinction",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial" },
+    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial", openclaw: "full" },
     notes: { windsurf: "Limited mode support" },
   },
   {
     name: "agentCategories",
     category: "agents",
     description: "Agent categorization (core, development, etc.)",
-    support: { oac: "full", claude: "partial", cursor: "none", windsurf: "partial" },
+    support: { oac: "full", claude: "partial", cursor: "none", windsurf: "partial", openclaw: "partial" },
   },
 
   // Permission Features
@@ -101,24 +101,25 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "granularPermissions",
     category: "permissions",
     description: "Fine-grained allow/deny/ask patterns",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none" },
+    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none", openclaw: "full" },
     notes: {
       claude: "Binary on/off only",
       cursor: "Binary on/off only",
       windsurf: "Binary on/off only",
+      openclaw: "Full granular via before_tool_call hook (no degradation)",
     },
   },
   {
     name: "askPermissions",
     category: "permissions",
     description: "Interactive permission requests",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none" },
+    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none", openclaw: "full" },
   },
   {
     name: "pathPatterns",
     category: "permissions",
     description: "Glob patterns for file permissions",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "partial" },
+    support: { oac: "full", claude: "none", cursor: "none", windsurf: "partial", openclaw: "full" },
   },
 
   // Tool Features
@@ -126,26 +127,26 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "taskDelegation",
     category: "tools",
     description: "Agent-to-agent task delegation",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial" },
+    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial", openclaw: "full" },
     notes: { cursor: "No delegation support" },
   },
   {
     name: "bashExecution",
     category: "tools",
     description: "Shell command execution",
-    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full" },
+    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full", openclaw: "full" },
   },
   {
     name: "fileOperations",
     category: "tools",
     description: "Read/write/edit file operations",
-    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full" },
+    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full", openclaw: "full" },
   },
   {
     name: "searchOperations",
     category: "tools",
     description: "Grep/glob search operations",
-    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full" },
+    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full", openclaw: "full" },
   },
 
   // Context Features
@@ -153,26 +154,26 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "externalContext",
     category: "context",
     description: "External context file references",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "full" },
+    support: { oac: "full", claude: "full", cursor: "none", windsurf: "full", openclaw: "full" },
     notes: { cursor: "Context must be inline in .cursorrules" },
   },
   {
     name: "contextPriority",
     category: "context",
     description: "Priority levels for context loading",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none" },
+    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none", openclaw: "full" },
   },
   {
     name: "contextSubdirs",
     category: "context",
     description: "Nested context directory structure",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "full" },
+    support: { oac: "full", claude: "full", cursor: "none", windsurf: "full", openclaw: "full" },
   },
   {
     name: "skillsSystem",
     category: "context",
     description: "Loadable skill modules",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial" },
+    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial", openclaw: "full" },
   },
 
   // Model Features
@@ -180,24 +181,25 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "modelSelection",
     category: "model",
     description: "Custom model selection",
-    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full" },
+    support: { oac: "full", claude: "full", cursor: "full", windsurf: "full", openclaw: "full" },
   },
   {
     name: "temperatureControl",
     category: "model",
     description: "Temperature parameter control",
-    support: { oac: "full", claude: "none", cursor: "partial", windsurf: "partial" },
+    support: { oac: "full", claude: "none", cursor: "partial", windsurf: "partial", openclaw: "full" },
     notes: {
       claude: "Temperature not configurable",
       cursor: "Limited range",
       windsurf: "Maps to creativity setting",
+      openclaw: "Maps to params.temperature",
     },
   },
   {
     name: "maxSteps",
     category: "model",
     description: "Maximum execution steps limit",
-    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none" },
+    support: { oac: "full", claude: "none", cursor: "none", windsurf: "none", openclaw: "none" },
   },
 
   // Advanced Features
@@ -205,20 +207,20 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     name: "hooks",
     category: "advanced",
     description: "Event hooks (PreToolUse, PostToolUse, etc.)",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "none" },
+    support: { oac: "full", claude: "full", cursor: "none", windsurf: "none", openclaw: "full" },
     notes: { cursor: "No hook support", windsurf: "No hook support" },
   },
   {
     name: "dependencies",
     category: "advanced",
     description: "Agent dependency declarations",
-    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial" },
+    support: { oac: "full", claude: "full", cursor: "none", windsurf: "partial", openclaw: "partial" },
   },
   {
     name: "priorityLevels",
     category: "advanced",
     description: "Task priority levels",
-    support: { oac: "full", claude: "partial", cursor: "none", windsurf: "partial" },
+    support: { oac: "full", claude: "partial", cursor: "none", windsurf: "partial", openclaw: "partial" },
     notes: { oac: "4 levels", claude: "2 levels", windsurf: "2 levels" },
   },
 ];
@@ -442,12 +444,14 @@ export function getToolCapabilities(
     claude: "Claude Code",
     cursor: "Cursor IDE",
     windsurf: "Windsurf",
+    openclaw: "OpenClaw",
   };
 
   const configFormats: Record<Exclude<Platform, "oac">, ToolCapabilities["configFormat"]> = {
     claude: "json",
     cursor: "plain",
     windsurf: "json",
+    openclaw: "json",
   };
 
   const outputStructures: Record<
@@ -457,6 +461,7 @@ export function getToolCapabilities(
     claude: "directory",
     cursor: "single-file",
     windsurf: "directory",
+    openclaw: "directory",
   };
 
   return {

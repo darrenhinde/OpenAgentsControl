@@ -108,6 +108,7 @@ const DOCUMENTATION_LINKS: Record<Platform, string> = {
   cursor: "https://docs.cursor.com/context/rules-for-ai",
   claude: "https://docs.anthropic.com/en/docs/build-with-claude/computer-use",
   windsurf: "https://docs.codeium.com/windsurf/overview",
+  openclaw: "https://docs.openclaw.ai/",
 };
 
 // ============================================================================

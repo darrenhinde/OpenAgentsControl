@@ -15,6 +15,7 @@ This package provides bidirectional conversion between OpenAgents Control (OAC) 
 - **Claude Code** - Anthropic's official CLI with `config.json` and `agents/*.md`
   [![Claude Code](./docs/migration-guides/claude-code-validation.png)](./docs/migration-guides/oac-to-claude.md)
 - **Windsurf** - AI-powered development environment with JSON config
+- **OpenClaw** - open gateway platform with granular permission support (no degradation)
 
 ## Features
 
@@ -25,6 +26,7 @@ This package provides bidirectional conversion between OpenAgents Control (OAC) 
 - ✅ **Batch migration** - Migrate entire projects at once
 - ✅ **Type-safe** - Full TypeScript with Zod validation
 - ✅ **Extensible** - Plugin architecture for new tools
+- ✅ **OpenClaw adapter** - Full granular permission mapping preserved (allow/deny/ask, no binary degradation)
 
 ## Installation
 

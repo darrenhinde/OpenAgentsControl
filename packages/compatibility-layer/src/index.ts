@@ -157,6 +157,7 @@ export { BaseAdapter } from "./adapters/BaseAdapter.js";
 export { CursorAdapter } from "./adapters/CursorAdapter.js";
 export { ClaudeAdapter } from "./adapters/ClaudeAdapter.js";
 export { WindsurfAdapter } from "./adapters/WindsurfAdapter.js";
+export { OpenClawAdapter } from "./adapters/OpenClawAdapter.js";
 
 // ============================================================================
 // MAPPERS - Feature Translation (Phase 3)
@@ -207,10 +208,13 @@ export {
   hasGranularPermissions,
   hasAskPermissions,
   analyzePermissionDegradation,
+  createPermissionIndex,
   type PermissionPlatform,
   type BinaryPermissions,
   type PermissionMappingResult,
   type DegradationStrategy,
+  type PermissionIndex,
+  type PermissionIndexEntry,
 } from "./mappers/PermissionMapper.js";
 
 /**

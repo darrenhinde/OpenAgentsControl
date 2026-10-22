@@ -17,7 +17,7 @@ import type { ContextReference, SkillReference } from "../types.js";
 // Types
 // ============================================================================
 
-export type ContextPlatform = "oac" | "claude" | "cursor" | "windsurf";
+export type ContextPlatform = "oac" | "claude" | "cursor" | "windsurf" | "openclaw";
 
 /**
  * Result of a context path mapping operation
@@ -78,6 +78,14 @@ const CONTEXT_CONFIGS: Record<ContextPlatform, ContextConfig> = {
     extension: ".md",
     supportsSubdirs: true,
     supportsPriority: false,
+    inlineOnly: false,
+  },
+  openclaw: {
+    // OpenClaw references OAC context files in place (no copy) - same layout as oac
+    baseDir: ".opencode/context",
+    extension: ".md",
+    supportsSubdirs: true,
+    supportsPriority: true,
     inlineOnly: false,
   },
 };

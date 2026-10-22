@@ -20,7 +20,7 @@ import type { ToolAccess } from "../types.js";
 /**
  * Supported tool platforms for mapping
  */
-export type ToolPlatform = "oac" | "claude" | "cursor" | "windsurf";
+export type ToolPlatform = "oac" | "claude" | "cursor" | "windsurf" | "openclaw";
 
 /**
  * Tool mapping configuration for a specific platform
@@ -123,6 +123,29 @@ const TOOL_MAPPINGS: Record<Exclude<ToolPlatform, "oac">, ToolMappingConfig> = {
       delegate: "task",
     },
     unsupported: [], // Windsurf has equivalents for most
+  },
+
+  openclaw: {
+    fromOAC: {
+      bash: "exec",
+      read: "read",
+      write: "write",
+      edit: "edit",
+      glob: "glob",
+      grep: "grep",
+      task: "sessions_spawn", // Subagent delegation
+      patch: "edit",
+    },
+    toOAC: {
+      exec: "bash",
+      read: "read",
+      write: "write",
+      edit: "edit",
+      glob: "glob",
+      grep: "grep",
+      sessions_spawn: "task",
+    },
+    unsupported: [], // OpenClaw has equivalents for all OAC tools
   },
 };
 

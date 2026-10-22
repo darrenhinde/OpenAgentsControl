@@ -336,6 +336,14 @@ export class AdapterRegistry {
     } catch (error) {
       // Adapter not yet implemented - skip silently
     }
+
+    try {
+      // OpenClaw
+      const { OpenClawAdapter } = await import("../adapters/OpenClawAdapter.js");
+      this.register(new OpenClawAdapter(), ["openclaw-gateway"]);
+    } catch (error) {
+      // Adapter not yet implemented - skip silently
+    }
   }
 }
 

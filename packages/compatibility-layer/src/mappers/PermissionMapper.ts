@@ -19,7 +19,7 @@ import type { GranularPermission, PermissionRule } from "../types.js";
 // Types
 // ============================================================================
 
-export type PermissionPlatform = "oac" | "claude" | "cursor" | "windsurf";
+export type PermissionPlatform = "oac" | "claude" | "cursor" | "windsurf" | "openclaw";
 
 /**
  * Binary permission representation used by most tools
@@ -61,6 +61,8 @@ const PLATFORM_CAPABILITIES: Record<
   claude: { supportsGranular: false, supportsAsk: false },
   cursor: { supportsGranular: false, supportsAsk: false },
   windsurf: { supportsGranular: false, supportsAsk: false },
+  // OpenClaw supports full granular permissions + ask via before_tool_call hook (no degradation)
+  openclaw: { supportsGranular: true, supportsAsk: true },
 };
 
 // ============================================================================
@@ -351,4 +353,62 @@ export function analyzePermissionDegradation(
   }
 
   return warnings;
+}
+
+// ============================================================================
+// Permission Index Generation (OpenClaw — no degradation)
+// ============================================================================
+
+/**
+ * A single permission entry: an ordered pattern with its action.
+ * Order matters: consumers apply last-match-wins semantics.
+ */
+export interface PermissionIndexEntry {
+  pattern: string;
+  action: "allow" | "deny" | "ask";
+}
+
+/**
+ * Full permission index for one agent.
+ * tools: { toolName: ordered PermissionIndexEntry[] }
+ */
+export interface PermissionIndex {
+  agentId: string;
+  tools: Record<string, PermissionIndexEntry[]>;
+}
+
+/**
+ * Build a permission index from OAC granular permissions.
+ *
+ * Unlike binary degradation, this preserves the FULL permission table
+ * (pattern + action per tool) so a runtime hook (e.g. OpenClaw's
+ * before_tool_call) can enforce it with no fidelity loss.
+ *
+ * Entry order follows the original declaration order — consumers should
+ * apply LAST-MATCH-WINS (matching the OAC catch-all semantics).
+ *
+ * @param agentId - Agent identifier for the index
+ * @param permissions - OAC granular permission table
+ * @returns Structured permission index
+ */
+export function createPermissionIndex(
+  agentId: string,
+  permissions: GranularPermission
+): PermissionIndex {
+  const tools: Record<string, PermissionIndexEntry[]> = {};
+
+  for (const [tool, rule] of Object.entries(permissions)) {
+    if (rule === "allow" || rule === "deny" || rule === "ask") {
+      tools[tool] = [{ pattern: "*", action: rule }];
+    } else if (typeof rule === "boolean") {
+      tools[tool] = [{ pattern: "*", action: rule ? "allow" : "deny" }];
+    } else if (typeof rule === "object" && rule !== null) {
+      tools[tool] = Object.entries(rule).map(([pattern, action]) => ({
+        pattern,
+        action: action as "allow" | "deny" | "ask",
+      }));
+    }
+  }
+
+  return { agentId, tools };
 }

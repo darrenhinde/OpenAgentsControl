@@ -211,9 +211,9 @@ export class TranslationEngine {
       warnings.push(...contextResult.warnings);
     }
 
-    // Translate skills (Claude-specific)
+    // Translate skills (Claude/OpenClaw-specific)
     let skills: string[] | undefined;
-    if (target === "claude" && agent.frontmatter.skills) {
+    if ((target === "claude" || target === "openclaw") && agent.frontmatter.skills) {
       const skillResult = mapSkillsToClaudeFormat(agent.frontmatter.skills);
       skills = skillResult.skills;
       warnings.push(...skillResult.warnings);

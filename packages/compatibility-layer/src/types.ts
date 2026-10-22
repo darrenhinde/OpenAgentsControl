@@ -89,17 +89,13 @@ export const AgentModeSchema = z.enum(["primary", "subagent", "all"]);
 
 /**
  * Agent categories for organizational purposes.
+ *
+ * NOTE: Kept as a plain string instead of a strict enum. Real OAC metadata
+ * (agent-metadata.json) uses values like "core", "testing", "subagents/core",
+ * "subagents/system-builder" etc. — a strict enum rejected real assets and
+ * broke AgentLoader. Category is organizational metadata, not behavior.
  */
-export const AgentCategorySchema = z.enum([
-  "core",
-  "development",
-  "content",
-  "data",
-  "product",
-  "learning",
-  "meta",
-  "specialist",
-]);
+export const AgentCategorySchema = z.string();
 
 /**
  * Defines whether this is a primary agent or subagent.

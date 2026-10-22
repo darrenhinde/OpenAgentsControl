@@ -18,7 +18,7 @@
 // Types
 // ============================================================================
 
-export type ModelPlatform = "oac" | "claude" | "cursor" | "windsurf";
+export type ModelPlatform = "oac" | "claude" | "cursor" | "windsurf" | "openclaw";
 
 /**
  * Result of a model mapping operation

@@ -199,12 +199,17 @@ const AGENT_FILE_EXTENSIONS = new Set([".md", ".json", ".txt", ""]);
 const isAgentFile = (fileName: string): boolean => {
   const ext = extname(fileName).toLowerCase();
   const baseName = basename(fileName).toLowerCase();
-  
+
   // Always include specific agent file names
   if (baseName === ".cursorrules" || baseName === "cursorrules") {
     return true;
   }
-  
+
+  // Skip OAC category index metadata (0-category.json — directory listing, not an agent)
+  if (baseName === "0-category.json") {
+    return false;
+  }
+
   return AGENT_FILE_EXTENSIONS.has(ext);
 };
 
@@ -459,11 +464,20 @@ const migrateFile = async (
         await writeFile(outputPath, primaryConfig.content, "utf-8");
       }
       
-      // Write additional files if present
+      // Write additional files if present.
+      // Additional config paths are relative to the source file's directory
+      // (targetDir), matching the primary config's output location. Joining
+      // them to dirname(outputPath) would nest them inside the primary
+      // config's own subdirectory (e.g. `.openclaw/agents/.openclaw/...`),
+      // producing wrong paths like `.openclaw/agents/.openclaw/permission-index.json`.
+      const relativeDir = dirname(relativePath);
+      const targetDir = relativeDir === "." ? outputDir : join(outputDir, relativeDir);
+
       for (let i = 1; i < result.configs.length; i++) {
         const additionalConfig = result.configs[i];
         if (additionalConfig) {
-          const additionalPath = join(dirname(outputPath), additionalConfig.fileName);
+          const additionalPath = join(targetDir, additionalConfig.fileName);
+          await mkdir(dirname(additionalPath), { recursive: true });
           await writeFile(additionalPath, additionalConfig.content, "utf-8");
         }
       }

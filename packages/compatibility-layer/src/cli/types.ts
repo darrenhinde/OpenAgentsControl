@@ -153,7 +153,7 @@ export const errorResult = (
 /**
  * Supported AI coding tool platforms
  */
-export type Platform = "oac" | "cursor" | "claude" | "windsurf";
+export type Platform = "oac" | "cursor" | "claude" | "windsurf" | "openclaw";
 
 /**
  * All supported platforms
@@ -163,6 +163,7 @@ export const PLATFORMS: readonly Platform[] = [
   "cursor",
   "claude",
   "windsurf",
+  "openclaw",
 ] as const;
 
 /**
@@ -173,6 +174,7 @@ export const PLATFORM_NAMES: Record<Platform, string> = {
   cursor: "Cursor IDE",
   claude: "Claude Code",
   windsurf: "Windsurf",
+  openclaw: "OpenClaw",
 } as const;
 
 /**
