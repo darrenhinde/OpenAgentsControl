@@ -235,6 +235,24 @@ This is the system prompt for the agent.`;
       expect(result.systemPrompt).toBe("This is the system prompt for the agent.");
     });
 
+    it("strips surrounding quotes from scalar frontmatter values", async () => {
+      // generateClaudeAgentMarkdown emits quoted scalars (name: "..."), so a
+      // fromOAC -> toOAC round-trip must not leave the embedded quotes.
+      const source = `---
+name: "SubAgent"
+description: "A subagent"
+model: "claude-opus-4"
+---
+
+Prompt body`;
+
+      const result = await adapter.toOAC(source);
+
+      expect(result.frontmatter.name).toBe("SubAgent");
+      expect(result.frontmatter.description).toBe("A subagent");
+      expect(result.frontmatter.model).toBe("claude-opus-4");
+    });
+
     it("parses agent.md with model in frontmatter", async () => {
       const source = `---
 name: Agent

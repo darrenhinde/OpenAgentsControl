@@ -276,6 +276,11 @@ export class ClaudeAdapter extends BaseAdapter {
             .slice(1, -1)
             .split(",")
             .map((v) => v.trim().replace(/"/g, ""));
+        } else if (typeof value === "string") {
+          // Strip surrounding quotes from scalar values (matches
+          // CursorAdapter.parseFrontmatter, and undoes the quoting that
+          // generateClaudeAgentMarkdown adds, e.g. name: "...").
+          value = value.replace(/^["']|["']$/g, "");
         }
 
         frontmatter[key] = value;
