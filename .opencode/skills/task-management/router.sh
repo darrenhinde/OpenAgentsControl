@@ -24,7 +24,8 @@ COMMANDS:
   parallel [feature]            Show parallelizable tasks
   deps <feature> <seq>          Show dependency tree
   blocked [feature]             Show blocked tasks
-  complete <feature> <seq> "msg" Mark subtask complete
+  complete <feature> <seq> "msg" Mark subtask complete (verification gate applies)
+  verify <feature> <seq>        Run machine checks and write evidence report
   validate [feature]            Validate JSON files
   context <feature>             Show bounded context breakdown
   contracts <feature>           Show contract dependencies
@@ -41,6 +42,7 @@ EXAMPLES:
   ./router.sh next
   ./router.sh deps my-feature 05
   ./router.sh complete my-feature 05 "Implemented auth module"
+  ./router.sh verify my-feature 05
   ./router.sh validate
   ./router.sh context my-feature
   ./router.sh contracts my-feature
@@ -51,7 +53,8 @@ FEATURES:
   ✓ Track progress across all features
   ✓ Find next eligible tasks (dependencies satisfied)
   ✓ Identify blocked tasks
-  ✓ Mark subtasks complete with summaries
+  ✓ Mark subtasks complete with summaries (machine verification gate)
+  ✓ Verify task completion with executable evidence checks
   ✓ Validate task integrity
   ✓ Show bounded context breakdown
   ✓ Show contract dependencies
@@ -96,13 +99,23 @@ fi
 
 PROJECT_ROOT="$(find_project_root)"
 
+# Resolve a TypeScript runner. bun runs .ts natively; ts-node is a legacy
+# fallback (it fails on node >= 20 with ERR_UNKNOWN_FILE_EXTENSION).
+if command -v bun >/dev/null 2>&1; then
+  RUNNER=(bun run)
+elif command -v npx >/dev/null 2>&1; then
+  RUNNER=(npx -y bun run)
+else
+  RUNNER=(npx ts-node)
+fi
+
 # Route commands
 case "$1" in
   migrate)
-    cd "$PROJECT_ROOT" && npx ts-node "$MIGRATE_SCRIPT" "$@"
+    cd "$PROJECT_ROOT" && "${RUNNER[@]}" "$MIGRATE_SCRIPT" "$@"
     ;;
   *)
     # Run the task CLI with all arguments
-    cd "$PROJECT_ROOT" && npx ts-node "$CLI_SCRIPT" "$@"
+    cd "$PROJECT_ROOT" && "${RUNNER[@]}" "$CLI_SCRIPT" "$@"
     ;;
 esac

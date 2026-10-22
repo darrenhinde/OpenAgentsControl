@@ -11,7 +11,8 @@
  *   parallel [feature]            - Show parallelizable tasks ready to run
  *   deps <feature> <seq>          - Show dependency tree for a task
  *   blocked [feature]             - Show blocked tasks and why
- *   complete <feature> <seq> "summary" - Mark task completed
+ *   complete <feature> <seq> "summary" - Mark task completed (gated by verification)
+ *   verify <feature> <seq>        - Run machine checks and write evidence report
  *   validate [feature]            - Validate JSON files and dependencies
  *
  * Task files are stored in .tmp/tasks/ at the project root:
@@ -22,6 +23,12 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import {
+  runVerification,
+  validateVerificationBlock,
+  VerificationCheck,
+  VerificationReport,
+} from "./verification";
 
 // Find project root (look for .git or package.json)
 function findProjectRoot(): string {
@@ -38,6 +45,33 @@ function findProjectRoot(): string {
 const PROJECT_ROOT = findProjectRoot();
 const TASKS_DIR = path.join(PROJECT_ROOT, '.tmp', 'tasks');
 const COMPLETED_DIR = path.join(TASKS_DIR, 'completed');
+
+// Identifiers come from argv and are joined into filesystem paths: keep them
+// strict so a crafted feature/seq cannot traverse or inject paths.
+const FEATURE_RE = /^[a-z0-9][a-z0-9-]*$/;
+const SEQ_RE = /^\d{2}$/;
+
+function assertFeature(feature: string): void {
+  if (!FEATURE_RE.test(feature)) {
+    console.log(`Error: invalid feature id '${feature}' (expected lowercase slug: a-z, 0-9, -)`);
+    process.exit(1);
+  }
+}
+
+function assertSeq(seq: string): void {
+  if (!SEQ_RE.test(seq)) {
+    console.log(`Error: invalid task seq '${seq}' (expected two digits, e.g. 01)`);
+    process.exit(1);
+  }
+}
+
+/** Atomic write: temp file in the same directory + rename, so a crash mid-write
+ *  cannot leave a truncated tracking JSON behind. */
+function writeFileAtomic(filePath: string, content: string): void {
+  const tmp = `${filePath}.tmp-${process.pid}`;
+  fs.writeFileSync(tmp, content);
+  fs.renameSync(tmp, filePath);
+}
 
 interface Task {
   id: string;
@@ -69,6 +103,8 @@ interface Subtask {
   started_at: string | null;
   completed_at: string | null;
   completion_summary: string | null;
+  /** Machine-executable checks; when present, `complete` refuses to run unless all pass. */
+  verification?: VerificationCheck[];
 }
 
 // Helpers
@@ -76,7 +112,11 @@ function getFeatureDirs(): string[] {
   if (!fs.existsSync(TASKS_DIR)) return [];
   return fs.readdirSync(TASKS_DIR).filter((f: string) => {
     const fullPath = path.join(TASKS_DIR, f);
-    return fs.statSync(fullPath).isDirectory() && f !== 'completed';
+    try {
+      return fs.statSync(fullPath).isDirectory() && f !== 'completed';
+    } catch {
+      return false; // raced removal or broken symlink — skip
+    }
   });
 }
 
@@ -87,6 +127,7 @@ function loadTask(feature: string): Task | null {
 }
 
 function loadSubtasks(feature: string): Subtask[] {
+  assertFeature(feature);
   const featureDir = path.join(TASKS_DIR, feature);
   if (!fs.existsSync(featureDir)) return [];
 
@@ -98,13 +139,94 @@ function loadSubtasks(feature: string): Subtask[] {
 }
 
 function saveSubtask(feature: string, subtask: Subtask): void {
+  assertFeature(feature);
+  assertSeq(subtask.seq);
   const subtaskPath = path.join(TASKS_DIR, feature, `subtask_${subtask.seq}.json`);
-  fs.writeFileSync(subtaskPath, JSON.stringify(subtask, null, 2));
+  writeFileAtomic(subtaskPath, JSON.stringify(subtask, null, 2));
 }
 
 function saveTask(feature: string, task: Task): void {
-  const taskPath = path.join(TASKS_DIR, feature, 'task.json');
-  fs.writeFileSync(taskPath, JSON.stringify(task, null, 2));
+  assertFeature(feature);
+  writeFileAtomic(path.join(TASKS_DIR, feature, 'task.json'), JSON.stringify(task, null, 2));
+}
+
+// Verification (evidence-based completion)
+
+function verificationReportPath(feature: string, seq: string): string {
+  return path.join(TASKS_DIR, feature, `verification_${seq}.json`);
+}
+
+function writeVerificationReport(feature: string, report: VerificationReport): void {
+  fs.writeFileSync(
+    verificationReportPath(feature, report.seq),
+    JSON.stringify(report, null, 2),
+  );
+}
+
+function getVerificationBlock(subtask: Subtask): VerificationCheck[] | null {
+  if (!Object.prototype.hasOwnProperty.call(subtask, 'verification')) return null;
+  return subtask.verification ?? [];
+}
+
+function printCheckResults(report: VerificationReport): void {
+  for (const result of report.results) {
+    const icon = result.passed ? '✓' : '✗';
+    const spec = result.check.type === 'command'
+      ? result.check.command
+      : `${result.check.type}: ${result.check.path}`;
+    console.log(`  ${icon} [${result.check.type}] ${spec}`);
+    if (!result.passed) {
+      console.log(`      ${result.detail}`);
+    }
+  }
+}
+
+/**
+ * Runs a subtask's verification checks and writes the evidence report.
+ * Returns null when the subtask declares no verification block.
+ * Exits the process when the block is malformed or any check fails.
+ */
+function enforceVerification(feature: string, subtask: Subtask): VerificationReport | null {
+  const checks = getVerificationBlock(subtask);
+  if (checks === null) return null;
+
+  const blockErrors = validateVerificationBlock(checks);
+  if (blockErrors.length > 0) {
+    console.log(`Error: invalid verification block in subtask_${subtask.seq}.json:`);
+    for (const e of blockErrors) console.log(`  - ${e}`);
+    process.exit(1);
+  }
+
+  const report = runVerification(checks, feature, subtask.seq, PROJECT_ROOT);
+  writeVerificationReport(feature, report);
+  printCheckResults(report);
+
+  if (!report.passed) {
+    console.log(`\n✗ Verification failed for ${feature}/${subtask.seq} — evidence: verification_${subtask.seq}.json`);
+    process.exit(1);
+  }
+  return report;
+}
+
+function cmdVerify(feature: string, seq: string): void {
+  const subtasks = loadSubtasks(feature);
+  const subtask = subtasks.find(s => s.seq === seq);
+
+  if (!subtask) {
+    console.log(`Task ${seq} not found in ${feature}`);
+    process.exit(1);
+  }
+
+  if (getVerificationBlock(subtask) === null) {
+    console.log(`Task ${feature}/${seq} has no verification block.`);
+    console.log('Add a "verification" array (command | file_exists | file_contains checks) to subtask_' + seq + '.json');
+    process.exit(1);
+  }
+
+  console.log(`\n=== Verification: ${feature}/${seq} ===\n`);
+  const report = enforceVerification(feature, subtask);
+  const total = report?.results.length ?? 0;
+  console.log(`\n✓ All ${total} check(s) passed — report: verification_${seq}.json`);
 }
 
 // Commands
@@ -261,7 +383,9 @@ function cmdBlocked(feature?: string): void {
   }
 }
 
-function cmdComplete(feature: string, seq: string, summary: string): void {
+function cmdComplete(feature: string, seq: string, summary: string, allowUnverified = false): void {
+  assertFeature(feature);
+  assertSeq(seq);
   if (summary.length > 200) {
     console.log('Error: Summary must be max 200 characters');
     process.exit(1);
@@ -272,6 +396,20 @@ function cmdComplete(feature: string, seq: string, summary: string): void {
 
   if (!subtask) {
     console.log(`Task ${seq} not found in ${feature}`);
+    process.exit(1);
+  }
+
+  // Evidence gate: machine checks must pass before the status may change.
+  if (getVerificationBlock(subtask) !== null) {
+    console.log(`\n=== Verification gate: ${feature}/${seq} ===\n`);
+    const report = enforceVerification(feature, subtask);
+    console.log(`\n✓ Verification passed (${report?.results.length ?? 0} check(s))`);
+  } else if (allowUnverified) {
+    console.log('⚠ No verification block — completion is SELF-REPORTED (--allow-unverified)');
+  } else {
+    console.log('Error: task has no verification block — evidence gate cannot pass.');
+    console.log('  Fix: add a "verification" array to the subtask JSON (command | file_exists | file_contains checks).');
+    console.log('  Escape hatch: re-run with --allow-unverified to self-report explicitly.');
     process.exit(1);
   }
 
@@ -447,6 +585,13 @@ function cmdValidate(feature?: string): void {
         errors.push(`${s.seq}: task cannot depend on itself`);
       }
 
+      // Verification block schema (optional, v2.1)
+      if (hasField(s, 'verification')) {
+        for (const e of validateVerificationBlock(s.verification)) {
+          errors.push(`${s.seq}: ${e}`);
+        }
+      }
+
       // Check for missing dependencies
       for (const dep of (Array.isArray(s.depends_on) ? s.depends_on : [])) {
         if (!seqs.has(dep)) {
@@ -524,7 +669,15 @@ switch (command) {
       console.log('Usage: complete <feature> <seq> "summary"');
       process.exit(1);
     }
-    cmdComplete(args[0], args[1], args.slice(2).join(' '));
+    const allowUnverified = args.includes('--allow-unverified');
+    cmdComplete(args[0], args[1], args.slice(2).filter(a => a !== '--allow-unverified').join(' '), allowUnverified);
+    break;
+  case 'verify':
+    if (args.length < 2) {
+      console.log('Usage: verify <feature> <seq>');
+      process.exit(1);
+    }
+    cmdVerify(args[0], args[1]);
     break;
   case 'validate':
     cmdValidate(args[0]);
@@ -543,12 +696,14 @@ Commands:
   parallel [feature]                Show parallelizable tasks ready to run
   deps <feature> <seq>              Show dependency tree for a task
   blocked [feature]                 Show blocked tasks and why
-  complete <feature> <seq> "summary" Mark task completed with summary
+  complete <feature> <seq> "summary" Mark task completed (verification gate applies)
+  verify <feature> <seq>            Run machine checks and write evidence report
   validate [feature]                Validate JSON files and dependencies
 
 Examples:
   npx ts-node task-cli.ts status
   npx ts-node task-cli.ts next my-feature
   npx ts-node task-cli.ts complete my-feature 02 "Implemented auth module"
+  npx ts-node task-cli.ts verify my-feature 02
 `);
 }

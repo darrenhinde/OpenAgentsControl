@@ -45,8 +45,11 @@ bash .opencode/skills/task-management/router.sh next
 # Show blocked tasks
 bash .opencode/skills/task-management/router.sh blocked
 
-# Mark a task complete
+# Mark a task complete (verification gate applies when `verification` is defined)
 bash .opencode/skills/task-management/router.sh complete <feature> <seq> "summary"
+
+# Run machine verification checks and write evidence report
+bash .opencode/skills/task-management/router.sh verify <feature> <seq>
 
 # Validate all tasks
 bash .opencode/skills/task-management/router.sh validate
@@ -61,8 +64,9 @@ bash .opencode/skills/task-management/router.sh validate
 | `parallel [feature]` | Show parallelizable tasks ready to run |
 | `deps <feature> <seq>` | Show dependency tree for a specific subtask |
 | `blocked [feature]` | Show blocked tasks and why |
-| `complete <feature> <seq> "summary"` | Mark subtask complete with summary |
-| `validate [feature]` | Validate JSON files and dependencies |
+| `complete <feature> <seq> "summary"` | Mark subtask complete; tasks without a `verification` block require `--allow-unverified` |
+| `verify <feature> <seq>` | Run machine checks and write evidence report (`verification_{seq}.json`) |
+| `validate [feature]` | Validate JSON files, dependencies, and verification blocks |
 | `help` | Show help message |
 
 ---

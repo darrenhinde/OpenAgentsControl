@@ -125,6 +125,26 @@ task-cli.ts complete my-feature 02 "Created JWT service with RS256 signing"
 - Sets `completion_summary`
 - Updates `task.json` counts
 
+**Verification gate (v2.1)**: a task WITHOUT a `verification` block is refused — pass
+`--allow-unverified` to self-report explicitly. With a block, the CLI runs every machine
+check; on any failure (or malformed block) the task is **not** completed and the CLI exits 1. Fresh evidence is written to `verification_{seq}.json`. Without a verification
+block the legacy self-reported flow applies (a warning is printed).
+
+---
+
+### verify \<feature\> \<seq\>
+
+Run a subtask's machine checks on demand and write the evidence report.
+
+```bash
+task-cli.ts verify my-feature 02
+```
+
+**Effect**:
+- Executes all `verification` checks (command / file_exists / file_contains)
+- Writes `.tmp/tasks/{feature}/verification_{seq}.json` with per-check results and timestamp
+- Exit 0 when all checks pass, exit 1 otherwise (or when the subtask has no verification block)
+
 ---
 
 ### validate [feature]

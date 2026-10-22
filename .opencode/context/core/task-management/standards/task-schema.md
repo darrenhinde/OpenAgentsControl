@@ -1,4 +1,4 @@
-<!-- Context: core/task-schema | Priority: critical | Version: 1.0 | Updated: 2026-02-15 -->
+<!-- Context: core/task-schema | Priority: critical | Version: 2.1 | Updated: 2026-10-01 -->
 
 # Standard: Task JSON Schema
 
@@ -66,6 +66,7 @@ For **enhanced features** (line-number precision, domain modeling, contracts, AD
 | `started_at` | datetime | No | ISO 8601 |
 | `completed_at` | datetime | No | ISO 8601 |
 | `completion_summary` | string | No | What was done (max 200) |
+| `verification` | array | No | Machine-executable checks gating completion (v2.1, see below) |
 
 ---
 
@@ -73,10 +74,41 @@ For **enhanced features** (line-number precision, domain modeling, contracts, AD
 
 ```
 pending → in_progress   (by working agent, when deps satisfied)
-in_progress → completed (by TaskManager, after verification)
+in_progress → completed (by TaskManager, after verification — machine gate when `verification` present)
 * → blocked             (by either, when issue found)
 blocked → pending       (when unblocked)
 ```
+
+---
+
+## Verification Block (v2.1)
+
+Optional per-subtask array of machine-executable checks. When present, `task-cli.ts complete`
+**refuses** to mark the task completed until every check passes; evidence is written to
+`verification_{seq}.json` next to the subtask. `task-cli.ts verify <feature> <seq>` runs the
+checks on demand. Backward compatible: subtasks without the field keep the legacy
+self-reported flow (with a warning).
+
+Check types:
+
+| Type | Fields | Passes when |
+|------|--------|-------------|
+| `command` | `command` (required), `expect_exit` (default 0), `expect_contains`, `timeout_ms` (default 120000) | Command exits with `expect_exit` and combined stdout+stderr contains `expect_contains` (when set) |
+| `file_exists` | `path` (relative to project root) | File exists |
+| `file_contains` | `path`, `expect_contains` | File exists and contains the substring |
+
+```json
+"verification": [
+  { "type": "command", "command": "npx tsc --noEmit" },
+  { "type": "file_exists", "path": "src/auth.ts" },
+  { "type": "file_contains", "path": "src/auth.ts", "expect_contains": "export function login" }
+]
+```
+
+Rules:
+- `path` must be relative and must not traverse outside the project (`..` rejected)
+- The block must be a non-empty array; `task-cli.ts validate` checks its schema
+- Completion status is trustworthy evidence: dependency gating (`next`/`blocked`/`parallel`) inherits only gated completions
 
 ---
 
