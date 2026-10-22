@@ -29,7 +29,7 @@ This launches an interactive interview (5-10 minutes) that guides you through de
 
 ### 1. Slash Command: `/build-context-system`
 
-**Location**: `.opencode/command/build-context-system.md`
+**Location**: `.opencode/command/meta/build-context-system.md`
 
 **Purpose**: Interactive interview that gathers requirements and coordinates system generation
 

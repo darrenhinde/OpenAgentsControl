@@ -48,6 +48,10 @@ REPO_URL="https://github.com/darrenhinde/OpenAgentsControl"
 BRANCH="${OPENCODE_BRANCH:-main}"  # Allow override via environment variable
 RAW_URL="https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/${BRANCH}"
 
+# Local repo override
+LOCAL_REPO_PATH=""
+USE_LOCAL_REPO=false
+
 # Registry URL - supports local fallback for development
 # Priority: 1) REGISTRY_URL env var, 2) Local registry.json, 3) Remote GitHub
 if [ -n "$REGISTRY_URL" ]; then
@@ -72,6 +76,7 @@ SELECTED_COMPONENTS=()
 INSTALL_MODE=""
 PROFILE=""
 NON_INTERACTIVE=false
+LIST_ONLY=false
 CUSTOM_INSTALL_DIR=""  # Set via --install-dir argument
 
 #############################################################################
@@ -1144,8 +1149,23 @@ perform_installation() {
                 # Download file
                 local url="${RAW_URL}/${file_path}"
                 mkdir -p "$(dirname "$dest")"
-                
-                if curl -fsSL "$url" -o "$dest"; then
+
+                local download_ok=false
+                if $USE_LOCAL_REPO; then
+                    # Local filesystem copy
+                    if cp "${LOCAL_REPO_PATH}/${file_path}" "$dest"; then
+                        download_ok=true
+                    else
+                        print_warning "Local file not found: ${LOCAL_REPO_PATH}/${file_path}"
+                    fi
+                else
+                    # Remote fetch
+                    if curl -fsSL "$url" -o "$dest"; then
+                        download_ok=true
+                    fi
+                fi
+
+                if $download_ok; then
                     # Transform paths for global installation
                     if [[ "$INSTALL_DIR" != ".opencode" ]] && [[ "$INSTALL_DIR" != *"/.opencode" ]]; then
                         local expanded_path="${INSTALL_DIR/#\~/$HOME}"
@@ -1189,8 +1209,23 @@ perform_installation() {
             
             # Create parent directory if needed
             mkdir -p "$(dirname "$dest")"
-            
-            if curl -fsSL "$url" -o "$dest"; then
+
+            local download_ok=false
+            if $USE_LOCAL_REPO; then
+                # Local filesystem copy
+                if cp "${LOCAL_REPO_PATH}/${path}" "$dest"; then
+                    download_ok=true
+                else
+                    print_warning "Local file not found: ${LOCAL_REPO_PATH}/${path}"
+                fi
+            else
+                # Remote fetch
+                if curl -fsSL "$url" -o "$dest"; then
+                    download_ok=true
+                fi
+            fi
+
+            if $download_ok; then
                 # Transform paths for global installation (any non-local path)
                 # Local paths: .opencode or */.opencode
                 if [[ "$INSTALL_DIR" != ".opencode" ]] && [[ "$INSTALL_DIR" != *"/.opencode" ]]; then
@@ -1354,6 +1389,22 @@ main() {
                     exit 1
                 fi
                 ;;
+            --fromlocal)
+                if [[ -z "$2" ]]; then
+                    print_error "--fromlocal requires a path"
+                    exit 1
+                fi
+                LOCAL_REPO_PATH="$(cd "$2" && pwd)"
+                USE_LOCAL_REPO=true
+                shift 2
+                ;;
+            --local)
+                # Path of the directory containing install.sh
+                SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+                LOCAL_REPO_PATH="$SCRIPT_DIR"
+                USE_LOCAL_REPO=true
+                shift
+                ;;
             essential|--essential)
                 INSTALL_MODE="profile"
                 PROFILE="essential"
@@ -1385,10 +1436,10 @@ main() {
                 shift
                 ;;
             list|--list)
-                check_dependencies
-                fetch_registry
-                list_components
-                cleanup_and_exit 0
+                # Defer execution until after argument parsing so that
+                # local-repo overrides (--local/--fromlocal) take effect.
+                LIST_ONLY=true
+                shift
                 ;;
             --help|-h|help)
                 print_header
@@ -1404,6 +1455,9 @@ main() {
                 echo -e "${BOLD}Options:${NC}"
                 echo "  --install-dir PATH        Custom installation directory"
                 echo "                            (default: .opencode)"
+                echo "  --local                   Install from the directory containing"
+                echo "                            this script (local repository)"
+                echo "  --fromlocal PATH          Install from a local repository at PATH"
                 echo "  list, --list              List all available components"
                 echo "  help, --help, -h          Show this help message"
                 echo ""
@@ -1435,6 +1489,15 @@ main() {
                 echo -e "  ${CYAN}# Install from URL (non-interactive)${NC}"
                 echo "  curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer"
                 echo ""
+                echo -e "  ${CYAN}# Install from a local repository containing this script${NC} to the current folder"
+                echo "  ~/path/to/OpenAgentsControl/$(basename $0) --local"
+                echo ""
+                echo -e "  ${CYAN}# Install from a local repository at a specific path${NC} to the current folder"
+                echo "  ./$(basename $0) --fromlocal ~/path/to/OpenAgentsControl"
+                echo ""
+                echo -e "  ${CYAN}# List components from a local repository${NC}"
+                echo "  ./$(basename $0) --fromlocal ~/path/to/OpenAgentsControl list"
+                echo ""
                 echo -e "${BOLD}Platform Support:${NC}"
                 echo "  ✓ Linux (bash 3.2+)"
                 echo "  ✓ macOS (bash 3.2+)"
@@ -1464,7 +1527,30 @@ main() {
             exit 1
         fi
     fi
-    
+
+    # Local repo override
+    if $USE_LOCAL_REPO; then
+        print_info "Using local repository at: $LOCAL_REPO_PATH"
+
+        # Local raw path (files directly on disk)
+        RAW_URL="file://${LOCAL_REPO_PATH}"
+
+        # Override registry.json location
+        if [[ -f "${LOCAL_REPO_PATH}/registry.json" ]]; then
+            REGISTRY_URL="file://${LOCAL_REPO_PATH}/registry.json"
+        else
+            print_warning "Local repo missing registry.json — remote fallback will be used"
+        fi
+    fi
+
+    # List-only mode (runs after local override so it sees the right registry)
+    if $LIST_ONLY; then
+        check_dependencies
+        fetch_registry
+        list_components
+        cleanup_and_exit 0
+    fi
+
     check_bash_version
     check_dependencies
     fetch_registry
