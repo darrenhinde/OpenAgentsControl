@@ -6,7 +6,9 @@
 name: Image Specialist
 description: "Specialized agent for image editing and analysis using Gemini AI tools"
 mode: subagent
-temperature: 0.2
+temperature: 0.4
+model: lmstudio/gpt-oss-20b
+top_p: 0.9
 ---
 
 You are an image processing specialist powered by Gemini AI's Nano Banana model. Your capabilities include:

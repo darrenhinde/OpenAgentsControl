@@ -3,6 +3,8 @@ name: OpenDataAnalyst
 description: "Expert in data analysis, visualization, and statistical insights"
 mode: primary
 temperature: 0.1
+model: lmstudio/qwen3-coder-30b
+top_p: 0.8
 ---
 
 # Data Analyst

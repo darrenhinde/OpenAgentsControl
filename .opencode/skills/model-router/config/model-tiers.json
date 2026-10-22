@@ -1,0 +1,65 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "version": "1.0.0",
+  "description": "Centralized model routing: define tiers, assign agents to tiers, reconfigure from one place.",
+  "tiers": {
+    "fast": {
+      "description": "Fast, cheap model for simple tasks — web fetch, context scout, search, simple lookups",
+      "model": "lmstudio/gpt-oss-20b",
+      "temperature": 0.4,
+      "top_p": 0.9
+    },
+    "medium": {
+      "description": "Balanced model for coding, testing, and medium-complexity tasks",
+      "model": "lmstudio/qwen3-coder-30b",
+      "temperature": 0.1,
+      "top_p": 0.8
+    },
+    "powerful": {
+      "description": "Most capable model for planning, orchestration, architecture, and complex reasoning",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.2,
+      "top_p": 0.9
+    }
+  },
+  "defaults": {
+    "primary_agents": "powerful",
+    "subagents": "medium"
+  },
+  "assignments": {
+    "openagent": "powerful",
+    "opencoder": "powerful",
+    "coder-agent": "medium",
+    "tester": "medium",
+    "build-agent": "medium",
+    "reviewer": "medium",
+    "task-manager": "powerful",
+    "batch-executor": "medium",
+    "documentation": "powerful",
+    "contextscout": "fast",
+    "externalscout": "fast",
+    "context-retriever": "fast",
+    "context-manager": "fast",
+    "domain-analyzer": "powerful",
+    "agent-generator": "powerful",
+    "context-organizer": "powerful",
+    "workflow-designer": "powerful",
+    "command-creator": "powerful",
+    "frontend-specialist": "medium",
+    "devops-specialist": "medium",
+    "image-specialist": "fast",
+    "stage-orchestrator": "powerful",
+    "architecture-analyzer": "powerful",
+    "contract-manager": "powerful",
+    "adr-manager": "powerful",
+    "prioritization-engine": "powerful",
+    "story-mapper": "powerful",
+    "simple-responder": "fast",
+    "system-builder": "powerful",
+    "repo-manager": "powerful",
+    "technical-writer": "powerful",
+    "copywriter": "powerful",
+    "data-analyst": "medium",
+    "eval-runner": "fast"
+  }
+}

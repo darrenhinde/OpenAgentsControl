@@ -6,7 +6,9 @@
 name: Simple Responder
 description: "Test agent that responds with 'AWESOME TESTING' - for eval framework testing"
 mode: subagent
-temperature: 0.0
+temperature: 0.4
+model: lmstudio/gpt-oss-20b
+top_p: 0.9
 ---
 
 # Simple Responder - Test Agent

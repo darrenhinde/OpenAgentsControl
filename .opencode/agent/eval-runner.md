@@ -8,7 +8,9 @@ type: utility
 version: 1.0.0
 author: opencode
 mode: subagent
-temperature: 0.2
+temperature: 0.4
+model: lmstudio/gpt-oss-20b
+top_p: 0.9
 ---
 
 # Eval Runner - Test Harness

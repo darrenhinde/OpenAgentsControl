@@ -585,9 +585,53 @@ Approve? [y/n]
 - You want complex agents to use smarter models (e.g., Opus/GPT-5)
 - You want to test different models for different tasks
 
-**How to configure:**
+#### Option 1: Model Router (Recommended)
 
-Edit agent files directly:
+The **Model Router** skill lets you configure per-agent models from a single file — change a tier, re-apply, and all agents in that tier update instantly.
+
+**Quick start:**
+
+```bash
+# See all current assignments
+node .opencode/skills/model-router/scripts/model-router.js status
+
+# Preview changes (no files modified)
+node .opencode/skills/model-router/scripts/model-router.js apply --dry-run
+
+# Apply model settings to all agent frontmatter
+node .opencode/skills/model-router/scripts/model-router.js apply
+```
+
+**How it works:**
+
+Agents are grouped into **tiers** — each tier defines a model, temperature, and top_p. You assign agents to tiers, then `apply` writes the settings to each agent's frontmatter.
+
+| Tier | Purpose | Example Model | Agents |
+|------|---------|---------------|--------|
+| **fast** | Simple tasks: search, context lookup | `lmstudio/gpt-oss-20b` | ContextScout, ExternalScout, etc. |
+| **medium** | Coding, testing, medium tasks | `lmstudio/qwen3-coder-30b` | CoderAgent, TestEngineer, etc. |
+| **powerful** | Planning, orchestration, architecture | `anthropic/claude-sonnet-4-20250514` | OpenAgent, OpenCoder, etc. |
+
+**Reconfigure in one command:**
+
+```bash
+# Change the "fast" tier to a new model
+node .opencode/skills/model-router/scripts/model-router.js tier fast lmstudio/phi-4-mini
+
+# Move a single agent to a different tier
+node .opencode/skills/model-router/scripts/model-router.js assign contextscout medium
+
+# Apply the changes
+node .opencode/skills/model-router/scripts/model-router.js apply
+```
+
+**Config file:** `.opencode/skills/model-router/config/model-tiers.json` — edit directly to add new tiers, change defaults, or bulk-edit assignments.
+
+**Slash command:** `/model-router` in OpenCode — runs `status` by default.
+
+#### Option 2: Edit Agent Files Directly
+
+Edit individual agent files:
 ```bash
 nano .opencode/agent/core/opencoder.md  # local project install
 # Or: nano ~/.config/opencode/agent/core/opencoder.md  # global install

@@ -2,6 +2,9 @@
 name: ContextScout
 description: Discovers and recommends context files from .opencode/context/ ranked by priority. Suggests ExternalScout when a framework/library is mentioned but not found internally.
 mode: subagent
+model: lmstudio/gpt-oss-20b
+temperature: 0.4
+top_p: 0.9
 permission:
   read:
     "*": "allow"

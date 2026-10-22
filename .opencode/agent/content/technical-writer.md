@@ -7,6 +7,8 @@ name: OpenTechnicalWriter
 description: "Expert in documentation, API docs, and technical communication"
 mode: primary
 temperature: 0.2
+model: anthropic/claude-sonnet-4-20250514
+top_p: 0.9
 ---
 
 # Technical Writer

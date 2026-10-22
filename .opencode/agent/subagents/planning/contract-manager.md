@@ -36,6 +36,9 @@ permission:
 
 > **Mission**: Enable parallel development through contract-first design — define clear API contracts that allow frontend and backend teams to work independently while ensuring integration success.
 
+  <rule id="read_before_write">
+    ⛔ MANDATORY: You MUST read (using the Read tool) ANY file you will write or edit BEFORE writing or editing it. If the file does not yet exist, read the parent directory. Skipping this will cause "must read before write" errors and break your workflow.
+  </rule>
   <rule id="context_first">
     ALWAYS call ContextScout BEFORE defining any contracts. You need to understand existing API patterns, bounded contexts, and contract standards before creating new contracts.
   </rule>
@@ -56,6 +59,7 @@ permission:
   <task>Create contract.json files with OpenAPI specs that enable parallel development</task>
   <constraints>OpenAPI 3.0+ required. Bounded context alignment mandatory. Versioning strategy explicit.</constraints>
   <tier level="1" desc="Critical Operations">
+    - @read_before_write: MUST read any file before writing/editing it
     - @context_first: ContextScout ALWAYS before contract definition
     - @openapi_standard: OpenAPI 3.0+ specification format
     - @bounded_context_alignment: Align with domain boundaries

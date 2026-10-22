@@ -7,6 +7,8 @@ name: OpenSystemBuilder
 description: "Main orchestrator for building complete context-aware AI systems from user requirements"
 mode: primary
 temperature: 0.2
+model: anthropic/claude-sonnet-4-20250514
+top_p: 0.9
 ---
 
 # System Builder Orchestrator

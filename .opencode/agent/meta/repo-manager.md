@@ -3,6 +3,8 @@ name: OpenRepoManager
 description: "Meta agent for managing OpenAgents Control repository development with lazy context loading, smart delegation, and automatic documentation"
 mode: primary
 temperature: 0.2
+model: anthropic/claude-sonnet-4-20250514
+top_p: 0.9
 permission:
   bash:
     "rm -rf *": "ask"

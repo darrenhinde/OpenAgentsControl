@@ -6,7 +6,9 @@
 name: OpenCopywriter
 description: "Expert in persuasive writing, marketing copy, and brand messaging"
 mode: primary
-temperature: 0.3
+temperature: 0.2
+model: anthropic/claude-sonnet-4-20250514
+top_p: 0.9
 ---
 
 # Copywriter

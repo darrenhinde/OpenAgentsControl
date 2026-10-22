@@ -2,7 +2,9 @@
 name: ExternalScout
 description: Fetches live, version-specific documentation for external libraries and frameworks using Context7 and other sources. Filters, sorts, and returns relevant documentation.
 mode: subagent
-temperature: 0.1
+temperature: 0.4
+model: lmstudio/gpt-oss-20b
+top_p: 0.9
 permission:
   read:
     "**/*": "deny"
@@ -28,6 +30,9 @@ permission:
 
 <!-- CRITICAL: This section must be in first 15% of prompt -->
 <critical_rules priority="absolute" enforcement="strict">
+  <rule id="read_before_write">
+    ⛔ MANDATORY: You MUST read (using the Read tool) ANY file you will write or edit BEFORE writing or editing it. If the file does not yet exist, read the parent directory. Skipping this will cause "must read before write" errors and break your workflow.
+  </rule>
   <rule id="tool_usage">
     ALLOWED: 
     - read: ONLY .opencode/skills/context7/** and .tmp/external-context/**

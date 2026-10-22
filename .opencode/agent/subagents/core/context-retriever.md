@@ -2,7 +2,9 @@
 name: Context Retriever
 description: Generic context search and retrieval specialist for finding relevant context files, standards, and guides in any repository
 mode: subagent
-temperature: 0.1
+temperature: 0.4
+model: lmstudio/gpt-oss-20b
+top_p: 0.9
 permission:
   bash:
     "*": "deny"

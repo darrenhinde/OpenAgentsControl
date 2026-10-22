@@ -651,6 +651,23 @@
           "refactoring"
         ],
         "category": "standard"
+      },
+      {
+        "id": "model-router",
+        "name": "Model Router",
+        "type": "command",
+        "path": ".opencode/command/model-router.md",
+        "description": "Configure per-agent model routing — view, apply, and manage tier-based model assignments",
+        "tags": [
+          "models",
+          "routing",
+          "configuration",
+          "agents"
+        ],
+        "dependencies": [
+          "skill:model-router"
+        ],
+        "category": "standard"
       }
     ],
     "tools": [
@@ -785,6 +802,28 @@
         "files": [
           ".opencode/skills/context-manager/SKILL.md",
           ".opencode/skills/context-manager/router.sh"
+        ]
+      },
+      {
+        "id": "model-router",
+        "name": "Model Router",
+        "type": "skill",
+        "path": ".opencode/skills/model-router/SKILL.md",
+        "description": "Per-agent model routing with tier-based configuration — assign models to agents by role, reconfigure from one place",
+        "tags": [
+          "models",
+          "routing",
+          "configuration",
+          "agents",
+          "tiers"
+        ],
+        "dependencies": [],
+        "category": "essential",
+        "files": [
+          ".opencode/skills/model-router/SKILL.md",
+          ".opencode/skills/model-router/router.sh",
+          ".opencode/skills/model-router/config/model-tiers.json",
+          ".opencode/skills/model-router/scripts/model-router.js"
         ]
       }
     ],
