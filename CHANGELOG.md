@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.7.2] - 2026-07-14
+
+### Changes
+- ci(security): phase-1 CI hardening — affected-area tests, least privilege, action pinning, dependency governance (#336)
+
 ## [0.7.1] - 2026-01-30
 
 ### Changes
