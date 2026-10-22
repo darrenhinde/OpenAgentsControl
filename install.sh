@@ -219,44 +219,106 @@ check_bash_version() {
     fi
 }
 
+install_dependency_on_windows() {
+    local dep=$1
+
+    if [ "$PLATFORM" != "Windows" ] || [ -z "$dep" ]; then
+        return 1
+    fi
+
+    print_info "Attempting automatic dependency installation for Windows: $dep"
+
+    # Prefer winget (available on modern Windows installs)
+    if command -v winget >/dev/null 2>&1; then
+        if [ "$dep" = "curl" ]; then
+            winget install --exact --id curl.curl --silent --accept-package-agreements --accept-source-agreements >/dev/null 2>&1 || true
+        elif [ "$dep" = "jq" ]; then
+            winget install --exact --id jqlang.jq --silent --accept-package-agreements --accept-source-agreements >/dev/null 2>&1 || true
+        fi
+        if command -v "$dep" >/dev/null 2>&1; then
+            return 0
+        fi
+    fi
+
+    # Fallback to Scoop if available
+    if command -v scoop >/dev/null 2>&1; then
+        scoop install "$dep" >/dev/null 2>&1 || true
+        if command -v "$dep" >/dev/null 2>&1; then
+            return 0
+        fi
+    fi
+
+    # Fallback to Chocolatey
+    if command -v choco >/dev/null 2>&1; then
+        choco install "$dep" -y >/dev/null 2>&1 || true
+        if command -v "$dep" >/dev/null 2>&1; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
 check_dependencies() {
     print_step "Checking dependencies..."
-    
+
     local missing_deps=()
-    
-    if ! command -v curl &> /dev/null; then
+    local unresolved_deps=()
+
+    if ! command -v curl >/dev/null 2>&1; then
         missing_deps+=("curl")
     fi
-    
-    if ! command -v jq &> /dev/null; then
+
+    if ! command -v jq >/dev/null 2>&1; then
         missing_deps+=("jq")
     fi
-    
+
     if [ ${#missing_deps[@]} -ne 0 ]; then
-        print_error "Missing required dependencies: ${missing_deps[*]}"
-        echo ""
-        echo "Please install them:"
-        case "$PLATFORM" in
-            macOS)
-                echo "  brew install ${missing_deps[*]}"
-                ;;
-            Linux)
-                echo "  Ubuntu/Debian: sudo apt-get install ${missing_deps[*]}"
-                echo "  Fedora/RHEL:   sudo dnf install ${missing_deps[*]}"
-                echo "  Arch:          sudo pacman -S ${missing_deps[*]}"
-                ;;
-            Windows)
-                echo "  Git Bash: Install via https://git-scm.com/"
-                echo "  WSL:      sudo apt-get install ${missing_deps[*]}"
-                echo "  Scoop:    scoop install ${missing_deps[*]}"
-                ;;
-            *)
-                echo "  Use your package manager to install: ${missing_deps[*]}"
-                ;;
-        esac
-        exit 1
+        # On Windows, try a best-effort auto-install for missing deps.
+        if [ "$PLATFORM" = "Windows" ]; then
+            for dep in "${missing_deps[@]}"; do
+                if command -v "$dep" >/dev/null 2>&1; then
+                    continue
+                fi
+
+                if ! install_dependency_on_windows "$dep"; then
+                    if ! command -v "$dep" >/dev/null 2>&1; then
+                        unresolved_deps+=("$dep")
+                    fi
+                fi
+            done
+        else
+            unresolved_deps=("${missing_deps[@]}")
+        fi
+
+        # Re-check in case installation succeeded for one or more dependencies.
+        if [ ${#unresolved_deps[@]} -ne 0 ]; then
+            print_error "Missing required dependencies: ${unresolved_deps[*]}"
+            echo ""
+            echo "Please install them:"
+            case "$PLATFORM" in
+                macOS)
+                    echo "  brew install ${unresolved_deps[*]}"
+                    ;;
+                Linux)
+                    echo "  Ubuntu/Debian: sudo apt-get install ${unresolved_deps[*]}"
+                    echo "  Fedora/RHEL:   sudo dnf install ${unresolved_deps[*]}"
+                    echo "  Arch:          sudo pacman -S ${unresolved_deps[*]}"
+                    ;;
+                Windows)
+                    echo "  Git Bash: Install from https://git-scm.com/"
+                    echo "  Scoop:    scoop install ${unresolved_deps[*]}"
+                    echo "  Chocolatey: choco install ${unresolved_deps[*]}"
+                    echo "  WSL:      sudo apt-get install ${unresolved_deps[*]}"
+                    ;;
+                *)
+                    echo "  Use your package manager to install: ${unresolved_deps[*]}"
+                    ;;
+            esac
+            exit 1
+        fi
     fi
-    
+
     print_success "All dependencies found"
 }
 
