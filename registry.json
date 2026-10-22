@@ -671,6 +671,22 @@
         "category": "specialized"
       },
       {
+        "id": "minimax",
+        "name": "MiniMax Image Tool",
+        "type": "tool",
+        "path": ".opencode/tool/minimax/index.ts",
+        "description": "Text-to-image generation using the MiniMax image API",
+        "tags": [
+          "ai",
+          "images",
+          "minimax"
+        ],
+        "dependencies": [
+          "tool:env"
+        ],
+        "category": "specialized"
+      },
+      {
         "id": "env",
         "name": "Environment Manager",
         "type": "tool",

@@ -16,6 +16,17 @@ export {
   default as gemini  // Default export (edit tool)
 } from "./gemini"
 
+// MiniMax image generation tool
+export {
+  generate as minimaxGenerate,
+  generateImage as generateMiniMaxImage,
+  type MiniMaxImageModel,
+  type MiniMaxImageOptions,
+  type MiniMaxImageRegion,
+  type MiniMaxImageResponseFormat,
+  type MiniMaxImageResult,
+} from "./minimax"
+
 // Environment variable utilities
 export {
   loadEnvVariables,
