@@ -1,0 +1,32 @@
+id: rewrite-contextscout-direct-discovery
+name: "Rewrite: ContextScout Discovery Without Extra Ceremony"
+description: |
+  Validates that OpenAgent can use ContextScout directly for discovery work.
+  The focus is delegation clarity, not approval choreography.
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Find the project context files that define coding and documentation standards for this repo.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [task]
+  minToolCalls: 1
+
+assertions:
+  - type: tool_called
+    tool: "task"
+    with_args:
+      subagent_type: "ContextScout"
+
+timeout: 120000
+
+tags:
+  - rewrite
+  - delegation
+  - contextscout

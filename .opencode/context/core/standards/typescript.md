@@ -94,7 +94,7 @@ export function withRetry<T>(fn: () => Promise<T>, maxRetries: number): Promise<
 
 ```typescript
 // ✅ GOOD - Explicit types
-interface User {
+type User {
   id: string
   name: string
   email: string

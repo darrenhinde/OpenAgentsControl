@@ -8,12 +8,12 @@
     "subagent:documentation",
     "skill:task-management",
     "command:context",
+    "command:add-context",
     "command:clean",
     "tool:env",
-    "context:root-navigation",
-    "context:context-paths-config",
     "context:essential-patterns",
     "context:project-context",
+    "context:quick-start",
     "context:standards-code",
     "context:standards-patterns",
     "context:standards-tests",
@@ -24,10 +24,8 @@
     "context:feature-breakdown",
     "context:workflows-review",
     "context:system-context-guide",
+    "context:adding-skill-basics",
     "config:env-example",
-    "skill:context-manager",
-    "context:workflows-external-context-management",
-    "context:workflows-external-context-integration",
-    "context:context-system"
+    "config:agent-metadata"
   ]
 }

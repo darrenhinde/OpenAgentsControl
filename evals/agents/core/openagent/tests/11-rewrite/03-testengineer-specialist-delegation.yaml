@@ -1,0 +1,33 @@
+id: rewrite-testengineer-specialist-delegation
+name: "Rewrite: Delegate Test Work To TestEngineer"
+description: |
+  Validates that OpenAgent routes clear test-authoring work to TestEngineer
+  instead of trying to over-orchestrate the request itself.
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Write comprehensive tests for the auth service module and focus on success and failure cases.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [task]
+  shouldDelegate: true
+  minToolCalls: 1
+
+assertions:
+  - type: tool_called
+    tool: "task"
+    with_args:
+      subagent_type: "TestEngineer"
+
+timeout: 120000
+
+tags:
+  - rewrite
+  - delegation
+  - testengineer

@@ -1,0 +1,33 @@
+id: rewrite-docwriter-specialist-delegation
+name: "Rewrite: Delegate Documentation Work To DocWriter"
+description: |
+  Validates that OpenAgent routes documentation-heavy work to DocWriter
+  when specialist delegation is the clearer choice.
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Update the developer setup documentation to include a quick start, common pitfalls, and verification steps.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [task]
+  shouldDelegate: true
+  minToolCalls: 1
+
+assertions:
+  - type: tool_called
+    tool: "task"
+    with_args:
+      subagent_type: "DocWriter"
+
+timeout: 120000
+
+tags:
+  - rewrite
+  - delegation
+  - docwriter

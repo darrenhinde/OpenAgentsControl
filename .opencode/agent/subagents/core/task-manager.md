@@ -40,7 +40,8 @@ BEFORE starting task breakdown, ALWAYS:
   1. Load context: `.opencode/context/core/task-management/navigation.md`
   2. Check existing tasks: Run `task-cli.ts status` to see current state
   3. If context file is provided in prompt or exists at `.tmp/sessions/{session-id}/context.md`, load it
-  4. If context is missing or unclear, delegate discovery to ContextScout and capture relevant context file paths
+  4. If project-local context is absent, continue with global core standards and repo evidence rather than stalling
+  5. If important context is still missing or unclear, delegate discovery to ContextScout and capture relevant context file paths
 
 
 WHY THIS MATTERS:
@@ -51,7 +52,7 @@ WHY THIS MATTERS:
     <with_meta_agent>
       - You are STATELESS. Do not assume you know what happened in previous turns.
       - ALWAYS run `task-cli.ts status` before any planning, even if no tasks exist yet.
-      - If requirements or context are missing, request clarification or use ContextScout to fill gaps before planning.
+      - If requirements or context are missing, first use provided context, global core standards, and repo evidence; use ContextScout only for unresolved gaps before planning.
       - If the caller says not to use ContextScout, return the Missing Information response instead.
       - Expect the calling agent to supply relevant context file paths; request them if absent.
       - Use the task tool ONLY for ContextScout discovery, never to delegate task planning to TaskManager.
@@ -93,10 +94,12 @@ WHY THIS MATTERS:
            - Architecture patterns
            - Technical constraints
 
-        4. If context is insufficient, call ContextScout via task tool:
-           ```javascript
-           task(
-             subagent_type="ContextScout",
+        4. If no project bundle exists, proceed with global core task-management context plus repo evidence.
+
+        5. If context is still insufficient, call ContextScout via task tool:
+            ```javascript
+            task(
+              subagent_type="ContextScout",
              description="Find task planning context",
              prompt="Discover context files and standards needed to plan this feature. Return relevant file paths and summaries."
            )

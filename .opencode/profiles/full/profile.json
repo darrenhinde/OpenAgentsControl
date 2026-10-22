@@ -1,6 +1,6 @@
 {
   "name": "Full",
-  "description": "Everything included - all agents, subagents, tools, and plugins for maximum functionality.",
+  "description": "Everything included - all agents, subagents, tools, and plugins for maximum functionality. Includes UI/UX patterns, development principles, and design systems.",
   "components": [
     "agent:openagent",
     "agent:opencoder",
@@ -22,6 +22,7 @@
     "command:test",
     "command:commit",
     "command:context",
+    "command:add-context",
     "command:clean",
     "command:optimize",
     "command:prompt-enhancer",
@@ -30,19 +31,26 @@
     "command:analyze-patterns",
     "tool:env",
     "tool:gemini",
-    "context:root-navigation",
-    "context:context-paths-config",
+    "plugin:notify",
     "context:essential-patterns",
     "context:project-context",
     "context:quick-start",
     "context:core/*",
     "context:project-intelligence/*",
     "context:adding-skill-basics",
+    "context:ui/*",
+    "context:development/*",
+    "context:design-systems",
+    "context:react-patterns",
+    "context:animation-basics",
+    "context:animation-components",
+    "context:animation-advanced",
+    "context:ui-styling-standards",
+    "context:clean-code",
+    "context:api-design",
     "config:env-example",
+    "config:agent-metadata",
     "config:readme",
-    "skill:context-manager",
-    "context:workflows-external-context-management",
-    "context:workflows-external-context-integration",
-    "context:context-system"
+    "context:openagents-repo/*"
   ]
 }

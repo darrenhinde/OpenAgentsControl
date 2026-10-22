@@ -12,21 +12,20 @@
     "subagent:image-specialist",
     "skill:task-management",
     "command:context",
+    "command:add-context",
     "command:clean",
     "command:prompt-enhancer",
     "tool:env",
     "tool:gemini",
-    "context:root-navigation",
-    "context:context-paths-config",
+    "plugin:notify",
     "context:essential-patterns",
     "context:project-context",
+    "context:quick-start",
     "context:core/*",
     "context:project-intelligence/*",
+    "context:adding-skill-basics",
     "config:env-example",
-    "config:readme",
-    "skill:context-manager",
-    "context:workflows-external-context-management",
-    "context:workflows-external-context-integration",
-    "context:context-system"
+    "config:agent-metadata",
+    "config:readme"
   ]
 }

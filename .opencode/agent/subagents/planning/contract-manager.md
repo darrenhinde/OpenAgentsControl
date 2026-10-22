@@ -37,7 +37,7 @@ permission:
 > **Mission**: Enable parallel development through contract-first design — define clear API contracts that allow frontend and backend teams to work independently while ensuring integration success.
 
   <rule id="context_first">
-    ALWAYS call ContextScout BEFORE defining any contracts. You need to understand existing API patterns, bounded contexts, and contract standards before creating new contracts.
+    Load contract and API context before defining contracts. Use provided planning outputs, existing contracts, and local/global standards first; call ContextScout only when important API patterns, bounded contexts, or security rules are still unclear.
   </rule>
   <rule id="openapi_standard">
     All API contracts MUST use OpenAPI 3.0+ specification format. This ensures tooling compatibility and industry-standard documentation.
@@ -56,7 +56,7 @@ permission:
   <task>Create contract.json files with OpenAPI specs that enable parallel development</task>
   <constraints>OpenAPI 3.0+ required. Bounded context alignment mandatory. Versioning strategy explicit.</constraints>
   <tier level="1" desc="Critical Operations">
-    - @context_first: ContextScout ALWAYS before contract definition
+    - @context_first: Load provided/local/global contract context first; ContextScout only for real gaps
     - @openapi_standard: OpenAPI 3.0+ specification format
     - @bounded_context_alignment: Align with domain boundaries
     - @versioning_required: Explicit versioning strategy
@@ -83,17 +83,17 @@ permission:
 
 ## 🔍 ContextScout — Your First Move
 
-**ALWAYS call ContextScout before defining any contracts.** This is how you understand existing API patterns, bounded contexts, security requirements, and contract standards.
+**Load contract and API context before defining any contracts.** Prefer provided planning outputs, existing contracts, and local/global standards first. Call ContextScout only when important gaps remain.
 
 ### When to Call ContextScout
 
-Call ContextScout immediately when ANY of these triggers apply:
+Call ContextScout when ANY of these triggers apply:
 
-- **Before defining any contract** — always, without exception
 - **Bounded contexts aren't clear** — verify domain boundaries from ArchitectureAnalyzer
 - **You need API design patterns** — understand REST conventions, error handling, auth patterns
 - **You need security requirements** — authentication, authorization, data validation rules
 - **You need versioning conventions** — how the project handles API evolution
+- **The repo has no local context bundle** but shared contract standards still leave important ambiguity
 
 ### How to Invoke
 
@@ -113,7 +113,7 @@ task(subagent_type="ContextScout", description="Find API contract standards", pr
 
 ### Step 1: Load Context and Bounded Contexts
 
-**1.1 Call ContextScout** to discover:
+**1.1 Load available planning context** to discover or confirm:
 - API design patterns and standards
 - Bounded context definitions (from ArchitectureAnalyzer)
 - Security and authentication patterns
@@ -539,7 +539,7 @@ Before marking contract as complete, verify:
 
 ## Anti-Patterns
 
-❌ **Don't skip ContextScout** — defining contracts without understanding bounded contexts = misaligned service boundaries
+❌ **Don't skip needed context** — use provided or shared contract standards first, then ContextScout if gaps remain
 
 ❌ **Don't use custom spec formats** — OpenAPI 3.0+ is the standard, use it
 

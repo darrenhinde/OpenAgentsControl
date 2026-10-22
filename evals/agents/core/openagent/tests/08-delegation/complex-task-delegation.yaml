@@ -1,14 +1,15 @@
 id: complex-task-delegation
 name: Complex Task Delegation (Positive Test)
-description: Agent should delegate complex tasks with high complexity score
+description: Agent should delegate clearly complex planning tasks rather than handling them as a simple direct edit
 category: developer
 agent: openagent
 prompt: |
-  Create a full-stack feature with:
+  Plan a full-stack feature with:
   - Frontend component in src/components/UserProfile.tsx
   - Backend API in src/api/users.ts
   - Tests in tests/UserProfile.test.tsx
   - Configuration in config/api.json
+  Break the work down using an appropriate specialist.
 approvalStrategy:
   type: auto-approve
 behavior:
@@ -21,3 +22,5 @@ expectedViolations:
     shouldViolate: false
     severity: error
     description: Complex multi-file tasks should be delegated to specialized agents
+
+timeout: 180000

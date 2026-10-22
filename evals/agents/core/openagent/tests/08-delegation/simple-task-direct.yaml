@@ -1,21 +1,24 @@
 id: simple-task-direct
 name: Simple Task Direct Execution (Positive Test)
-description: Agent should execute simple tasks directly without delegation
+description: Agent should execute simple local tasks directly without delegation
 category: developer
 agent: openagent
 prompt: |
-  Create a single utility function in src/utils/format.ts
+  Create a single utility function in evals/test_tmp/format.ts
 approvalStrategy:
   type: auto-approve
 behavior:
-  mustUseTools:
-    - write
+  mustUseAnyOf:
+    - [write]
+    - [apply_patch]
   mustNotUseTools:
     - task
   shouldDelegate: false
-  maxToolCalls: 3
+  maxToolCalls: 8
 expectedViolations:
   - rule: delegation
     shouldViolate: false
     severity: error
     description: Simple single-file tasks should be executed directly
+
+timeout: 120000

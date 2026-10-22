@@ -58,29 +58,39 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
    */
   private readonly CONTEXT_FILE_MAP: Record<TaskType, string[]> = {
     'code': [
+      '.opencode/context/core/standards/code-quality.md',
       '.opencode/context/core/standards/code.md',
       'standards/code.md',
-      'code.md'
+      'code.md',
+      'code-quality.md'
     ],
     'docs': [
+      '.opencode/context/core/standards/documentation.md',
       '.opencode/context/core/standards/docs.md',
       'standards/docs.md',
-      'docs.md'
+      'docs.md',
+      'documentation.md'
     ],
     'tests': [
+      '.opencode/context/core/standards/test-coverage.md',
       '.opencode/context/core/standards/tests.md',
       'standards/tests.md',
-      'tests.md'
+      'tests.md',
+      'test-coverage.md'
     ],
     'review': [
+      '.opencode/context/core/workflows/code-review.md',
       '.opencode/context/core/workflows/review.md',
       'workflows/review.md',
-      'review.md'
+      'review.md',
+      'code-review.md'
     ],
     'delegation': [
+      '.opencode/context/core/workflows/task-delegation-basics.md',
       '.opencode/context/core/workflows/delegation.md',
       'workflows/delegation.md',
-      'delegation.md'
+      'delegation.md',
+      'task-delegation-basics.md'
     ],
     'bash-only': [], // No context required
     'unknown': []    // Any context file acceptable
@@ -106,14 +116,9 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
       }
     }
     
-    // Check for delegation
-    const hasTaskTool = executionTools.some(tool => tool.data?.tool === 'task');
-    if (hasTaskTool) {
-      return 'delegation';
-    }
-    
-    // Classify by message content (order matters - most specific first)
+    // Classify by message content first (order matters - most specific first)
     const patterns: [RegExp, TaskType][] = [
+      [/\b(delegate|delegation|subagent|taskmanager|break down|breakdown|plan\b.*feature|plan\b.*task)\b/i, 'delegation'],
       [/test|spec|jest|vitest|mocha|pytest|unittest/i, 'tests'],
       [/document|readme|docs|jsdoc|tsdoc|docstring/i, 'docs'],
       [/review|audit|check|analyze|inspect/i, 'review'],
@@ -125,6 +130,13 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
       if (pattern.test(message)) {
         return taskType;
       }
+    }
+
+    // Fallback: if task tool was used and the message did not clearly describe
+    // code/docs/tests/review work, treat it as delegation.
+    const hasTaskTool = executionTools.some(tool => tool.data?.tool === 'task');
+    if (hasTaskTool) {
+      return 'delegation';
     }
     
     return 'unknown';

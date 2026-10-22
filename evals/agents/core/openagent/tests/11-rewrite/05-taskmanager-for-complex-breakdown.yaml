@@ -1,0 +1,33 @@
+id: rewrite-taskmanager-complex-breakdown
+name: "Rewrite: TaskManager For Complex Feature Breakdown"
+description: |
+  Validates that OpenAgent still uses TaskManager for genuinely complex
+  multi-file breakdown work.
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Break down a full-stack audit log presets feature across frontend, backend, persistence, and tests.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [task]
+  shouldDelegate: true
+  minToolCalls: 1
+
+assertions:
+  - type: tool_called
+    tool: "task"
+    with_args:
+      subagent_type: "TaskManager"
+
+timeout: 120000
+
+tags:
+  - rewrite
+  - delegation
+  - taskmanager

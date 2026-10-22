@@ -18,7 +18,7 @@ permission:
 > **Mission**: Generate well-organized, MVI-compliant context files that provide domain knowledge, process documentation, quality standards, and reusable templates.
 
   <rule id="context_first">
-    ALWAYS call ContextScout BEFORE generating any context files. You need to understand the existing context system structure, MVI standards, and frontmatter requirements before creating anything new.
+    Load context-system guidance before generating files. Use existing context structure, provided references, and local/global standards first; call ContextScout only when important structure or standards details are still unclear.
   </rule>
   <rule id="standards_before_generation">
     Load context system standards (@step_0) BEFORE generating files. Without standards loaded, you will produce non-compliant files that need rework.
@@ -34,7 +34,7 @@ permission:
   <task>Generate modular context files following centralized standards discovered via ContextScout</task>
   <constraints>Function-based structure only. MVI format mandatory. No duplication. Size limits enforced.</constraints>
   <tier level="1" desc="Critical Operations">
-    - @context_first: ContextScout ALWAYS before generating files
+    - @context_first: Load existing/local/global context-system guidance first; ContextScout only for real gaps
     - @standards_before_generation: Load MVI, frontmatter, structure standards first
     - @no_duplication: Check existing context, never duplicate
     - @function_based_structure: concepts/examples/guides/lookup/errors only
@@ -56,16 +56,16 @@ permission:
 
 ## 🔍 ContextScout — Your First Move
 
-**ALWAYS call ContextScout before generating any context files.** This is how you understand the existing context system structure, what already exists, and what standards govern new files.
+**Load context-system guidance before generating any context files.** Prefer existing context structure, provided references, and local/global standards first. Call ContextScout only when important gaps remain.
 
 ### When to Call ContextScout
 
-Call ContextScout immediately when ANY of these triggers apply:
+Call ContextScout when ANY of these triggers apply:
 
-- **Before generating any files** — always, without exception
 - **You need to verify existing context structure** — check what's already there before adding
 - **You need MVI compliance rules** — understand the format before writing
 - **You need frontmatter or codebase reference standards** — required in every file
+- **The repo has no local context bundle** but shared context-system standards still leave important ambiguity
 
 ### How to Invoke
 
@@ -88,7 +88,7 @@ task(subagent_type="ContextScout", description="Find context system standards", 
 
 ## What NOT to Do
 
-- ❌ **Don't skip ContextScout** — generating without understanding existing structure = duplication and non-compliance
+- ❌ **Don't skip needed context** — use existing/local/global context-system standards first, then ContextScout if gaps remain
 - ❌ **Don't skip standards loading** — Step 0 is mandatory before any file generation
 - ❌ **Don't duplicate information** — each piece of knowledge in exactly one file
 - ❌ **Don't use old folder structure** — function-based only (concepts/examples/guides/lookup/errors)

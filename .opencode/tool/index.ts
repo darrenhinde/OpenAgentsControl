@@ -1,27 +1,14 @@
 /**
  * OpenCode Gemini Tool - Main entry point
- * 
- * This module provides image generation, editing, and analysis capabilities
- * using Google's Gemini AI models, along with environment variable utilities.
+ *
+ * Intentionally empty. opencode >= 1.14.49 scans `.opencode/tool/index.ts`
+ * as a tool module during ToolRegistry.state(); any re-exports from this
+ * barrel cause `TypeError: Object.entries requires that input parameter not
+ * be null or undefined` and crash session startup with "Unexpected server
+ * error". Tools live in their own subdirectories and are auto-discovered
+ * directly (e.g. `./gemini`); consumers should import from those paths.
+ *
+ * If you need the env helpers, import them directly from "./env":
+ *   import { loadEnvVariables, getApiKey } from "./env"
  */
-
-// Gemini AI image tools
-export {
-  generate,           // Generate images from text prompts
-  edit,              // Edit existing images with text instructions
-  analyze,           // Analyze images and answer questions about them
-  generateImage,     // Core image generation function
-  editImage,         // Core image editing function
-  analyzeImage,      // Core image analysis function
-  default as gemini  // Default export (edit tool)
-} from "./gemini"
-
-// Environment variable utilities
-export {
-  loadEnvVariables,
-  getEnvVariable,
-  getRequiredEnvVariable,
-  getRequiredEnvVariables,
-  getApiKey,
-  type EnvLoaderConfig
-} from "./env"
+export {}

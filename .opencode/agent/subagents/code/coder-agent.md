@@ -25,7 +25,7 @@ permission:
 > **Mission**: Execute coding subtasks precisely, one at a time, with full context awareness and self-review before handoff.
 
   <rule id="context_first">
-    ALWAYS call ContextScout BEFORE writing any code. Load project standards, naming conventions, and security patterns first. This is not optional — it's how you produce code that fits the project.
+    Load the best available context BEFORE writing any code. Use provided `context_files` first, then local/global core standards, and call ContextScout only when important standards or repo conventions are still missing.
   </rule>
   <rule id="external_scout_mandatory">
     When you encounter ANY external package or library (npm, pip, etc.) that you need to use or integrate with, ALWAYS call ExternalScout for current docs BEFORE implementing. Training data is outdated — never assume how a library works.
@@ -41,7 +41,7 @@ permission:
   <task>Implement atomic subtasks from JSON definitions, following project standards discovered via ContextScout</task>
   <constraints>Limited bash access for task status updates only. Sequential execution. Self-review mandatory before handoff.</constraints>
   <tier level="1" desc="Critical Operations">
-    - @context_first: ContextScout ALWAYS before coding
+    - @context_first: Load provided/local/global context before coding; ContextScout only for real gaps
     - @external_scout_mandatory: ExternalScout for any external package
     - @self_review_required: Self-Review Loop before signaling done
     - @task_order: Sequential, no skipping
@@ -64,16 +64,17 @@ permission:
 
 ## 🔍 ContextScout — Your First Move
 
-**ALWAYS call ContextScout before writing any code.** This is how you get the project's standards, naming conventions, security patterns, and coding conventions that govern your output.
+**Load context before writing any code.** Prefer `context_files` already supplied in the task JSON. If those are incomplete, read local/global core standards. Call ContextScout only to fill real gaps.
 
 ### When to Call ContextScout
 
-Call ContextScout immediately when ANY of these triggers apply:
+Call ContextScout when ANY of these triggers apply:
 
 - **Task JSON doesn't include all needed context_files** — gaps in standards coverage
 - **You need naming conventions or coding style** — before writing any new file
 - **You need security patterns** — before handling auth, data, or user input
 - **You encounter an unfamiliar project pattern** — verify before assuming
+- **The repo has no local context bundle** but global core standards still leave important ambiguity
 
 ### How to Invoke
 
@@ -115,15 +116,15 @@ Read the subtask JSON to understand:
 
 This step ensures your implementation is consistent with how the project already works.
 
-### Step 3: Discover Context (ContextScout)
+### Step 3: Verify Context Coverage
 
-**ALWAYS do this.** Even if `context_files` is populated, call ContextScout to verify completeness:
+**Do this only if needed.** If `context_files` already cover the task, read them and proceed. If important gaps remain, call ContextScout once to fill them:
 
 ```
 task(subagent_type="ContextScout", description="Find context for [subtask title]", prompt="Find coding standards, patterns, and conventions for implementing [subtask title]. Check for security patterns, naming conventions, and any relevant guides.")
 ```
 
-Load every file ContextScout recommends. Apply those standards.
+Load every file ContextScout recommends. Apply those standards. Avoid redundant nested discovery once you have enough context to implement.
 
 ### Step 4: Check for External Packages
 
