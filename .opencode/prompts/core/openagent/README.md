@@ -193,8 +193,9 @@ open ../results/index.html
 ### `minimax.md` - MiniMax Optimized
 
 **Target Models:**
-- `minimax/MiniMax-M2.7` (latest, 1M context window)
-- `minimax/MiniMax-M2.7-highspeed` (same performance, faster)
+- `minimax/MiniMax-M3` (latest flagship, default — 512K context, 128K max output, image input)
+- `minimax/MiniMax-M2.7` (previous generation, 1M context window)
+- `minimax/MiniMax-M2.7-highspeed` (previous generation, faster)
 
 **Optimizations:**
 - Structured with clear sections and explicit instructions
@@ -214,12 +215,12 @@ open ../results/index.html
 
 **Known Issues:** None documented yet
 
-**Use When:** Using MiniMax models (M2.7 family)
+**Use When:** Using MiniMax models (M3 recommended, M2.7 family for legacy)
 
 **Setup:**
 1. Get your API key from [MiniMax Platform](https://platform.minimax.io)
 2. Set `MINIMAX_API_KEY` in your environment
-3. Configure model: `minimax/MiniMax-M2.7` or `minimax/MiniMax-M2.7-highspeed`
+3. Configure model: `minimax/MiniMax-M3` (recommended), `minimax/MiniMax-M2.7`, or `minimax/MiniMax-M2.7-highspeed`
 
 ---
 

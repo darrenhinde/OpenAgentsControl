@@ -10,12 +10,24 @@ import { MODEL_BEHAVIORS, getModelBehavior, calculateModelTimeout } from '../mod
 
 describe('MiniMax Model Behaviors', () => {
   describe('MODEL_BEHAVIORS registry', () => {
+    it('should include MiniMax-M3 entry', () => {
+      expect(MODEL_BEHAVIORS['MiniMax-M3']).toBeDefined();
+    });
+
     it('should include MiniMax-M2.7 entry', () => {
       expect(MODEL_BEHAVIORS['MiniMax-M2.7']).toBeDefined();
     });
 
     it('should include MiniMax-M2.7-highspeed entry', () => {
       expect(MODEL_BEHAVIORS['MiniMax-M2.7-highspeed']).toBeDefined();
+    });
+
+    it('should have correct properties for MiniMax-M3', () => {
+      const behavior = MODEL_BEHAVIORS['MiniMax-M3'];
+      expect(behavior.sendsCompletionText).toBe(true);
+      expect(behavior.mayEndWithToolCalls).toBe(false);
+      expect(behavior.typicalResponseTime).toBe(8000);
+      expect(behavior.toolCompletionGrace).toBe(4000);
     });
 
     it('should have correct properties for MiniMax-M2.7', () => {
@@ -42,6 +54,11 @@ describe('MiniMax Model Behaviors', () => {
   });
 
   describe('getModelBehavior()', () => {
+    it('should return exact match for MiniMax-M3', () => {
+      const behavior = getModelBehavior('MiniMax-M3');
+      expect(behavior).toBe(MODEL_BEHAVIORS['MiniMax-M3']);
+    });
+
     it('should return exact match for MiniMax-M2.7', () => {
       const behavior = getModelBehavior('MiniMax-M2.7');
       expect(behavior).toBe(MODEL_BEHAVIORS['MiniMax-M2.7']);
@@ -50,6 +67,11 @@ describe('MiniMax Model Behaviors', () => {
     it('should return exact match for MiniMax-M2.7-highspeed', () => {
       const behavior = getModelBehavior('MiniMax-M2.7-highspeed');
       expect(behavior).toBe(MODEL_BEHAVIORS['MiniMax-M2.7-highspeed']);
+    });
+
+    it('should return partial match for minimax/MiniMax-M3', () => {
+      const behavior = getModelBehavior('minimax/MiniMax-M3');
+      expect(behavior.typicalResponseTime).toBe(8000);
     });
 
     it('should return partial match for minimax/MiniMax-M2.7', () => {
@@ -64,6 +86,11 @@ describe('MiniMax Model Behaviors', () => {
   });
 
   describe('calculateModelTimeout()', () => {
+    it('should calculate timeout for MiniMax-M3', () => {
+      const timeout = calculateModelTimeout(30000, 'MiniMax-M3');
+      expect(timeout).toBeGreaterThanOrEqual(24000); // At least 3x typicalResponseTime
+    });
+
     it('should calculate timeout for MiniMax-M2.7', () => {
       const timeout = calculateModelTimeout(30000, 'MiniMax-M2.7');
       expect(timeout).toBeGreaterThanOrEqual(24000); // At least 3x typicalResponseTime

@@ -29,11 +29,15 @@ describe('MiniMax Prompt Variant', () => {
       expect(content).toContain('model_family: "minimax"');
     });
 
-    it('should recommend MiniMax-M2.7 as primary model', () => {
+    it('should recommend MiniMax-M3 as primary model', () => {
+      expect(content).toContain('minimax/MiniMax-M3');
+    });
+
+    it('should retain MiniMax-M2.7 as legacy alternative', () => {
       expect(content).toContain('minimax/MiniMax-M2.7');
     });
 
-    it('should recommend MiniMax-M2.7-highspeed as alternative', () => {
+    it('should retain MiniMax-M2.7-highspeed as legacy alternative', () => {
       expect(content).toContain('minimax/MiniMax-M2.7-highspeed');
     });
 

@@ -28,8 +28,9 @@ permissions:
 # Prompt Metadata
 model_family: "minimax"
 recommended_models:
-  - "minimax/MiniMax-M2.7"               # Latest, peak performance (1M context)
-  - "minimax/MiniMax-M2.7-highspeed"     # Same performance, faster and more agile
+  - "minimax/MiniMax-M3"                 # Latest flagship, default (512K context, 128K max output)
+  - "minimax/MiniMax-M2.7"               # Previous generation, peak performance (1M context)
+  - "minimax/MiniMax-M2.7-highspeed"     # Previous generation, faster and more agile
 tested_with: null
 last_tested: null
 maintainer: "community"

@@ -30,6 +30,12 @@ describe('MiniMax Integration', () => {
   });
 
   describe('model behavior integration', () => {
+    it('should resolve MiniMax-M3 via provider prefix', () => {
+      const behavior = getModelBehavior('minimax/MiniMax-M3');
+      expect(behavior).not.toBe(MODEL_BEHAVIORS['default']);
+      expect(behavior.typicalResponseTime).toBe(8000);
+    });
+
     it('should resolve MiniMax-M2.7 via provider prefix', () => {
       const behavior = getModelBehavior('minimax/MiniMax-M2.7');
       expect(behavior).not.toBe(MODEL_BEHAVIORS['default']);
@@ -43,10 +49,13 @@ describe('MiniMax Integration', () => {
     });
 
     it('should calculate appropriate timeouts for eval tests', () => {
+      const m3Timeout = calculateModelTimeout(30000, 'minimax/MiniMax-M3');
       const standardTimeout = calculateModelTimeout(30000, 'minimax/MiniMax-M2.7');
       const highspeedTimeout = calculateModelTimeout(30000, 'minimax/MiniMax-M2.7-highspeed');
 
-      // Both should be reasonable for eval tests
+      // All should be reasonable for eval tests
+      expect(m3Timeout).toBeGreaterThanOrEqual(24000);
+      expect(m3Timeout).toBeLessThanOrEqual(120000);
       expect(standardTimeout).toBeGreaterThanOrEqual(24000);
       expect(standardTimeout).toBeLessThanOrEqual(120000);
       expect(highspeedTimeout).toBeGreaterThanOrEqual(15000);
