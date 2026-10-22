@@ -1,4 +1,5 @@
 ---
+name: oac:help
 description: "Show OAC workflow overview and available skills"
 disable-model-invocation: true
 ---

@@ -1,4 +1,4 @@
-import type { Ability, LoadedAbility, ExecutorContext, AbilityExecution, Step, AgentStep, SkillStep, ApprovalStep, WorkflowStep } from './types/index.js'
+import type { Ability, LoadedAbility, ExecutorContext, AbilityExecution, Step } from './types/index.js'
 import { loadAbilities, listAbilities } from './loader/index.js'
 import { validateAbility, validateInputs } from './validator/index.js'
 import { executeAbility, formatExecutionResult } from './executor/index.js'
@@ -102,6 +102,8 @@ class AbilitiesPlugin {
   }
 
   async initialize(ctx: PluginContext, config: PluginConfig = {}): Promise<void> {
+    // Clear stale state so re-initialization doesn't accumulate abilities from prior runs
+    this.abilities.clear()
     this.ctx = ctx
     this.config = config
 
@@ -421,20 +423,25 @@ class AbilitiesPlugin {
       case 'script':
         return `**Action:** Script is executing. Wait for completion.`
       case 'agent': {
-        const agentStep = step as AgentStep
-        return `**Action:** Invoke agent "${agentStep.agent}" with the prompt:\n\`\`\`\n${agentStep.prompt}\n\`\`\``
+        // The switch on step.type narrows to AgentStep — no cast needed
+        const agentName = step.agent ?? 'unknown'
+        const prompt = step.prompt ?? ''
+        return `**Action:** Invoke agent "${agentName}" with the prompt:\n\`\`\`\n${prompt}\n\`\`\``
       }
       case 'skill': {
-        const skillStep = step as SkillStep
-        return `**Action:** Load and follow skill "${skillStep.skill}".`
+        // Narrowed to SkillStep
+        const skillName = step.skill ?? 'unknown'
+        return `**Action:** Load and follow skill "${skillName}".`
       }
       case 'approval': {
-        const approvalStep = step as ApprovalStep
-        return `**Action:** Request user approval:\n"${approvalStep.prompt}"`
+        // Narrowed to ApprovalStep
+        const prompt = step.prompt ?? ''
+        return `**Action:** Request user approval:\n"${prompt}"`
       }
       case 'workflow': {
-        const workflowStep = step as WorkflowStep
-        return `**Action:** Execute nested ability "${workflowStep.workflow}".`
+        // Narrowed to WorkflowStep
+        const workflowName = step.workflow ?? 'unknown'
+        return `**Action:** Execute nested ability "${workflowName}".`
       }
       default:
         return '**Action:** Complete the current step.'

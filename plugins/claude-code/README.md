@@ -6,9 +6,9 @@ OpenAgents Control (OAC) - Multi-agent orchestration and automation for Claude C
 
 OpenAgents Control brings powerful multi-agent capabilities to Claude Code through a **skills + subagents architecture**:
 
-- **8 Skills** orchestrate workflows and guide the main agent through multi-stage processes
+- **12 Skills** orchestrate workflows and guide the main agent through multi-stage processes
 - **6 Subagents** execute specialized tasks (context discovery, task breakdown, code implementation, testing, review)
-- **4 Commands** provide setup, status, help, and cleanup functionality
+- **6 Commands** provide setup, status, help, cleanup, brainstorm, and debug functionality
 - **Flat delegation hierarchy** - only the main agent can invoke subagents (no nested calls)
 - **Context pre-loading** - all standards and patterns loaded upfront to prevent nested discovery
 - **6-stage workflow** - ensures context-aware, high-quality code delivery with approval gates
@@ -106,12 +106,12 @@ Guide for discovering and loading relevant context files (coding standards, secu
 
 **Invokes**: `context-scout` subagent via `context: fork`
 
-### external-scout
+### external-research
 Guide for fetching external library and framework documentation from Context7 and other sources.
 
-**Usage**: `/external-scout drizzle schemas`
+**Usage**: `/external-research drizzle schemas`
 
-**Invokes**: `external-scout` subagent via `context: fork`
+**Invokes**: `external-research` subagent via `context: fork`
 
 ### task-breakdown
 Guide for breaking down complex features into atomic subtasks with dependency tracking.
@@ -164,7 +164,7 @@ Discover relevant context files, standards, and patterns using navigation-driven
 **Tools**: Read, Glob, Grep  
 **Model**: haiku
 
-### external-scout
+### external-research
 Fetch external library and framework documentation from Context7 API and other sources, with local caching.
 
 **Tools**: Read, Write, Bash  
@@ -332,7 +332,7 @@ The plugin ships with `settings.json` at the plugin root:
 
 `opusplan` uses **Opus for planning/orchestration** (the main agent) and **Sonnet for execution** (subagents). This matches OAC's plan-first workflow and gives you Opus-quality reasoning without paying Opus rates for every tool call.
 
-Subagents that need a lighter model override this at the agent level (e.g. `external-scout` uses `haiku`). The root setting only affects the main orchestrating agent.
+Subagents that need a lighter model override this at the agent level (e.g. `external-research` uses `haiku`). The root setting only affects the main orchestrating agent.
 
 To reload after any settings change: `/reload-plugins` (no restart needed).
 
@@ -347,25 +347,30 @@ plugins/claude-code/
 │   ├── task-manager.md
 │   ├── context-scout.md
 │   ├── context-manager.md
-│   ├── external-scout.md
+│   ├── external-research.md
 │   ├── coder-agent.md
 │   ├── test-engineer.md
 │   └── code-reviewer.md
-├── skills/                      # Workflow skills (8 files)
+├── skills/                      # Workflow skills (12 files)
 │   ├── using-oac/SKILL.md
 │   ├── context-discovery/SKILL.md
-│   ├── external-scout/SKILL.md
+│   ├── external-research/SKILL.md
 │   ├── task-breakdown/SKILL.md
 │   ├── code-execution/SKILL.md
 │   ├── test-generation/SKILL.md
 │   ├── code-review/SKILL.md
-│   ├── install-context/SKILL.md
-│   └── parallel-execution/SKILL.md
-├── commands/                    # User commands (4 files)
+│   ├── context-setup/SKILL.md
+│   ├── debugger/SKILL.md
+│   ├── oac-approach/SKILL.md
+│   ├── parallel-execution/SKILL.md
+│   └── verification-before-completion/SKILL.md
+├── commands/                    # User commands (6 files)
 │   ├── install-context.md
 │   ├── oac-help.md
 │   ├── oac-status.md
-│   └── oac-cleanup.md
+│   ├── oac-cleanup.md
+│   ├── brainstorm.md
+│   └── debug.md
 ├── hooks/                       # Event-driven automation
 │   ├── hooks.json
 │   └── session-start.sh
@@ -505,9 +510,9 @@ MIT License - see [LICENSE](../LICENSE) for details.
 
 ### Phase 1: Foundation ✅ COMPLETE
 - ✅ Plugin structure
-- ✅ 6 custom subagents (task-manager, context-scout, external-scout, coder-agent, test-engineer, code-reviewer)
-- ✅ 8 workflow skills (using-oac, context-discovery, external-scout, task-breakdown, code-execution, test-generation, code-review, install-context, parallel-execution)
-- ✅ 4 user commands (/install-context, /oac:help, /oac:status, /oac:cleanup)
+- ✅ 6 custom subagents (task-manager, context-scout, external-research, coder-agent, test-engineer, code-reviewer)
+- ✅ 12 workflow skills (using-oac, context-discovery, external-research, task-breakdown, code-execution, test-generation, code-review, context-setup, debugger, oac-approach, parallel-execution, verification-before-completion)
+- ✅ 6 user commands (/install-context, /oac:help, /oac:status, /oac:cleanup, /brainstorm, /debug)
 - ✅ SessionStart hook for auto-loading using-oac skill
 - ✅ Context download and verification scripts
 - ✅ Flat delegation hierarchy (skills invoke subagents via context: fork)
@@ -527,6 +532,6 @@ MIT License - see [LICENSE](../LICENSE) for details.
 
 ---
 
-**Version**: 1.0.0  
+**Version**: 1.0.2  
 **Last Updated**: 2026-02-16  
 **Status**: Production Ready

@@ -9,5 +9,27 @@
   "license": "MIT",
   "repository": "https://github.com/darrenhinde/OpenAgentsControl",
   "homepage": "https://github.com/darrenhinde/OpenAgentsControl#readme",
-  "keywords": ["code-review", "tdd", "multi-agent", "context-aware", "task-management", "parallel-execution", "workflow"]
+  "keywords": ["code-review", "tdd", "multi-agent", "context-aware", "task-management", "parallel-execution", "workflow"],
+  "skills": [
+    { "name": "using-oac", "description": "Establishes how to find and use OAC skills", "path": "skills/using-oac/SKILL.md" },
+    { "name": "context-discovery", "description": "Discover coding standards and project conventions before implementation", "path": "skills/context-discovery/SKILL.md" },
+    { "name": "external-research", "description": "Fetch external library/framework documentation before writing code", "path": "skills/external-research/SKILL.md" },
+    { "name": "task-breakdown", "description": "Break complex features into subtasks with dependency tracking", "path": "skills/task-breakdown/SKILL.md" },
+    { "name": "code-execution", "description": "Execute a coding subtask from a JSON task file", "path": "skills/code-execution/SKILL.md" },
+    { "name": "test-generation", "description": "Write comprehensive tests following project testing standards", "path": "skills/test-generation/SKILL.md" },
+    { "name": "code-review", "description": "Review code for security, correctness, and quality", "path": "skills/code-review/SKILL.md" },
+    { "name": "context-setup", "description": "Install context files from registry", "path": "skills/context-setup/SKILL.md" },
+    { "name": "debugger", "description": "Systematic debugging before proposing fixes", "path": "skills/debugger/SKILL.md" },
+    { "name": "oac-approach", "description": "Plan before implementation — discover context and propose approach", "path": "skills/oac-approach/SKILL.md" },
+    { "name": "parallel-execution", "description": "Execute multiple independent subtasks simultaneously", "path": "skills/parallel-execution/SKILL.md" },
+    { "name": "verification-before-completion", "description": "Verify work before claiming completion", "path": "skills/verification-before-completion/SKILL.md" }
+  ],
+  "commands": [
+    { "name": "install-context", "description": "Download context files from the OAC registry", "path": "commands/install-context.md" },
+    { "name": "oac:help", "description": "Show OAC usage guide", "path": "commands/oac-help.md" },
+    { "name": "oac:status", "description": "Show plugin status and installed context", "path": "commands/oac-status.md" },
+    { "name": "oac:cleanup", "description": "Clean up old temporary files", "path": "commands/oac-cleanup.md" },
+    { "name": "brainstorm", "description": "Brainstorm ideas and approaches", "path": "commands/brainstorm.md" },
+    { "name": "debug", "description": "Debug an issue systematically", "path": "commands/debug.md" }
+  ]
 }

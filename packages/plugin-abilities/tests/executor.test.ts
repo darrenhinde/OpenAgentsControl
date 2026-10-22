@@ -140,7 +140,8 @@ describe('executeAbility', () => {
     )
 
     expect(result.status).toBe('completed')
-    expect(result.completedSteps[0].output).toContain('Hello World')
+    // Shell escaping wraps interpolated values in single quotes for safety
+    expect(result.completedSteps[0].output).toContain("Hello 'World'")
   })
 
   it('should skip steps when condition is not met', async () => {

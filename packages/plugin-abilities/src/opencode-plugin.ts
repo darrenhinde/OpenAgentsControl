@@ -214,7 +214,7 @@ export const AbilitiesPlugin: Plugin = async (ctx) => {
         description: 'Cancel the active ability execution',
         args: {},
         async execute() {
-          const cancelled = executionManager.cancel()
+          const cancelled = executionManager.cancelActive()
           return JSON.stringify(cancelled
             ? { status: 'cancelled', message: 'Ability cancelled' }
             : { status: 'none', message: 'No active ability' })

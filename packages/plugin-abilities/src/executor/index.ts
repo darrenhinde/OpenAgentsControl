@@ -3,6 +3,10 @@ import type {
   Ability,
   Step,
   ScriptStep,
+  AgentStep,
+  SkillStep,
+  ApprovalStep,
+  WorkflowStep,
   AbilityExecution,
   StepResult,
   ExecutorContext,
@@ -11,25 +15,83 @@ import type {
 import { validateInputs } from '../validator/index.js'
 
 /**
- * Minimal Executor - Script Steps Only
- * 
- * Stripped down to prove core concept:
- * - Execute shell commands sequentially
- * - Track step results
- * - Validate exit codes
- * 
- * NO: agent steps, skill steps, approval, workflows, context passing
+ * Executor - Handles all step types
+ *
+ * - script: Execute shell commands
+ * - agent: Delegate to agent via context
+ * - skill: Load skill via context
+ * - approval: Request user approval via context
+ * - workflow: Delegate to nested ability (not yet implemented)
  */
 
 function generateExecutionId(): string {
   return `exec_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 }
 
-function interpolateVariables(text: string, inputs: InputValues): string {
-  return text.replace(/\{\{inputs\.(\w+)\}\}/g, (match, name) => {
+const MAX_CONTEXT_LENGTH = 50000
+
+function interpolateVariables(text: string, inputs: InputValues, stepOutputs?: Map<string, string>): string {
+  let result = text.replace(/\{\{inputs\.(\w+)\}\}/g, (match, name) => {
     const value = inputs[name]
     return value !== undefined ? String(value) : match
   })
+
+  if (stepOutputs) {
+    result = result.replace(/\{\{steps\.(\w[\w-]*)\.output\}\}/g, (match, stepId) => {
+      const output = stepOutputs.get(stepId)
+      return output !== undefined ? output.trim() : match
+    })
+  }
+
+  return result
+}
+
+/**
+ * Wraps a value in single quotes and escapes any existing single quotes so
+ * the result is safe to embed directly in a POSIX shell command string.
+ * Prevents command injection when user-supplied inputs are interpolated into
+ * `sh -c` commands.
+ */
+function shellEscape(value: string): string {
+  // Replace every ' with '"'"' (close quote, escaped quote, reopen quote)
+  return "'" + value.replace(/'/g, "'\\''") + "'"
+}
+
+/**
+ * Like `interpolateVariables` but shell-escapes every substituted value so
+ * the resulting string is safe to pass to `sh -c`. Only used for script steps.
+ */
+function interpolateForShell(text: string, inputs: InputValues, stepOutputs?: Map<string, string>): string {
+  let result = text.replace(/\{\{inputs\.(\w+)\}\}/g, (match, name) => {
+    const value = inputs[name]
+    return value !== undefined ? shellEscape(String(value)) : match
+  })
+
+  if (stepOutputs) {
+    result = result.replace(/\{\{steps\.(\w[\w-]*)\.output\}\}/g, (match, stepId) => {
+      const output = stepOutputs.get(stepId)
+      // Step outputs are produced by our own scripts/agents, but escape them
+      // anyway to prevent injection when one step's output feeds another.
+      return output !== undefined ? shellEscape(output.trim()) : match
+    })
+  }
+
+  return result
+}
+
+function truncateOutput(output: string, maxLength: number = MAX_CONTEXT_LENGTH): string {
+  if (output.length <= maxLength) return output
+  const half = Math.floor(maxLength / 2)
+  const omitted = output.length - maxLength
+  return `${output.slice(0, half)}\n\n... [${omitted} characters truncated] ...\n\n${output.slice(-half)}`
+}
+
+function summarizeOutput(output: string): string {
+  const lines = output.split('\n')
+  if (lines.length <= 20) return output
+  const head = lines.slice(0, 10).join('\n')
+  const tail = lines.slice(-5).join('\n')
+  return `## Output Summary\n\n${head}\n\n... [${lines.length - 15} lines omitted] ...\n\n${tail}`
 }
 
 async function runScript(
@@ -39,7 +101,9 @@ async function runScript(
   return new Promise((resolve) => {
     const proc = spawn('sh', ['-c', command], {
       cwd: options.cwd || process.cwd(),
-      env: { ...process.env, ...options.env },
+      // Use Object.create(null) to prevent prototype pollution from a crafted
+      // __proto__ key that could appear in step.env or ctx.env.
+      env: Object.assign(Object.create(null), process.env, options.env),
     })
 
     let stdout = ''
@@ -66,18 +130,22 @@ async function runScript(
 async function executeScriptStep(
   step: ScriptStep,
   execution: AbilityExecution,
-  ctx: ExecutorContext
+  ctx: ExecutorContext,
+  stepOutputs: Map<string, string>
 ): Promise<StepResult> {
   const startedAt = Date.now()
 
-  const command = interpolateVariables(step.run, execution.inputs)
+  // Use shell-safe interpolation to prevent command injection via user inputs.
+  const command = interpolateForShell(step.run, execution.inputs, stepOutputs)
 
   console.log(`[abilities] Executing: ${command}`)
 
   try {
     const result = await runScript(command, {
       cwd: step.cwd || ctx.cwd,
-      env: { ...ctx.env, ...step.env },
+      // Object.create(null) prevents prototype pollution from a crafted
+      // __proto__ key in ctx.env or step.env.
+      env: Object.assign(Object.create(null), ctx.env, step.env),
     })
 
     // Validate exit code if specified
@@ -110,6 +178,166 @@ async function executeScriptStep(
   }
 }
 
+async function executeAgentStep(
+  step: AgentStep,
+  execution: AbilityExecution,
+  ctx: ExecutorContext,
+  stepOutputs: Map<string, string>
+): Promise<StepResult> {
+  const startedAt = Date.now()
+
+  if (!ctx.agents) {
+    return {
+      stepId: step.id,
+      status: 'failed',
+      error: 'Agent execution not available in this context',
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  }
+
+  try {
+    let prompt = interpolateVariables(step.prompt, execution.inputs, stepOutputs)
+
+    // Inject context from prior steps if this step has dependencies
+    if (step.needs && step.needs.length > 0) {
+      const priorOutputs = execution.completedSteps
+        .filter((r) => step.needs!.includes(r.stepId) && r.output)
+        .map((r) => {
+          let output = r.output!
+          // Check if the prior step requested summarization
+          const priorStep = execution.ability.steps.find((s) => s.id === r.stepId)
+          if (priorStep && priorStep.type === 'agent' && (priorStep as AgentStep).summarize) {
+            output = summarizeOutput(output)
+          } else {
+            output = truncateOutput(output)
+          }
+          return `### ${r.stepId}\n${output}`
+        })
+
+      if (priorOutputs.length > 0) {
+        prompt = `${prompt}\n\n## Context from prior steps\n\n${priorOutputs.join('\n\n')}`
+      }
+    }
+
+    const output = await ctx.agents.call({
+      agent: step.agent,
+      prompt,
+    })
+
+    return {
+      stepId: step.id,
+      status: 'completed',
+      output,
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  } catch (err) {
+    return {
+      stepId: step.id,
+      status: 'failed',
+      error: err instanceof Error ? err.message : String(err),
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  }
+}
+
+async function executeSkillStep(
+  step: SkillStep,
+  ctx: ExecutorContext
+): Promise<StepResult> {
+  const startedAt = Date.now()
+
+  if (!ctx.skills) {
+    return {
+      stepId: step.id,
+      status: 'failed',
+      error: 'Skill execution not available in this context',
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  }
+
+  try {
+    const output = await ctx.skills.load(step.skill)
+
+    return {
+      stepId: step.id,
+      status: 'completed',
+      output,
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  } catch (err) {
+    return {
+      stepId: step.id,
+      status: 'failed',
+      error: err instanceof Error ? err.message : String(err),
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  }
+}
+
+async function executeApprovalStep(
+  step: ApprovalStep,
+  execution: AbilityExecution,
+  ctx: ExecutorContext
+): Promise<StepResult> {
+  const startedAt = Date.now()
+
+  if (!ctx.approval) {
+    return {
+      stepId: step.id,
+      status: 'failed',
+      error: 'Approval not available in this context',
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  }
+
+  try {
+    const prompt = interpolateVariables(step.prompt, execution.inputs)
+    const approved = await ctx.approval.request({ prompt })
+
+    return {
+      stepId: step.id,
+      status: approved ? 'completed' : 'failed',
+      output: approved ? 'Approved' : 'Rejected',
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  } catch (err) {
+    return {
+      stepId: step.id,
+      status: 'failed',
+      error: err instanceof Error ? err.message : String(err),
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  }
+}
+
+function evaluateCondition(condition: string, inputs: InputValues, stepOutputs: Map<string, string>): boolean {
+  // Simple condition evaluator: "inputs.key == \"value\""
+  const match = condition.match(/^inputs\.(\w+)\s*==\s*"([^"]*)"$/)
+  if (match) {
+    const [, key, expected] = match
+    return String(inputs[key]) === expected
+  }
+  return true // default: condition met
+}
+
 function buildExecutionOrder(steps: Step[]): Step[] {
   const result: Step[] = []
   const completed = new Set<string>()
@@ -134,10 +362,106 @@ function buildExecutionOrder(steps: Step[]): Step[] {
   return result
 }
 
+async function executeWorkflowStep(
+  step: WorkflowStep,
+  execution: AbilityExecution,
+  ctx: ExecutorContext
+): Promise<StepResult> {
+  const startedAt = Date.now()
+
+  if (!ctx.abilities) {
+    return {
+      stepId: step.id,
+      status: 'failed',
+      error: 'Workflow execution not available in this context',
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  }
+
+  const childAbility = ctx.abilities.get(step.workflow)
+  if (!childAbility) {
+    return {
+      stepId: step.id,
+      status: 'failed',
+      error: `Nested ability '${step.workflow}' not found`,
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  }
+
+  try {
+    // Interpolate inputs if provided
+    const workflowInputs: Record<string, unknown> = {}
+    if (step.inputs) {
+      for (const [key, value] of Object.entries(step.inputs)) {
+        workflowInputs[key] = typeof value === 'string'
+          ? interpolateVariables(value, execution.inputs)
+          : value
+      }
+    }
+
+    const childExecution = await ctx.abilities.execute(childAbility, workflowInputs)
+
+    return {
+      stepId: step.id,
+      status: childExecution.status === 'completed' ? 'completed' : 'failed',
+      output: childExecution.status === 'completed'
+        ? `Nested ability '${step.workflow}' completed successfully`
+        : `Nested ability '${step.workflow}' failed: ${childExecution.error}`,
+      error: childExecution.status !== 'completed' ? childExecution.error : undefined,
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  } catch (err) {
+    return {
+      stepId: step.id,
+      status: 'failed',
+      error: err instanceof Error ? err.message : String(err),
+      startedAt,
+      completedAt: Date.now(),
+      duration: Date.now() - startedAt,
+    }
+  }
+}
+
+async function executeStep(
+  step: Step,
+  execution: AbilityExecution,
+  ctx: ExecutorContext,
+  stepOutputs: Map<string, string>
+): Promise<StepResult> {
+  switch (step.type) {
+    case 'script':
+      return executeScriptStep(step, execution, ctx, stepOutputs)
+    case 'agent':
+      return executeAgentStep(step, execution, ctx, stepOutputs)
+    case 'skill':
+      return executeSkillStep(step, ctx)
+    case 'approval':
+      return executeApprovalStep(step, execution, ctx)
+    case 'workflow':
+      return executeWorkflowStep(step, execution, ctx)
+    default:
+      return {
+        stepId: step.id,
+        status: 'failed',
+        error: `Unknown step type: ${(step as { type: string }).type}`,
+        startedAt: Date.now(),
+        completedAt: Date.now(),
+        duration: 0,
+      }
+  }
+}
+
 export async function executeAbility(
   ability: Ability,
   inputs: InputValues,
-  ctx: ExecutorContext
+  ctx: ExecutorContext,
+  signal?: AbortSignal
 ): Promise<AbilityExecution> {
   // Validate inputs
   const inputErrors = validateInputs(ability, inputs)
@@ -170,6 +494,25 @@ export async function executeAbility(
   // Build execution order based on dependencies
   const orderedSteps = buildExecutionOrder(ability.steps)
 
+  // Check for cancellation before starting execution
+  if (signal?.aborted) {
+    return {
+      id: generateExecutionId(),
+      ability,
+      inputs: resolvedInputs,
+      status: 'failed',
+      currentStep: null,
+      currentStepIndex: -1,
+      completedSteps: [],
+      pendingSteps: orderedSteps,
+      startedAt: Date.now(),
+      completedAt: Date.now(),
+      error: 'Cancelled',
+    }
+  }
+
+  const stepOutputs = new Map<string, string>()
+
   const execution: AbilityExecution = {
     id: generateExecutionId(),
     ability,
@@ -188,18 +531,66 @@ export async function executeAbility(
     execution.currentStep = step
     execution.currentStepIndex = i
 
+    // Check for cancellation before starting each step
+    if (signal?.aborted) {
+      execution.status = 'failed'
+      execution.error = 'Cancelled'
+      execution.completedAt = Date.now()
+      return execution
+    }
+
+    // Evaluate condition if present
+    if (step.when) {
+      const conditionMet = evaluateCondition(step.when, resolvedInputs, stepOutputs)
+      if (!conditionMet) {
+        const skipped: StepResult = {
+          stepId: step.id,
+          status: 'skipped',
+          output: `Condition not met: ${step.when}`,
+          startedAt: Date.now(),
+          completedAt: Date.now(),
+          duration: 0,
+        }
+        execution.completedSteps.push(skipped)
+        execution.pendingSteps = execution.pendingSteps.filter((s) => s.id !== step.id)
+        continue
+      }
+    }
+
     console.log(`[abilities] Step ${i + 1}/${orderedSteps.length}: ${step.id}`)
 
-    const result = await executeScriptStep(step as ScriptStep, execution, ctx)
+    ctx.onStepStart?.(step)
+
+    const result = await executeStep(step, execution, ctx, stepOutputs)
     execution.completedSteps.push(result)
     execution.pendingSteps = execution.pendingSteps.filter((s) => s.id !== step.id)
 
+    if (result.output) {
+      stepOutputs.set(step.id, result.output)
+    }
+
     if (result.status === 'failed') {
+      ctx.onStepFail?.(step, new Error(result.error || 'Step failed'))
+
+      // Check on_failure policy
+      if (step.on_failure === 'continue') {
+        continue
+      }
+
+      if (step.on_failure === 'retry') {
+        console.warn(`[abilities] on_failure: retry not yet implemented for step '${step.id}', treating as stop`)
+      }
+      if (step.on_failure === 'ask') {
+        console.warn(`[abilities] on_failure: ask not yet implemented for step '${step.id}', treating as stop`)
+      }
+
       execution.status = 'failed'
       execution.error = result.error
       execution.completedAt = Date.now()
       return execution
     }
+
+    ctx.onStepComplete?.(step, result)
   }
 
   execution.status = 'completed'
@@ -223,7 +614,7 @@ export function formatExecutionResult(execution: AbilityExecution): string {
   lines.push('Steps:')
 
   for (const result of execution.completedSteps) {
-    const icon = result.status === 'completed' ? '✅' : '❌'
+    const icon = result.status === 'completed' ? '✅' : result.status === 'skipped' ? '⏭️' : '❌'
     const duration = result.duration ? ` (${(result.duration / 1000).toFixed(1)}s)` : ''
     lines.push(`  ${icon} ${result.stepId}${duration}`)
     if (result.error) {
