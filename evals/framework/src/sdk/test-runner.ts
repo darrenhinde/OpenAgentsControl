@@ -171,7 +171,7 @@ export class TestRunner {
       defaultTimeout: config.defaultTimeout || 60000,
       projectPath: config.projectPath || gitRoot,
       runEvaluators: config.runEvaluators ?? true,
-      defaultModel: config.defaultModel || 'opencode/grok-code',
+      defaultModel: config.defaultModel || 'opencode/grok-code-fast',
     };
 
     // Set DEBUG_VERBOSE BEFORE creating logger so event handlers can check it
