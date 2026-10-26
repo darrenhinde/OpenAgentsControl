@@ -41,7 +41,7 @@ When changing an agent, edit its canonical file, then run the project's compatib
 
 - Use a stable kebab-case `oac.id`.
 - Keep `oac.category`, `type`, `tags`, and `dependencies` with the agent.
-- Declare each target in `oac.targets`; put target-only settings in `oac.overrides`.
+- Shipping is OPT-OUT: omit `oac.targets` to ship to every build target, and opt out per host with `oac.exclude`; declare `targets` explicitly only for exceptions (see `standards/agent-frontmatter.md`). Put target-only settings in `oac.overrides`.
 - Do not merge metadata from a second source.
 
 ## Eval runner exception

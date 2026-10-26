@@ -49,11 +49,13 @@ Adding an agent to a tier means editing the system profile JSON and rebuilding. 
 ## Maintainer loop (repo only)
 
 1. Edit the canonical source: `content/agents/**` (agent markdown with the `oac:` block) or `content/profiles/**`.
-2. `make build-canonical` (runs `oac build`). It rewrites `.opencode/agent/**`, the agent/subagent/profile sections of `registry.json`, and the ledger `.oac/build-manifest.json`. The Claude Code agents are staged to `.tmp/oac-build/` and compared, not written in place.
+2. `make build-canonical` (runs `oac build`). It rewrites `hosts/opencode/agent/**`, `hosts/opencode-v1/agent/**` and `hosts/claude-code/agents/**`, their byte-identical mirrors `.opencode/agent/**` and `plugins/claude-code/agents/**`, the agent/subagent/profile sections of `registry.json`, and the ledger `.oac/build-manifest.json`, all in place. The Claude Code agents take their frontmatter from `oac.overrides.claude-code` and their Claude-only body text from `<!-- oac:only claude-code -->` host blocks in the same `content/agents/**` file; never hand-edit `plugins/claude-code/agents/**`.
 3. Commit the regenerated output together with the source change.
 4. CI runs `scripts/validation/check-build-drift.sh`; a hand edit to any generated file turns the build red with instructions pointing back at `content/`.
 
-Still hand-authored (no canonical source yet): `.opencode/context/**`, `.opencode/command/**`, `.opencode/skills/**`, `.opencode/tool/**`, and `.opencode/agent/eval-runner.md`. Register those categories by hand or with the manually dispatched `update-registry` workflow.
+`hosts/` is the one folder to browse for what each tool gets (D-018); `hosts/README.md` indexes it. The mirrors exist only because installers and the Claude marketplace still read the old live paths. Edit a mirror and the drift gate fails, the same as editing `hosts/`.
+
+Still hand-authored (no canonical source yet): `.opencode/context/**`, `.opencode/command/**`, `.opencode/skills/**`, and `.opencode/tool/**`. Register those categories by hand or with the manually dispatched `update-registry` workflow.
 
 ## Related
 

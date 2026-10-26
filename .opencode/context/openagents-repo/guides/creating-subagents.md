@@ -1,27 +1,94 @@
-<!-- Context: openagents-repo/guides | Priority: high | Version: 1.0 | Updated: 2026-02-15 -->
+<!-- Context: openagents-repo/guides | Priority: high | Version: 2.0 | Updated: 2026-10-25 -->
 
 # Creating Subagents
 
-**Purpose**: Step-by-step guide to create custom subagents
+**Purpose**: Create a subagent that ships to every AI tool this repo supports — from ONE canonical file.
 
 ---
 
-## Interactive Method (/agents)
+## The OAC Way (canonical authoring)
 
-1. Run `/agents` in Claude Code
-2. Select **Create new agent**
-3. Choose scope: **User-level** or **Project-level**
-4. Select **Generate with Claude** and describe the subagent
-5. Select tools (or keep all)
-6. Choose model
-7. Pick a color
-8. Save - available immediately
+A subagent is authored once in `content/agents/**` and emitted to every host by `oac build`.
+Full step-by-step in `adding-agent-basics.md`; the subagent-specific notes are here.
+
+### File shape
+
+`content/agents/subagents/<group>/<agent-id>.md`:
+
+```markdown
+---
+name: MyAgent
+description: One-line summary (OpenCode shows this to humans picking an agent)
+mode: subagent
+permission:
+  bash:
+    "*": "deny"
+    "bash npm test *": "allow"     # ordered rules, LAST MATCH WINS
+  edit:
+    "**/*.env*": "deny"
+    "**/*.key": "deny"
+    "**/*.secret": "deny"
+    "node_modules/**": "deny"
+    ".git/**": "deny"
+
+oac:
+  id: my-agent
+  name: MyAgent
+  category: subagents/<group>
+  type: subagent
+  version: "1.0.0"
+  author: opencode
+  tags: []
+  dependencies: []
+  # Omit `targets:` to ship to every host. Opt out per host with exclude.
+  exclude:
+    - claude-code
+  # overrides:
+  #   claude-code: { name, model, description with <example> blocks, tools }
+---
+
+# MyAgent
+
+> **Mission**: One line.
+
+Body. Per-host variants:
+
+<!-- oac:only opencode -->
+Body text only OpenCode gets (e.g. "call ContextScout first").
+<!-- /oac:only -->
+
+<!-- oac:only claude-code -->
+Body text only Claude Code gets (e.g. "context is pre-loaded").
+<!-- /oac:only -->
+```
+
+### Subagent-specific rules
+
+- **`mode: subagent`** — required to be delegatable; `primary` agents are the main loop.
+- **Permission globs are enforced only on OpenCode.** Claude Code carries flat
+  `tools:`/`disallowedTools:` via an authored override, or nothing. The build refuses a
+  claude-code agent with no override — author one or `exclude: [claude-code]`.
+- **Delegation references are per-target.** Write `task(other-agent)` using canonical ids;
+  `AgentIdResolver` + `DelegationRewriter` rewrite them per host (e.g. `contextscout` →
+  `context-scout` on Claude Code).
+- **Body split**: OpenCode text says "call ContextScout"; Claude text says "context is
+  pre-loaded" — one file, host blocks decide.
+- **Temperature**: honored on OpenCode, dropped with a warning on Claude Code.
+
+### Build and validate
+
+```bash
+make build-canonical && make check-canonical-drift
+```
+
+Your subagent appears in `hosts/README.md`'s matrix and in `registry.json`.
 
 ---
 
-## Manual Method (Markdown File)
+## NOT the OAC way: Claude Code's own `/agents`
 
-Create file at `~/.claude/agents/` (personal) or `.claude/agents/` (project):
+Claude Code has a local mechanism — `/agents` in the UI, or a Markdown file in
+`~/.claude/agents/` / `.claude/agents/`:
 
 ```markdown
 ---
@@ -30,46 +97,30 @@ description: Reviews code for quality and best practices
 tools: Read, Glob, Grep
 model: sonnet
 ---
-
-You are a code reviewer. Analyze code and provide specific, 
-actionable feedback on quality, security, and best practices.
+You are a code reviewer...
 ```
 
-Restart session or use `/agents` to load.
-
----
-
-## CLI Method (JSON)
-
-```bash
-claude --agents '{
-  "code-reviewer": {
-    "description": "Expert code reviewer",
-    "prompt": "You are a senior code reviewer...",
-    "tools": ["Read", "Grep", "Glob", "Bash"],
-    "model": "sonnet"
-  }
-}'
-```
-
-Session-only, not saved to disk.
+That creates an agent **only for Claude Code, on that machine** — it is not in the
+canonical corpus, not shipped by `registry.json`, and not this repo's management path.
+Use it for private/local experiments only; anything this repo ships goes through
+`content/agents/**`.
 
 ---
 
 ## Key Points
 
-- Filename becomes subagent name (without `.md`)
-- Description determines when Claude delegates
-- Body becomes system prompt
-- Subagents only get their system prompt, not full Claude Code prompt
-- Include "use proactively" in description for automatic delegation
+- `oac.id` is the one true name; per-host names come from overrides (and may differ from the filename, e.g. `test-engineer.md` ↔ id `tester`).
+- Description drives routing: one line for OpenCode, `<example>` blocks for Claude Code.
+- Body becomes the system prompt on every host.
+- Subagents only get their system prompt, not the full main-loop prompt.
 
 ---
 
 ## Related
 
-- `../concepts/subagents-system.md` - Subagents overview
-- `../lookup/subagent-frontmatter.md` - All configuration fields
-- `../examples/subagents/` - Example subagents
-
-**Reference**: https://docs.anthropic.com/en/docs/claude-code/sub-agents
+- `adding-agent-basics.md` — the full 4-step flow (categories, build, validate)
+- `standards/agent-frontmatter.md` — frontmatter standard
+- `standards/subagent-structure.md` — body structure
+- `standards/permission-patterns.md` — ordered-rule permission patterns
+- `subagent-invocation.md` — how agents delegate to subagents
+- `docs/features/conversion-engine.md` — the conversion engine overview

@@ -8,7 +8,7 @@
 3. Regenerate artifacts through the compatibility build; RegistryEmitter creates the registry from canonical content.
 4. Validate the emitted registry.
 
-Do not edit generated `.opencode/agent/**`, `plugins/**`, registry output, or a metadata sidecar.
+Do not edit generated `hosts/**`, its mirrors `.opencode/agent/**` and `plugins/claude-code/agents/**`, registry output, or a metadata sidecar.
 
 ## Standards
 

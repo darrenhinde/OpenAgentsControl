@@ -32,6 +32,6 @@ oac:
 
 ## Generation
 
-RegistryEmitter reads canonical content and emits the registry and target-specific files. Do not edit generated `.opencode/agent/**` or `plugins/**` files, and do not maintain metadata in a sidecar.
+RegistryEmitter reads canonical content and emits the registry and target-specific files. Output lands in `hosts/<target>/`, mirrored to `.opencode/agent/**` and `plugins/claude-code/agents/**`. Do not edit any of these generated files, and do not maintain metadata in a sidecar.
 
 See [agent frontmatter](agent-frontmatter.md) for field details.
