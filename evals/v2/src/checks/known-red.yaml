@@ -8,7 +8,7 @@
 #   note:  one line, what is wrong today
 
 # Dual OpenCode build (D-016): `oac build` now emits flat v2 agents to .opencode/agent/ with ids in
-# every task key and delegation example, and moves the v1-only tools and plugins to v1-opencode/.
+# every task key and delegation example, and moves the v1-only tools and plugins to hosts/opencode-v1/ (was v1-opencode/).
 # oc/no-v1-artifacts was removed: the static lint is clean on the committed tree (a unit test in
 # compatibility-layer pins the tree, and the check would now PASS, which fails the run).
 # The rows below stay until a real hosts run (U5) confirms them; they are not removed on a static
