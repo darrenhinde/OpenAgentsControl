@@ -2,6 +2,8 @@
 
 Complete guide to installing OpenAgents Control components using the automated installer script.
 
+> Use Nix/Home Manager instead? See the [Nix Home Manager Guide](./nix-home-manager.md).
+
 ---
 
 ## Quick Start
