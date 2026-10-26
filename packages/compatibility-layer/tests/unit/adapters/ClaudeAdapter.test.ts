@@ -24,6 +24,12 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { ClaudeAdapter } from "../../../src/adapters/ClaudeAdapter";
 import { packagePath } from "../../support/pending.js";
+import {
+  FIRST_MARKER_LINE,
+  HOST_BLOCK_SOURCE,
+  MALFORMED_SOURCE,
+  UNKNOWN_TARGET_SOURCE,
+} from "../../support/host-blocks.js";
 import type { OpenAgent, AgentFrontmatter, HookDefinition } from "../../../src/types";
 
 /** Claude Code's tools in the adapter's emit order. The union of both lists is always this. */
@@ -435,6 +441,57 @@ describe("ClaudeAdapter", () => {
       );
 
       expect(content).toMatch(/^model: haiku$/m);
+    });
+
+    it("emits the override description in place of the canonical one", async () => {
+      const { content } = await adapter.fromCanonical(
+        canonical(
+          `  read:\n    "*": "allow"\n`,
+          "",
+          override(`      description: Routed probe.\n      tools: [Read]\n`)
+        )
+      );
+
+      expect(content).toMatch(/^description: Routed probe\.$/m);
+      expect(content).not.toContain("A probe agent.");
+    });
+
+    it("falls back to the canonical description when no override is authored", async () => {
+      const { content } = await adapter.fromCanonical(canonical(`  read:\n    "*": "allow"\n`));
+
+      expect(content).toMatch(/^description: A probe agent\.$/m);
+    });
+
+    it("renders a multi-line override with <example> blocks as a `description: |` block scalar", async () => {
+      // The exact shape of plugins/claude-code/agents/code-reviewer.md: `|` (clip, since the
+      // value ends in one newline), two-space indent, then the next key on its own line.
+      const { content } = await adapter.fromCanonical(
+        canonical(
+          `  read:\n    "*": "allow"\n`,
+          "",
+          override(
+            `      description: |\n` +
+              `        Review code. Use after implementation — before committing.\n` +
+              `        Examples:\n` +
+              `        <example>\n` +
+              `        user: "Review src/db/queries.ts before I merge"\n` +
+              `        <commentary>Explicit review request.</commentary>\n` +
+              `        </example>\n` +
+              `      tools: [Read]\n`
+          )
+        )
+      );
+
+      expect(content).toContain(
+        "---\nname: probe-agent\ndescription: |\n" +
+          "  Review code. Use after implementation — before committing.\n" +
+          "  Examples:\n" +
+          "  <example>\n" +
+          '  user: "Review src/db/queries.ts before I merge"\n' +
+          "  <commentary>Explicit review request.</commentary>\n" +
+          "  </example>\n" +
+          "tools: Read\n"
+      );
     });
   });
 
@@ -963,9 +1020,18 @@ describe("ClaudeAdapter", () => {
       expect(adapter.validateConversion(createAgent())).toHaveLength(0);
     });
 
-    it("warns when name is missing", () => {
-      expect(adapter.validateConversion(createAgent({ name: "" })).some((w) => w.includes("name"))).toBe(
+    it("warns when no name is available from frontmatter or metadata", () => {
+      const agent = createAgent({ name: "" });
+      const unnamed: OpenAgent = { ...agent, metadata: { ...agent.metadata, name: "" } };
+      expect(adapter.validateConversion(unnamed).some((w) => w.includes("name"))).toBe(
         true
+      );
+    });
+
+    it("does not warn when only frontmatter.name is absent (v2 loader backfills metadata.name)", () => {
+      const agent = createAgent({ name: undefined });
+      expect(adapter.validateConversion(agent).some((w) => w.includes("name"))).toBe(
+        false
       );
     });
 
@@ -992,5 +1058,37 @@ describe("ClaudeAdapter", () => {
 
       expect(warnings.some((w) => w.includes("granular permissions"))).toBe(false);
     });
+  });
+});
+
+describe("ClaudeAdapter host blocks", () => {
+  it("keeps the claude-code block and drops every OpenCode block", async () => {
+    const { content } = await new ClaudeAdapter().fromCanonical(HOST_BLOCK_SOURCE, {
+      filePath: "content/agents/core/probe.md",
+    });
+    expect(content).toContain("CLAUDE-ONLY text.");
+    expect(content).not.toContain("V2-ONLY");
+    expect(content).not.toContain("V1-ONLY");
+    expect(content).not.toContain("OPENCODE-ANY");
+    expect(content).not.toContain("oac:only");
+    expect(content).toMatch(/Shared intro\.\n\nCLAUDE-ONLY text\.\n.*\n\nShared outro\.\n$/);
+  });
+
+  it("fails on an unknown marker target with the canonical file:line", async () => {
+    await expect(
+      new ClaudeAdapter().fromCanonical(UNKNOWN_TARGET_SOURCE, { filePath: "content/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: unknown target "emacs"`));
+  });
+
+  it("fails on a malformed marker with the canonical file:line", async () => {
+    await expect(
+      new ClaudeAdapter().fromCanonical(MALFORMED_SOURCE, { filePath: "content/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: malformed oac:only marker`));
+  });
+
+  it("without a filePath still reports the file line", async () => {
+    await expect(new ClaudeAdapter().fromCanonical(UNKNOWN_TARGET_SOURCE)).rejects.toThrow(
+      new RegExp(`^line ${FIRST_MARKER_LINE}: unknown target "emacs"`)
+    );
   });
 });

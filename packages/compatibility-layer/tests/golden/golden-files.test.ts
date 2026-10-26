@@ -7,10 +7,13 @@
  *      details a live corpus does not happen to exercise (a deny-all-then-allowlist bash
  *      block that Claude Code cannot represent, and must therefore fail CLOSED).
  *
- *   2. `plugins/claude-code/agents/` — the 7 agents already committed in the flat
- *      tools:/disallowedTools: format. This is a FREE regression corpus: whatever subtask 07
- *      emits must reproduce those 7 files byte-for-byte, and no one had to author an
- *      expectation for it. It is guess-free in a way `expected/` cannot be.
+ *   2. `plugins/claude-code/agents/` — the 7 committed Claude Code agents. They are build
+ *      output, emitted in place from `content/agents/**` via `oac.overrides.claude-code`
+ *      (frontmatter) and `<!-- oac:only -->` host blocks (body) (D-017). The committed tree
+ *      must equal a fresh build byte-for-byte, so a hand-edit or an un-rebuilt source change
+ *      fails here as well as in the drift gate. L-001 (`104356a` overwriting the hand-adapted
+ *      files with build output that had lost its dispatch examples) is why this is asserted
+ *      on content and paired with the capability lint, not left to review.
  *
  * ─── On the expected/ files being a specification ───────────────────────────────────────
  *
@@ -34,7 +37,7 @@
 
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, join, relative, sep } from "node:path";
 import {
   importPendingSymbols,
   listFiles,
@@ -223,41 +226,38 @@ describe("claude-code adapter against the live corpus", () => {
     expect((warnings ?? []).filter((w) => /permission|enforce/i.test(w))).toEqual([]);
   });
 
-  // The 7 committed Claude Code agents are HAND-WRITTEN, and the build only COMPARES against
-  // them (D-001, L-001). They are target-adapted on purpose: `<example>` dispatch blocks in
-  // `description:`, and bodies written against each agent's Claude tool surface. `104356a`
-  // overwrote them with staged build output and lost both; this test pins the opposite
-  // contract, so a regeneration fails here instead of shipping. The staged diff `oac build`
-  // prints for this target is informational, not a gate: it is never asserted equal.
-  it("keeps the 7 committed agents hand-written; the staged claude-code diff is informational", async () => {
-    const live = listFiles(LIVE_CC_AGENTS);
-    expect(live.length, "expected the 7 committed Claude Code agents").toBe(7);
-
-    for (const file of live) {
-      const text = readFileSync(file, "utf-8");
-      const id = basename(file, ".md");
-      expect(text, `${id}: frontmatter name must match its filename`).toMatch(
-        new RegExp(`^name: ${id}$`, "m")
-      );
-      expect(text, `${id}: needs an explicit tools: whitelist`).toMatch(/^tools: .+$/m);
-      expect(text, `${id}: lost its <example> dispatch blocks`).toContain("<example>");
-      // Text the OpenCode-shaped canonical source carries and a hand-written Claude agent
-      // never does: the retired metadata-sidecar pointer (5c7d4cc) and the oac: block.
-      expect(text, `${id}: carries the retired agent-metadata sidecar text`).not.toContain(
-        "agent-metadata.json"
-      );
-      expect(text, `${id}: leaks the oac: authoring block`).not.toMatch(/^oac:/m);
-    }
-
-    // The build still plans this target (into the staging root), so the comparison stays
-    // available. Whether the staged bytes match the committed ones is reported, never asserted.
+  // The 7 committed Claude Code agents are build output (D-017). L-001 is why this asserts
+  // bytes rather than shape: `104356a` shipped build output that had lost every `<example>`
+  // dispatch block, and only a content comparison against a reviewed tree catches that.
+  it("the committed plugins/claude-code/agents equal fresh build output byte-for-byte", async () => {
     const { plan } = await importPendingSymbols<{
       plan: (options: { root: string; targets: string[]; skipRegistry: boolean }) => Promise<{
-        files: { path: string; target: string }[];
+        files: { path: string; target: string; content: string; mirrorOf?: string }[];
       }>;
-    }>("src/core/BuildPipeline.ts", ["plan"], OWED_BY, "the claude-code target still plans");
+    }>("src/core/BuildPipeline.ts", ["plan"], OWED_BY, "the claude-code target emits in place");
+
     const built = await plan({ root: repoPath(), targets: ["claude-code"], skipRegistry: true });
-    const staged = built.files.filter((file) => file.target === "claude-code");
-    expect(staged.length, "the claude-code target should still plan 7 agents").toBe(7);
+    const all = built.files.filter((file) => file.target === "claude-code");
+    // The primary output is hosts/claude-code/agents; plugins/claude-code/agents is its mirror.
+    const primary = all.filter((file) => file.mirrorOf === undefined);
+    const emitted = all.filter((file) => file.mirrorOf !== undefined);
+    const live = listFiles(LIVE_CC_AGENTS);
+
+    expect(primary.length, "the claude-code target should emit 7 agents").toBe(7);
+    expect(primary.every((file) => file.path.startsWith("hosts/claude-code/agents/"))).toBe(true);
+    expect(emitted.map((file) => file.mirrorOf).sort()).toEqual(primary.map((file) => file.path).sort());
+    for (const file of primary) {
+      expect(readFileSync(repoPath(file.path), "utf-8"), `${file.path} differs from the build`).toBe(file.content);
+    }
+    // Same set of paths: nothing the build emits is missing, nothing committed is unclaimed.
+    expect(live.map((file) => relative(repoPath(), file).split(sep).join("/")).sort()).toEqual(
+      emitted.map((file) => file.path).sort()
+    );
+
+    for (const file of emitted) {
+      const text = readFileSync(repoPath(file.path), "utf-8");
+      expect(text, `${file.path} differs from the build — run \`oac build\``).toBe(file.content);
+      expect(text, `${file.path}: lost its <example> dispatch blocks`).toContain("<example>");
+    }
   });
 });

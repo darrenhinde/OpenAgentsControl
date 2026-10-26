@@ -293,10 +293,10 @@ describe('flavor-aware registry', () => {
     }
   });
 
-  test('a v1-opencode source path is installable; traversal out of it is not', () => {
-    expect(isInstallablePath('v1-opencode/agent/core/openagent.md')).toBe(true);
-    expect(isInstallablePath('v1-opencode/../README.md')).toBe(false);
-    expect(isInstallablePath('v1-opencode')).toBe(false);
-    expect(isInstallablePath('other/v1-opencode/x')).toBe(false);
+  test('a hosts/opencode-v1 source path is installable; traversal out of it is not', () => {
+    expect(isInstallablePath('hosts/opencode-v1/agent/core/openagent.md')).toBe(true);
+    expect(isInstallablePath('hosts/opencode-v1/../README.md')).toBe(false);
+    expect(isInstallablePath('hosts/opencode-v1')).toBe(false);
+    expect(isInstallablePath('other/hosts/opencode-v1/x')).toBe(false);
   });
 });

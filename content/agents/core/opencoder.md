@@ -46,8 +46,8 @@ oac:
     - context:task-delegation-basics
     - context:component-planning
     - context:external-libraries-workflow
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Development Agent

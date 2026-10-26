@@ -30,8 +30,8 @@ oac:
     - user-journey
     - planning
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # StoryMapper

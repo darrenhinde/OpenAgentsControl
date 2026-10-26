@@ -1,0 +1,8 @@
+{
+  "name": "coder-verification",
+  "description": "Active assistance plugin for CoderAgent - reminds about checks and auto-completes tasks",
+  "version": "1.0.0",
+  "author": {
+    "name": "OpenCode"
+  }
+}

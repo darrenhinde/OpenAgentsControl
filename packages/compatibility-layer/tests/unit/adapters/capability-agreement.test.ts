@@ -27,6 +27,7 @@ import { describe, it, expect } from "vitest";
 
 import { ClaudeAdapter } from "../../../src/adapters/ClaudeAdapter.js";
 import { OpenCodeAdapter } from "../../../src/adapters/OpenCodeAdapter.js";
+import { OpenCodeV1Adapter } from "../../../src/adapters/v1/OpenCodeV1Adapter.js";
 import { getToolCapabilities, type Platform } from "../../../src/core/CapabilityMatrix.js";
 import type { BaseAdapter } from "../../../src/adapters/BaseAdapter.js";
 import type { ToolCapabilities } from "../../../src/types.js";
@@ -38,9 +39,20 @@ import type { ToolCapabilities } from "../../../src/types.js";
  * own — `covers every adapter in the Platform union` below closes that by comparing this list
  * against the union's own members.
  */
-const ADAPTERS: ReadonlyArray<{ platform: Exclude<Platform, "oac">; adapter: BaseAdapter }> = [
-  { platform: "claude", adapter: new ClaudeAdapter() },
-  { platform: "opencode", adapter: new OpenCodeAdapter() },
+const ADAPTERS: ReadonlyArray<{
+  label: string;
+  /** The CapabilityMatrix column this adapter's getCapabilities() must agree with. */
+  column: Exclude<Platform, "oac">;
+  adapter: BaseAdapter;
+}> = [
+  { label: "claude", column: "claude", adapter: new ClaudeAdapter() },
+  { label: "opencode", column: "opencode", adapter: new OpenCodeAdapter() },
+  // v1 has no column of its own: it shares OpenCodeBaseAdapter (and therefore v2's
+  // getCapabilities()), and ToolCapabilities' 11 fields do not distinguish v1 from v2 —
+  // their differences are layout (`agent/<category>/<file>.md` vs flat) and registry, not
+  // capability. Pinning it against the SAME column is the point: if v1 ever grows a
+  // hand-written getCapabilities() that disagrees, this row goes red.
+  { label: "opencode-v1", column: "opencode", adapter: new OpenCodeV1Adapter() },
 ];
 
 /** The fields both sides answer. `notes`/`displayName` are adapter-owned — see the header. */
@@ -59,22 +71,25 @@ const AGREED_FIELDS = [
 ] as const satisfies ReadonlyArray<keyof ToolCapabilities>;
 
 describe("capability agreement (adapter vs CapabilityMatrix)", () => {
-  describe.each(ADAPTERS)("$platform", ({ platform, adapter }) => {
+  describe.each(ADAPTERS)("$label vs the $column column", ({ column, adapter }) => {
     it.each(AGREED_FIELDS)("agrees on %s", (field) => {
-      expect(adapter.getCapabilities()[field]).toEqual(getToolCapabilities(platform)[field]);
+      expect(adapter.getCapabilities()[field]).toEqual(getToolCapabilities(column)[field]);
     });
   });
 
-  // Guards the gap this file would otherwise have: a new adapter that never gets listed in
-  // ADAPTERS is silently unchecked. The Platform union is the roster of record.
+  // Guards the gap this file would otherwise have. Two rosters:
+  // 1. every Platform column except `oac` must be exercised — a new platform without a
+  //    column here is caught because the Set below must equal the whole union minus `oac`.
+  // 2. every registered adapter must be listed BY LABEL. A future adapter that reuses an
+  //    existing column would not change the column set, so it must be added here by name —
+  //    a deliberate tradeoff: the union roster catches missing columns, the label roster
+  //    catches missing adapters.
   it("covers every adapter in the Platform union", () => {
-    const platformsUnderTest = ADAPTERS.map((entry) => entry.platform).sort();
-    const expected: Array<Exclude<Platform, "oac">> = [
-      "claude",
-      "opencode",
-    ];
+    const columns = [...new Set(ADAPTERS.map((entry) => entry.column))].sort();
+    expect(columns).toEqual(["claude", "opencode"]);
 
-    expect(platformsUnderTest).toEqual(expected.sort());
+    const labels = ADAPTERS.map((entry) => entry.label).sort();
+    expect(labels).toEqual(["claude", "opencode", "opencode-v1"]);
   });
 
   // OpenCode had no column at all until 2026-07-15, which is why it hand-wrote its own answers.

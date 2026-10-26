@@ -22,7 +22,7 @@ OAC keeps you in control of the coding agents on your real projects: you approve
 |---|---|
 | Branch | `refactor/canonical`, draft PR #342. 68 commits ahead of `main`, 0 behind (before this roadmap commit). |
 | Pushed | `origin/refactor/canonical` is 22 commits behind local: the test-suite, planning and docs commits, plus the 7 v1.1 product fixes in the Done log. Nothing pushed since. List them with `git log origin/refactor/canonical..HEAD`. |
-| Canonical build | Done: one source in `content/`, `oac build` emits `.opencode/` and `registry.json`, drift gate in CI, Node-only CLI, one version (1.1.0). The 7 Claude agents are hand-written again and compare-only (D-001); `104356a`'s regeneration (L-001) was reverted in `141f1b9`. |
+| Canonical build | Done: one source in `content/`, `oac build` emits `.opencode/` and `registry.json`, drift gate in CI, Node-only CLI, one version (1.1.0). The Claude agents are generated too (D-017), and every target builds into the committed `hosts/` folder, with `.opencode/agent/` and `plugins/claude-code/agents/` as generated mirrors (D-018). |
 | Local test suite | `evals/v2`, run with `pnpm test:local quick` (L0, ~40 s) or `pnpm test:local hosts` (+ real OpenCode v2.0.30 and Claude Code 2.1.302 against a fake model, sandboxed, $0). Build steps 1–7 of [07 §6](initial-planning/07-test-suite-plan.md) are done. |
 | Latest run | `hosts` at `db475d9`: **62 pass / 21 known-red / 0 unexpected / 28 skipped**, exit 0, 3m05s. Canary 0/507 leaks, 151 sandboxed host runs, outside files unchanged. `quick` at `db475d9`: 26 pass / 2 known-red / 0 unexpected. |
 

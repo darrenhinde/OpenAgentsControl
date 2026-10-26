@@ -34,8 +34,8 @@ oac:
     - design
   dependencies:
     - context:standards-code
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Frontend Design Subagent

@@ -2,8 +2,9 @@
  * OpenCodeBaseAdapter — the shared emission flow for both OpenCode targets (v2 and v1).
  *
  * Split from the original single `OpenCodeAdapter` so that everything specific to one OpenCode
- * major lives in a thin subclass: `OpenCodeAdapter` (v2, `.opencode/agent/`) and
- * `v1/OpenCodeV1Adapter` (v1, `v1-opencode/agent/`). Deleting v1 later deletes one subclass.
+ * major lives in a thin subclass: `OpenCodeAdapter` (v2, `.opencode/agent/`, placed under
+ * `hosts/opencode/agent/` by the build) and `v1/OpenCodeV1Adapter` (v1,
+ * `hosts/opencode-v1/agent/`). Deleting v1 later deletes one subclass.
  *
  * Original description follows.
  *
@@ -67,6 +68,7 @@ import { BaseAdapter } from "./../BaseAdapter.js";
 import { getToolCapabilities } from "../../core/CapabilityMatrix.js";
 import { AgentIdResolutionError, type IdTarget } from "../../core/AgentIdResolver.js";
 import { rewriteBodyRefs, rewriteTaskKeys } from "../../core/DelegationRewriter.js";
+import { filterHostBlocks } from "../../core/HostBlocks.js";
 import {
   CanonicalAgentSchema,
   type ConversionResult,
@@ -105,6 +107,9 @@ export abstract class OpenCodeBaseAdapter extends BaseAdapter {
   constructor() {
     super();
   }
+
+  /** The build target id this adapter emits (`opencode` | `opencode-v1`); selects `oac:only` blocks. */
+  abstract override readonly name: "opencode" | "opencode-v1";
 
   /** Repo-relative root agents are written under, no trailing slash. */
   abstract readonly agentRoot: string;
@@ -200,7 +205,12 @@ export abstract class OpenCodeBaseAdapter extends BaseAdapter {
       );
     }
 
-    const done = this.transform({ frontmatter: stripOacBlock(frontmatter), rest }, parsed, options);
+    // Resolve `oac:only` host blocks first, so every later body rewrite (delegation refs) sees
+    // only the text this target ships. `rest` opens on the closing `---`, which is file line
+    // `frontmatter.length + 2`; the offset makes marker errors report file lines.
+    const body = filterHostBlocks(rest, this.name, { file: filePath, lineOffset: frontmatter.length + 1 });
+
+    const done = this.transform({ frontmatter: stripOacBlock(frontmatter), rest: body }, parsed, options);
     const content = rebuild(done.frontmatter, done.rest);
 
     return {

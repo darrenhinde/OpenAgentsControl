@@ -1,10 +1,10 @@
 /**
- * The committed trees: what lives in `.opencode/` (v2) and `v1-opencode/` (v1), and that both
+ * The committed trees: what lives in `.opencode/` (v2) and `hosts/opencode-v1/` (v1), and that both
  * registries point only at files that exist.
  *
- * `v1-opencode/` is a display copy of the v1 build; installs write its contents into the user's
+ * `hosts/opencode-v1/` is a display copy of the v1 build; installs write its contents into the user's
  * `.opencode/`. These tests pin the split: anything OpenCode v2 cannot load lives ONLY under
- * `v1-opencode/`, and the few hand-authored files that carry delegation examples exist as a v1
+ * `hosts/opencode-v1/`, and the few hand-authored files that carry delegation examples exist as a v1
  * variant plus a v2 file derived from it.
  */
 import { describe, it, expect, beforeAll } from "vitest";
@@ -26,8 +26,8 @@ const posix = (p: string): string => relative(repoPath(), p).split(sep).join("/"
 
 /** Hand-authored files whose delegation examples differ by target: v1 variant -> v2 file. */
 const VARIANTS: Array<[v1: string, v2: string]> = [
-  ["v1-opencode/command/openagents/check-context-deps.md", ".opencode/command/openagents/check-context-deps.md"],
-  ["v1-opencode/skills/task-management/SKILL.md", ".opencode/skills/task-management/SKILL.md"],
+  ["hosts/opencode-v1/command/openagents/check-context-deps.md", ".opencode/command/openagents/check-context-deps.md"],
+  ["hosts/opencode-v1/skills/task-management/SKILL.md", ".opencode/skills/task-management/SKILL.md"],
 ];
 
 describe("registries only name files that exist", () => {
@@ -67,19 +67,19 @@ describe(".opencode/ is a v2 tree", () => {
   });
 });
 
-describe("v1-opencode/ carries everything v2 cannot load", () => {
+describe("hosts/opencode-v1/ carries everything v2 cannot load", () => {
   it("holds the v1 tools and plugins, all written against the v1 plugin API", () => {
     // The modules OpenCode v1 actually loads: tool/<name>/index.ts, plugin/*.ts, plugins/<name>/index.ts.
-    const entries = [...walk(repoPath("v1-opencode/tool")), ...walk(repoPath("v1-opencode/plugin")), ...walk(repoPath("v1-opencode/plugins"))]
+    const entries = [...walk(repoPath("hosts/opencode-v1/tool")), ...walk(repoPath("hosts/opencode-v1/plugin")), ...walk(repoPath("hosts/opencode-v1/plugins"))]
       .map(posix)
-      .filter((p) => /^v1-opencode\/(tool\/[^/]+\/index|tool\/index|plugin\/[^/]+|plugins\/[^/]+\/index)\.ts$/.test(p))
+      .filter((p) => /^hosts\/opencode-v1\/(tool\/[^/]+\/index|tool\/index|plugin\/[^/]+|plugins\/[^/]+\/index)\.ts$/.test(p))
       .filter((p) => !/\.d\.ts$/.test(p));
     expect(entries.length).toBeGreaterThanOrEqual(5);
     expect(lintV1Artifacts(entries.map((path) => ({ path, text: readFileSync(repoPath(path), "utf-8") })))).toEqual([]);
   });
 
   it("holds the v1 category metadata that only the nested layout uses", () => {
-    expect(existsSync(repoPath("v1-opencode/agent/core/0-category.json"))).toBe(true);
+    expect(existsSync(repoPath("hosts/opencode-v1/agent/core/0-category.json"))).toBe(true);
     expect(existsSync(repoPath(".opencode/agent/core"))).toBe(false);
   });
 
@@ -111,7 +111,7 @@ describe("delegation examples in hand-authored carried files", () => {
   });
 
   it("the v1 agent tree passes the v1 lint as committed", () => {
-    const files = walk(repoPath("v1-opencode/agent"))
+    const files = walk(repoPath("hosts/opencode-v1/agent"))
       .filter((f) => f.endsWith(".md"))
       .map((f) => ({ path: posix(f), text: readFileSync(f, "utf-8") }));
     expect(files.length).toBeGreaterThan(30);

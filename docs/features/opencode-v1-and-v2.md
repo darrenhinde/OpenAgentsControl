@@ -6,11 +6,13 @@
 
 | Target | Output in this repo | Installed to a project as |
 |---|---|---|
-| `opencode` (v2, default) | `.opencode/agent/<oac.id>.md`, `registry.json` | `.opencode/agent/<oac.id>.md` |
-| `opencode-v1` | `v1-opencode/agent/<category>/<file>.md`, `registry.v1.json` | `.opencode/agent/<category>/<file>.md` |
-| `claude-code` | unchanged (`plugins/claude-code/`, staged) | unchanged |
+| `opencode` (v2, default) | `hosts/opencode/agent/<oac.id>.md`, mirrored to `.opencode/agent/<oac.id>.md`; `registry.json` | `.opencode/agent/<oac.id>.md` |
+| `opencode-v1` | `hosts/opencode-v1/agent/<category>/<file>.md`, `registry.v1.json` | `.opencode/agent/<category>/<file>.md` |
+| `claude-code` | `hosts/claude-code/agents/<name>.md`, mirrored to `plugins/claude-code/agents/<name>.md` | the Claude Code plugin (`plugins/claude-code`) |
 
-`v1-opencode/` is a **display and source folder only**. An install writes its contents into the user's `.opencode/`; the name never appears in a project. It also holds everything v2 cannot load: `tool/`, `plugin/`, `plugins/`, and v1 variants of the two hand-authored files whose delegation examples differ (`command/openagents/check-context-deps.md`, `skills/task-management/SKILL.md`).
+`hosts/` holds every target's build side by side, so the formats can be compared (D-018; `hosts/README.md` is the generated index). The live paths `.opencode/agent/` (this repo's own OpenCode, and the paths in `registry.json`) and `plugins/claude-code/agents/` (the marketplace source) are byte-identical generated mirrors: the build writes, prunes and drift-checks them with their `hosts/` folder, and a hand edit to either is drift.
+
+`hosts/opencode-v1/` (formerly `v1-opencode/`) is a **display and source folder only**. It has no live mirror; `registry.v1.json` points into it. An install writes its contents into the user's `.opencode/`; the name never appears in a project. It also holds everything v2 cannot load: `tool/`, `plugin/`, `plugins/`, and v1 variants of the two hand-authored files whose delegation examples differ (`command/openagents/check-context-deps.md`, `skills/task-management/SKILL.md`).
 
 `opencode-v1` is a build-level sibling of `opencode`: an agent that declares `opencode` is emitted for both. Declaring `opencode-v1` alone makes an agent v1-only (`image-specialist`).
 
@@ -66,9 +68,9 @@ The pinned host harness (`evals/v2`) can only run OpenCode v2.0.30, so v1 gets l
 
 | Check | Proves | Runs |
 |---|---|---|
-| Byte snapshots of `v1-opencode/**`, drift gate | the v1 build is what the source says | CI (`make check-canonical-drift`, compatibility-layer tests) |
+| Byte snapshots of `hosts/opencode-v1/**`, drift gate | the v1 build is what the source says | CI (`make check-canonical-drift`, compatibility-layer tests) |
 | `lintV1Agents` / `lintV1Artifacts` (inverse of `no-v1-artifacts`) | every v1 agent has a unique `name:`, every `task:` key and `subagent_type` matches a name exactly, only v1 schema keys, no v2 vocabulary, tools and plugins use the v1 API, no trailing catch-all deny | CI, over the planned and the committed tree |
-| Install tests: `oac init --opencode v1` into a temp dir (`flavor-install.e2e.test.ts`), `scripts/tests/test-flavor-install.sh` | a complete `.opencode/` lands (agents, tools, plugins, skills, commands, context), no `v1-opencode` folder, the choice is recorded, update keeps it, migration is safe, the installed tree passes the v1 lint | CI (offline, host version stubbed) |
+| Install tests: `oac init --opencode v1` into a temp dir (`flavor-install.e2e.test.ts`), `scripts/tests/test-flavor-install.sh` | a complete `.opencode/` lands (agents, tools, plugins, skills, commands, context), no `hosts/` folder, the choice is recorded, update keeps it, migration is safe, the installed tree passes the v1 lint | CI (offline, host version stubbed) |
 | Doctor mismatch tests | the version check fires both ways | CI |
 | Hosts-tier boot of every v1 agent on a real OpenCode v1 | v1 actually loads the files | **Manual / nightly with network only** |
 
@@ -76,4 +78,4 @@ The hosts-tier row is not wired into any workflow and nothing is downloaded by t
 
 ## Removing v1 later
 
-Delete `packages/compatibility-layer/src/adapters/v1/`, the `opencode-v1` entries in `BuildPipeline.ts`, `TargetPolicy.ts` and `RegistryTargets.ts`, `v1-opencode/`, `registry.v1.json`, the v1 branches in `packages/cli/src/lib/flavor*.ts` and `bundled.ts`, and the `--opencode` option. Agents declared `opencode-v1` only (`image-specialist`) go with it.
+Delete `packages/compatibility-layer/src/adapters/v1/`, the `opencode-v1` entries in `BuildPipeline.ts`, `TargetPolicy.ts` and `RegistryTargets.ts`, `hosts/opencode-v1/`, `registry.v1.json`, the v1 branches in `packages/cli/src/lib/flavor*.ts` and `bundled.ts`, and the `--opencode` option. Agents declared `opencode-v1` only (`image-specialist`) go with it.

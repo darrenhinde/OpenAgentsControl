@@ -32,8 +32,8 @@ oac:
     - analysis
     - ddd
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # ArchitectureAnalyzer

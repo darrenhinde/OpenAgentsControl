@@ -40,8 +40,8 @@ oac:
     - ci-cd
     - infrastructure
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # DevOps Specialist Subagent

@@ -134,8 +134,13 @@ describe('classifyChangedPaths', () => {
     // not set has-canonical, the gate would skip exactly the change it exists to catch.
     for (const path of [
       '.opencode/agent/core/openagent.md',
+      'hosts/opencode/agent/openagent.md',
+      'hosts/opencode-v1/agent/core/openagent.md',
+      'hosts/claude-code/agents/coder-agent.md',
+      'plugins/claude-code/agents/coder-agent.md',
       '.oac/build-manifest.json',
       'registry.json',
+      'registry.v1.json',
     ]) {
       expect(classifyChangedPaths([path])).toEqual({
         ...NO_CHANGES,

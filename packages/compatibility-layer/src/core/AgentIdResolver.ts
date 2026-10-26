@@ -96,7 +96,13 @@ export class AgentIdResolver {
   /** Build from the canonical corpus as the loader returns it. */
   static fromCanonical(files: readonly CanonicalAgentFile[]): AgentIdResolver {
     return AgentIdResolver.from(
-      files.map((file) => ({ id: file.oac.id, oacName: file.oac.name, name: file.frontmatter.name })),
+      files.map((file) => ({
+        id: file.oac.id,
+        oacName: file.oac.name,
+        // `frontmatter.name` is optional since v2 files name agents by their file; the
+        // `oac:` block's name is always present and is the authored display name.
+        name: file.frontmatter.name ?? file.oac.name,
+      })),
     );
   }
 

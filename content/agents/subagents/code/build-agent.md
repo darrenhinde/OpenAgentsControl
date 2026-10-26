@@ -34,8 +34,8 @@ oac:
     - validation
     - type-checking
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # BuildAgent

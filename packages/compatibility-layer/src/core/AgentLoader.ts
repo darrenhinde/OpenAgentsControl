@@ -245,10 +245,12 @@ export class AgentLoader {
 
     const agentId = inferAgentId(filePath);
 
-    // Legacy metadata is derived only from the loaded file and stable defaults.
+    // Legacy metadata is derived only from the loaded file and stable defaults. The display
+    // name falls back to the filename stem — exactly OpenCode v2's own naming rule — so a
+    // v2 agent file (which omits `name:` by design) loads instead of failing validation.
     const metadata: OpenAgent["metadata"] = {
       id: agentId,
-      name: validatedFrontmatter.name,
+      name: validatedFrontmatter.name ?? agentId,
       version: "1.0.0",
       author: "opencode",
       tags: [],

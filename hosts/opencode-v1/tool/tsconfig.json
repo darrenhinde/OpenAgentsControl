@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolvePackageJsonExports": true,
+    "resolvePackageJsonImports": true,
+    "target": "ES2022",
+    "skipLibCheck": true,
+    "types": ["bun-types"]
+  },
+  "include": ["*.ts"],
+  "exclude": ["node_modules"]
+}

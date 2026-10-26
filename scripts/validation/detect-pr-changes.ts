@@ -46,9 +46,13 @@ export function classifyChangedPaths(paths: readonly string[]): ChangeFlags {
       // The build that turns it into output.
       path.startsWith('packages/') ||
       // The committed output — a hand-edit here is precisely what the gate exists to catch.
+      // hosts/ holds every target's primary output; the other two trees are its live mirrors.
+      path.startsWith('hosts/') ||
       path.startsWith('.opencode/agent/') ||
+      path.startsWith('plugins/claude-code/agents/') ||
       path.startsWith('.oac/') ||
       path === 'registry.json' ||
+      path === 'registry.v1.json' ||
       // The gate's own machinery.
       path === 'Makefile' ||
       path === 'scripts/validation/check-build-drift.sh' ||

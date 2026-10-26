@@ -1,7 +1,7 @@
 /**
  * Installing the v1 build, and moving an install between layouts.
  *
- * The v1 build lives under `v1-opencode/` in the package; a user's project only ever gets
+ * The v1 build lives under `hosts/opencode-v1/` in the package; a user's project only ever gets
  * `.opencode/`. These tests use a fake package and real temp projects (no network, no host).
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
@@ -39,11 +39,11 @@ beforeEach(async () => {
   await put(pkg, '.opencode/agent/openagent.md', 'v2 openagent');
   await put(pkg, '.opencode/agent/eval-runner.md', 'eval runner');
   await put(pkg, '.opencode/command/c.md', 'command');
-  await put(pkg, 'v1-opencode/agent/core/openagent.md', 'v1 openagent');
-  await put(pkg, 'v1-opencode/tool/gemini/index.ts', 'tool');
-  await put(pkg, 'v1-opencode/plugin/notify.ts', 'plugin');
+  await put(pkg, 'hosts/opencode-v1/agent/core/openagent.md', 'v1 openagent');
+  await put(pkg, 'hosts/opencode-v1/tool/gemini/index.ts', 'tool');
+  await put(pkg, 'hosts/opencode-v1/plugin/notify.ts', 'plugin');
   await put(pkg, 'registry.json', registry([['openagent', '.opencode/agent/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
-  await put(pkg, 'registry.v1.json', registry([['openagent', 'v1-opencode/agent/core/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
+  await put(pkg, 'registry.v1.json', registry([['openagent', 'hosts/opencode-v1/agent/core/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
 });
 afterEach(async () => {
   await rm(pkg, { recursive: true, force: true });
@@ -51,7 +51,7 @@ afterEach(async () => {
 });
 
 describe('installing v1 source paths', () => {
-  test('writes them to .opencode/, keys the manifest by destination, and never creates v1-opencode', async () => {
+  test('writes them to .opencode/, keys the manifest by destination, and never creates hosts/', async () => {
     const files = await listBundledFiles(pkg, 'v1');
     const { result, updatedManifest } = await syncFiles(files, null, opts());
 
@@ -59,14 +59,14 @@ describe('installing v1 source paths', () => {
     expect(await readFile(join(project, '.opencode/agent/core/openagent.md'), 'utf8')).toBe('v1 openagent');
     expect(await exists(project, '.opencode/tool/gemini/index.ts')).toBe(true);
     expect(await exists(project, '.opencode/plugin/notify.ts')).toBe(true);
-    expect(await exists(project, 'v1-opencode')).toBe(false);
-    expect(Object.keys(updatedManifest.files).some((k) => k.includes('v1-opencode'))).toBe(false);
+    expect(await exists(project, 'hosts')).toBe(false);
+    expect(Object.keys(updatedManifest.files).some((k) => k.includes('hosts/'))).toBe(false);
     expect(Object.keys(updatedManifest.files)).toContain('.opencode/agent/core/openagent.md');
     expect(await exists(project, '.opencode/agent/openagent.md')).toBe(false); // v2 flat agent is not installed
   });
 
   test('records the type of a v1 file by where it installs', async () => {
-    const { updatedManifest } = await syncFiles(['v1-opencode/tool/gemini/index.ts'], null, opts());
+    const { updatedManifest } = await syncFiles(['hosts/opencode-v1/tool/gemini/index.ts'], null, opts());
     expect(updatedManifest.files['.opencode/tool/gemini/index.ts']?.type).toBe('other');
   });
 });
@@ -87,7 +87,7 @@ describe('updateFiles by flavor', () => {
   test('a v1 update refreshes an untouched v1 file in place', async () => {
     const first = await updateFiles(opts({ flavor: 'v1' }));
     await writeManifest(project, first.updatedManifest);
-    await put(pkg, 'v1-opencode/agent/core/openagent.md', 'v1 openagent, newer');
+    await put(pkg, 'hosts/opencode-v1/agent/core/openagent.md', 'v1 openagent, newer');
     const second = await updateFiles(opts({ flavor: 'v1' }));
     expect(second.result.updated).toContain('.opencode/agent/core/openagent.md');
     expect(await readFile(join(project, '.opencode/agent/core/openagent.md'), 'utf8')).toBe('v1 openagent, newer');
@@ -160,6 +160,6 @@ describe('migrating a v1-layout install to v2', () => {
 
   test('the manifest written before and after never mentions the v1 source folder', async () => {
     await installV1();
-    expect(JSON.stringify(await readManifest(project))).not.toContain('v1-opencode');
+    expect(JSON.stringify(await readManifest(project))).not.toContain('hosts/');
   });
 });

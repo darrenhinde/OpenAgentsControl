@@ -52,7 +52,7 @@ RAW_URL="${OAC_RAW_URL:-https://raw.githubusercontent.com/darrenhinde/OpenAgents
 
 # Which OpenCode major to install for. v2 is the default and is never inferred from the host;
 # v1 is an explicit opt-in (--opencode v1 or OAC_OPENCODE=v1). The v1 build lives under
-# v1-opencode/ in the repository and installs into the user's .opencode/ - the folder name is
+# hosts/opencode-v1/ in the repository and installs into the user's .opencode/ - the folder name is
 # never used in a project.
 OPENCODE_FLAVOR="${OAC_OPENCODE:-v2}"
 
@@ -421,10 +421,10 @@ get_registry_key() {
 # We need to replace ".opencode" with the actual INSTALL_DIR
 get_install_path() {
     local registry_path=$1
-    # Strip the leading .opencode/ - or v1-opencode/, the repository folder of the v1 build,
+    # Strip the leading .opencode/ - or hosts/opencode-v1/, the repository folder of the v1 build,
     # whose files install to the same place - if present
     local relative_path="${registry_path#.opencode/}"
-    relative_path="${relative_path#v1-opencode/}"
+    relative_path="${relative_path#hosts/opencode-v1/}"
     # Return INSTALL_DIR + relative path
     echo "${INSTALL_DIR}/${relative_path}"
 }

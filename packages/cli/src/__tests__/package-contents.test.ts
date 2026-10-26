@@ -58,7 +58,7 @@ describe('published package profile contents', () => {
 
     // Assert
     expect(missing).toEqual([]);
-    expect(bundledFiles.some((f) => f.startsWith('v1-opencode/tool/'))).toBe(true);
+    expect(bundledFiles.some((f) => f.startsWith('hosts/opencode-v1/tool/'))).toBe(true);
   });
 
   test('reports a profile file that npm did not package', () => {

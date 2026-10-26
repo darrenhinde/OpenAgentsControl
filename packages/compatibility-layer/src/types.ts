@@ -308,9 +308,16 @@ export const HookDefinitionSchema = z.object({
 /**
  * Agent frontmatter contains the primary configuration defined in the agent's
  * markdown file header (YAML frontmatter).
+ *
+ * `name` is optional since the 2026-10-25 apply fix: OpenCode v2 agent files deliberately
+ * omit it ("v2 names an agent by its file" — hosts/README.md), so a loader reading v2
+ * output must not reject what the build itself emits. {@link AgentLoader.loadFromFile}
+ * backfills the display name from the filename stem; the canonical path additionally
+ * carries `oac.name`. Adapters that need a name still get one — it is just derived, not
+ * required at the schema boundary.
  */
 export const AgentFrontmatterSchema = z.object({
-  name: z.string(),
+  name: z.string().optional(),
   description: z.string(),
   mode: AgentModeSchema,
   temperature: TemperatureSchema.optional(),
@@ -391,15 +398,40 @@ export const BuildTargetSchema = z.enum([
 ]);
 
 /**
- * Which platforms this component is emitted to. At least one target is required;
- * `targets: []` is rejected because a component that emits nowhere is dead weight the
- * build would silently skip. Defaults to `["opencode"]` — true of all 34 agents on disk —
- * so a minimal authored `oac:` block needs no boilerplate for the common target.
+ * Which platforms this component is emitted to, when the author opts IN explicitly.
+ *
+ * ## Opt-out is the default (2026-10-23, the targets-flip)
+ *
+ * An `oac:` block that omits `targets:` ships to EVERY build target — every host in
+ * {@link BuildTargetSchema}'s roster, minus any `oac.exclude` entries. Opting out per host
+ * is what keeps adding host #4 cheap: the corpus needs no edit, the build degrades what the
+ * new host cannot express, and only agents that must NOT ship there declare `exclude`.
+ * Explicit `targets:` remains for the exceptions (today: the v1-only agent).
+ *
+ * `exclude` is a FILTER on `targets`, not an alternative to it — see
+ * {@link OacBlockSchema.superRefine} for the exact rules: the effective set is always
+ * `targets minus exclude`; an `exclude` entry naming a host the declared list already omits
+ * is dead config (parse error), and so is an override for a host outside the effective set.
+ * (One deliberate divergence from the schema's `effective` set: `opencode-v1` follows
+ * `opencode` at emit time, implemented only in `TargetPolicy.emitsTo`.)
+ *
+ * `targets: []` is rejected: a component that emits nowhere is dead weight the build would
+ * silently skip — say so with `exclude` naming every host instead, which documents intent
+ * rather than an empty list.
  */
 export const BuildTargetsSchema = z
   .array(BuildTargetSchema)
   .min(1, "targets must list at least one build target")
-  .default(["opencode"]);
+  .default(BuildTargetSchema.options as [z.infer<typeof BuildTargetSchema>, ...z.infer<typeof BuildTargetSchema>[]]);
+
+/**
+ * Hosts this component must NOT ship to. A FILTER on `targets` (defaulted to the full
+ * roster when `targets` is omitted), not an alternative to it: the effective shipping set
+ * is always `targets minus exclude`.
+ */
+export const BuildExcludesSchema = z
+  .array(BuildTargetSchema)
+  .default([]);
 
 /**
  * A dependency reference in either authored form:
@@ -462,6 +494,21 @@ export const TargetOverrideSchema = z
     /** Target-native model id (e.g. Claude Code's `sonnet`), distinct from OpenCode's. */
     model: z.string().min(1).optional(),
     /**
+     * The description this component carries on this target, replacing the canonical one.
+     *
+     * Exists because the two hosts use `description` for different readers. OpenCode shows
+     * it to a human picking an agent, so a one-line summary is right there. Claude Code feeds
+     * it to the parent model as the routing signal for automatic delegation, which is why the
+     * shipped plugin agents carry multi-line `description: |` blocks with `<example>` cases.
+     * One string cannot serve both without making one host worse, so the Claude Code form is
+     * authored here. Only a target adapter that consumes it reads it; the OpenCode emitters
+     * strip the whole `oac:` block, so declaring it never changes OpenCode output.
+     *
+     * `min(1)`: an empty override would silently blank the description on that target, which
+     * Claude Code treats as an agent with no routing signal at all. Omit the key instead.
+     */
+    description: z.string().min(1).optional(),
+    /**
      * The tools this component is granted on this target, in the target's own vocabulary.
      *
      * Deliberately `string[]`, not an enum: each target names its tools differently, and the
@@ -503,6 +550,7 @@ export const OacBlockFieldsSchema = z
     tags: z.array(z.string()).default([]),
     dependencies: z.array(DependencyRefInputSchema).default([]),
     targets: BuildTargetsSchema,
+    exclude: BuildExcludesSchema,
     overrides: TargetOverridesSchema.default({}),
   })
   .strict();
@@ -515,16 +563,55 @@ export const OacBlockFieldsSchema = z
  */
 export const OacBlockSchema = OacBlockFieldsSchema
   .superRefine((oac, ctx) => {
-    // An override for a target this component does not emit to is dead config: it looks like
-    // it is doing something and never runs. Almost always a half-finished edit to `targets`.
+    // The effective shipping set: the declared targets (defaulted to the full roster when
+    // omitted) minus every exclusion. One derivation here is what all cross-field checks
+    // read, so the schema, TargetPolicy and the build can never disagree on it.
+    const effective = oac.targets.filter(
+      (target) => !oac.exclude.includes(target)
+    );
+
+    // An exclude naming a host the declared targets already omit is dead config — it
+    // narrows nothing, it only pretends to. (Not an ambiguity: `exclude` is a filter on
+    // `targets`, so this is simply a no-op entry the author should delete.)
+    for (const target of oac.exclude) {
+      if (!oac.targets.includes(target)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["exclude"],
+          message:
+            `exclude names "${target}", which is not in targets ` +
+            `[${oac.targets.join(", ")}] — it narrows nothing; drop the entry`,
+        });
+      }
+    }
+
+    // An effective set of zero is the same dead weight `targets: []` is rejected for: the
+    // component would emit nowhere while looking configured. Whatever the author meant —
+    // retire the component, or fix the targets/exclude lists.
+    if (effective.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["exclude"],
+        message:
+          `targets [${oac.targets.join(", ")}] minus exclude ` +
+          `[${oac.exclude.join(", ")}] leaves nothing to emit to — retire the component ` +
+          `or fix the lists`,
+      });
+    }
+
+    // An override for a target this component does not effectively emit to is dead config:
+    // it looks like it is doing something and never runs. Almost always a half-finished edit
+    // to `targets` or `exclude`.
     for (const target of Object.keys(oac.overrides)) {
-      if (!oac.targets.includes(target as z.infer<typeof BuildTargetSchema>)) {
+      if (!effective.includes(target as z.infer<typeof BuildTargetSchema>)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["overrides", target],
           message:
-            `override declared for target "${target}", which is not in targets ` +
-            `[${oac.targets.join(", ")}] — it would never be applied`,
+            `override declared for target "${target}", which is not in the effective targets ` +
+            `[${effective.join(", ")}] (targets ${JSON.stringify(oac.targets)}` +
+            (oac.exclude.length > 0 ? ` minus exclude ${JSON.stringify(oac.exclude)}` : "") +
+            `) — it would never be applied`,
         });
       }
     }

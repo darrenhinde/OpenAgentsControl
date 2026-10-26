@@ -4,7 +4,7 @@
  * Proves the contract of the dual OpenCode build on the install side:
  *   - v2 is the default and v1 is only ever an explicit opt-in;
  *   - `--opencode v1` writes a COMPLETE v1 `.opencode/` into the project (agents, tools, plugins,
- *     skills, commands, context) and never a `v1-opencode/` folder;
+ *     skills, commands, context) and never a `hosts/opencode-v1/` folder;
  *   - the choice is recorded and `add` / `update` honour it;
  *   - a v1-layout install is migrated or kept, never silently moved;
  *   - `oac doctor` flags a mismatch with the OpenCode on PATH.
@@ -75,7 +75,7 @@ describe('oac init', () => {
     expect(lintV2Agents(await agentTexts(dir))).toEqual([]);
   });
 
-  test('--opencode v1 writes a complete v1 .opencode/ and never a v1-opencode folder', async () => {
+  test('--opencode v1 writes a complete v1 .opencode/ and never a hosts/ folder', async () => {
     const dir = await newProject();
     const r = oac(dir, ['init', '--opencode', 'v1', '--profile', 'full'], '1.19.3');
     expect(r.code).toBe(0);
@@ -96,8 +96,8 @@ describe('oac init', () => {
     // the v1 variant of the hand-authored command, not the v2 rewrite
     expect(await readFile(join(dir, '.opencode/command/openagents/check-context-deps.md'), 'utf8')).toContain('subagent_type=');
     // the source folder name never reaches a project
-    expect(await exists(dir, 'v1-opencode')).toBe(false);
-    expect(await readFile(join(dir, '.oac/manifest.json'), 'utf8')).not.toContain('v1-opencode');
+    expect(await exists(dir, 'hosts')).toBe(false);
+    expect(await readFile(join(dir, '.oac/manifest.json'), 'utf8')).not.toContain('hosts/');
     expect((await config(dir)).opencode).toEqual({ target: 'v1' });
     // and what landed is valid for v1
     expect(lintV1Agents(await agentTexts(dir))).toEqual([]);

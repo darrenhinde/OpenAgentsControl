@@ -1,0 +1,28 @@
+{
+  "name": "Content Creation",
+  "description": "Writing and content specialists",
+  "icon": "✍️",
+  "agents": {
+    "copywriter": {
+      "description": "Expert in persuasive writing and marketing copy",
+      "commonSubagents": [
+        "subagents/core/documentation"
+      ],
+      "commonTools": [],
+      "commonContext": [
+        "core/essential-patterns"
+      ]
+    },
+    "technical-writer": {
+      "description": "Expert in documentation and technical communication",
+      "commonSubagents": [
+        "subagents/core/documentation"
+      ],
+      "commonTools": [],
+      "commonContext": [
+        "core/standards/docs",
+        "core/essential-patterns"
+      ]
+    }
+  }
+}

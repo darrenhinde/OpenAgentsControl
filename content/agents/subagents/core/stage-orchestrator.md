@@ -33,8 +33,8 @@ oac:
     - workflow
     - stages
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # StageOrchestrator

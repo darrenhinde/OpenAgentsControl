@@ -15,8 +15,8 @@ oac:
     - agents
     - scaffolding
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Agent Generator

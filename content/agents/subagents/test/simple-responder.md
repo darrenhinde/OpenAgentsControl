@@ -14,8 +14,8 @@ oac:
     - testing
     - evaluation
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Simple Responder - Test Agent

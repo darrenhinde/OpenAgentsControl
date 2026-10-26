@@ -111,8 +111,12 @@ opencode-agents/
 
 ### Key Directories Explained
 
-#### `.opencode/agent/`
-Main agent prompts organized by category. These are the "brains" of the system:
+#### `.opencode/agent/` (generated)
+Main agent prompts. These are the "brains" of the system. **Don't edit them here:** the source is
+`content/agents/<category>/`, and `oac build` (`make build-canonical`) compiles it into `hosts/<tool>/`
+(`hosts/opencode/`, `hosts/opencode-v1/`, `hosts/claude-code/`). `.opencode/agent/` and
+`plugins/claude-code/agents/` are generated copies of `hosts/`; CI fails on a hand edit (D-018).
+The source categories are:
 - **core/openagent.md** - Universal orchestrator with plan-first workflow
 - **core/opencoder.md** - Development specialist for direct code execution
 - **meta/system-builder.md** - System architecture generator
@@ -305,7 +309,9 @@ The agent creation system follows these proven patterns:
 
 If you prefer manual creation, follow this structure:
 
-**1. Create Agent File** (`.opencode/agent/my-agent.md`)
+**1. Create Agent File** (`content/agents/<category>/my-agent.md`, then run `oac build`)
+
+Canonical files also carry an `oac:` block (id, category, targets, overrides); see `.opencode/context/openagents-repo/standards/agent-frontmatter.md`.
 
 ```markdown
 ---
@@ -634,8 +640,9 @@ Use the templates in `.opencode/command/openagents/new-agents/templates/` as sta
 ### Update an Existing Agent
 
 ```bash
-# 1. Edit the agent file
-vim .opencode/agent/my-agent.md
+# 1. Edit the canonical agent file, then rebuild hosts/ and its mirrors
+vim content/agents/<category>/my-agent.md
+make build-canonical
 
 # 2. Test changes
 cd evals/framework

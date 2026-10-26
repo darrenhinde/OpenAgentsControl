@@ -34,8 +34,8 @@ oac:
     - subagent:tester
     - subagent:reviewer
     - subagent:build-agent
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->

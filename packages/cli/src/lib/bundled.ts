@@ -223,7 +223,7 @@ async function v2OnlyPaths(packageRoot: string): Promise<Set<string>> {
  * their destination with `toDestPath`).
  *
  * v2 (the default) is the `.opencode/` tree. v1 is that tree minus the files only v2 uses, plus
- * everything under `v1-opencode/`; where both provide the same destination, v1 wins.
+ * everything under `hosts/opencode-v1/`; where both provide the same destination, v1 wins.
  * Allowlisted root files are included for both. Missing directories are silently skipped.
  */
 export async function listBundledFiles(

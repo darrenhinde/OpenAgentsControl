@@ -309,26 +309,11 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
       opencode: "Declared in the oac: block, which is stripped on emit; resolved at build time",
     },
   },
-  {
-    name: "priorityLevels",
-    category: "advanced",
-    description: "Task priority levels",
-    // "2 levels" was not a Claude Code feature — nothing in agent frontmatter or the plugin
-    // format expresses task priority.
-    //
-    // FIXME(2026-07-15): this row describes a concept that does not exist. `types.ts` has only
-    // ContextPrioritySchema — CONTEXT priority — whose four levels (critical/high/medium/low)
-    // are almost certainly the "4 levels" the oac note means. There is no task-priority field
-    // anywhere in the canonical schema, which makes this row a mis-named duplicate of
-    // `contextPriority`. Left as-is deliberately: deciding whether to delete it or rename it is
-    // a separate call, and folding that into an opencode-gap fix would bury it.
-    support: { oac: "full", claude: "none", opencode: "full" },
-    notes: {
-      oac: "4 levels",
-      claude: "No task priority concept",
-      opencode: "Tracks contextPriority — see the FIXME on this row",
-    },
-  },
+  // (the former `priorityLevels` row was deleted 2026-10-23: it described a task-priority
+  // concept that exists nowhere in the canonical schema — `types.ts` has only CONTEXT
+  // priority, already covered by `contextPriority` above — so it was a mis-named duplicate
+  // answering "none" for claude and "full" for oac/opencode on the strength of nothing.
+  // Resolves the FIXME that was deferred from 2026-07-15.)
 ];
 
 // ============================================================================

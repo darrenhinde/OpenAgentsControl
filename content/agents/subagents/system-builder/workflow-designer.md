@@ -23,8 +23,8 @@ oac:
     - design
     - architecture
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Workflow Designer

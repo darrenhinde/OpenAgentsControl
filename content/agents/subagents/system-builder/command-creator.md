@@ -15,8 +15,8 @@ oac:
     - generation
     - scaffolding
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Command Creator

@@ -1,0 +1,21 @@
+{
+  "name": "Meta Agents",
+  "description": "Meta-level agents for system generation and architecture design",
+  "icon": "🏗️",
+  "agents": {
+    "system-builder": {
+      "description": "Main orchestrator for building complete context-aware AI systems",
+      "commonSubagents": [
+        "subagents/system-builder/domain-analyzer",
+        "subagents/system-builder/agent-generator",
+        "subagents/system-builder/context-organizer",
+        "subagents/system-builder/workflow-designer",
+        "subagents/system-builder/command-creator"
+      ],
+      "commonTools": [],
+      "commonContext": [
+        "system-builder-templates/*"
+      ]
+    }
+  }
+}

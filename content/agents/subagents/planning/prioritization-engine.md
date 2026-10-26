@@ -27,8 +27,8 @@ oac:
     - backlog
     - planning
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Prioritization Engine

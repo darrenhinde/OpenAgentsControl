@@ -40,8 +40,8 @@ oac:
     - context:review-ref
     - context:delegation-ref
     - context:external-libraries-workflow
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 Always use ContextScout for discovery of new tasks or context files.
 ContextScout is exempt from the approval gate rule. ContextScout is your secret weapon for quality, use it where possible.

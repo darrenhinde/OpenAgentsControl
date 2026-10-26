@@ -361,7 +361,7 @@ plugins/claude-code/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin metadata
 ├── settings.json                # Model config: opusplan
-├── agents/                      # Custom subagents (7 files)
+├── agents/                      # Custom subagents (7 files, generated: mirror of hosts/claude-code/agents/)
 │   ├── task-manager.md
 │   ├── context-scout.md
 │   ├── context-manager.md
@@ -442,24 +442,25 @@ Context files are downloaded from the main repository via `/install-context`:
 
 ### Adding New Subagents
 
-1. Create subagent file:
-   ```bash
-   touch plugins/claude-code/agents/my-subagent.md
-   ```
+`agents/` is generated. Don't create or edit files in it: the drift gate fails on any hand edit (D-018).
 
-2. Add frontmatter:
-   ```markdown
-   ---
-   name: my-subagent
-   description: What this subagent does
-   tools: Read, Write, Glob, Grep
-   model: sonnet
-   ---
-   
-   # MySubagent
-   
-   Instructions for the subagent...
+1. Create the canonical agent under `content/agents/` (for example `content/agents/subagents/code/my-subagent.md`). Add `claude-code` to `oac.targets`, and put the Claude frontmatter under `oac.overrides.claude-code`:
+   ```yaml
+   oac:
+     id: my-subagent
+     targets:
+       - opencode
+       - claude-code
+     overrides:
+       claude-code:
+         name: my-subagent
+         model: sonnet
+         tools: [Read, Write, Glob, Grep]
+         description: What this subagent does, with <example> dispatch blocks
    ```
+   Claude-only body text goes in `<!-- oac:only claude-code -->` blocks.
+
+2. Run `oac build` (`make build-canonical`). It writes `hosts/claude-code/agents/my-subagent.md` and its mirror `plugins/claude-code/agents/my-subagent.md`. Commit both with the source.
 
 3. Create skill to invoke it:
    ```markdown

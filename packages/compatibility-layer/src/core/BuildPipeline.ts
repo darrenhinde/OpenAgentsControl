@@ -68,10 +68,13 @@ import {
 } from "./RegistryEmitter.js";
 import { ClaudeAdapter } from "../adapters/ClaudeAdapter.js";
 import type { RegistryTarget } from "./RegistryTargets.js";
-import { emitsTo } from "./TargetPolicy.js";
+import { BUILD_TARGETS, emitsTo, type BuildTarget } from "./TargetPolicy.js";
 import { AgentIdResolver } from "./AgentIdResolver.js";
+import { HostBlocksError } from "./HostBlocks.js";
 import { OpenCodeAdapter } from "../adapters/OpenCodeAdapter.js";
+import { OPENCODE_AGENT_ROOT } from "../adapters/opencode/surgery.js";
 import { OpenCodeV1Adapter, OPENCODE_V1_AGENT_ROOT } from "../adapters/v1/OpenCodeV1Adapter.js";
+import { HOSTS_README_PATH, HOSTS_README_TARGET, renderHostsReadme } from "./HostsReadme.js";
 
 // ============================================================================
 // TYPES
@@ -82,20 +85,32 @@ import { OpenCodeV1Adapter, OPENCODE_V1_AGENT_ROOT } from "../adapters/v1/OpenCo
  *
  * `opencode` is OpenCode v2 (the default), `opencode-v1` its v1 sibling. `opencode-v1` is a
  * BUILD-level target, not an `oac.targets` value: it is emitted for every agent that declares
- * `opencode`. Removing v1 support means dropping it here (see `adapters/v1/`).
+ * `opencode` — and, since the 2026-10-23 targets-flip, for every agent that OMITS `targets:`
+ * (the opt-out default ships to every target). Removing v1 support means dropping it here
+ * (see `adapters/v1/`).
+ *
+ * Re-exported from {@link TargetPolicy}, which owns the shipping rule; the roster is derived
+ * from `BuildTargetSchema`'s enum in `types.ts`, so schema, policy and build share one source.
  */
-export const BUILD_TARGETS = ["opencode", "opencode-v1", "claude-code"] as const;
-
-export type BuildTarget = (typeof BUILD_TARGETS)[number];
+export { BUILD_TARGETS, type BuildTarget } from "./TargetPolicy.js";
 
 /** One file the build produces. */
 export interface BuildFile {
   /** Repo-relative POSIX path the file lands at when emitted in place. */
   path: string;
+  /**
+   * Set on a live-path MIRROR: the primary path (under `hosts/`) whose bytes this file copies.
+   * A mirror is written, ledgered, pruned and drift-checked like any other file; it is skipped
+   * only where a second copy would double-count, such as the lints.
+   */
+  mirrorOf?: string;
   /** The exact bytes to write. */
   content: string;
-  /** The target that produced it; `"registry"` / `"registry-v1"` for the two registry files. */
-  target: BuildTarget | "registry" | "registry-v1";
+  /**
+   * The target that produced it; `"registry"` / `"registry-v1"` for the two registry files and
+   * `"hosts-readme"` for the generated `hosts/README.md` index.
+   */
+  target: BuildTarget | "registry" | "registry-v1" | typeof HOSTS_README_TARGET;
   /** `oac.id` of the source agent, or `undefined` for whole-tree artefacts. */
   agentId?: string;
   /** Semantics the target could not carry. Never fatal on their own. */
@@ -117,6 +132,15 @@ export interface BuildPlan {
   warnings: BuildWarning[];
   /** Canonical agents loaded, sorted by `oac.id`. */
   agents: CanonicalAgentFile[];
+  /**
+   * The targets this plan is AUTHORITATIVE for: the selected build targets plus the registry
+   * files built alongside them. {@link write} prunes, and {@link check} reports orphans, only
+   * for ledger entries whose target is listed here; every other target's ledger entries are
+   * carried forward verbatim. Without this, `--target claude-code` reads every `hosts/opencode/**`,
+   * `.opencode/agent/**`, `hosts/opencode-v1/**` and `registry.v1.json` entry as an orphan and
+   * deletes it. A target's mirrors are owned with it.
+   */
+  owns: ReadonlyArray<BuildFile["target"]>;
 }
 
 export interface BuildOptions {
@@ -141,8 +165,8 @@ export interface WriteOptions {
   root: string;
   /**
    * Per-target root override, repo-relative. A target listed here is REBASED under the given
-   * directory instead of being written in place — the mechanism `plugins/claude-code/**` is
-   * staged with, so a build can be compared against the shipped tree without touching it.
+   * directory instead of being written in place, so a build can be compared against the
+   * committed tree without touching it. `oac build` itself emits every target in place.
    */
   outputRoots?: OutputRoots;
   /**
@@ -179,18 +203,90 @@ const DEFAULTS = {
 } as const;
 
 /**
+ * The committed folder holding every host's built output side by side (`hosts/<host>/`).
+ * Not to be confused with `src/hosts/`, the host drivers in this package.
+ */
+export const HOSTS_ROOT = "hosts";
+
+/** Where one target's files go. */
+export interface TargetLayout {
+  /** The root the adapter's emitted paths are under (what `outputPath` / `emission.path` return). */
+  emitted: string;
+  /** The primary output root: the target's folder under {@link HOSTS_ROOT}. */
+  root: string;
+  /**
+   * Live paths that receive byte-identical copies of everything under {@link root}: the
+   * repo's own `.opencode/agent/` (dogfood, and the `registry.json` paths installers read) and
+   * `plugins/claude-code/agents/` (the Claude marketplace source). Generated, never edited.
+   */
+  mirrors: readonly string[];
+}
+
+/**
  * The roots each target is permitted to write, and therefore the only roots pruning may ever
  * touch. Defence in depth: the manifest is the gate, but a manifest that has been corrupted,
  * hand-edited or carried over from a different layout must not be able to talk the build into
- * deleting `src/`. A prune candidate outside its target's root is refused and reported.
+ * deleting `src/`. A prune candidate outside its target's roots is refused and reported.
  */
-const TARGET_ROOTS: Readonly<Record<BuildFile["target"], string>> = {
-  opencode: ".opencode/agent",
-  "opencode-v1": OPENCODE_V1_AGENT_ROOT,
-  "claude-code": "plugins/claude-code/agents",
-  registry: "registry.json",
-  "registry-v1": "registry.v1.json",
+export const TARGET_LAYOUT: Readonly<Record<BuildFile["target"], TargetLayout>> = {
+  opencode: {
+    emitted: OPENCODE_AGENT_ROOT,
+    root: `${HOSTS_ROOT}/opencode/agent`,
+    mirrors: [OPENCODE_AGENT_ROOT],
+  },
+  // The v1 build has no live mirror: it is display-only here, and installs read it from its
+  // hosts/ folder (registry.v1.json).
+  "opencode-v1": { emitted: OPENCODE_V1_AGENT_ROOT, root: OPENCODE_V1_AGENT_ROOT, mirrors: [] },
+  "claude-code": {
+    emitted: "plugins/claude-code/agents",
+    root: `${HOSTS_ROOT}/claude-code/agents`,
+    mirrors: ["plugins/claude-code/agents"],
+  },
+  registry: { emitted: "registry.json", root: "registry.json", mirrors: [] },
+  "registry-v1": { emitted: "registry.v1.json", root: "registry.v1.json", mirrors: [] },
+  // The generated index of hosts/ (core/HostsReadme.ts). Only a full build owns it.
+  [HOSTS_README_TARGET]: { emitted: HOSTS_README_PATH, root: HOSTS_README_PATH, mirrors: [] },
 };
+
+/** Every root a target may write: its primary root, then its mirrors. */
+function targetRoots(target: BuildFile["target"]): readonly string[] {
+  const layout = TARGET_LAYOUT[target];
+  return [layout.root, ...layout.mirrors];
+}
+
+/** Re-root `path` from `from` to `to`. `path` must sit under `from`. */
+function reroot(path: string, from: string, to: string): string {
+  if (from === to) return path;
+  if (path === from) return to;
+  if (!path.startsWith(`${from}/`)) {
+    throw new Error(`emitted path "${path}" is not under its target's emitted root "${from}"`);
+  }
+  return `${to}${path.slice(from.length)}`;
+}
+
+/** The root a file was written under: the mirror root it copies into, or its target's primary root. */
+function rootOf(file: BuildFile): string {
+  const layout = TARGET_LAYOUT[file.target];
+  if (file.mirrorOf === undefined) return layout.root;
+  return layout.mirrors.find((mirror) => isUnder(file.path, mirror)) ?? layout.root;
+}
+
+/**
+ * Place a file the adapter emitted: relocate it under the target's primary root, and add one
+ * byte-identical mirror per live root. Pure.
+ */
+function place(file: BuildFile): BuildFile[] {
+  const layout = TARGET_LAYOUT[file.target];
+  const primary = { ...file, path: reroot(file.path, layout.emitted, layout.root) };
+  const mirrors = layout.mirrors.map((mirror) => ({
+    ...primary,
+    path: reroot(primary.path, layout.root, mirror),
+    mirrorOf: primary.path,
+    // The primary carries the warnings; a mirror repeating them would double-count.
+    warnings: [],
+  }));
+  return [primary, ...mirrors];
+}
 
 /** Locale-independent ordering. `localeCompare` is locale-dependent — never use it here. */
 function compare(a: string, b: string): number {
@@ -238,11 +334,12 @@ function assertContained(root: string, absolute: string, what: string): void {
 // ============================================================================
 
 /**
- * Emit one agent for one target, or `null` when the agent does not declare that target.
+ * Emit one agent for one target, or `null` when the agent does not ship there.
  *
- * `oac.targets` is honoured here and nowhere else: an agent with `targets: ["opencode"]`
- * produces no Claude Code output because this function returns `null`, not because some later
- * filter drops it.
+ * The shipping rule lives in {@link TargetPolicy.emitsTo} and nowhere else — it answers
+ * `targets minus exclude`, plus the `opencode-v1`-follows-`opencode` relation. An agent that
+ * does not ship to a target produces no output for it because this function returns `null`,
+ * not because some later filter drops it.
  */
 async function emitAgent(
   agent: CanonicalAgentFile,
@@ -271,7 +368,9 @@ async function emitAgent(
   // The Claude Code adapter refuses (rather than guesses) when an agent's scoped rules have no
   // honest flat equivalent. That error is how a security decision reaches a human, so it must
   // name the file they have to open — the adapter only knows the agent id.
-  const emission = await adapter.fromCanonical(source).catch((cause: unknown) => {
+  // A HostBlocksError already reads `path:line: reason` because it is given the file path.
+  const emission = await adapter.fromCanonical(source, { filePath: sourcePath }).catch((cause: unknown) => {
+    if (cause instanceof HostBlocksError) throw cause;
     throw new Error(`${sourcePath}: ${cause instanceof Error ? cause.message : String(cause)}`, {
       cause,
     });
@@ -307,7 +406,7 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   for (const agent of agents) {
     for (const target of targets) {
       const file = await emitAgent(agent, target, resolver);
-      if (file !== null) files.push(file);
+      if (file !== null) files.push(...place(file));
     }
   }
 
@@ -328,9 +427,59 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
     }
   }
 
+  // hosts/README.md describes EVERY host, so only a build over every target may write it. A
+  // targeted build leaves it alone and carries its ledger entry forward (see ownedTargets).
+  if (coversAllHosts(targets)) {
+    files.push({
+      path: HOSTS_README_PATH,
+      content: renderHostsReadme({ files, agents, hosts: BUILD_TARGETS, layout: TARGET_LAYOUT }),
+      target: HOSTS_README_TARGET,
+      warnings: [],
+    });
+  }
+
   files.sort((a, b) => compare(a.path, b.path));
 
-  return { files, agents, warnings: files.flatMap((file) => file.warnings) };
+  return {
+    files,
+    agents,
+    warnings: files.flatMap((file) => file.warnings),
+    owns: ownedTargets(targets, options.skipRegistry === true),
+  };
+}
+
+/** True when `targets` selects every build target — the only build that owns hosts/README.md. */
+function coversAllHosts(targets: readonly BuildTarget[]): boolean {
+  return BUILD_TARGETS.every((target) => targets.includes(target));
+}
+
+/**
+ * Which ledger targets a build over `targets` is authoritative for. Mirrors the registry rule
+ * in {@link plan}: `registry.json` is built unless skipped, `registry.v1.json` only with v1,
+ * and `hosts/README.md` only when every host is built (it is independent of the registries).
+ */
+function ownedTargets(
+  targets: readonly BuildTarget[],
+  skipRegistry: boolean
+): Array<BuildFile["target"]> {
+  const owned: Array<BuildFile["target"]> = [...targets];
+  if (!skipRegistry) {
+    owned.push("registry");
+    if (targets.includes("opencode-v1")) owned.push("registry-v1");
+  }
+  if (coversAllHosts(targets)) owned.push(HOSTS_README_TARGET);
+  return owned;
+}
+
+/**
+ * True when a ledger entry belongs to a KNOWN target this plan did not build. Such an entry is
+ * outside the plan's authority: it is neither pruned nor reported, and is carried forward
+ * verbatim. An entry naming an UNKNOWN target is not foreign — it falls through to
+ * {@link prunable}, which refuses and reports it.
+ */
+function foreign(entry: ManifestEntry, plan: BuildPlan): boolean {
+  const target = entry.target as BuildFile["target"];
+  return target in TARGET_LAYOUT && !plan.owns.includes(target);
 }
 
 /**
@@ -376,9 +525,12 @@ export async function buildAgentIn(
 
   const file = await emitAgent(agent, target, AgentIdResolver.fromCanonical(agents));
   if (file === null) {
+    const excluded = (agent.oac.exclude ?? []).length > 0
+      ? ` minus exclude [${agent.oac.exclude.join(", ")}]`
+      : "";
     throw new Error(
-      `Agent "${id}" does not declare target "${target}" (declares: ` +
-        `${agent.oac.targets.join(", ")}), so it emits nothing there.`
+      `Agent "${id}" does not ship to target "${target}" (effective targets: ` +
+        `${agent.oac.targets.join(", ")}${excluded}), so it emits nothing there.`
     );
   }
 
@@ -396,7 +548,7 @@ function manifestFor(files: readonly BuildFile[], outputRoots: OutputRoots): Bui
     entries[rebase(file.path, file.target, outputRoots)] = {
       sha256: sha256(file.content),
       target: file.target,
-      root: rebase(TARGET_ROOTS[file.target], file.target, outputRoots),
+      root: rebase(rootOf(file), file.target, outputRoots),
     };
   }
   return { version: 1, files: entries };
@@ -435,21 +587,23 @@ function rebase(path: string, target: BuildFile["target"], outputRoots: OutputRo
  * @returns `null` when the file may be removed, or the reason it is being kept.
  */
 function prunable(absolute: string, path: string, entry: ManifestEntry): string | null {
-  const canonical = TARGET_ROOTS[entry.target as BuildFile["target"]];
-
-  if (canonical === undefined) {
+  // Nothing on disk means nothing to delete, so there is nothing to refuse either. Checked
+  // first so a ledger written for an older layout (e.g. `v1-opencode/`, now `hosts/opencode-v1/`)
+  // drops its vanished entries quietly instead of reporting each one as "kept".
+  if (!existsSync(absolute)) {
+    return "already gone";
+  }
+  if (!(entry.target in TARGET_LAYOUT)) {
     return `manifest names an unknown target "${entry.target}"`;
   }
-  // The recorded root is either the canonical one or the canonical one under a staging dir.
-  // Anything else means the ledger is not describing a tree this build owns.
-  if (entry.root !== canonical && !entry.root.endsWith(`/${canonical}`)) {
-    return `manifest records root "${entry.root}", which is not the ${entry.target} output root`;
+  // The recorded root is one of the target's roots (primary or mirror), either in place or
+  // under a staging dir. Anything else means the ledger is not describing a tree this build owns.
+  const roots = targetRoots(entry.target as BuildFile["target"]);
+  if (!roots.some((canonical) => entry.root === canonical || entry.root.endsWith(`/${canonical}`))) {
+    return `manifest records root "${entry.root}", which is not a ${entry.target} output root`;
   }
   if (!isUnder(path, entry.root)) {
     return `manifest entry sits outside its recorded output root (${entry.root})`;
-  }
-  if (!existsSync(absolute)) {
-    return "already gone";
   }
   if (sha256(readFileSync(absolute, "utf-8")) !== entry.sha256) {
     return "modified since it was generated — refusing to delete a file someone has edited";
@@ -528,9 +682,16 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
   }
 
   const next = manifestFor(plan.files, outputRoots);
+  const previous = readManifest(root);
+
+  // A targeted build only rewrites its own targets' ledger lines. Everything else the previous
+  // build recorded is carried forward untouched, so it stays prunable by a later build that
+  // DOES select that target.
+  for (const [path, entry] of Object.entries(previous.files)) {
+    if (!(path in next.files) && foreign(entry, plan)) next.files[path] = entry;
+  }
 
   if (options.prune !== false) {
-    const previous = readManifest(root);
     // THE gate: candidates come from the ledger, never from a directory scan. A file this
     // build has not written and no previous build wrote is not enumerable here.
     for (const path of Object.keys(previous.files).sort(compare)) {
@@ -593,7 +754,9 @@ export function check(plan: BuildPlan, options: WriteOptions): Drift[] {
     }
   }
 
-  for (const path of Object.keys(readManifest(root).files)) {
+  for (const [path, entry] of Object.entries(readManifest(root).files)) {
+    // Another target's output is not this plan's to call an orphan (see {@link foreign}).
+    if (foreign(entry, plan)) continue;
     if (!(path in next.files) && existsSync(join(root, path))) {
       drift.push({ path, status: "orphan" });
     }

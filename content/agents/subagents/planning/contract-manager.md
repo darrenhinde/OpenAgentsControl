@@ -31,8 +31,8 @@ oac:
     - api
     - openapi
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 <context>

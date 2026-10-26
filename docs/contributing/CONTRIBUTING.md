@@ -53,9 +53,11 @@ opencode-agents/
     └── guides/             # User guides
 ```
 
-> **Note**: Agent files now use category-based organization. Core agents are in `core/`, 
-> development specialists in `development/`, etc. When referencing agents, use the 
-> category prefix: `core/openagent`, `development/frontend-specialist`.
+> **Note**: Agents are authored once in `content/agents/<category>/` (for example
+> `content/agents/core/openagent.md`) and compiled by `oac build` (`make build-canonical`)
+> into `hosts/<tool>/`: `hosts/opencode/`, `hosts/opencode-v1/` and `hosts/claude-code/`.
+> `.opencode/agent/` and `plugins/claude-code/agents/` are generated copies of `hosts/`.
+> Never edit `hosts/` or those copies; CI fails on any hand edit (D-018).
 
 ### Key Directories
 
@@ -81,8 +83,8 @@ opencode-agents/
 
 ### Component Types
 
-- **Agents** (`.opencode/agent/*.md`) - Main AI agents
-- **Subagents** (`.opencode/agent/subagents/*.md`) - Specialized helpers
+- **Agents** (`content/agents/<category>/*.md`) - Main AI agents, built into `hosts/` by `oac build`
+- **Subagents** (`content/agents/subagents/<category>/*.md`) - Specialized helpers, built the same way
 - **Commands** (`.opencode/command/*.md`) - Slash commands
 - **Tools** (`.opencode/tool/*/index.ts`) - Utility tools
 - **Plugins** (`.opencode/plugin/*.ts`) - Integrations
@@ -155,11 +157,12 @@ export function myTool() {
 
 1. **Create the component file** in the appropriate directory:
    ```bash
-   # Example: Adding a new agent
-   touch .opencode/agent/my-new-agent.md
+   # Example: Adding a new agent (canonical source, never the generated .opencode/agent/)
+   touch content/agents/subagents/code/my-new-agent.md
    ```
 
-2. **Add frontmatter and content** following the structure above
+2. **Add frontmatter and content** following the structure above, then run `oac build`
+   (`make build-canonical`) and commit the regenerated `hosts/` files and mirrors with it
 
 3. **Test your component**:
    ```bash
@@ -237,7 +240,7 @@ OpenCode uses a model-specific prompt library to support different AI models whi
         └── ...
 
 **Architecture:**
-- Agent files (`.opencode/agent/*.md`) = Canonical defaults
+- Agent files (`content/agents/**/*.md`) = Canonical defaults, built into `hosts/` and `.opencode/agent/`
 - Prompt variants (`.opencode/prompts/<agent>/<model>.md`) = Model-specific optimizations
 ```
 
@@ -279,7 +282,7 @@ cat .opencode/prompts/core/openagent/results/sonnet-4-results.json
    - Include your variant file (e.g., `my-variant.md`)
    - Include updated README with results
    - **Do NOT change the default prompt**
-   - **Do NOT change `.opencode/agent/core/openagent.md`**
+   - **Do NOT change `content/agents/core/openagent.md`** (or its generated copies)
 
 #### PR Requirements for Prompts
 
@@ -315,14 +318,15 @@ When a variant proves superior:
 
 2. **Update agent file (canonical default):**
    ```bash
-   cp .opencode/prompts/core/openagent/variant.md .opencode/agent/core/openagent.md
+   cp .opencode/prompts/core/openagent/variant.md content/agents/core/openagent.md
+   oac build   # or: make build-canonical
    ```
 
 3. **Update capabilities table** in README
 
 4. **Commit with clear message:**
    ```bash
-   git add .opencode/agent/core/openagent.md
+   git add content/agents/core/openagent.md hosts/ .opencode/agent/ registry.json .oac/build-manifest.json
    git commit -m "feat(openagent): promote variant to default - improved X by Y%"
    ```
 

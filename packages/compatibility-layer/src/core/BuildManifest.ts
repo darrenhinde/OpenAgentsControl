@@ -41,7 +41,7 @@ export interface ManifestEntry {
   /** The target that produced it. */
   target: string;
   /**
-   * The output root this file was written under — `TARGET_ROOTS[target]`, rebased if the
+   * The output root this file was written under — the target's primary root or one of its mirrors (`TARGET_LAYOUT`), rebased if the
    * target was staged. Recorded rather than recomputed so pruning can bound itself without
    * having to be told which staging layout a PREVIOUS build happened to use.
    */

@@ -3,17 +3,18 @@
  *
  * The pipeline itself is tested in `packages/compatibility-layer` under vitest — loading,
  * adapting, determinism and the orphan-removal safety envelope all live there. What is left
- * here is the part this package actually owns: which targets a flag selects, and which of them
- * are staged rather than emitted in place.
+ * here is the part this package actually owns: which targets a flag selects, and that every
+ * one of them is emitted in place.
  *
- * The staging assertion is not a formality. `plugins/claude-code/agents/**` must NOT be
- * emitted in place: regenerating it changes what 4 shipped agents may do, and that tightening
- * is pending review. A refactor that quietly flips the default is exactly what this test is
- * here to catch.
+ * `plugins/claude-code/agents/**` is emitted in place like the OpenCode trees (D-017): its
+ * Claude-specific frontmatter and body come from `oac.overrides.claude-code` and
+ * `<!-- oac:only -->` host blocks in the canonical source, and the capability lint guards it
+ * against the L-001 regression. The test below pins that no target is left out.
  */
 
 import { describe, test, expect } from 'bun:test';
-import { CLAUDE_STAGING_ROOT, outputRootsFor, selectTargets } from '../commands/build.js';
+import { BUILD_TARGETS, lintBuild } from '@controlstack/compatibility-layer';
+import { IN_PLACE_TARGETS, assertInPlace, selectTargets, strictExitCode } from '../commands/build.js';
 
 // ── selectTargets ─────────────────────────────────────────────────────────────
 
@@ -33,31 +34,48 @@ describe('selectTargets', () => {
   });
 });
 
-// ── outputRootsFor ────────────────────────────────────────────────────────────
+// ── in-place emission ─────────────────────────────────────────────────────────
 
-describe('outputRootsFor', () => {
-  test('emits opencode in place — it has no staging root', () => {
-    expect(outputRootsFor(['opencode'], CLAUDE_STAGING_ROOT)).toEqual({});
+describe('in-place emission', () => {
+  test('every wired target, claude-code included, is emitted in place', () => {
+    expect([...IN_PLACE_TARGETS].sort()).toEqual([...BUILD_TARGETS].sort());
+    expect(IN_PLACE_TARGETS).toContain('claude-code');
   });
 
-  test('stages claude-code rather than emitting it in place', () => {
-    expect(outputRootsFor(['claude-code'], CLAUDE_STAGING_ROOT)).toEqual({
-      'claude-code': CLAUDE_STAGING_ROOT,
-    });
+  test('accepts every selectable target', () => {
+    expect(() => assertInPlace(selectTargets(undefined))).not.toThrow();
   });
 
-  test('stages claude-code even when every target is built', () => {
-    const roots = outputRootsFor(['opencode', 'claude-code'], CLAUDE_STAGING_ROOT);
-
-    expect(roots['claude-code']).toBe(CLAUDE_STAGING_ROOT);
-    expect(roots.opencode).toBeUndefined();
+  test('refuses a target that is not wired for in-place emission', () => {
+    expect(() => assertInPlace(['emacs' as never])).toThrow(/not wired for in-place emission: emacs/);
   });
+});
 
-  test('honours a --stage override', () => {
-    expect(outputRootsFor(['claude-code'], 'build/out')).toEqual({ 'claude-code': 'build/out' });
+// ── lints under --strict ──────────────────────────────────────────────────────
+
+describe('strictExitCode', () => {
+  test('fails only under --strict, on any warning, dead reference or lint finding', () => {
+    expect(strictExitCode(false, 3, 2, 5)).toBe(0);
+    expect(strictExitCode(true, 0, 0, 0)).toBe(0);
+    expect(strictExitCode(true, 0, 0, 1)).toBe(1);
+    expect(strictExitCode(true, 1, 0, 0)).toBe(1);
   });
+});
 
-  test('the staging root is gitignored, so a build never dirties the tree', () => {
-    expect(CLAUDE_STAGING_ROOT.startsWith('.tmp/')).toBe(true);
+describe('build lints', () => {
+  test('the capability lint the build runs catches an L-001 Claude agent', () => {
+    const [result] = lintBuild([
+      {
+        target: 'claude-code',
+        path: 'plugins/claude-code/agents/code-reviewer.md',
+        content:
+          '---\nname: code-reviewer\ndescription: Code review agent\ntools: Read, Glob, Grep\n' +
+          'disallowedTools: Write, Edit, Bash, Task\n---\n\nALWAYS call ContextScout BEFORE reviewing any code.\n',
+      },
+    ]);
+    expect(result?.findings.map((f) => f.rule).sort()).toEqual([
+      'delegation-without-task',
+      'description-no-example',
+    ]);
   });
 });

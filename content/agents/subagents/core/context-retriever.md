@@ -22,8 +22,8 @@ oac:
     - retrieval
     - search
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Context Retriever Agent

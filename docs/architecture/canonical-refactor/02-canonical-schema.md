@@ -130,6 +130,15 @@ export const TargetSchema = z.enum(["opencode", "claude", "cursor", "windsurf"])
 export const TargetsSchema = z.array(TargetSchema).default([]);
 ```
 
+<!-- NOTE 2026-10-23: superseded by the SHIPPED schema — `types.ts` `BuildTargetsSchema` /
+`BuildExcludesSchema` and `TargetPolicy.ts`. Shipped targets are ["opencode", "opencode-v1",
+"claude-code"] (cursor/windsurf were dropped 2026-09-02). The shipped semantics are OPT-OUT:
+an `oac:` block that OMITS `targets:` ships to every build target minus `oac.exclude`
+(`exclude` is a filter on `targets`, also valid beside an explicit list; an entry narrowing
+nothing is a parse error, as is an override for a host outside the effective set). Explicit
+`targets:` remains for the exceptions (today: the v1-only agent). The living description is
+docs/features/conversion-engine.md. -->
+
 ### 0.4 Ratified blockers (v3 — binding; per 06-REVIEW "Top 5" fix #4)
 
 `06-REVIEW` triaged the 60 open questions across the spec set down to **three that block

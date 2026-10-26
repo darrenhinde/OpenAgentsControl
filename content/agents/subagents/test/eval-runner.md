@@ -13,8 +13,8 @@ oac:
   tags:
     - testing
     - evals
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Eval Runner - Test Harness

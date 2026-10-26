@@ -17,6 +17,7 @@ import {
   CanonicalAgentSchema,
   OacCategorySchema,
   BuildTargetsSchema,
+  BuildExcludesSchema,
 } from "../../../src/types.js";
 import { AgentLoader, CanonicalAgentLoader } from "../../../src/core/AgentLoader.js";
 
@@ -138,7 +139,11 @@ describe("OacBlockSchema", () => {
         author: "opencode",
         tags: [],
         dependencies: [],
-        targets: ["opencode"],
+        // Omitted targets default to the FULL roster (the 2026-10-23 targets-flip): a
+        // component ships everywhere unless `exclude` narrows it, so adding a host costs
+        // the corpus nothing.
+        targets: ["opencode", "opencode-v1", "claude-code"],
+        exclude: [],
         // Overrides are opt-in: the common case is a component with nothing target-specific
         // to say, and it must stay writable without an empty ceremonial block.
         overrides: {},
@@ -202,7 +207,76 @@ describe("OacBlockSchema", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.success ? "" : result.error.issues[0]?.message).toContain("not in targets");
+      expect(result.success ? "" : result.error.issues[0]?.message).toContain("not in the effective targets");
+    });
+
+    it("rejects an override for a target exclude removes", () => {
+      const result = OacBlockSchema.safeParse({
+        ...VALID_BLOCK,
+        targets: ["opencode", "claude-code"],
+        exclude: ["claude-code"],
+        overrides: { "claude-code": { name: "code-reviewer" } },
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.success ? "" : result.error.issues[0]?.message).toContain("not in the effective targets");
+    });
+  });
+
+  describe("exclude (the opt-out narrow)", () => {
+    it("accepts exclude narrowing the defaulted roster", () => {
+      // A block that omits `targets:` entirely — the fixture's VALID_BLOCK declares an
+      // explicit list, which is a different code path.
+      const result = OacBlockSchema.safeParse({
+        id: "contextscout",
+        name: "ContextScout",
+        category: "subagents/core",
+        type: "subagent",
+        exclude: ["claude-code"],
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // targets keep the defaulted roster; the policy reads exclude at emit time.
+        expect(result.data.targets).toEqual(["opencode", "opencode-v1", "claude-code"]);
+        expect(result.data.exclude).toEqual(["claude-code"]);
+      }
+    });
+
+    it("rejects exclude naming a host the explicit targets omit (dead config)", () => {
+      const result = OacBlockSchema.safeParse({
+        ...VALID_BLOCK,
+        targets: ["opencode"],
+        exclude: ["claude-code"],
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.success ? "" : result.error.issues[0]?.message).toContain("narrows nothing");
+    });
+
+    it("exclude filters an explicit targets list (coexistence is allowed)", () => {
+      const result = OacBlockSchema.safeParse({
+        ...VALID_BLOCK,
+        targets: ["opencode", "claude-code"],
+        exclude: ["claude-code"],
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.targets).toEqual(["opencode", "claude-code"]);
+        expect(result.data.exclude).toEqual(["claude-code"]);
+      }
+    });
+
+    it("rejects a targets/exclude combination that leaves nothing to emit", () => {
+      const result = OacBlockSchema.safeParse({
+        ...VALID_BLOCK,
+        targets: ["opencode"],
+        exclude: ["opencode"],
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.success ? "" : result.error.issues[0]?.message).toContain("leaves nothing");
     });
   });
 
@@ -323,12 +397,26 @@ describe("OacCategorySchema", () => {
 });
 
 describe("BuildTargetsSchema", () => {
-  it("defaults to opencode when omitted", () => {
-    expect(BuildTargetsSchema.parse(undefined)).toEqual(["opencode"]);
+  it("defaults to the FULL roster when omitted (the targets-flip)", () => {
+    expect(BuildTargetsSchema.parse(undefined)).toEqual([
+      "opencode",
+      "opencode-v1",
+      "claude-code",
+    ]);
   });
 
   it("rejects an explicit empty list", () => {
     expect(BuildTargetsSchema.safeParse([]).success).toBe(false);
+  });
+});
+
+describe("BuildExcludesSchema", () => {
+  it("defaults to no exclusions", () => {
+    expect(BuildExcludesSchema.parse(undefined)).toEqual([]);
+  });
+
+  it("rejects an unknown target", () => {
+    expect(BuildExcludesSchema.safeParse(["emacs"]).success).toBe(false);
   });
 });
 

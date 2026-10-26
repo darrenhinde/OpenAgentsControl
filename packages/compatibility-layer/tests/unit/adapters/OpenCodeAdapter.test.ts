@@ -17,7 +17,14 @@ import { OpenCodeAdapter } from "../../../src/adapters/OpenCodeAdapter.js";
 import { AgentIdResolver } from "../../../src/core/AgentIdResolver.js";
 import { CanonicalAgentLoader, type CanonicalAgentFile } from "../../../src/core/AgentLoader.js";
 import { emitsTo } from "../../../src/core/TargetPolicy.js";
+import { HostBlocksError } from "../../../src/core/HostBlocks.js";
 import { repoPath } from "../../support/pending.js";
+import {
+  FIRST_MARKER_LINE,
+  HOST_BLOCK_SOURCE,
+  MALFORMED_SOURCE,
+  UNKNOWN_TARGET_SOURCE,
+} from "../../support/host-blocks.js";
 
 const adapter = (): OpenCodeAdapter => new OpenCodeAdapter();
 
@@ -149,5 +156,36 @@ describe("OpenCodeAdapter (v2) against the real corpus", () => {
       }
     }
     expect(refs).toBeGreaterThan(80);
+  });
+});
+
+describe("OpenCodeAdapter (v2) host blocks", () => {
+  const RH = AgentIdResolver.from([{ id: "probe", oacName: "Probe", name: "Probe" }]);
+
+  it("keeps the opencode block and drops every other target's, before rewriting refs", async () => {
+    // The claude-code block names `Ghost`, which RH cannot resolve: filtering after the
+    // delegation rewrite would throw here.
+    const { content } = await adapter().fromCanonical(HOST_BLOCK_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" });
+    expect(content).toContain("V2-ONLY text.");
+    expect(content).toContain("OPENCODE-ANY text.");
+    expect(content).not.toContain("CLAUDE-ONLY");
+    expect(content).not.toContain("Ghost");
+    expect(content).not.toContain("V1-ONLY");
+    expect(content).not.toContain("oac:only");
+    expect(content).toContain("Shared intro.\n\nV2-ONLY text.\n\nOPENCODE-ANY text.\n\nShared outro.\n");
+  });
+
+  it("fails on an unknown marker target with the canonical file:line", async () => {
+    await expect(
+      adapter().fromCanonical(UNKNOWN_TARGET_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: unknown target "emacs"`));
+  });
+
+  it("fails on a malformed marker with the canonical file:line", async () => {
+    await expect(
+      adapter().fromCanonical(MALFORMED_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" })
+    ).rejects.toSatisfy(
+      (e: unknown) => e instanceof HostBlocksError && e.file === "content/agents/core/probe.md" && e.line === FIRST_MARKER_LINE
+    );
   });
 });

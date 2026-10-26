@@ -22,9 +22,15 @@ import { AgentIdResolver } from "../../../src/core/AgentIdResolver.js";
 import { CanonicalAgentLoader } from "../../../src/core/AgentLoader.js";
 import { desugarPermission } from "../../../src/types.js";
 import { listFiles, repoPath } from "../../support/pending.js";
+import {
+  FIRST_MARKER_LINE,
+  HOST_BLOCK_SOURCE,
+  MALFORMED_SOURCE,
+  UNKNOWN_TARGET_SOURCE,
+} from "../../support/host-blocks.js";
 
 const CONTENT_ROOT = repoPath("content/agents");
-const OPENCODE_ROOT = repoPath("v1-opencode/agent");
+const OPENCODE_ROOT = repoPath("hosts/opencode-v1/agent");
 
 let resolver: AgentIdResolver;
 beforeAll(async () => {
@@ -84,8 +90,8 @@ describe("OpenCodeV1Adapter identity", () => {
     expect(capabilities.outputStructure).toBe("directory");
   });
 
-  it("writes agents under v1-opencode/agent/", () => {
-    expect(adapter().getConfigPath()).toBe("v1-opencode/agent/");
+  it("writes agents under hosts/opencode-v1/agent/", () => {
+    expect(adapter().getConfigPath()).toBe("hosts/opencode-v1/agent/");
   });
 });
 
@@ -309,7 +315,7 @@ describe("OpenCodeV1Adapter round-trip", () => {
   });
 
   it.each(sources.map((file) => [contentRelative(file), file] as const))(
-    "reproduces v1-opencode/agent/%s byte-for-byte",
+    "reproduces hosts/opencode-v1/agent/%s byte-for-byte",
     async (rel, file) => {
       const { content } = await adapter().fromCanonical(readFileSync(file, "utf-8"), {
         filePath: file,
@@ -338,7 +344,7 @@ describe("OpenCodeV1Adapter round-trip", () => {
   it("maps each source onto its committed output path", () => {
     for (const file of sources) {
       const rel = contentRelative(file);
-      expect(adapter().outputPath(rel, "any-id")).toBe(`v1-opencode/agent/${rel}`);
+      expect(adapter().outputPath(rel, "any-id")).toBe(`hosts/opencode-v1/agent/${rel}`);
     }
   });
 
@@ -347,7 +353,7 @@ describe("OpenCodeV1Adapter round-trip", () => {
     // path from the id would emit `subagents/code/tester.md` and orphan the `test-engineer.md`
     // OpenCode actually loads.
     expect(adapter().outputPath("subagents/code/test-engineer.md", "tester")).toBe(
-      "v1-opencode/agent/subagents/code/test-engineer.md"
+      "hosts/opencode-v1/agent/subagents/code/test-engineer.md"
     );
   });
 });
@@ -510,5 +516,36 @@ describe("OpenCodeV1Adapter delegation ids", () => {
         if (key !== "*") expect(names.has(key), `${file}: ${key}`).toBe(true);
       }
     }
+  });
+});
+
+// ============================================================================
+// Host blocks
+// ============================================================================
+
+describe("OpenCodeV1Adapter host blocks", () => {
+  const RH = AgentIdResolver.from([{ id: "probe", oacName: "Probe", name: "Probe" }]);
+
+  it("keeps the opencode-v1 block and drops every other target's, before rewriting refs", async () => {
+    const { content } = await adapter().fromCanonical(HOST_BLOCK_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" });
+    expect(content).toContain("V1-ONLY text.");
+    expect(content).toContain("OPENCODE-ANY text.");
+    expect(content).not.toContain("CLAUDE-ONLY");
+    expect(content).not.toContain("Ghost");
+    expect(content).not.toContain("V2-ONLY");
+    expect(content).not.toContain("oac:only");
+    expect(content).toContain("Shared intro.\n\nV1-ONLY text.\n\nOPENCODE-ANY text.\n\nShared outro.\n");
+  });
+
+  it("fails on an unknown marker target with the canonical file:line", async () => {
+    await expect(
+      adapter().fromCanonical(UNKNOWN_TARGET_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: unknown target "emacs"`));
+  });
+
+  it("fails on a malformed marker with the canonical file:line", async () => {
+    await expect(
+      adapter().fromCanonical(MALFORMED_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: malformed oac:only marker`));
   });
 });

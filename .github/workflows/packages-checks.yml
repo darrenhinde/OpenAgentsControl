@@ -13,9 +13,12 @@ on:
       - 'scripts/validation/detect-pr-changes.test.ts'
       # The canonical source, its committed output, and the drift gate's machinery.
       - 'content/**'
+      - 'hosts/**'
       - '.opencode/agent/**'
+      - 'plugins/claude-code/agents/**'
       - '.oac/**'
       - 'registry.json'
+      - 'registry.v1.json'
       - 'Makefile'
       - 'scripts/validation/check-build-drift.sh'
 

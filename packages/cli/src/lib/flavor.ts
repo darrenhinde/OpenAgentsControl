@@ -3,7 +3,7 @@
  *
  * v2 is the default everywhere and is never inferred away from. v1 is an explicit opt-in
  * (`oac init --opencode v1`), recorded in `.oac/config.json` so `add` and `update` keep honouring
- * it. Everything v1-specific on the install side lives in this module plus the `v1-opencode/`
+ * it. Everything v1-specific on the install side lives in this module plus the `hosts/opencode-v1/`
  * source prefix, so dropping v1 later is deleting this file's v1 branches.
  *
  * Pure: no I/O. The host's installed version is an INPUT here, detected elsewhere.
@@ -17,7 +17,7 @@ export const DEFAULT_FLAVOR: OpenCodeFlavor = 'v2';
  * Where the v1 build lives in the OAC package. It is a SOURCE location only: an install writes
  * its contents to `.opencode/` and the name never appears in a user's project.
  */
-export const V1_SOURCE_ROOT = 'v1-opencode';
+export const V1_SOURCE_ROOT = 'hosts/opencode-v1';
 const V1_PREFIX = `${V1_SOURCE_ROOT}/`;
 const DEST_PREFIX = '.opencode/';
 

@@ -34,8 +34,8 @@ oac:
   dependencies:
     - subagent:coder-agent
     - subagent:task-manager
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # BatchExecutor

@@ -135,6 +135,37 @@ describe("canonical agent files", () => {
     expect(CanonicalAgentSchema.safeParse(data).success).toBe(false);
   });
 
+  it("accepts a per-target description override, multi-line included", () => {
+    const description = 'Reviews code.\nExamples:\n<example>\nuser: "check it"\n</example>\n';
+    const data = withOac((oac) => {
+      (oac.overrides as Record<string, Record<string, unknown>>)["claude-code"].description =
+        description;
+    });
+
+    const result = CanonicalAgentSchema.safeParse(data);
+
+    expect(result.success ? [] : result.error.issues).toEqual([]);
+    if (!result.success) return;
+    expect(result.data.oac.overrides["claude-code"]?.description).toBe(description);
+  });
+
+  it("rejects an empty description override, which would blank the target's description", () => {
+    const data = withOac((oac) => {
+      (oac.overrides as Record<string, Record<string, unknown>>)["claude-code"].description = "";
+    });
+
+    expect(CanonicalAgentSchema.safeParse(data).success).toBe(false);
+  });
+
+  it("still rejects an unknown key inside a target override", () => {
+    // Adding `description` must not have loosened the override to a passthrough.
+    const data = withOac((oac) => {
+      (oac.overrides as Record<string, Record<string, unknown>>)["claude-code"].summary = "x";
+    });
+
+    expect(CanonicalAgentSchema.safeParse(data).success).toBe(false);
+  });
+
   it("rejects an agent file whose frontmatter is not OpenCode-legal", () => {
     expect(CanonicalAgentSchema.safeParse(without("description")).success).toBe(false);
   });

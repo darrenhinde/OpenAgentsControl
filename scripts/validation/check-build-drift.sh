@@ -30,12 +30,13 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
 # The trees `oac build` emits IN PLACE, and therefore everything this gate watches.
-# plugins/claude-code/** is deliberately absent: it stages to .tmp/oac-build/ (gitignored)
-# and is compared only, never emitted. Permissions no longer block emitting it in place --
-# oac.overrides.claude-code settled those -- but prompt content does: the shipped files carry
-# dispatch <example> blocks and capability-adapted bodies that canonical has no field for.
-# See the docblock in packages/cli/src/commands/build.ts.
-GENERATED=(.opencode/agent v1-opencode/agent registry.json registry.v1.json .oac/build-manifest.json)
+# hosts/ holds every target's primary output side by side (hosts/opencode, hosts/opencode-v1,
+# hosts/claude-code); .opencode/agent and plugins/claude-code/agents are byte-identical
+# generated mirrors of hosts/opencode/agent and hosts/claude-code/agents, so a hand-edited
+# mirror is drift too. The Claude agents are build output like the rest (D-017): their
+# frontmatter comes from oac.overrides.claude-code and their body from <!-- oac:only --> host
+# blocks in content/agents/**. See the docblock in packages/cli/src/commands/build.ts.
+GENERATED=(hosts .opencode/agent plugins/claude-code/agents registry.json registry.v1.json .oac/build-manifest.json)
 
 if [ ! -f packages/cli/dist/index.js ]; then
   echo "error: packages/cli/dist/index.js is missing — build the CLI first:" >&2
@@ -60,7 +61,9 @@ cat >&2 <<'EOF'
 
 ❌ The generated trees drift from the canonical source.
 
-Files under .opencode/agent/, registry.json and .oac/build-manifest.json are BUILD OUTPUT.
+Files under hosts/, .opencode/agent/, plugins/claude-code/agents/, registry.json,
+registry.v1.json and .oac/build-manifest.json are BUILD OUTPUT (.opencode/agent/ and
+plugins/claude-code/agents/ are mirrors of hosts/opencode/agent/ and hosts/claude-code/agents/).
 They are committed, but they are not hand-edited: `oac build` regenerates them from
 content/agents/**, and this gate fails when the committed bytes disagree with what the
 build produces.

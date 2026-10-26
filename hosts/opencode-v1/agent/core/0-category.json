@@ -1,0 +1,41 @@
+{
+  "name": "Core Agents",
+  "description": "System-level agents with Open branding - the Operating System",
+  "icon": "⚙️",
+  "agents": {
+    "openagent": {
+      "description": "Universal task coordinator",
+      "commonSubagents": [
+        "subagents/core/task-manager",
+        "subagents/core/documentation",
+        "subagents/code/*"
+      ],
+      "commonTools": [
+        "gemini",
+        "env"
+      ],
+      "commonContext": [
+        "core/essential-patterns",
+        "core/workflows/*",
+        "core/standards/*"
+      ]
+    },
+    "opencoder": {
+      "description": "Development specialist",
+      "commonSubagents": [
+        "subagents/code/coder-agent",
+        "subagents/code/tester",
+        "subagents/code/reviewer",
+        "subagents/code/build-agent"
+      ],
+      "commonTools": [
+        "env"
+      ],
+      "commonContext": [
+        "core/standards/code",
+        "core/standards/patterns",
+        "core/standards/tests"
+      ]
+    }
+  }
+}

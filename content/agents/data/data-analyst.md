@@ -15,8 +15,8 @@ oac:
     - analysis
     - visualization
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Data Analyst

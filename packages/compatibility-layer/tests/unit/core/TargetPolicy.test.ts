@@ -28,3 +28,35 @@ describe("emitsTo", () => {
     expect(emitsTo(agent("claude-code"), "claude-code")).toBe(true);
   });
 });
+
+// ── The 2026-10-23 targets-flip: omitted targets = full roster minus exclude ─────────────
+
+describe("emitsTo with the opt-out default", () => {
+  // What the schema's default actually produces for an agent that omits `targets:`.
+  const fullRoster = ["opencode", "opencode-v1", "claude-code"] as const;
+
+  it("an agent that omits targets ships to every target", () => {
+    const a = { oac: { targets: fullRoster, exclude: [] } };
+    expect(emitsTo(a, "opencode")).toBe(true);
+    expect(emitsTo(a, "opencode-v1")).toBe(true);
+    expect(emitsTo(a, "claude-code")).toBe(true);
+  });
+
+  it("exclude wins over the roster", () => {
+    const a = { oac: { targets: fullRoster, exclude: ["claude-code"] } };
+    expect(emitsTo(a, "opencode")).toBe(true);
+    expect(emitsTo(a, "opencode-v1")).toBe(true);
+    expect(emitsTo(a, "claude-code")).toBe(false);
+  });
+
+  it("exclude is a per-target literal: dropping opencode does not drop v1", () => {
+    const a = { oac: { targets: fullRoster, exclude: ["opencode"] } };
+    expect(emitsTo(a, "opencode")).toBe(false);
+    expect(emitsTo(a, "opencode-v1")).toBe(true);
+  });
+
+  it("exclude wins even when the declared list names the target", () => {
+    const a = { oac: { targets: ["opencode", "opencode-v1"], exclude: ["opencode-v1"] } };
+    expect(emitsTo(a, "opencode-v1")).toBe(false);
+  });
+});

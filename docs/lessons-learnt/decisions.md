@@ -10,6 +10,7 @@ Format: **Decision** · **Why** · **Rules out** · **Revisit when**. Newest las
 - **Why:** the core idea is right, and an 8.5-month release gap plus an "upstream is unmaintained" fork cost more than any missing feature.
 - **Rules out:** another long-lived mega-branch; new spec documents before v1.1.0 is tagged.
 - **Revisit when:** never for the base. The scope of v1.1 is fixed in the roadmap.
+- **Superseded by D-017 (2026-10-21):** the compare-only rule for Claude Code agents (hand-written, only compared against the build; see L-001). The rest of D-001 stands.
 
 ## D-002 North star: control
 
@@ -105,10 +106,38 @@ Format: **Decision** · **Why** · **Rules out** · **Revisit when**. Newest las
   - **v2 is the default.** The repo's own `.opencode/` and every default install are v2.
   - **v1 is an explicit opt-in.** When a user selects it, the installer writes the full v1 build (agents, context, tools, plugins and everything else v1 needs) into that user's project `.opencode/`. The user's choice is recorded, so later updates keep it.
   - **The in-repo `v1-opencode/` folder is for display only.** It shows what the v1 compile produces and is never installed under that name.
+    - *Superseded by D-018 (2026-10-21):* the folder is now `hosts/opencode-v1/`. It is still never installed under that name.
   - **v1 must be verifiable**, with a concrete check that a v1 install works, not just that it compiles.
 - **Why:** v2 broke delegation by name, custom tools and v1 plugins (#362, #367), and v1 users still exist. The maintainer: "if user wants opencode v1 it should be not the default but if they select it then should build the .opencode folder with everything and we should have a way to make sure it works."
 - **Rules out:** auto-selecting v1; maintaining v1 beyond the one release cycle set in D-008. The v1 target is built so it can be deleted as one unit.
 - **Revisit when:** the v1 support window ends, or v1 usage is negligible.
+
+## D-017 The canonical build generates the Claude Code agents too
+
+Made by the maintainer on 2026-10-20 and 2026-10-21.
+
+- **Decision:** Claude Code agents are generated from `content/agents/**` like every other target. One merged prompt per agent, host-neutral by default.
+  - **Per-host frontmatter** goes in `oac.overrides.<host>`: `name`, `model`, `tools` and `description`, including `overrides.claude-code.description` with its `<example>` dispatch blocks.
+  - **Per-host body text** goes in `<!-- oac:only <targets> -->` blocks (`src/core/HostBlocks.ts`). An unknown target, an unbalanced marker or a nested block fails the build.
+  - **`plugins/claude-code/agents/` is emitted in place**, covered by the drift gate and golden-tested.
+  - **A capability lint** (`src/verify/lint/capability.ts`) fails `--strict` on instructions an agent can't carry out: delegation without `Task`, bash without `Bash`, a missing `<example>`, stray `.opencode/` paths.
+  - **Approved behaviour differences:** `coder-agent` on Claude marks subtasks done by editing the subtask JSON. `external-scout` on Claude gets `Read`, `Write`, `Glob`, `WebFetch` and no shell, since it fetches untrusted content. OpenCode code agents call ContextScout when standards are missing, not always (consistent with D-010).
+- **Why:** the maintainer wanted to "make the most of what we're building" from one source, accepting that behaviour differs per tool. The two prompt sets had diverged too far to keep in sync by hand (L-015).
+- **Rules out:** hand-maintained copies of Claude agents; per-host sidecar body files.
+- **Revisit when:** a third host (Codex, v1.5 per D-008) needs body differences the block grammar can't express.
+- **Amended by D-018 (2026-10-21):** the Claude agents now build into `hosts/claude-code/agents/`. `plugins/claude-code/agents/` is a byte-identical mirror of that folder, still covered by the drift gate.
+
+## D-018 One committed `hosts/` folder holds every build output
+
+Made by the maintainer on 2026-10-20 and 2026-10-21.
+
+- **Decision:** `hosts/<target>/` is the single, committed, browsable build output for every AI tool: `hosts/opencode/agent/`, `hosts/opencode-v1/` (agents plus the v1-only commands, plugins, skills and tools) and `hosts/claude-code/agents/`. A generated `hosts/README.md` indexes it.
+  - **The live paths are mirrors.** `oac build` copies `.opencode/agent/**` and `plugins/claude-code/agents/**` byte for byte from `hosts/`. They stay because installers already in use read the `registry.json` paths (`.opencode/agent/...`), and the Claude marketplace reads `./plugins/claude-code`. `registry.v1.json` points into `hosts/opencode-v1/`.
+  - **The drift gate covers `hosts/` and both mirrors.** A hand edit to a mirror counts as drift, the same as a hand edit to `hosts/`.
+  - **The folder is called `hosts/`, not `dist/`.** `dist` and `build` are gitignored across the repo, and `dist/` already means throwaway compiled package code.
+- **Why:** the maintainer wants people to "quickly look at one folder to look at how it all works": every tool's output side by side, comparable without a build.
+- **Rules out:** hand-editing a mirror; a gitignored `dist/` as the build output.
+- **Revisit when:** installers read `hosts/` directly (Stage 6). Then drop the mirrors.
 
 ---
 

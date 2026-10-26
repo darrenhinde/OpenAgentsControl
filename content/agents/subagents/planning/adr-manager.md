@@ -27,8 +27,8 @@ oac:
     - architecture
     - decisions
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # ADRManager

@@ -124,7 +124,7 @@ export const isInstallablePath = (relativePath: string): boolean => {
     return false;
   }
 
-  // `v1-opencode/` is where the v1 build lives in the package; it installs to `.opencode/`.
+  // `hosts/opencode-v1/` is where the v1 build lives in the package; it installs to `.opencode/`.
   return (
     relativePath.startsWith(INSTALL_PREFIX) ||
     relativePath.startsWith(`${V1_SOURCE_ROOT}/`) ||

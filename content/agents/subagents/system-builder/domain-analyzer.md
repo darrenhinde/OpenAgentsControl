@@ -15,8 +15,8 @@ oac:
     - domain
     - architecture
   dependencies: []
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Domain Analyzer

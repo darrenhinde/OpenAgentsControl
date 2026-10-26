@@ -20,8 +20,8 @@ oac:
     - subagent:domain-analyzer
     - subagent:context-organizer
     - subagent:workflow-designer
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # System Builder Orchestrator

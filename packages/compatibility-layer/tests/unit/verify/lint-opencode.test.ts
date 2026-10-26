@@ -22,8 +22,8 @@ const rules = (r: { rule: string }[]): string[] => r.map((x) => x.rule).sort();
 
 describe("lintV1Agents", () => {
   const ok = [
-    f("v1-opencode/agent/a.md", agent("Alpha", "permission:\n  task:\n    \"*\": deny\n    Beta: allow\n", 'task(subagent_type="Beta")')),
-    f("v1-opencode/agent/b.md", agent("Beta")),
+    f("hosts/opencode-v1/agent/a.md", agent("Alpha", "permission:\n  task:\n    \"*\": deny\n    Beta: allow\n", 'task(subagent_type="Beta")')),
+    f("hosts/opencode-v1/agent/b.md", agent("Beta")),
   ];
 
   it("accepts a consistent tree", () => {
@@ -120,7 +120,7 @@ describe("lintV2Agents", () => {
 describe("the planned trees", () => {
   it("v1 and v2 output of the real corpus pass their lints", async () => {
     const { files } = await plan({ root: repoPath(), skipRegistry: true });
-    const text = (target: string): LintFile[] => files.filter((x) => x.target === target).map((x) => ({ path: x.path, text: x.content }));
+    const text = (target: string): LintFile[] => files.filter((x) => x.target === target && x.mirrorOf === undefined).map((x) => ({ path: x.path, text: x.content }));
     expect(lintV1Agents(text("opencode-v1"))).toEqual([]);
     expect(lintV2Agents(text("opencode"))).toEqual([]);
     expect(text("opencode").length).toBe(33); // image-specialist is v1-only

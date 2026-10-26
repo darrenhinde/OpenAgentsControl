@@ -130,8 +130,9 @@ export type {
 // ============================================================================
 
 /**
- * The whole of `oac build`: load `content/agents/**`, honour each agent's `oac.targets`, run
- * the matching adapter, and reconcile the generated trees.
+ * The whole of `oac build`: load `content/agents/**`, honour each agent's shipping scope
+ * (`TargetPolicy.emitsTo` — targets minus exclude, plus the v1-follows rule), run the
+ * matching adapter, and reconcile the generated trees.
  *
  * {@link plan} computes; {@link write} reconciles; {@link check} compares without touching
  * anything. Splitting them is what makes `--check` and `--dry-run` share the build's code path
@@ -146,15 +147,15 @@ export type {
  * import { plan, write } from '@controlstack/compatibility-layer';
  *
  * const built = await plan({ root: process.cwd() });
- * // Emit .opencode/** and registry.json in place; stage claude-code for review.
- * const result = write(built, {
- *   root: process.cwd(),
- *   outputRoots: { "claude-code": ".tmp/oac-build" },
- * });
+ * // Emit every target into hosts/<host>/ (opencode, opencode-v1, claude-code), mirror the
+ * // live paths (.opencode/agent/**, plugins/claude-code/agents/**), and write the registries.
+ * const result = write(built, { root: process.cwd() });
  * ```
  */
 export {
   BUILD_TARGETS,
+  HOSTS_ROOT,
+  TARGET_LAYOUT,
   build,
   buildAgent,
   buildAgentIn,
@@ -166,6 +167,13 @@ export {
   write,
 } from "./core/BuildPipeline.js";
 
+export {
+  HOSTS_README_PATH,
+  HOSTS_README_TARGET,
+  renderHostsReadme,
+} from "./core/HostsReadme.js";
+export type { HostsReadmeInput } from "./core/HostsReadme.js";
+
 export type {
   BuildFile,
   BuildManifest,
@@ -174,6 +182,7 @@ export type {
   BuildTarget,
   BuildWarning,
   Drift,
+  TargetLayout,
   ManifestEntry,
   OutputRoots,
   WriteOptions,
@@ -426,6 +435,21 @@ export { AgentIdResolver, AgentIdResolutionError, normalizeAlias, isGlob } from 
 export type { IdTarget, ResolverAgent } from "./core/AgentIdResolver.js";
 export { rewriteBodyRefs, rewriteTaskKeys } from "./core/DelegationRewriter.js";
 
+// Host blocks — `<!-- oac:only <target> -->` sections of a canonical body, resolved per target.
+export { filterHostBlocks, HostBlocksError, HOST_BLOCK_TARGETS } from "./core/HostBlocks.js";
+export type { FilterHostBlocksOptions } from "./core/HostBlocks.js";
+
 // Static lints over emitted OpenCode trees (v1 validity is checked here; no v1 host is pinned).
 export { lintV1Agents, lintV1Artifacts, lintV2Agents } from "./verify/lint/opencode.js";
-export type { LintFile, LintFinding } from "./verify/lint/opencode.js";
+export type { LintFile, LintFinding, LintSeverity } from "./verify/lint/opencode.js";
+
+// Capability lint: an emitted agent is never told to do what its host will not let it do (L-001).
+export {
+  lintClaudeAgents,
+  lintOpenCodeDelegations,
+  taskAction,
+  OPENCODE_PATH_ALLOWLIST,
+} from "./verify/lint/capability.js";
+export type { ClaudeLintOptions, OpenCodeFlavor } from "./verify/lint/capability.js";
+export { lintBuild } from "./verify/lint/run.js";
+export type { LintableFile, TargetLintResult } from "./verify/lint/run.js";

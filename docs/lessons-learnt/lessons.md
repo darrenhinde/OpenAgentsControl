@@ -101,3 +101,20 @@ Format: **What happened** · **Lesson** · **Rule now**. Newest last.
 - **Lesson:** resolve references through one table per build and fail on a miss; a reference that names nothing is a rule that silently never fires.
 - **Rule now:** `permission.task` keys are `oac.id`s in the canonical source; `AgentIdResolver` maps them to each target's id space, and an unknown reference fails the build. Lints scan the body for delegation values, not the frontmatter.
 
+## L-015 Two prompts with one name had become two documents
+
+- **What happened:** the plan was to sync the hand-written Claude agents from the canonical source with a path rewrite or a byte-parity migration. Measuring first showed they shared only 10–96 lines per agent (`context-manager`: 10 of about 424). Neither mechanism was possible (`.tmp/tasks/claude-agents-emit/04-path-analysis.md`).
+- **Lesson:** measure overlap before choosing a sync mechanism.
+- **Rule now:** one merged source per agent, with host differences made explicit in `oac:only` blocks and `oac.overrides` (D-017).
+
+## L-016 A targeted build deleted every other target
+
+- **What happened:** on 2026-10-20, while investigating, the assistant ran `oac build --target claude-code` without `--dry-run`. It deleted every other target's generated files and their manifest entries, because `BuildPipeline.write()` treated entries outside the targeted plan as orphans. `check()` had the same flaw. Fixed with `plan.owns` and carrying foreign entries forward, with regression tests in `tests/unit/build/build-pipeline.test.ts`.
+- **Lesson:** a partial build must only own what it built.
+- **Rule now:** investigation uses `--dry-run` or `--check`, never a writing build.
+
+## L-017 Hand-written isn't the same as correct
+
+- **What happened:** on its first run, the capability lint found a real defect in the hand-written Claude `coder-agent`: Step 7 told it to run `bash router.sh` while `Bash` was disallowed. Run against `104356a`, it caught all of the L-001 regression (40 errors).
+- **Lesson:** a hand-written prompt can promise what its tools can't do, and review didn't catch it.
+- **Rule now:** lint every shipped tree, hand-written or generated.

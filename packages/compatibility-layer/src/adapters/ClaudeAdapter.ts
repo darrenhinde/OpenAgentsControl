@@ -3,6 +3,7 @@ import { dump } from "js-yaml";
 import { BaseAdapter } from "./BaseAdapter.js";
 import { projectToFlatTools, rulesFor, type ToolBinding } from "../core/Capabilities.js";
 import { getToolCapabilities } from "../core/CapabilityMatrix.js";
+import { filterHostBlocks } from "../core/HostBlocks.js";
 import {
   CanonicalAgentSchema,
   desugarPermission,
@@ -84,14 +85,17 @@ export class ClaudeAdapter extends BaseAdapter {
    * bypassed by the parse failing before the promise is ever constructed.
    *
    * @param source raw canonical `.md` — OpenCode-legal frontmatter plus the `oac:` block
+   * @param options.filePath the canonical source path, named in `oac:only` marker errors
    * @returns the emitted path, its exact bytes, and one warning per semantic actually lost
    * @throws {Error} if the source does not parse against {@link CanonicalAgentSchema}
+   * @throws {HostBlocksError} on a malformed, unbalanced or unknown-target `oac:only` marker
    */
   // The `async` carries the rejection semantics documented above. It is load-bearing, not an
   // accidental keyword, so require-await's assumption does not hold here.
   // eslint-disable-next-line @typescript-eslint/require-await
-  async fromCanonical(source: string): Promise<ClaudeEmission> {
-    const parsed = CanonicalAgentSchema.safeParse(structuredClone(matter(source).data));
+  async fromCanonical(source: string, options: { filePath?: string } = {}): Promise<ClaudeEmission> {
+    const file = matter(source);
+    const parsed = CanonicalAgentSchema.safeParse(structuredClone(file.data));
 
     if (!parsed.success) {
       throw new Error(
@@ -103,7 +107,14 @@ export class ClaudeAdapter extends BaseAdapter {
 
     const agent = parsed.data;
     const warnings: string[] = [];
-    const body = matter(source).content.trim();
+    // Resolve `oac:only` host blocks before anything else touches the body. gray-matter's
+    // `content` is the source suffix after the frontmatter; the lines before it offset marker
+    // errors so they report file lines.
+    const prefix = source.endsWith(file.content) ? source.slice(0, source.length - file.content.length) : "";
+    const body = filterHostBlocks(file.content, "claude-code", {
+      file: options.filePath,
+      lineOffset: prefix.split("\n").length - 1,
+    }).trim();
     const override = agent.oac.overrides["claude-code"];
 
     if (override?.tools === undefined) throw new Error(toolsRequired(agent.oac.id));
@@ -117,7 +128,10 @@ export class ClaudeAdapter extends BaseAdapter {
       {
         agentId: agent.oac.id,
         name,
-        description: agent.description,
+        // Claude Code reads `description` as the parent model's delegation signal, so the
+        // shipped agents carry multi-line `<example>` blocks that would be noise in OpenCode's
+        // agent picker. The override carries that form; absent, both hosts share one string.
+        description: override?.description ?? agent.description,
         // Claude Code names models in its own vocabulary (`sonnet`), so an override wins over
         // the canonical `model:`, which is OpenCode's.
         model: override?.model ?? agent.model,
@@ -181,10 +195,15 @@ export class ClaudeAdapter extends BaseAdapter {
     const warnings: string[] = [...this.validateConversion(agent)];
     const configs: ToolConfig[] = [];
 
+    // v2 agent files omit `name:` (OpenCode v2 names an agent by its file), so the loader
+    // backfills metadata.name from the filename stem. Either source names the agent; the
+    // final fallback keeps the type honest for a hand-constructed agent with neither.
+    const displayName = agent.frontmatter.name ?? agent.metadata.name ?? "unnamed";
+
     const frontmatter = this.buildAgentFrontmatter(
       {
-        agentId: agent.frontmatter.name,
-        name: agent.frontmatter.name,
+        agentId: displayName,
+        name: displayName,
         description: agent.frontmatter.description,
         model: agent.frontmatter.model,
         temperature: agent.frontmatter.temperature,
@@ -198,7 +217,7 @@ export class ClaudeAdapter extends BaseAdapter {
     );
 
     configs.push({
-      fileName: this.agentPath(agent.frontmatter.name),
+      fileName: this.agentPath(displayName),
       content: `---\n${frontmatter}---\n\n${agent.systemPrompt.trim()}\n`,
       encoding: "utf-8",
     });
@@ -250,7 +269,7 @@ export class ClaudeAdapter extends BaseAdapter {
   validateConversion(agent: OpenAgent): string[] {
     const warnings: string[] = [];
 
-    if (!agent.frontmatter.name) {
+    if (!(agent.frontmatter.name ?? agent.metadata.name)) {
       warnings.push("⚠️  Agent name is required for Claude Code");
     }
 

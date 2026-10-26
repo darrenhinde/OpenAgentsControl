@@ -58,7 +58,7 @@ REPO_URL="${OAC_RAW_URL:-https://raw.githubusercontent.com/darrenhinde/OpenAgent
 CUSTOM_INSTALL_DIR=""
 
 # OpenCode major this install targets: --opencode, else the marker install.sh wrote, else v2.
-# v1 is never chosen implicitly; its files live under v1-opencode/ in the repository and
+# v1 is never chosen implicitly; its files live under hosts/opencode-v1/ in the repository and
 # install into the same .opencode/ paths as everything else.
 OPENCODE_FLAVOR=""
 
@@ -260,7 +260,7 @@ update_component() {
 
     # v1 prefers its own build of a file (nested agents, tools, plugins) and falls back to the
     # files both flavors share.
-    if [ "$OPENCODE_FLAVOR" = "v1" ] && curl -fsSL "${REPO_URL}/v1-opencode/${relative_path}" -o "$path" 2>/dev/null; then
+    if [ "$OPENCODE_FLAVOR" = "v1" ] && curl -fsSL "${REPO_URL}/hosts/opencode-v1/${relative_path}" -o "$path" 2>/dev/null; then
         print_success "Updated $path"
         rm -f "$backup"
         local v1_backups=()

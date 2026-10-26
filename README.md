@@ -814,6 +814,12 @@ We welcome contributions!
 
 See: [Contributing Guide](docs/contributing/CONTRIBUTING.md) • [Code of Conduct](docs/contributing/CODE_OF_CONDUCT.md)
 
+### Where the built files live
+
+Agents are written once in `content/agents/**`. `oac build` (`make build-canonical`) compiles them for every tool into **`hosts/`**, one folder per tool: `hosts/opencode/`, `hosts/opencode-v1/` and `hosts/claude-code/`. `hosts/README.md` lists what's inside. To see what a tool gets, look there.
+
+`.opencode/agent/` and `plugins/claude-code/agents/` are byte-identical copies of `hosts/`, kept because installers and the Claude marketplace read those paths. Don't edit `hosts/` or these copies: CI fails on any hand edit. Change `content/` and rebuild instead.
+
 ---
 
 ## 💬 Community & Support

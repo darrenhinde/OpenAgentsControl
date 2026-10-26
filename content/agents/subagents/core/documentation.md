@@ -27,8 +27,8 @@ oac:
     - writing
   dependencies:
     - context:standards-docs
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # DocWriter

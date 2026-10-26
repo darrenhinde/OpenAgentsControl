@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **OpenCode v2 by default, v1 on request (D-016).** `oac build` now compiles the canonical agents for both OpenCode majors: flat `.opencode/agent/<id>.md` and `registry.json` for v2 (default), and `v1-opencode/` with `registry.v1.json` for v1. `oac init --opencode v1`, `oac update --opencode v1|v2` and `install.sh --opencode v1` install the full v1 build into a project's `.opencode/`; the choice is recorded and `oac doctor` flags a mismatch with `opencode --version`. See `docs/features/opencode-v1-and-v2.md`.
+- **OpenCode v2 by default, v1 on request (D-016).** `oac build` now compiles the canonical agents for both OpenCode majors: flat `.opencode/agent/<id>.md` and `registry.json` for v2 (default), and `hosts/opencode-v1/` with `registry.v1.json` for v1. Every target's build sits side by side under `hosts/` (`hosts/opencode`, `hosts/opencode-v1`, `hosts/claude-code`); `.opencode/agent/` and `plugins/claude-code/agents/` are byte-identical generated mirrors. `oac init --opencode v1`, `oac update --opencode v1|v2` and `install.sh --opencode v1` install the full v1 build into a project's `.opencode/`; the choice is recorded and `oac doctor` flags a mismatch with `opencode --version`. See `docs/features/opencode-v1-and-v2.md`.
 
 ### Changed
 - Agent files install flat on v2 (`.opencode/agent/openagent.md`, not `agent/core/openagent.md`), and `permission.task` keys, `subagent_type` values and `task(` examples use the target's agent ids. `--agent OpenAgent` becomes `--agent openagent` on v2.

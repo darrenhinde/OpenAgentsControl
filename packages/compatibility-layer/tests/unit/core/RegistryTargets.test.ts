@@ -2,7 +2,7 @@
  * Registry emission per target: `registry.json` (v2, default) and `registry.v1.json`.
  *
  * Installers read paths from the registry, so the two files differ in exactly the entries whose
- * files differ: agents (flat `<id>.md` vs nested under `v1-opencode/`), and the components v2
+ * files differ: agents (flat `<id>.md` vs nested under `hosts/opencode-v1/`), and the components v2
  * cannot load (tools, plugins, v1-only agents), which the v2 registry omits entirely.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -46,8 +46,8 @@ beforeEach(() => {
     ...BASE,
     components: {
       ...BASE.components,
-      tools: [{ id: "env", path: "v1-opencode/tool/env/index.ts" }],
-      plugins: [{ id: "notify", path: "v1-opencode/plugin/notify.ts" }],
+      tools: [{ id: "env", path: "hosts/opencode-v1/tool/env/index.ts" }],
+      plugins: [{ id: "notify", path: "hosts/opencode-v1/plugin/notify.ts" }],
     },
   });
 });
@@ -83,14 +83,14 @@ describe("v1 registry", () => {
 
   it("reads registry.v1.json as its base and points agents at the nested v1 tree", async () => {
     const d = await v1().emit();
-    expect(path(d, "subagents", "alpha")).toBe("v1-opencode/agent/subagents/test/alpha.md");
-    expect(path(d, "subagents", "imager")).toBe("v1-opencode/agent/subagents/test/imager.md");
+    expect(path(d, "subagents", "alpha")).toBe("hosts/opencode-v1/agent/subagents/test/alpha.md");
+    expect(path(d, "subagents", "imager")).toBe("hosts/opencode-v1/agent/subagents/test/imager.md");
   });
 
-  it("keeps the tools and plugins its base carries, at their v1-opencode paths", async () => {
+  it("keeps the tools and plugins its base carries, at their hosts/opencode-v1 paths", async () => {
     const d = await v1().emit();
-    expect(path(d, "tools", "env")).toBe("v1-opencode/tool/env/index.ts");
-    expect(path(d, "plugins", "notify")).toBe("v1-opencode/plugin/notify.ts");
+    expect(path(d, "tools", "env")).toBe("hosts/opencode-v1/tool/env/index.ts");
+    expect(path(d, "plugins", "notify")).toBe("hosts/opencode-v1/plugin/notify.ts");
   });
 
   it("is a fixed point over its own output", async () => {

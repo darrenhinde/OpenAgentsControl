@@ -24,8 +24,8 @@ oac:
     - structure
   dependencies:
     - context:core/context-system/*
-  targets:
-    - opencode
+  exclude:
+    - claude-code
 ---
 
 # Context Organizer

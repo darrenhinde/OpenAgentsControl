@@ -16,7 +16,7 @@
     ".opencode/skills/",
     ".opencode/config.json",
     ".opencode/opencode.json",
-    "v1-opencode/",
+    "hosts/opencode-v1/",
     "!.opencode/node_modules/",
     "!**/node_modules/",
     "scripts/",

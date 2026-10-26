@@ -126,7 +126,7 @@ describe("oac.targets", () => {
     const only = await build({ root, targets: ["opencode"], skipRegistry: true });
 
     expect([...only.keys()]).toEqual(
-      [...all.keys()].filter((path) => path.startsWith(".opencode/")),
+      [...all.keys()].filter((path) => path.startsWith(".opencode/") || path.startsWith("hosts/opencode/")),
     );
     for (const [path, content] of only) expect(content).toBe(all.get(path));
   });
@@ -136,8 +136,8 @@ describe("oac.targets", () => {
     const v1 = files.filter((f) => f.target === "opencode-v1").map((f) => f.path);
 
     expect(v1).toEqual([
-      "v1-opencode/agent/subagents/test/alpha.md",
-      "v1-opencode/agent/subagents/test/beta.md",
+      "hosts/opencode-v1/agent/subagents/test/alpha.md",
+      "hosts/opencode-v1/agent/subagents/test/beta.md",
     ]);
   });
 
@@ -160,18 +160,18 @@ describe("oac.targets", () => {
   it("keeps name: in the v1 sibling", async () => {
     const files = await build({ root, targets: ["opencode-v1"], skipRegistry: true });
 
-    expect(files.get("v1-opencode/agent/subagents/test/alpha.md")).toContain("name: alpha");
+    expect(files.get("hosts/opencode-v1/agent/subagents/test/alpha.md")).toContain("name: alpha");
   });
 
   it("prunes v1 output when its source is deleted, within the v1 root only", async () => {
     write(await plan({ root }), { root });
-    expect(existsSync(join(root, "v1-opencode/agent/subagents/test/alpha.md"))).toBe(true);
+    expect(existsSync(join(root, "hosts/opencode-v1/agent/subagents/test/alpha.md"))).toBe(true);
 
     rmSync(join(root, "content/agents/subagents/test/alpha.md"));
     const result = write(await plan({ root }), { root });
 
-    expect(result.removed).toContain("v1-opencode/agent/subagents/test/alpha.md");
-    expect(existsSync(join(root, "v1-opencode/agent/subagents/test/alpha.md"))).toBe(false);
+    expect(result.removed).toContain("hosts/opencode-v1/agent/subagents/test/alpha.md");
+    expect(existsSync(join(root, "hosts/opencode-v1/agent/subagents/test/alpha.md"))).toBe(false);
   });
 
   it("strips the oac: block from OpenCode output but keeps the body", async () => {
@@ -199,9 +199,9 @@ describe("buildAgent", () => {
     await expect(buildAgentIn(root, "nope", "opencode")).rejects.toThrow(/alpha, beta/);
   });
 
-  it("refuses a target the agent does not declare, rather than inventing output", async () => {
+  it("refuses a target the agent does not ship to, rather than inventing output", async () => {
     await expect(buildAgentIn(root, "alpha", "claude-code")).rejects.toThrow(
-      /does not declare target "claude-code"/,
+      /does not ship to target "claude-code"/,
     );
   });
 });
@@ -252,7 +252,7 @@ describe("staged targets", () => {
 describe("orphan removal", () => {
   const ALPHA_OUT = ".opencode/agent/alpha.md";
   // v2 is flat; v1 keeps the category directories, which is where empty-directory tidying matters.
-  const V1_ALPHA = "v1-opencode/agent/subagents/test/alpha.md";
+  const V1_ALPHA = "hosts/opencode-v1/agent/subagents/test/alpha.md";
 
   it("removes generated output when its canonical source is deleted", async () => {
     write(await plan({ root }), { root });
@@ -292,20 +292,20 @@ describe("orphan removal", () => {
 
     expect(result.removed).toContain(ALPHA_OUT);
     expect(result.removed).toContain(V1_ALPHA);
-    expect(existsSync(join(root, "v1-opencode/agent/subagents/test"))).toBe(false);
+    expect(existsSync(join(root, "hosts/opencode-v1/agent/subagents/test"))).toBe(false);
     expect(existsSync(join(root, ".opencode/agent")), "the output root itself").toBe(true);
-    expect(existsSync(join(root, "v1-opencode/agent")), "the v1 output root itself").toBe(true);
+    expect(existsSync(join(root, "hosts/opencode-v1/agent")), "the v1 output root itself").toBe(true);
   });
 
   it("leaves a directory alone while it still holds a file the build does not own", async () => {
-    put("v1-opencode/agent/subagents/test/notes.md", "hand-written, not generated\n");
+    put("hosts/opencode-v1/agent/subagents/test/notes.md", "hand-written, not generated\n");
     write(await plan({ root }), { root });
     rmSync(join(root, "content/agents/subagents/test/alpha.md"));
     rmSync(join(root, "content/agents/subagents/test/beta.md"));
 
     write(await plan({ root }), { root });
 
-    expect(existsSync(join(root, "v1-opencode/agent/subagents/test/notes.md"))).toBe(true);
+    expect(existsSync(join(root, "hosts/opencode-v1/agent/subagents/test/notes.md"))).toBe(true);
   });
 
   it("prunes nothing on a first build, when there is no ledger to prune from", async () => {
@@ -367,6 +367,132 @@ describe("orphan removal", () => {
 
     expect(drift).toContainEqual({ path: ALPHA_OUT, status: "orphan" });
     expect(existsSync(join(root, ALPHA_OUT))).toBe(true);
+  });
+});
+
+// ============================================================================
+// Targeted builds — `--target X` owns X's output and nothing else
+// ============================================================================
+
+describe("targeted builds", () => {
+  // Regression (2026-10-20): `oac build --target claude-code` deleted every `.opencode/agent/*`,
+  // `hosts/opencode-v1/agent/**` and `registry.v1.json`, and dropped their ledger entries. The plan
+  // only held claude-code (+ registry.json) files, so every OTHER target's ledger entry looked
+  // like an orphan whose source was gone.
+  const STAGE = { "claude-code": ".tmp/stage" } as const;
+  const UNSELECTED = [
+    ".opencode/agent/alpha.md",
+    ".opencode/agent/beta.md",
+    "hosts/opencode/agent/alpha.md",
+    "hosts/opencode/agent/beta.md",
+    "hosts/opencode-v1/agent/subagents/test/alpha.md",
+    "hosts/opencode-v1/agent/subagents/test/beta.md",
+    "registry.v1.json",
+  ];
+
+  it("never prunes, and keeps verbatim the ledger entries of, targets it did not build", async () => {
+    write(await plan({ root }), { root, outputRoots: STAGE });
+    const before = readManifest(root);
+
+    const result = write(await plan({ root, targets: ["claude-code"] }), {
+      root,
+      outputRoots: STAGE,
+    });
+
+    expect(result.removed).toEqual([]);
+    expect(result.kept).toEqual([]);
+    for (const path of UNSELECTED) {
+      expect(existsSync(join(root, path)), path).toBe(true);
+      expect(readManifest(root).files[path], path).toEqual(before.files[path]);
+    }
+    expect(readManifest(root)).toEqual(before);
+  });
+
+  it("does not report unselected targets' output as orphan drift under check()", async () => {
+    write(await plan({ root }), { root, outputRoots: STAGE });
+
+    const drift = check(await plan({ root, targets: ["claude-code"] }), {
+      root,
+      outputRoots: STAGE,
+    });
+
+    expect(drift).toEqual([]);
+  });
+
+  it("still prunes orphans of the targets it DID build", async () => {
+    write(await plan({ root }), { root, outputRoots: STAGE });
+    // beta stops targeting claude-code: its staged claude output is now an orphan.
+    put("content/agents/subagents/test/beta.md", canonicalAgent("beta", ["opencode"]));
+
+    const result = write(await plan({ root, targets: ["claude-code"] }), {
+      root,
+      outputRoots: STAGE,
+    });
+
+    // The primary (hosts/) and its live mirror go together.
+    expect(result.removed).toEqual([
+      ".tmp/stage/hosts/claude-code/agents/beta.md",
+      ".tmp/stage/plugins/claude-code/agents/beta.md",
+    ]);
+    for (const path of UNSELECTED) expect(existsSync(join(root, path)), path).toBe(true);
+    expect(readManifest(root).files[".tmp/stage/plugins/claude-code/agents/beta.md"]).toBeUndefined();
+    expect(readManifest(root).files[".tmp/stage/hosts/claude-code/agents/beta.md"]).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// hosts/ primaries and their live mirrors
+// ============================================================================
+
+describe("hosts/ layout and live mirrors", () => {
+  const PAIRS = [
+    ["hosts/opencode/agent/beta.md", ".opencode/agent/beta.md"],
+    ["hosts/claude-code/agents/beta.md", "plugins/claude-code/agents/beta.md"],
+  ] as const;
+
+  it("emits every target under hosts/ and mirrors the live paths byte-for-byte", async () => {
+    const { files } = await plan({ root });
+    const byPath = new Map(files.map((f) => [f.path, f]));
+
+    for (const [primary, mirror] of PAIRS) {
+      expect(byPath.get(primary)?.mirrorOf, primary).toBeUndefined();
+      expect(byPath.get(mirror)?.mirrorOf, mirror).toBe(primary);
+      expect(byPath.get(mirror)?.content).toBe(byPath.get(primary)?.content);
+    }
+    // v1 is display-only: hosts/opencode-v1 and no live mirror.
+    expect(files.filter((f) => f.target === "opencode-v1").every((f) => f.mirrorOf === undefined)).toBe(true);
+    expect(files.some((f) => f.path.startsWith("v1-opencode/"))).toBe(false);
+  });
+
+  it("records each mirror in the manifest under its own root", async () => {
+    write(await plan({ root }), { root });
+    const ledger = readManifest(root).files;
+
+    expect(ledger["hosts/opencode/agent/beta.md"]?.root).toBe("hosts/opencode/agent");
+    expect(ledger[".opencode/agent/beta.md"]?.root).toBe(".opencode/agent");
+    expect(ledger["hosts/claude-code/agents/beta.md"]?.root).toBe("hosts/claude-code/agents");
+    expect(ledger["plugins/claude-code/agents/beta.md"]?.root).toBe("plugins/claude-code/agents");
+  });
+
+  it("reports a hand-edited mirror as drift", async () => {
+    const built = await plan({ root });
+    write(built, { root });
+    put(".opencode/agent/beta.md", "hand edit\n");
+
+    expect(check(built, { root })).toEqual([{ path: ".opencode/agent/beta.md", status: "modified" }]);
+  });
+
+  it("prunes a mirror together with its primary when the source goes", async () => {
+    write(await plan({ root }), { root });
+    rmSync(join(root, "content/agents/subagents/test/beta.md"));
+
+    const result = write(await plan({ root }), { root });
+
+    for (const [primary, mirror] of PAIRS) {
+      expect(result.removed).toContain(primary);
+      expect(result.removed).toContain(mirror);
+      expect(existsSync(join(root, mirror))).toBe(false);
+    }
   });
 });
 

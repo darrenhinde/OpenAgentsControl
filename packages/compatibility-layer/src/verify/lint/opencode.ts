@@ -24,10 +24,15 @@ export interface LintFile {
   text: string;
 }
 
+/** `error` (the default when absent) is a provable defect; `warning` is suspicious but may be fine. */
+export type LintSeverity = "error" | "warning";
+
 export interface LintFinding {
   path: string;
   rule: string;
   message: string;
+  /** Absent means `error`. */
+  severity?: LintSeverity;
 }
 
 interface Parsed {
@@ -40,8 +45,8 @@ interface Parsed {
 const PLACEHOLDER = /[[\]<>{}$]/;
 const IMPORTS_V1_PLUGIN = /from\s+["']@opencode-ai\/plugin(\/[\w-]+)?["']/;
 const USES_PLUGIN_API = /(?<![\w.$])tool\(|:\s*Plugin\b/;
-const SUBAGENT_TYPE = /\bsubagent_type\s*[=:]\s*(["'])([^"'\n]*)\1/g;
-const AGENT_VALUE = /(?<![\w])agent\s*=\s*(["'])([^"'\n]*)\1/g;
+export const SUBAGENT_TYPE = /\bsubagent_type\s*[=:]\s*(["'])([^"'\n]*)\1/g;
+export const AGENT_VALUE = /(?<![\w])agent\s*=\s*(["'])([^"'\n]*)\1/g;
 
 function parse(file: LintFile, findings: LintFinding[]): Parsed | undefined {
   try {
@@ -79,7 +84,8 @@ function trailingDenyActions(data: Record<string, unknown>): string[] {
   return hidden;
 }
 
-function values(re: RegExp, text: string): string[] {
+/** Every quoted value `re` captures in group 2, minus template placeholders. */
+export function values(re: RegExp, text: string): string[] {
   return [...text.matchAll(re)].map((m) => m[2]!).filter((v) => !PLACEHOLDER.test(v));
 }
 
