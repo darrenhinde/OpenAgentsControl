@@ -2,14 +2,14 @@
  * oac apply — Generate IDE-specific config files from .opencode/agent/ definitions.
  *
  * Usage:
- *   oac apply claude    → writes CLAUDE.md
+ *   oac apply claude    → writes .claude/agents/<name>.md for every installed agent
  *   oac apply --all     → detects present IDEs and generates for each
  *
  * Only Claude Code is a write target. OpenCode is the source tree, never a target.
  */
 
 import type { Command } from 'commander'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { copyFile, mkdir, stat, writeFile } from 'node:fs/promises'
 import { loadAgents, ClaudeAdapter } from '@controlstack/compatibility-layer'
 import type { OpenAgent, ConversionResult } from '@controlstack/compatibility-layer'
@@ -46,36 +46,14 @@ async function backupIfExists(filePath: string): Promise<void> {
   }
 }
 
-// ─── Dry-run preview ──────────────────────────────────────────────────────────
-
-/** Prints a dry-run preview of what would be written. */
-function printDryRunPreview(outputPath: string, content: string): void {
-  info(`[dry-run] Would write: ${outputPath} (${formatKb(Buffer.byteLength(content, 'utf-8'))})`)
-  dim('─'.repeat(60))
-  const lines = content.split('\n')
-  dim(lines.slice(0, 10).join('\n'))
-  if (lines.length > 10) {
-    dim(`  … (${lines.length - 10} more lines)`)
-  }
-  dim('─'.repeat(60))
-}
-
-// ─── Conversion warnings ──────────────────────────────────────────────────────
-
-/** Prints adapter warnings to the user. */
-function reportWarnings(result: ConversionResult, isVerbose: boolean): void {
-  if (!result.warnings || result.warnings.length === 0) return
-
-  if (isVerbose) {
-    result.warnings.forEach((w: string) => warn(w))
-    return
-  }
-  warn(`${result.warnings.length} conversion warning(s) — use --verbose to see details`)
-}
-
-// ─── Single IDE apply ─────────────────────────────────────────────────────────
-
-/** Applies agents to a single IDE target. Returns true on success. */
+/**
+ * Applies agents to a single IDE target. Returns true on success.
+ *
+ * Claude Code discovers project agents from `.claude/agents/*.md` — one file per agent,
+ * named by filename. Every installed OpenCode agent is converted; an agent the adapter
+ * refuses (fail-closed, e.g. no permission information at all) is reported and skipped
+ * rather than silently dropped from the batch.
+ */
 async function applyToIde(
   ide: IdeType,
   agents: OpenAgent[],
@@ -83,56 +61,79 @@ async function applyToIde(
   options: { dryRun: boolean; verbose: boolean }
 ): Promise<boolean> {
   const displayName = getIdeDisplayName(ide)
-  const outputRelPath = getIdeOutputFile(ide)
-  const outputPath = join(projectRoot, outputRelPath)
+  const outputDirRel = getIdeOutputFile(ide)
+  const outputDir = join(projectRoot, outputDirRel)
 
   if (agents.length === 0) {
     warn(`No agents found in .opencode/agent/ — nothing to apply for ${displayName}`)
     return false
   }
 
-  const spinner = createSpinner(`Generating ${outputRelPath} for ${displayName}…`, {
-    dryRun: options.dryRun,
-  })
+  const spinner = createSpinner(
+    `Converting ${agents.length} agent(s) for ${displayName}…`,
+    { dryRun: options.dryRun },
+  )
   spinner.start()
 
+  const adapter = new ClaudeAdapter()
+  const writes: Array<{ outputPath: string; relName: string; content: string }> = []
+  let failed = 0
+  let warningCount = 0
+
   try {
-    // Claude uses the first (primary) agent — multiple agents are not merged.
-    const adapter = new ClaudeAdapter()
-    const result: ConversionResult = await adapter.fromOAC(agents[0]!)
-
-    if (!result.success || result.configs.length === 0) {
-      spinner.fail(`Failed to generate ${outputRelPath}`)
-      const errs = result.errors ?? ['Unknown conversion error']
-      errs.forEach((e: string) => error(e))
-      return false
+    for (const agent of agents) {
+      const result: ConversionResult = await adapter.fromOAC(agent)
+      if (!result.success || result.configs.length === 0) {
+        spinner.stop()
+        const errs = result.errors ?? ['Unknown conversion error']
+        errs.forEach((e: string) => error(`  ${agent.metadata.name}: ${e}`))
+        failed += 1
+        continue
+      }
+      warningCount += result.warnings?.length ?? 0
+      if (options.verbose && result.warnings) {
+        result.warnings.forEach((w: string) => warn(`  ${agent.metadata.name}: ${w}`))
+      }
+      for (const config of result.configs) {
+        writes.push({
+          outputPath: join(outputDir, basename(config.fileName)),
+          relName: join(outputDirRel, basename(config.fileName)),
+          content: config.content,
+        })
+      }
     }
-
-    const content = result.configs.map((c: { content: string }) => c.content).join('\n')
-    const sizeBytes = Buffer.byteLength(content, 'utf-8')
-
-    spinner.stop()
-
-    if (options.dryRun) {
-      printDryRunPreview(outputPath, content)
-    } else {
-      await backupIfExists(outputPath)
-      await mkdir(dirname(outputPath), { recursive: true })
-      await writeFile(outputPath, content)
-    }
-
-    reportWarnings(result, options.verbose)
-
-    const label = options.dryRun ? '[dry-run] Would write' : 'Wrote'
-    success(`${label}: ${outputRelPath} (${formatKb(sizeBytes)})`)
-    dim(`  ${displayName}: ${outputPath} is ${formatKb(sizeBytes)}`)
-
-    return true
   } catch (err) {
-    spinner.fail(`Error generating ${outputRelPath}`)
+    spinner.fail(`Error generating for ${displayName}`)
     error(`${displayName} adapter failed: ${err instanceof Error ? err.message : String(err)}`)
     return false
   }
+
+  spinner.stop()
+
+  if (writes.length === 0) {
+    warn(`No agent could be converted for ${displayName} — see errors above`)
+    return false
+  }
+
+  if (options.dryRun) {
+    for (const w of writes) info(`[dry-run] Would write: ${w.relName}`)
+  } else {
+    for (const w of writes) {
+      await backupIfExists(w.outputPath)
+      await mkdir(dirname(w.outputPath), { recursive: true })
+      await writeFile(w.outputPath, w.content)
+      success(`Wrote: ${w.relName} (${formatKb(Buffer.byteLength(w.content, 'utf-8'))})`)
+    }
+  }
+
+  if (warningCount > 0) {
+    warn(`${warningCount} conversion warning(s) — use --verbose to see details`)
+  }
+  if (failed > 0) {
+    warn(`${failed} of ${agents.length} agent(s) could not be converted and were skipped`)
+    return false
+  }
+  return true
 }
 
 // ─── Resolve target IDEs ──────────────────────────────────────────────────────
@@ -263,7 +264,7 @@ export function registerApplyCommand(program: Command): void {
       'after',
       `
 Examples:
-  oac apply claude             Generate CLAUDE.md
+  oac apply claude             Write .claude/agents/<name>.md for every installed agent
   oac apply --all              Generate for all detected IDEs
   oac apply claude --dry-run   Preview without writing
 `

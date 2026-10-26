@@ -23,7 +23,10 @@ const IDE_DISPLAY_NAMES: Record<IdeType, string> = {
 /** Output file/directory written by `oac apply` for each IDE. */
 const IDE_OUTPUT_FILES: Record<IdeType, string> = {
   opencode: ".opencode/",
-  claude: "CLAUDE.md",
+  // One Claude Code agent file per installed agent, discovered natively by Claude Code
+  // (and by Cursor, which reads the same directory). A single merged CLAUDE.md was
+  // retired 2026-10-26: CLAUDE.md is main-loop instructions, not an agent config.
+  claude: ".claude/agents/",
 };
 
 // ─── Detection Logic ──────────────────────────────────────────────────────────

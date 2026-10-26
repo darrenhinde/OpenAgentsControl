@@ -17,7 +17,7 @@ describe('getIdeOutputFile', () => {
 
   // ✅ Positive: claude maps to CLAUDE.md
   test('claude → CLAUDE.md', () => {
-    expect(getIdeOutputFile('claude')).toBe('CLAUDE.md');
+    expect(getIdeOutputFile('claude')).toBe('.claude/agents/');
   });
 
   // ✅ Positive: opencode maps to .opencode/

@@ -183,7 +183,7 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
     if (drift.length === 0) info('no drift — generated trees match the canonical source')
     else reportDrift(drift)
 
-    summarize(warningCount, deadCount, lintCount)
+    summarize(warningCount, deadCount, lintCount, options.strict)
 
     if (options.check && drift.length > 0) return 1
     return strictExitCode(options.strict, warningCount, deadCount, lintCount)
@@ -200,12 +200,17 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
       `${result.removed.length} removed`,
   )
 
-  summarize(warningCount, deadCount, lintCount)
+  summarize(warningCount, deadCount, lintCount, options.strict)
 
   return strictExitCode(options.strict, warningCount, deadCount, lintCount)
 }
 
-const summarize = (warningCount: number, deadCount: number, lintCount: number): void => {
+const summarize = (
+  warningCount: number,
+  deadCount: number,
+  lintCount: number,
+  strict = false,
+): void => {
   log('')
   if (warningCount === 0 && deadCount === 0 && lintCount === 0) {
     success('0 warnings')
@@ -215,7 +220,11 @@ const summarize = (warningCount: number, deadCount: number, lintCount: number): 
     `${warningCount} degradation warning(s), ${deadCount} dead reference(s), ` +
       `${lintCount} lint finding(s)`,
   )
-  dim('    Re-run with --verbose to list every warning, or --strict to fail on them.')
+  if (strict) {
+    dim('    Strict mode: exiting 1 (use --verbose to list every warning).')
+  } else {
+    dim('    Re-run with --verbose to list every warning, or --strict to fail on them.')
+  }
 }
 
 export const registerBuildCommand = (program: Command): void => {

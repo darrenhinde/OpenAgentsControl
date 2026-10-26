@@ -28,7 +28,7 @@ import type { BuildFile, BuildTarget, TargetLayout } from "./BuildPipeline.js";
 export const HOSTS_README_PATH = "hosts/README.md";
 
 /** The ledger target id that owns {@link HOSTS_README_PATH}. */
-export const HOSTS_README_TARGET = "hosts-readme" as const;
+export const HOSTS_README_TARGET = "hosts-readme";
 
 /** Human-facing facts about a host that the plan cannot know. */
 interface HostInfo {

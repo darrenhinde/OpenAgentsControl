@@ -138,8 +138,8 @@ export const checkClaudeDiscoveryConfig = async (projectRoot: string): Promise<C
  *
  * OpenCode reads `.opencode/` directly, so its presence is the healthy state and there is
  * nothing to apply — a correct fresh install must not produce a warning here. Claude Code
- * files are reported as information: `oac apply claude` writes CLAUDE.md, but nothing marks
- * a hand-written one, so the tool cannot honestly say whether it is stale.
+ * files are reported as information: `oac apply claude` writes `.claude/agents/*.md`, but
+ * nothing marks a hand-written one, so the tool cannot honestly say whether it is stale.
  */
 export const ideCheckResult = (ide: DetectedIde): CheckResult => {
   const label = getIdeDisplayName(ide.type);
@@ -153,7 +153,7 @@ export const ideCheckResult = (ide: DetectedIde): CheckResult => {
   return {
     name: `IDE: ${label}`,
     status: 'info',
-    message: `${label} detected (${ide.indicator}) — run 'oac apply claude' to regenerate CLAUDE.md from your agents`,
+    message: `${label} detected (${ide.indicator}) — run 'oac apply claude' to write .claude/agents/ from your agents`,
   };
 };
 
