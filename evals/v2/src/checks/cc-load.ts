@@ -1,6 +1,6 @@
 import { cpSync, existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
-import { claudeRunArgv, parseClaudeStream, sessionStartPayload, type ClaudeRunResult } from "../../../../packages/compatibility-layer/src/hosts/claude-code/driver.ts";
+import { claudeRunArgv, parseClaudeStream, sessionStartPayload, type ClaudeRunResult } from "../../../../packages/agent-compiler/src/hosts/claude-code/driver.ts";
 import type { CheckDef, CheckOutcome, RunContext } from "../core/types.ts";
 import { lintCcAgentExamples } from "../lints/cc-agent-examples.ts";
 import { frontmatter } from "../lints/files.ts";

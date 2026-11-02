@@ -155,7 +155,7 @@ Phase 5 (Documentation):  ░░░░░░░░░░░░░░░░░░
 
 **Issue**: https://github.com/darrenhinde/OpenAgentsControl/issues/141
 **Branch**: `devalexanderdaza/issue141`
-**Location**: `packages/compatibility-layer/`
+**Location**: `packages/agent-compiler/`
 
 **Related**:
 - lookup/compatibility-layer-adapters.md

@@ -1,5 +1,5 @@
 // L2 cross-host scenarios: the YAML scenario runner (plan step 6). Every seed scenario under
-// packages/compatibility-layer/src/verify/scenarios/ becomes rows: `<check_id>@<host>` (guarded,
+// packages/agent-compiler/src/verify/scenarios/ becomes rows: `<check_id>@<host>` (guarded,
 // graded), `.control@<host>` (attacks: OAC off, asks approved, must leak/land/run) and
 // `.fp@<host>` (benign rows: an over-broad guard must block). Scenarios the runner can't run yet
 // become skip rows with the reason. Every host run goes through runHost (sandbox + safety audit).
@@ -7,18 +7,18 @@ import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, sy
 import { createHash } from "node:crypto";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ASK_RECORDER_JS, ASK_TOOL, askRecorderMcpConfig } from "../../../../packages/compatibility-layer/src/hosts/claude-code/ask-recorder.ts";
-import { claudeRunArgv, parseClaudeStream } from "../../../../packages/compatibility-layer/src/hosts/claude-code/driver.ts";
-import { openCodeRunArgv, parseOpenCodeOutput, writeOpenCodeConfig } from "../../../../packages/compatibility-layer/src/hosts/opencode/driver.ts";
-import { modelTurns } from "../../../../packages/compatibility-layer/src/verify/fake-model/server.ts";
-import { installFileGuard } from "../../../../packages/compatibility-layer/src/verify/fixtures/guards.ts";
-import { FAILING_TEST, buildTsSingle } from "../../../../packages/compatibility-layer/src/verify/fixtures/repos/ts-single/build.ts";
-import { gradeArm, pathsToSnapshot, type CallObservation, type CallStatus, type Observation } from "../../../../packages/compatibility-layer/src/verify/outcomes.ts";
+import { ASK_RECORDER_JS, ASK_TOOL, askRecorderMcpConfig } from "../../../../packages/agent-compiler/src/hosts/claude-code/ask-recorder.ts";
+import { claudeRunArgv, parseClaudeStream } from "../../../../packages/agent-compiler/src/hosts/claude-code/driver.ts";
+import { openCodeRunArgv, parseOpenCodeOutput, writeOpenCodeConfig } from "../../../../packages/agent-compiler/src/hosts/opencode/driver.ts";
+import { modelTurns } from "../../../../packages/agent-compiler/src/verify/fake-model/server.ts";
+import { installFileGuard } from "../../../../packages/agent-compiler/src/verify/fixtures/guards.ts";
+import { FAILING_TEST, buildTsSingle } from "../../../../packages/agent-compiler/src/verify/fixtures/repos/ts-single/build.ts";
+import { gradeArm, pathsToSnapshot, type CallObservation, type CallStatus, type Observation } from "../../../../packages/agent-compiler/src/verify/outcomes.ts";
 import {
   flattenScript, normalizeIncludes, substitute, unresolved, unsupportedReason, variants, watchedMarkers,
   type ArmKind, type Guard, type Host, type PlannedTurn, type Variant,
-} from "../../../../packages/compatibility-layer/src/verify/runner.ts";
-import { loadScenarios, type Scenario, type ScenarioFile } from "../../../../packages/compatibility-layer/src/verify/scenario-schema.ts";
+} from "../../../../packages/agent-compiler/src/verify/runner.ts";
+import { loadScenarios, type Scenario, type ScenarioFile } from "../../../../packages/agent-compiler/src/verify/scenario-schema.ts";
 import { exec } from "../core/exec.ts";
 import { loadKnownRed } from "../core/known-red.ts";
 import type { CheckDef, CheckOutcome, HostId, RunContext } from "../core/types.ts";
@@ -27,7 +27,7 @@ import { cachedWhich } from "./helpers.ts";
 import { runHost } from "./host-run.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const SCENARIO_DIR = resolve(HERE, "..", "..", "..", "..", "packages", "compatibility-layer", "src", "verify", "scenarios");
+export const SCENARIO_DIR = resolve(HERE, "..", "..", "..", "..", "packages", "agent-compiler", "src", "verify", "scenarios");
 const HOSTS: Host[] = ["claude-code", "opencode-v2"];
 const SUB_MARKER = "DELEGATED-TASK";
 

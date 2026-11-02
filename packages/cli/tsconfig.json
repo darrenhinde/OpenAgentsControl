@@ -19,7 +19,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@controlstack/compatibility-layer": ["../compatibility-layer/dist/index.d.ts"]
+      "@controlstack/agent-compiler": ["../agent-compiler/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*"],

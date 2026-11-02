@@ -1,4 +1,4 @@
-# @controlstack/compatibility-layer
+# @controlstack/agent-compiler
 
 The build library behind `oac build`. It loads the canonical content tree
 (`agent-library/agents/**`, `agent-library/profiles/**`) and emits the per-tool trees plus
@@ -25,7 +25,7 @@ removed on 2026-09-02 to keep the system simple to manage.
 ## Usage
 
 ```typescript
-import { plan, write, check } from "@controlstack/compatibility-layer";
+import { plan, write, check } from "@controlstack/agent-compiler";
 
 const built = await plan({ root: process.cwd() });
 // Every target is written in place; `outputRoots` can rebase one elsewhere if needed.

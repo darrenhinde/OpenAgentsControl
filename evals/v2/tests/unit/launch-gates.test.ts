@@ -18,7 +18,7 @@ const makeCanariesMock = vi.hoisted(() => vi.fn());
 const plantDecoysMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../../src/core/exec.ts", () => ({ exec: execMock, which: whichMock }));
-vi.mock("../../../../packages/compatibility-layer/src/verify/fake-model/server.ts", () => ({
+vi.mock("../../../../packages/agent-compiler/src/verify/fake-model/server.ts", () => ({
   startFakeModel: startFakeModelMock,
 }));
 vi.mock("../../src/sandbox/canary.ts", () => ({

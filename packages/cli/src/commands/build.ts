@@ -3,7 +3,7 @@
  *
  * ## This file is wiring, not logic
  *
- * The pipeline itself lives in `@controlstack/compatibility-layer`
+ * The pipeline itself lives in `@controlstack/agent-compiler`
  * (`src/core/BuildPipeline.ts`): loading, adapting, orphan pruning and drift detection are all
  * there, under vitest, Node-clean. This module parses flags, checks targets, and prints.
  * Nothing here uses a Bun API.
@@ -58,7 +58,7 @@ import {
   type BuildPlan,
   type BuildTarget,
   type Drift,
-} from '@controlstack/compatibility-layer'
+} from '@controlstack/agent-compiler'
 
 import { bold, dim, error, info, log, setVerbose, success, verbose, warn } from '../ui/logger.js'
 

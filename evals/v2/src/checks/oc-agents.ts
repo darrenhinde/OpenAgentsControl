@@ -3,8 +3,8 @@
 // tools the host actually offered it. Plus delegate-by-name / delegate-by-id (#362).
 import { cpSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { openCodeRunArgv, parseOpenCodeOutput, writeOpenCodeConfig } from "../../../../packages/compatibility-layer/src/hosts/opencode/driver.ts";
-import { modelTurns, startFakeModel, type ScriptTurn } from "../../../../packages/compatibility-layer/src/verify/fake-model/server.ts";
+import { openCodeRunArgv, parseOpenCodeOutput, writeOpenCodeConfig } from "../../../../packages/agent-compiler/src/hosts/opencode/driver.ts";
+import { modelTurns, startFakeModel, type ScriptTurn } from "../../../../packages/agent-compiler/src/verify/fake-model/server.ts";
 import { exec } from "../core/exec.ts";
 import type { CheckDef, RunContext } from "../core/types.ts";
 import { emittedId, frontmatter, listFiles, v2Action } from "../lints/files.ts";

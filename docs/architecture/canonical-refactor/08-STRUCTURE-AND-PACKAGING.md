@@ -42,8 +42,8 @@ OpenAgentsControl/
 └── package.json                    #   root = the published package (see §4)
 ```
 
-Mapping from today: `packages/compatibility-layer/{types,core,mappers}` → `packages/core`;
-`packages/compatibility-layer/adapters` → `packages/adapters`; `packages/cli` stays (de-Bunned);
+Mapping from today: `packages/agent-compiler/{types,core,mappers}` → `packages/core`;
+`packages/agent-compiler/adapters` → `packages/adapters`; `packages/cli` stays (de-Bunned);
 `packages/plugin-abilities` deleted (commit `cce5255`) — dead code, no consumers, did not build;
 `.opencode/` demoted from source to build output. The `skill`/`skills`, `plugin`/`plugins`
 singular-plural schism dies with `.opencode/`-as-source.

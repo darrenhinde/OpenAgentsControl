@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { planMessages, startFakeModel, type FakeModel } from "../../../../packages/compatibility-layer/src/verify/fake-model/server.ts";
-import { gradeArm, type Observation } from "../../../../packages/compatibility-layer/src/verify/outcomes.ts";
-import { flattenScript, normalizeIncludes, substitute, unsupportedReason, variants } from "../../../../packages/compatibility-layer/src/verify/runner.ts";
-import { Scenario, loadScenarios } from "../../../../packages/compatibility-layer/src/verify/scenario-schema.ts";
+import { planMessages, startFakeModel, type FakeModel } from "../../../../packages/agent-compiler/src/verify/fake-model/server.ts";
+import { gradeArm, type Observation } from "../../../../packages/agent-compiler/src/verify/outcomes.ts";
+import { flattenScript, normalizeIncludes, substitute, unsupportedReason, variants } from "../../../../packages/agent-compiler/src/verify/runner.ts";
+import { Scenario, loadScenarios } from "../../../../packages/agent-compiler/src/verify/scenario-schema.ts";
 import { SCENARIO_DIR } from "../../src/checks/scenarios.ts";
 
 let m: FakeModel | undefined;

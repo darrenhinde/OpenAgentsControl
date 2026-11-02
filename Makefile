@@ -162,8 +162,8 @@ high-priority: ## List all high priority items
 # .opencode/agent/** and plugins/claude-code/agents/**), registry.json, registry.v1.json and
 # .oac/build-manifest.json are its committed output. `check-canonical-drift` is exactly what CI
 # runs (.github/workflows/packages-checks.yml), so a contributor can reproduce a red gate here.
-oac-cli: ## Build the oac CLI and its compatibility-layer dependency
-	@pnpm --dir packages/compatibility-layer run build
+oac-cli: ## Build the oac CLI and its agent-compiler dependency
+	@pnpm --dir packages/agent-compiler run build
 	@pnpm --dir packages/cli run build
 
 build-canonical: oac-cli ## Regenerate the committed trees from agent-library/agents/**

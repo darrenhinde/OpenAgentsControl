@@ -91,9 +91,9 @@ jobs:
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
 
-      # cli tsconfig paths point at ../compatibility-layer/dist, so build it first.
-      - name: Build compatibility-layer dependency
-        run: pnpm --dir packages/compatibility-layer run build
+      # cli tsconfig paths point at ../agent-compiler/dist, so build it first.
+      - name: Build agent-compiler dependency
+        run: pnpm --dir packages/agent-compiler run build
 
       - name: Typecheck
         run: pnpm --dir packages/cli run typecheck
@@ -106,8 +106,8 @@ jobs:
       - name: Test
         run: pnpm --dir packages/cli run test
 
-  compatibility-layer-checks:
-    name: Compatibility Layer (build + test + lint)
+  agent-compiler-checks:
+    name: Agent Compiler (build + test + lint)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: check-changes
@@ -134,13 +134,13 @@ jobs:
 
       # build runs tsc, which is also the typecheck for this package.
       - name: Build (tsc typecheck)
-        run: pnpm --dir packages/compatibility-layer run build
+        run: pnpm --dir packages/agent-compiler run build
 
       - name: Lint
-        run: pnpm --dir packages/compatibility-layer run lint
+        run: pnpm --dir packages/agent-compiler run lint
 
       - name: Test (vitest)
-        run: pnpm --dir packages/compatibility-layer test
+        run: pnpm --dir packages/agent-compiler test
 
   # The structural guarantee the canonical refactor rests on: the generated trees stay
   # COMMITTED, so drift has to be impossible rather than merely discouraged. Rebuild them from
@@ -186,7 +186,7 @@ jobs:
   summary:
     name: Packages Checks Summary
     runs-on: ubuntu-latest
-    needs: [check-changes, cli-checks, compatibility-layer-checks, canonical-drift]
+    needs: [check-changes, cli-checks, agent-compiler-checks, canonical-drift]
     if: always()
 
     steps:
@@ -206,7 +206,7 @@ jobs:
 
           report "Change Detection" "${{ needs.check-changes.result }}"
           report "CLI" "${{ needs.cli-checks.result }}"
-          report "Compatibility Layer" "${{ needs.compatibility-layer-checks.result }}"
+          report "Agent Compiler" "${{ needs.agent-compiler-checks.result }}"
           report "Canonical Build (no drift)" "${{ needs.canonical-drift.result }}"
 
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -219,7 +219,7 @@ jobs:
 
           FAILED=0
           [ "${{ needs.check-changes.result }}" != "success" ] && FAILED=1
-          for result in "${{ needs.cli-checks.result }}" "${{ needs.compatibility-layer-checks.result }}" "${{ needs.canonical-drift.result }}"; do
+          for result in "${{ needs.cli-checks.result }}" "${{ needs.agent-compiler-checks.result }}" "${{ needs.canonical-drift.result }}"; do
             if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
               FAILED=1
             fi

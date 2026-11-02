@@ -149,7 +149,7 @@ Legend: ✅ Full support, ⚠️ Partial support, ❌ Not supported
 
 ## Reference
 
-**Implementation**: `packages/compatibility-layer/src/adapters/`
+**Implementation**: `packages/agent-compiler/src/adapters/`
 **Issue**: https://github.com/darrenhinde/OpenAgentsControl/issues/141
 
 **Related**:

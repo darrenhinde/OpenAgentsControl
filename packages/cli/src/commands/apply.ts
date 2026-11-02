@@ -11,8 +11,8 @@
 import type { Command } from 'commander'
 import { basename, dirname, join } from 'node:path'
 import { copyFile, mkdir, stat, writeFile } from 'node:fs/promises'
-import { loadAgents, ClaudeAdapter } from '@controlstack/compatibility-layer'
-import type { OpenAgent, ConversionResult } from '@controlstack/compatibility-layer'
+import { loadAgents, ClaudeAdapter } from '@controlstack/agent-compiler'
+import type { OpenAgent, ConversionResult } from '@controlstack/agent-compiler'
 import {
   detectIdes,
   getIdeOutputFile,

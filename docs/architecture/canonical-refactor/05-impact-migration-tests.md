@@ -33,9 +33,9 @@ Facts below are pulled from the current tree and anchor every claim in this doc.
 | Claude Code install path | `/plugin marketplace add darrenhinde/OpenAgentsControl` → `/plugin install oac` | `README.md:170-177` |
 | Marketplace plugin source | `./plugins/claude-code` | `.claude-plugin/marketplace.json` |
 | npm publish payload | `files[]` ships `.opencode/**`, `scripts/`, `bin/`, `registry.json`, `install.sh`, `VERSION` | root `package.json` |
-| npm workspaces | `evals/framework`, `packages/cli`, `packages/compatibility-layer` | root `package.json` |
-| Adapters already built | `Base`, `Claude`, `Cursor`, `Windsurf` | `packages/compatibility-layer/src/adapters/` |
-| Core already built | `AdapterRegistry`, `AgentLoader`, `CapabilityMatrix`, `TranslationEngine` | `packages/compatibility-layer/src/core/` |
+| npm workspaces | `evals/framework`, `packages/cli`, `packages/agent-compiler` | root `package.json` |
+| Adapters already built | `Base`, `Claude`, `Cursor`, `Windsurf` | `packages/agent-compiler/src/adapters/` |
+| Core already built | `AdapterRegistry`, `AgentLoader`, `CapabilityMatrix`, `TranslationEngine` | `packages/agent-compiler/src/core/` |
 | Test runners in use | **vitest** (compat-layer, evals) **and** `bun:test` (cli) — split | test files below |
 | Golden/snapshot tests | **none exist** in first-party code today | grep `toMatchSnapshot` → only `node_modules` |
 
@@ -46,7 +46,7 @@ Facts below are pulled from the current tree and anchor every claim in this doc.
 | `VERSION` | **0.7.1** | `/VERSION` |
 | root `package.json` | **0.7.1** | `/package.json` |
 | `packages/cli` | **1.0.0** | `packages/cli/package.json` |
-| `packages/compatibility-layer` | **0.1.0** | `packages/compatibility-layer/package.json` |
+| `packages/agent-compiler` | **0.1.0** | `packages/agent-compiler/package.json` |
 | `evals/framework` | **0.1.1** | `evals/framework/package.json` |
 | marketplace entry `oac` | **1.0.0** | `.claude-plugin/marketplace.json` |
 | CC plugin manifest | **1.0.2** | `plugins/claude-code/.claude-plugin/plugin.json` |
@@ -198,7 +198,7 @@ Explicitly *not* the #298 pattern (one +19k PR). Each stage is a handful of PRs 
 - **Goal:** neutral source of truth exists and parses; **one** agent authored canonically.
 - **Deliverable:** `/agent-library/agents/code-reviewer.md` (the worked example from `00-INDEX.md`);
   `packages/core` = Zod `OpenAgentSchema` (moved/extended from
-  `packages/compatibility-layer/src/types.ts`) + registry loader (from `core/AgentLoader.ts`).
+  `packages/agent-compiler/src/types.ts`) + registry loader (from `core/AgentLoader.ts`).
   Nothing deleted; `.opencode/` still authoritative for everything else.
 - **Ships to users:** nothing (internal). Optionally publish `@oac/core` as a library.
 - **Independently valuable:** the schema + loader are usable/testable in isolation; contributors
@@ -302,7 +302,7 @@ Explicitly *not* the #298 pattern (one +19k PR). Each stage is a handful of PRs 
 ## 3. Test Spec
 
 Reuse the two patterns already in the tree:
-- **vitest + `__tests__/` + `fixtures/`** (from `packages/compatibility-layer/src/**/__tests__/`;
+- **vitest + `__tests__/` + `fixtures/`** (from `packages/agent-compiler/src/**/__tests__/`;
   `convert.test.ts` already does temp-dir + roundtrip integration and is the template).
 - **`bun:test` + `src/lib/*.test.ts`** (from `packages/cli`; `manifest.test.ts` is the template
   for manifest/parse checks).

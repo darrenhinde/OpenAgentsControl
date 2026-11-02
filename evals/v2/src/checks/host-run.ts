@@ -1,7 +1,7 @@
 // One sandboxed host run against the fake model, plus the safety audit every host run gets.
 import { copyFileSync, existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { startFakeModel, type FakeModel, type ScriptTurn } from "../../../../packages/compatibility-layer/src/verify/fake-model/server.ts";
+import { startFakeModel, type FakeModel, type ScriptTurn } from "../../../../packages/agent-compiler/src/verify/fake-model/server.ts";
 import { exec } from "../core/exec.ts";
 import type { HostId, RunContext } from "../core/types.ts";
 import { allCanaries, makeCanaries, plantDecoys, scanDir, sha, type Canaries } from "../sandbox/canary.ts";

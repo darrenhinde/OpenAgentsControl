@@ -11,7 +11,7 @@
 ## Package Location
 
 ```
-packages/compatibility-layer/
+packages/agent-compiler/
 ```
 
 ---

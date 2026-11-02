@@ -19,7 +19,7 @@ import { expect } from "vitest";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-/** `packages/compatibility-layer` */
+/** `packages/agent-compiler` */
 export const PACKAGE_ROOT = resolve(HERE, "../..");
 
 /** The repository root — four levels up from `tests/support/`. */

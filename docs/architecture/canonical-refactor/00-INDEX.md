@@ -216,18 +216,18 @@ filesystem-globbing build must not sweep local `.env` files into `/content/`.
 
 ## Existing Assets to Build On (extend, do NOT reinvent)
 
-- `packages/compatibility-layer/src/types.ts` — Zod `OpenAgentSchema` (the IR).
+- `packages/agent-compiler/src/types.ts` — Zod `OpenAgentSchema` (the IR).
   ⚠️ Known defects: `ModelIdentifierSchema = z.union([z.string(), z.string()])` is a
   **no-op union** (line 116) with no null default — cannot enforce decision #2; three
   overlapping identity carriers (frontmatter + metadata + `OpenAgentSchema.metadata` +
   sidecar) → collapse to one flat schema; `category` is **conflated** — *domain*
   (`core`/`development`) in agent metadata vs *distribution tier* (`essential`/`standard`)
   in `registry.json` → split into `category` + `profiles`.
-- `packages/compatibility-layer/src/core/` — `TranslationEngine`, `AdapterRegistry`,
+- `packages/agent-compiler/src/core/` — `TranslationEngine`, `AdapterRegistry`,
   `AgentLoader`, `CapabilityMatrix`
-- `packages/compatibility-layer/src/adapters/` — `Base`, `Claude`, `Cursor`, `Windsurf`.
+- `packages/agent-compiler/src/adapters/` — `Base`, `Claude`, `Cursor`, `Windsurf`.
   Warning templates already exist at `BaseAdapter.ts:187-208` — **reuse their exact output**.
-- `packages/compatibility-layer/src/mappers/` — `Context`, `Model`, `Permission`, `Tool`.
+- `packages/agent-compiler/src/mappers/` — `Context`, `Model`, `Permission`, `Tool`.
   ⚠️ `ContextMapper` anchors `.opencode/context` as privileged base → must become `/content/`.
 - `packages/cli/src/**` — `init/add/update/doctor/status/list/apply` + `ide-detect` + `registry` + `installer`
 - `registry.json` — 107KB component catalog

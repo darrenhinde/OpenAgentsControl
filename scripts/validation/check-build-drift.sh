@@ -40,7 +40,7 @@ GENERATED=(hosts .opencode/agent plugins/claude-code/agents registry.json regist
 
 if [ ! -f packages/cli/dist/index.js ]; then
   echo "error: packages/cli/dist/index.js is missing — build the CLI first:" >&2
-  echo "  pnpm --dir packages/compatibility-layer run build" >&2
+  echo "  pnpm --dir packages/agent-compiler run build" >&2
   echo "  pnpm --dir packages/cli run build" >&2
   exit 1
 fi

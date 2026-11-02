@@ -68,7 +68,7 @@ The pinned host harness (`evals/v2`) can only run OpenCode v2.0.30, so v1 gets l
 
 | Check | Proves | Runs |
 |---|---|---|
-| Byte snapshots of `built-ai-configs/opencode-v1/**`, drift gate | the v1 build is what the source says | CI (`make check-canonical-drift`, compatibility-layer tests) |
+| Byte snapshots of `built-ai-configs/opencode-v1/**`, drift gate | the v1 build is what the source says | CI (`make check-canonical-drift`, agent-compiler tests) |
 | `lintV1Agents` / `lintV1Artifacts` (inverse of `no-v1-artifacts`) | every v1 agent has a unique `name:`, every `task:` key and `subagent_type` matches a name exactly, only v1 schema keys, no v2 vocabulary, tools and plugins use the v1 API, no trailing catch-all deny | CI, over the planned and the committed tree |
 | Install tests: `oac init --opencode v1` into a temp dir (`flavor-install.e2e.test.ts`), `scripts/tests/test-flavor-install.sh` | a complete `.opencode/` lands (agents, tools, plugins, skills, commands, context), no `built-ai-configs/` folder, the choice is recorded, update keeps it, migration is safe, the installed tree passes the v1 lint | CI (offline, host version stubbed) |
 | Doctor mismatch tests | the version check fires both ways | CI |
@@ -78,4 +78,4 @@ The hosts-tier row is not wired into any workflow and nothing is downloaded by t
 
 ## Removing v1 later
 
-Delete `packages/compatibility-layer/src/adapters/v1/`, the `opencode-v1` entries in `BuildPipeline.ts`, `TargetPolicy.ts` and `RegistryTargets.ts`, `built-ai-configs/opencode-v1/`, `registry.v1.json`, the v1 branches in `packages/cli/src/lib/flavor*.ts` and `bundled.ts`, and the `--opencode` option. Agents declared `opencode-v1` only (`image-specialist`) go with it.
+Delete `packages/agent-compiler/src/adapters/v1/`, the `opencode-v1` entries in `BuildPipeline.ts`, `TargetPolicy.ts` and `RegistryTargets.ts`, `built-ai-configs/opencode-v1/`, `registry.v1.json`, the v1 branches in `packages/cli/src/lib/flavor*.ts` and `bundled.ts`, and the `--opencode` option. Agents declared `opencode-v1` only (`image-specialist`) go with it.

@@ -26,7 +26,7 @@ HTML-comment · worked example re-verified (§2.8).
 
 ### 0.1 Neutral IR fields (the input every adapter consumes)
 
-Per `00-INDEX.md` v2 worked example and `packages/compatibility-layer/src/types.ts`:
+Per `00-INDEX.md` v2 worked example and `packages/agent-compiler/src/types.ts`:
 
 | Neutral field | Type | Meaning |
 |---|---|---|

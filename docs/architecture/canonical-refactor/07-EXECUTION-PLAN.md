@@ -56,7 +56,7 @@ the refactor — it needs a week.
 
 **Core features:**
 1. **CI gates for the core packages.** New workflow runs `packages/cli`,
-   `packages/compatibility-layer`, `packages/plugin-abilities` tests + lint + typecheck on
+   `packages/agent-compiler`, `packages/plugin-abilities` tests + lint + typecheck on
    every PR. Add a `packages/` branch to `scripts/validation/detect-pr-changes.ts` (today a
    packages-only PR triggers **zero** checks).
 2. **Security hotfix for the live CC `coder-agent` gap** (index finding #10): tighten the

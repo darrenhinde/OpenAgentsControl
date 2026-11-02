@@ -41,7 +41,7 @@ STOP and report — do not guess.
   `lib/ide-detect.ts`, `commands/apply.ts`, `commands/doctor.ts`; `import.meta.dir` in
   `lib/bundled.ts:37`). Bun removal is **Stage 5 (subtask 25)** — until then, Stage-0 CI
   runs cli tests with Bun installed via setup action. Do NOT introduce new Bun APIs anywhere.
-- `packages/compatibility-layer` — **vitest**, Node-clean (zero Bun usage). New packages
+- `packages/agent-compiler` — **vitest**, Node-clean (zero Bun usage). New packages
   (`packages/core`, `packages/adapters`) use **vitest** (locked, `05` Q1).
 - `packages/plugin-abilities` — **deleted** (commit `cce5255`). It had zero consumers in its
   entire history, did not compile, and failed 23 of its own tests. `packages/` is now exactly

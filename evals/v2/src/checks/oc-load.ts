@@ -1,7 +1,7 @@
 import { mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import { createServer, type AddressInfo } from "node:net";
 import { dirname, join, sep } from "node:path";
-import { writeOpenCodeConfig } from "../../../../packages/compatibility-layer/src/hosts/opencode/driver.ts";
+import { writeOpenCodeConfig } from "../../../../packages/agent-compiler/src/hosts/opencode/driver.ts";
 import type { CheckDef, CheckOutcome, RunContext } from "../core/types.ts";
 import { listFiles } from "../lints/files.ts";
 import { lintNoV1Artifacts } from "../lints/no-v1-artifacts.ts";

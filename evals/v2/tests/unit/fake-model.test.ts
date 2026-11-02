@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { authShape, modelTurns, startFakeModel, type FakeModel } from "../../../../packages/compatibility-layer/src/verify/fake-model/server.ts";
+import { authShape, modelTurns, startFakeModel, type FakeModel } from "../../../../packages/agent-compiler/src/verify/fake-model/server.ts";
 
 let m: FakeModel | undefined;
 afterEach(async () => {

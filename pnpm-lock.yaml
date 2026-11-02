@@ -76,9 +76,9 @@ importers:
 
   packages/cli:
     dependencies:
-      '@controlstack/compatibility-layer':
+      '@controlstack/agent-compiler':
         specifier: workspace:*
-        version: link:../compatibility-layer
+        version: link:../agent-compiler
       chalk:
         specifier: 5.6.2
         version: 5.6.2
@@ -108,7 +108,7 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
-  packages/compatibility-layer:
+  packages/agent-compiler:
     dependencies:
       chalk:
         specifier: 5.6.2

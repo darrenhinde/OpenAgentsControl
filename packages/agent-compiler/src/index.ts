@@ -1,10 +1,10 @@
 /**
- * @controlstack/compatibility-layer
+ * @controlstack/agent-compiler
  * 
  * The build library behind `oac build`: loads canonical content/ and emits
  * OpenCode and Claude Code trees plus registry.json.
  * 
- * @module @controlstack/compatibility-layer
+ * @module @controlstack/agent-compiler
  * 
  */
 
@@ -34,7 +34,7 @@ export * from "./types.js";
  * 
  * @example
  * ```typescript
- * import { loadAgent, loadAgents } from '@controlstack/compatibility-layer';
+ * import { loadAgent, loadAgents } from '@controlstack/agent-compiler';
  * 
  * // Load single agent
  * const agent = await loadAgent('.opencode/agent/opencoder.md');
@@ -104,7 +104,7 @@ export type { CanonicalAgentFile } from "./core/AgentLoader.js";
  *
  * @example
  * ```typescript
- * import { emitRegistry } from '@controlstack/compatibility-layer';
+ * import { emitRegistry } from '@controlstack/agent-compiler';
  *
  * // The bytes to write to registry.json — identical across runs.
  * const json = await emitRegistry(process.cwd());
@@ -144,7 +144,7 @@ export type {
  *
  * @example
  * ```typescript
- * import { plan, write } from '@controlstack/compatibility-layer';
+ * import { plan, write } from '@controlstack/agent-compiler';
  *
  * const built = await plan({ root: process.cwd() });
  * // Emit every target into built-ai-configs/<host>/ (opencode, opencode-v1, claude-code), mirror the
@@ -230,7 +230,7 @@ export type {
  * 
  * @example
  * ```typescript
- * import { BaseAdapter } from '@controlstack/compatibility-layer';
+ * import { BaseAdapter } from '@controlstack/agent-compiler';
  * 
  * class MyAdapter extends BaseAdapter {
  *   readonly name = 'my-tool';
@@ -263,7 +263,7 @@ export { ClaudeAdapter } from "./adapters/ClaudeAdapter.js";
  *
  * @example
  * ```typescript
- * import { OpenCodeAdapter } from '@controlstack/compatibility-layer';
+ * import { OpenCodeAdapter } from '@controlstack/agent-compiler';
  *
  * const { content } = await new OpenCodeAdapter().fromCanonical(source);
  * ```
@@ -289,7 +289,7 @@ export type {
  * 
  * @example
  * ```typescript
- * import { mapToolFromOAC, mapToolToOAC } from '@controlstack/compatibility-layer';
+ * import { mapToolFromOAC, mapToolToOAC } from '@controlstack/agent-compiler';
  * 
  * mapToolFromOAC('bash', 'claude'); // => { name: 'Bash', exact: true }
  * ```
@@ -312,7 +312,7 @@ export {
  * 
  * @example
  * ```typescript
- * import { mapPermissionsFromOAC } from '@controlstack/compatibility-layer';
+ * import { mapPermissionsFromOAC } from '@controlstack/agent-compiler';
  * 
  * mapPermissionsFromOAC({ bash: { "*": "allow" } }, 'claude');
  * // => { permissions: { bash: true }, warnings: [...] }
@@ -340,7 +340,7 @@ export {
  * 
  * @example
  * ```typescript
- * import { mapModelFromOAC, getModelsForPlatform } from '@controlstack/compatibility-layer';
+ * import { mapModelFromOAC, getModelsForPlatform } from '@controlstack/agent-compiler';
  * 
  * mapModelFromOAC('claude-sonnet-4', 'claude');
  * // => { id: 'claude-sonnet-4-20250514', exact: true }
@@ -366,7 +366,7 @@ export {
  * 
  * @example
  * ```typescript
- * import { mapContextPathFromOAC } from '@controlstack/compatibility-layer';
+ * import { mapContextPathFromOAC } from '@controlstack/agent-compiler';
  * 
  * mapContextPathFromOAC('.opencode/context/core/standards.md', 'claude');
  * // => { path: '.claude/skills/core-standards.md', exact: true }
@@ -399,7 +399,7 @@ export {
  * 
  * @example
  * ```typescript
- * import { analyzeCompatibility, getToolCapabilities } from '@controlstack/compatibility-layer';
+ * import { analyzeCompatibility, getToolCapabilities } from '@controlstack/agent-compiler';
  * 
  * const result = analyzeCompatibility(agent, 'claude');
  * // => { compatible: false, warnings: [...], blockers: [...] }

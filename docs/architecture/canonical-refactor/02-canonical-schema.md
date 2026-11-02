@@ -52,7 +52,7 @@ For every field: name, type, required/optional, default, and whether it is a **n
 (all adapters honor it) or a **hint** (adapters may drop it, but must report the drop via
 `CapabilityMatrix` — never silently, per the index's "known and reported" rule).
 
-`packages/compatibility-layer/src/types.ts` is the starting point but is still OpenCode-shaped in
+`packages/agent-compiler/src/types.ts` is the starting point but is still OpenCode-shaped in
 several places. Each section ends with a **"Too OpenCode-shaped — must change"** callout citing
 concrete lines.
 

@@ -147,7 +147,7 @@ return this.createSuccessResult([{ fileName, content }], warnings)
 
 ## Reference
 
-**Implementation**: `packages/compatibility-layer/src/adapters/BaseAdapter.ts`
+**Implementation**: `packages/agent-compiler/src/adapters/BaseAdapter.ts`
 
 **Concrete Adapters**:
 - ClaudeAdapter.ts (600 lines)

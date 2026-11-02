@@ -17,10 +17,10 @@ const bunCounts = (out: string): Record<string, number> => {
 // Order matters: compat dist feeds cli typecheck, and the drift script needs both builds.
 // Running the drift script directly (not `make check-canonical-drift`) shares those builds.
 export const buildChecks: CheckDef[] = [
-  cmdCheck({ id: "build/compat-build", area: "build", workload: "trusted-command", cmd: ["pnpm", "--dir", "packages/compatibility-layer", "run", "build"] }),
-  cmdCheck({ id: "build/compat-lint", area: "build", workload: "trusted-command", cmd: ["pnpm", "--dir", "packages/compatibility-layer", "run", "lint"] }),
+  cmdCheck({ id: "build/compat-build", area: "build", workload: "trusted-command", cmd: ["pnpm", "--dir", "packages/agent-compiler", "run", "build"] }),
+  cmdCheck({ id: "build/compat-lint", area: "build", workload: "trusted-command", cmd: ["pnpm", "--dir", "packages/agent-compiler", "run", "lint"] }),
   cmdCheck({
-    id: "build/compat-test", area: "build", workload: "trusted-command", cmd: ["pnpm", "--dir", "packages/compatibility-layer", "test"],
+    id: "build/compat-test", area: "build", workload: "trusted-command", cmd: ["pnpm", "--dir", "packages/agent-compiler", "test"],
     parse: (out) => ({ metrics: vitestCounts(out) }),
   }),
   cmdCheck({ id: "build/cli-typecheck", area: "build", workload: "trusted-command", cmd: ["pnpm", "--dir", "packages/cli", "run", "typecheck"] }),

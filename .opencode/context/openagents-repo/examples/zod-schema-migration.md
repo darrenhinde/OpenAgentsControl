@@ -182,8 +182,8 @@ describe('AgentFrontmatterSchema', () => {
 
 ## Reference
 
-- **Implementation**: `packages/compatibility-layer/src/types.ts` (315 lines)
-- **Original**: `packages/compatibility-layer/dist/src/types.d.ts` (679 lines)
+- **Implementation**: `packages/agent-compiler/src/types.ts` (315 lines)
+- **Original**: `packages/agent-compiler/dist/src/types.d.ts` (679 lines)
 - **Zod Docs**: https://zod.dev
 - **Related**:
   - examples/baseadapter-pattern.md

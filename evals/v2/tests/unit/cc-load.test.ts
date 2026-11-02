@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseClaudeStream, sessionStartPayload } from "../../../../packages/compatibility-layer/src/hosts/claude-code/driver.ts";
+import { parseClaudeStream, sessionStartPayload } from "../../../../packages/agent-compiler/src/hosts/claude-code/driver.ts";
 
 const ev = (o: unknown): string => JSON.stringify(o);
 

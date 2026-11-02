@@ -188,7 +188,7 @@ describe('ClaudeAdapter', () => {
 
 ## Reference
 
-- **Implementation**: `packages/compatibility-layer/src/adapters/BaseAdapter.ts`
+- **Implementation**: `packages/agent-compiler/src/adapters/BaseAdapter.ts`
 - **Adapters**: `ClaudeAdapter.ts`, `CursorAdapter.ts`, `WindsurfAdapter.ts`
 - **Related**:
   - concepts/compatibility-layer.md

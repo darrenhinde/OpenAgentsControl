@@ -7,7 +7,7 @@ import type { CheckDef } from "../../src/core/types.ts";
 // U1, tests-first (component-p1-2.md): pins the real registry against the workload-declaration
 // extension and the quick-tier retiering. The import of src/checks/index.ts is fs-read only —
 // module evaluation builds the check table without probing hosts, spawning, or listening (the
-// scenario table is derived from YAML under packages/compatibility-layer/src/verify/scenarios).
+// scenario table is derived from YAML under packages/agent-compiler/src/verify/scenarios).
 //
 // Deliberately NOT asserted here: known-red.yaml content (this slice must not touch it, so no
 // file-content pin exists to accidentally enforce or normalize it) and the dynamically generated

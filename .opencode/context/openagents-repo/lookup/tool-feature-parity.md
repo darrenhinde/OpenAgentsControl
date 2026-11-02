@@ -128,7 +128,7 @@ Windsurf: Basic allow/deny (ask → deny)
 
 ## Reference
 
-- **Implementation**: `packages/compatibility-layer/src/mappers/`
+- **Implementation**: `packages/agent-compiler/src/mappers/`
 - **Related**:
   - concepts/compatibility-layer.md
   - examples/baseadapter-pattern.md

@@ -86,7 +86,7 @@ describe('classifyChangedPaths', () => {
       'has-packages': true,
       'has-canonical': true,
     })
-    expect(classifyChangedPaths(['packages/compatibility-layer/package.json'])).toEqual({
+    expect(classifyChangedPaths(['packages/agent-compiler/package.json'])).toEqual({
       ...NO_CHANGES,
       'has-packages': true,
       'has-canonical': true,
@@ -358,7 +358,7 @@ describe('Packages checks workflow contract', () => {
     const workflow = await readFile(PACKAGES_WORKFLOW_PATH, 'utf8')
 
     expect(workflow).toContain('cli-checks:')
-    expect(workflow).toContain('compatibility-layer-checks:')
+    expect(workflow).toContain('agent-compiler-checks:')
 
     const gates = workflow.match(/needs\.check-changes\.outputs\.has-packages == 'true'/g) ?? []
     expect(gates.length).toBeGreaterThanOrEqual(2)
@@ -403,7 +403,7 @@ describe('Canonical drift gate contract', () => {
     // A gate that cannot fail the PR reads as coverage while providing none. Match the YAML
     // key rather than the bare phrase, which also appears in the job's own comment.
     expect(workflow).not.toMatch(/^\s*continue-on-error:\s*true/m)
-    expect(workflow).toContain('needs: [check-changes, cli-checks, compatibility-layer-checks, canonical-drift]')
+    expect(workflow).toContain('needs: [check-changes, cli-checks, agent-compiler-checks, canonical-drift]')
     expect(workflow).toContain('"${{ needs.canonical-drift.result }}"')
 
     const summary = workflow.slice(workflow.indexOf('  summary:'))

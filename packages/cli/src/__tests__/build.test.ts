@@ -1,7 +1,7 @@
 /**
  * `oac build` wiring.
  *
- * The pipeline itself is tested in `packages/compatibility-layer` under vitest — loading,
+ * The pipeline itself is tested in `packages/agent-compiler` under vitest — loading,
  * adapting, determinism and the orphan-removal safety envelope all live there. What is left
  * here is the part this package actually owns: which targets a flag selects, and that every
  * one of them is emitted in place.
@@ -13,7 +13,7 @@
  */
 
 import { describe, test, expect } from 'bun:test';
-import { BUILD_TARGETS, lintBuild } from '@controlstack/compatibility-layer';
+import { BUILD_TARGETS, lintBuild } from '@controlstack/agent-compiler';
 import { IN_PLACE_TARGETS, assertInPlace, selectTargets, strictExitCode } from '../commands/build.js';
 
 // ── selectTargets ─────────────────────────────────────────────────────────────

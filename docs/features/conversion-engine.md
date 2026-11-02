@@ -1,6 +1,6 @@
 # The conversion engine
 
-One canonical source (`agent-library/agents/**`), one engine (`packages/compatibility-layer`), one build command (`oac build`) — every AI tool's copy of the agents is generated from that single input. This page is the plain-English inventory of what the engine manages today: what an author writes, what the engine converts, what it refuses to lose silently, and what it does not manage (yet).
+One canonical source (`agent-library/agents/**`), one engine (`packages/agent-compiler`), one build command (`oac build`) — every AI tool's copy of the agents is generated from that single input. This page is the plain-English inventory of what the engine manages today: what an author writes, what the engine converts, what it refuses to lose silently, and what it does not manage (yet).
 
 Verified 2026-10-23: drift gate clean (34 agents → 117 files, 0 written / 0 changed), 754 unit tests + 13 golden tests green.
 
@@ -12,7 +12,7 @@ Verified 2026-10-23: drift gate clean (34 agents → 117 files, 0 written / 0 ch
 agent-library/agents/**            ← the ONLY thing you edit
         │
         ▼
-packages/compatibility-layer (oac build)
+packages/agent-compiler (oac build)
   AgentLoader → mappers (permission / tool / model / context) → one adapter per host
         │
         ▼
@@ -69,7 +69,7 @@ The engine canonicalises **agents only**. Skills, commands, hooks, and plugins a
 
 | Thing | File |
 |---|---|
-| Engine + build library | `packages/compatibility-layer/` (`README.md`, `src/core/BuildPipeline.ts`) |
+| Engine + build library | `packages/agent-compiler/` (`README.md`, `src/core/BuildPipeline.ts`) |
 | CLI entry | `packages/cli/src/commands/build.ts` |
 | Canonical spec | `docs/architecture/canonical-refactor/02-canonical-schema.md` |
 | Per-adapter spec | `docs/architecture/canonical-refactor/03-adapter-specs.md` |

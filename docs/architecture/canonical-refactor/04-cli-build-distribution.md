@@ -29,7 +29,7 @@ and `update.sh` (344 lines). Both bash scripts are **deleted** per the locked de
 | Bundled files | `lib/bundled.ts` (`getPackageRoot`, `listBundledFiles`) | **Rework** to bundle `/content` not `.opencode/` |
 | Registry | `lib/registry.ts` (Zod-validated `registry.json`) | Keep; extend for profiles + dependency resolution |
 | IDE detect | `lib/ide-detect.ts` | Keep; feeds `--target` auto-detection |
-| Adapters | `packages/compatibility-layer/{adapters,core,mappers}` | The engine `oac build` drives |
+| Adapters | `packages/agent-compiler/{adapters,core,mappers}` | The engine `oac build` drives |
 
 ### 0.2 The three structural changes this refactor forces on the CLI
 
@@ -171,7 +171,7 @@ Same inputs ⇒ byte-identical output (required for golden-snapshot tests and `-
 detection). Stages:
 
 ```
-/content/**                                                    packages/compatibility-layer
+/content/**                                                    packages/agent-compiler
    │                                                                    │
    ▼                                                                    ▼
 [1] LOAD ──► [2] PARSE→IR ──► [3] RESOLVE deps/order ──► [4] ADAPT ──► [5] BUNDLE context

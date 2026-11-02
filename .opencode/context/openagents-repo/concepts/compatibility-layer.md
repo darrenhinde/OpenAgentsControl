@@ -115,7 +115,7 @@ console.log(result.warnings) // Feature degradation warnings
 - 📝 Phase 4 (CLI): 0% - Pending
 - 📝 Phase 5 (Documentation): 0% - Pending
 
-**Location**: `packages/compatibility-layer/src/`
+**Location**: `packages/agent-compiler/src/`
 
 ---
 

@@ -66,7 +66,7 @@ Progress: ████████████░░░░░░░░ 59.4% (19
 
 ```bash
 # Work directory
-cd packages/compatibility-layer
+cd packages/agent-compiler
 
 # Build & Test
 npm run build      # Compile TypeScript

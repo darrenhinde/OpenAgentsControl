@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/**/*", "tests/**/*", "vitest.config.ts", "../../packages/compatibility-layer/src/verify/**/*", "../../packages/compatibility-layer/src/hosts/**/*"]
+  "include": ["src/**/*", "tests/**/*", "vitest.config.ts", "../../packages/agent-compiler/src/verify/**/*", "../../packages/agent-compiler/src/hosts/**/*"]
 }

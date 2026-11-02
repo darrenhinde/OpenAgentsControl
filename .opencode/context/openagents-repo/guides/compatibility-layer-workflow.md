@@ -23,7 +23,7 @@
 **Objective**: Set up project infrastructure and core types
 
 1. **Project Setup** (1.5h) ✅
-   - Create `packages/compatibility-layer/package.json`
+   - Create `packages/agent-compiler/package.json`
    - Configure TypeScript with strict mode
    - Set up Vitest with 80%+ coverage thresholds
 
@@ -206,7 +206,7 @@
 
 - **Issue**: https://github.com/darrenhinde/OpenAgentsControl/issues/141
 - **Branch**: `devalexanderdaza/issue141`
-- **Location**: `packages/compatibility-layer/`
+- **Location**: `packages/agent-compiler/`
 
 **Related**:
 - lookup/compatibility-layer-progress.md

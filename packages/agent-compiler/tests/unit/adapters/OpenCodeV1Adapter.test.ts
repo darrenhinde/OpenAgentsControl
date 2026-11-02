@@ -215,7 +215,7 @@ describe("OpenCodeV1Adapter oac stripping", () => {
 
 describe("OpenCodeV1Adapter permissions", () => {
   const planner = readFileSync(
-    repoPath("packages/compatibility-layer/tests/golden/fixtures/fixture-planner.md"),
+    repoPath("packages/agent-compiler/tests/golden/fixtures/fixture-planner.md"),
     "utf-8"
   );
 

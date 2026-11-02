@@ -18,7 +18,7 @@ import { mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promise
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { lintV1Agents, lintV2Agents } from '@controlstack/compatibility-layer';
+import { lintV1Agents, lintV2Agents } from '@controlstack/agent-compiler';
 
 const REPO = fileURLToPath(new URL('../../../../', import.meta.url));
 const ENTRY = join(REPO, 'packages/cli/src/index.ts');
