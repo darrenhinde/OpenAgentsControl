@@ -324,11 +324,11 @@ Generated systems score 8+/10 on:
 - `.opencode/agent/system-builder.md` - Coordinates generation
 
 ### Specialized Subagents
-- `.opencode/agent/subagents/domain-analyzer.md` - Domain analysis
-- `.opencode/agent/subagents/agent-generator.md` - Agent generation
-- `.opencode/agent/subagents/context-organizer.md` - Context organization
-- `.opencode/agent/subagents/workflow-designer.md` - Workflow design
-- `.opencode/agent/subagents/command-creator.md` - Command creation
+- `.opencode/agent/domain-analyzer.md` - Domain analysis
+- `.opencode/agent/agent-generator.md` - Agent generation
+- `.opencode/agent/context-organizer.md` - Context organization
+- `.opencode/agent/workflow-designer.md` - Workflow design
+- `.opencode/agent/command-creator.md` - Command creation
 
 ### Templates
 - `.opencode/context/system-builder-templates/` - Reusable patterns
@@ -413,7 +413,7 @@ Generated systems score 8+/10 on:
 **Solution**: Stage 2.5 should detect domain type. Verify domain classification logic.
 
 **Issue**: Doesn't integrate with existing agents  
-**Solution**: Check that existing agents are in `.opencode/agent/` or `.opencode/agent/subagents/`
+**Solution**: Check that existing agents are in `.opencode/agent/` (OpenCode v1 also nests them under `agent/subagents/`)
 
 **Issue**: Generated agents don't route correctly  
 **Solution**: Verify @ symbol usage and context level specifications in agent files

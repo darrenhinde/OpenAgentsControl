@@ -1011,7 +1011,7 @@ When making follow-up requests, reference previous work:
 
 ### 8. Customize Delegation Thresholds
 
-You can adjust when OpenAgent delegates by modifying the criteria in `.opencode/agent/core/openagent.md`:
+You can adjust when OpenAgent delegates by modifying the criteria in `.opencode/agent/openagent.md` (OpenCode v1: `.opencode/agent/core/openagent.md`):
 
 **Current defaults**:
 - 4+ files → Delegate to task-manager
@@ -1197,7 +1197,7 @@ OpenAgent is your **intelligent universal agent** that:
 
 ## Configuration
 
-OpenAgent is configured in `.opencode/agent/core/openagent.md`. You can customize:
+OpenAgent is configured in `.opencode/agent/openagent.md` (OpenCode v1: `.opencode/agent/core/openagent.md`). You can customize:
 - Delegation thresholds (when to delegate vs execute directly)
 - Execution philosophy (universal agent approach)
 - Critical rules enforcement

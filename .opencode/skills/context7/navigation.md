@@ -41,11 +41,11 @@ context7/
 
 **Integration**:
 - ContextScout workflow → `README.md` (lines 54-73)
-- ExternalScout subagent → `.opencode/agent/subagents/core/externalscout.md`
+- ExternalScout subagent → `.opencode/agent/externalscout.md` (OpenCode v2; v1 nests it under `agent/subagents/core/`)
 
 ---
 
 ## Related
 
-- **ExternalScout**: `.opencode/agent/subagents/core/externalscout.md`
-- **ContextScout**: `.opencode/agent/subagents/core/contextscout.md`
+- **ExternalScout**: `.opencode/agent/externalscout.md` (OpenCode v2; v1 nests it under `agent/subagents/core/`)
+- **ContextScout**: `.opencode/agent/contextscout.md` (OpenCode v2; v1 nests it under `agent/subagents/core/`)
