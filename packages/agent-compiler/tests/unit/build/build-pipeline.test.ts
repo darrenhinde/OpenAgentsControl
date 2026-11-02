@@ -681,7 +681,28 @@ describe("per-target delegation", () => {
   });
 });
 
+describe("claude-code delegation roster", () => {
+  it("fails a claude-code agent that delegates to an agent excluded from claude-code", async () => {
+    put("agent-library/agents/subagents/test/boss.md",
+      canonicalAgent("boss", ["claude-code"]).replace("  targets:", "  dependencies:\n    - subagent:ghost\n  targets:"));
+    put("agent-library/agents/subagents/test/ghost.md",
+      canonicalAgent("ghost", ["opencode"]));
+
+    await expect(plan({ root })).rejects.toThrow(/boss.*claude-code.*ghost/s);
+  });
+
+});
+
 describe("output path collisions", () => {
+  it("treats names differing only in case as a collision (case-insensitive filesystems)", async () => {
+    const named = (id: string, name: string) =>
+      canonicalAgent(id, ["claude-code"]).replace("      tools: [Read]", `      name: ${name}\n      tools: [Read]`);
+    put("agent-library/agents/subagents/test/one.md", named("one", "Helper"));
+    put("agent-library/agents/subagents/test/two.md", named("two", "helper"));
+
+    await expect(plan({ root })).rejects.toThrow(/output path collision/);
+  });
+
   it("fails when two agents land on one output path, naming both sources", async () => {
     const withName = (id: string) =>
       canonicalAgent(id, ["claude-code"]).replace("      tools: [Read]", "      name: clash\n      tools: [Read]");

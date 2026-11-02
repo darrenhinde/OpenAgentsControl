@@ -765,8 +765,9 @@ function unmappableCapabilityWarnings(permissions: GranularPermission): string[]
  *
  * `tools:` is on/off, so granting `Edit` or `Bash` hands Claude Code the tool unscoped: deny
  * globs (`**\/*.env*`), bash allowlists and `ask` rules do not travel. That is more permissive
- * than the OpenCode build of the same agent, and must be said out loud. A lone `"*"` rule is
- * a plain allow/deny and loses nothing, so it is skipped. Ungranted tools are in
+ * than the OpenCode build of the same agent, and must be said out loud. A lone `"*": allow`
+ * loses nothing, so it is skipped; a lone `"*": ask` or `"*": deny` is NOT harmless (Claude Code
+ * would run the tool with no prompt / no deny), so it is reported. Ungranted tools are in
  * `disallowedTools`, which is stricter, not looser, so they are not reported.
  */
 function droppedScopeWarnings(
@@ -779,7 +780,7 @@ function droppedScopeWarnings(
   return CLAUDE_TOOL_BINDINGS.filter((binding) => grant.has(binding.tool)).flatMap((binding) => {
     const rules = rulesFor(permissions, binding.capability);
 
-    if (rules.length === 0 || (rules.length === 1 && rules[0]?.pattern === "*")) {
+    if (rules.length === 0 || (rules.length === 1 && rules[0]?.pattern === "*" && rules[0]?.action === "allow")) {
       return [];
     }
 

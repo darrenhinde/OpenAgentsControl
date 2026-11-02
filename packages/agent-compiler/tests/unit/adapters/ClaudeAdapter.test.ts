@@ -294,6 +294,18 @@ describe("ClaudeAdapter", () => {
     });
   });
 
+  describe("lone wildcard rule", () => {
+    const warningsFor = async (action: string): Promise<string[]> =>
+      (await adapter.fromCanonical(canonical(`  read:\n    "*": "${action}"\n`, "", override(`      tools: [Read]\n`))))
+        .warnings;
+
+    it("is silent for allow, but warns for ask and deny (the tool is granted unscoped)", async () => {
+      expect(await warningsFor("allow")).toEqual([]);
+      expect(await warningsFor("ask")).toHaveLength(1);
+      expect(await warningsFor("deny")).toHaveLength(1);
+    });
+  });
+
   // ============================================================================
   // TOOL ORDERING
   // ============================================================================
