@@ -22,32 +22,26 @@ This guide covers everything you need to know to develop agents, commands, tools
 ### Prerequisites
 
 - **OpenCode CLI** installed ([installation guide](https://opencode.ai/docs))
-- **Node.js** 18+ (for testing framework)
+- **Node.js** 20+, **pnpm** and **Bun** (compiler, CLI and `make` targets)
 - **Git** for version control
 - **Bash** (macOS/Linux) or **Git Bash** (Windows)
 
 ### Clone and Setup
 
 ```bash
-# Clone the repository
 git clone https://github.com/darrenhinde/OpenAgentsControl.git
 cd OpenAgentsControl
+pnpm install --frozen-lockfile     # compiler and CLI workspaces
 
-# Install dependencies for testing framework
-cd evals/framework
-npm install
-cd ../..
+# eval framework (only if you work on evals)
+cd evals/framework && npm install && cd ../..
 ```
 
 ### Verify Setup
 
 ```bash
-# Validate registry
-make validate-registry
-
-# Run tests
-cd evals/framework
-npm test
+make check-core                    # builds, drift gate, compiler + CLI tests, typecheck, installer tests
+bun run validate:registry          # registry paths and dependencies
 ```
 
 ---
@@ -55,74 +49,35 @@ npm test
 ## Repository Structure
 
 ```
-opencode-agents/
-├── .opencode/                    # OpenCode configuration
-│   ├── agent/                    # Agent prompts (category-based)
-│   │   ├── core/
-│   │   │   ├── openagent.md          # Universal orchestrator
-│   │   │   └── opencoder.md          # Development specialist
-│   │   ├── meta/
-│   │   │   └── system-builder.md     # System architect
-│   │   ├── development/
-│   │   │   ├── frontend-specialist.md
-│   │   │   └── backend-specialist.md
-│   │   ├── content/
-│   │   │   └── copywriter.md
-│   │   └── subagents/            # Specialized subagents
-│   │       ├── code/             # Code-related subagents
-│   │       ├── core/             # Core functionality subagents
-│   │       ├── system-builder/   # System building subagents
-│   │       └── utils/            # Utility subagents
-│   ├── command/                  # Slash commands
-│   │   ├── openagents/           # OpenAgents Control-specific commands
-│   │   │   └── new-agents/       # Agent creation system ⭐
-│   │   └── prompt-engineering/   # Prompt optimization commands
-│   ├── context/                  # Context files
-│   │   ├── core/                 # Core context (standards, workflows)
-│   │   ├── project/              # Project-specific context
-│   │   └── system-builder-templates/  # Templates
-│   ├── plugin/                   # Plugins and integrations
-│   ├── prompts/                  # Prompt library (model variants, category-based)
-│   │   ├── core/
-│   │   │   ├── openagent/            # OpenAgent variants
-│   │   │   └── opencoder/            # OpenCoder variants
-│   │   └── development/
-│   │       └── frontend-specialist/  # Frontend specialist variants
-│   └── tool/                     # Utility tools
-├── evals/                        # Testing framework
-│   ├── agents/                   # Agent test suites
-│   │   ├── openagent/            # OpenAgent tests
-│   │   └── opencoder/            # OpenCoder tests
-│   ├── framework/                # Test framework code
-│   │   ├── src/                  # Framework source
-│   │   └── scripts/              # Test utilities
-│   └── results/                  # Test results
-├── scripts/                      # Automation scripts
-│   ├── registry/                 # Registry management
-│   ├── prompts/                  # Prompt management
-│   └── testing/                  # Test utilities
-├── docs/                         # Documentation
-│   ├── agents/                   # Agent documentation
-│   ├── contributing/             # Contribution guides
-│   ├── features/                 # Feature documentation
-│   └── guides/                   # User guides
-└── built-ai-configs/registry/registry.json                 # Component registry
+agent-library/                 # SOURCE of every agent (edit here)
+├── agents/<category>/*.md     #   one file per agent; `oac:` block + OpenCode frontmatter
+└── profiles/{system,context}/ #   install tiers and context sets
+packages/
+├── agent-compiler/            # build library: src/{core,adapters,hosts,verify}
+└── cli/                       # the `oac` CLI
+built-ai-configs/              # GENERATED output per tool (opencode, opencode-v1, claude-code, registry)
+                               #   except opencode-v1/{tool,plugin,plugins,skills,command}: hand-maintained
+.opencode/                     # this repo's own OpenCode config
+├── agent/                     #   GENERATED mirror of built-ai-configs/opencode/agent
+├── command/ context/ skills/ prompts/   hand-written
+plugins/claude-code/           # Claude Code plugin: agents/ is a GENERATED mirror; skills, commands, hooks are hand-written
+.oac/build-manifest.json       # GENERATED ledger of every built file
+evals/                         # eval frameworks and suites
+scripts/                       # registry, validation, installer tests, prompts (see scripts/README.md)
+docs/                          # documentation (start at docs/README.md)
+install.sh, update.sh          # shell installer and updater
 ```
 
 ### Key Directories Explained
 
-#### `.opencode/agent/` (generated)
-Main agent prompts. These are the "brains" of the system. **Don't edit them here:** the source is
-`agent-library/agents/<category>/`, and `oac build` (`make build-canonical`) compiles it into `built-ai-configs/<tool>/`
-(`built-ai-configs/opencode/`, `built-ai-configs/opencode-v1/`, `built-ai-configs/claude-code/`). `.opencode/agent/` and
-`plugins/claude-code/agents/` are generated copies of `built-ai-configs/`; CI fails on a hand edit (D-018).
-The source categories are:
-- **core/openagent.md** - Universal orchestrator with plan-first workflow
-- **core/opencoder.md** - Development specialist for direct code execution
-- **meta/system-builder.md** - System architecture generator
-- **development/** - Development specialist agents (frontend, backend, devops)
-- **content/** - Content creation agents (copywriter, technical-writer)
-- **subagents/** - Specialized helpers for specific tasks
+#### `agent-library/agents/` (the source) and `.opencode/agent/` (generated)
+Agents are the "brains" of the system. **Edit them in `agent-library/agents/<category>/`.**
+`oac build` (`make build-canonical`) compiles them into `built-ai-configs/<tool>/` and mirrors
+`built-ai-configs/opencode/agent/` to `.opencode/agent/` and `built-ai-configs/claude-code/agents/` to
+`plugins/claude-code/agents/`. CI fails on a hand edit of any of those. See
+[agent-library/README.md](../../agent-library/README.md) and [CORE.md](../architecture/CORE.md).
+Source categories: `core/` (openagent, opencoder), `meta/`, `content/`, `data/`, and `subagents/<group>/`
+(code, core, development, planning, system-builder, test, utils).
 
 #### `.opencode/command/`
 Slash commands that users can invoke:
@@ -167,21 +122,23 @@ Follow the appropriate guide:
 ### 3. Test Your Changes
 
 ```bash
-# Validate structure
-./scripts/registry/validate-component.sh
+make build-canonical               # if you touched agent-library/
+make check-core
 
-# Run tests
+# eval tests
 cd evals/framework
 npm test -- --agent=your-agent
 
-# Test manually
-opencode --agent=your-agent
+# Test manually (v2 addresses agents by oac.id)
+opencode --agent your-agent
 ```
 
 ### 4. Commit and Push
 
+Commit the source and the regenerated files together.
+
 ```bash
-git add .
+git add -A
 git commit -m "feat: add new feature"
 git push origin feature/my-new-feature
 ```
@@ -202,22 +159,10 @@ We now have a streamlined system for creating agents following **Anthropic 2025 
 
 #### Quick Start
 
-```bash
-# Use the agent creation command
-/create-agent my-agent-name
-
-# Or invoke directly
-opencode "Create a new agent called 'python-dev' for Python development"
-```
-
-#### What Gets Created
-
-The system generates:
-1. **Minimal agent prompt** (~500 tokens at "right altitude")
-2. **Project context file** (CLAUDE.md pattern)
-3. **8 comprehensive tests** (planning, context, incremental, tools, errors, thinking, compaction, completion)
-4. **Test configuration**
-5. **Registry entry**
+Write the agent by hand in `agent-library/` (next section). The `/create-agent` command under
+`.opencode/command/openagents/new-agents/` can draft the prompt, but it writes to `.opencode/agent/`,
+which is generated and overwritten by the next build: move what it produces into `agent-library/agents/`
+and add the `oac:` block.
 
 #### Research-Backed Principles
 
@@ -309,36 +254,38 @@ The agent creation system follows these proven patterns:
 
 If you prefer manual creation, follow this structure:
 
-**1. Create Agent File** (`agent-library/agents/<category>/my-agent.md`, then run `oac build`)
+**1. Create the agent file** in `agent-library/agents/<category>/my-agent.md`, then `make build-canonical`.
 
-Canonical files also carry an `oac:` block (id, category, targets, overrides); see `.opencode/context/openagents-repo/standards/agent-frontmatter.md`.
+Frontmatter is OpenCode's (`description`, `mode`, `temperature`, `permission`) plus an `oac:` block
+(`id`, `name`, `category`, `type`, and `overrides.claude-code.tools` for Claude Code). Every field and
+the common build errors are in [agent-library/README.md](../../agent-library/README.md).
 
 ```markdown
 ---
+name: MyAgent
 description: "Brief one-line description"
 mode: primary
 temperature: 0.1
-tools:
-  read: true
-  write: true
-  edit: true
-  bash: true
-  glob: true
-  grep: true
-permissions:
+permission:
   bash:
     "rm -rf *": "ask"
     "sudo *": "deny"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
+oac:
+  id: my-agent
+  name: MyAgent
+  category: development
+  type: agent
+  overrides:
+    claude-code:
+      tools: [Read, Write, Edit, Glob, Grep, Bash]
 ---
 
 # My Agent
 
-<role>
-Clear, concise role - what this agent does
-</role>
+<role>Clear, concise role - what this agent does</role>
 
 <approach>
 1. Read and understand the context
@@ -356,25 +303,8 @@ Clear, concise role - what this agent does
 </heuristics>
 
 <output>
-Always include:
-- What you did
-- Why you did it that way
-- Test/validation results
+Always include: what you did, why, and test/validation results.
 </output>
-
-<examples>
-  <example name="Typical Use Case">
-    **User**: "typical request"
-    
-    **Agent**:
-    1. Read relevant files
-    2. Think about approach
-    3. Implement change
-    4. Verify
-    
-    **Result**: Expected outcome
-  </example>
-</examples>
 ```
 
 **2. Create Context File** (`.opencode/context/project/my-agent-context.md`)
@@ -419,16 +349,16 @@ Or manually create 8 tests in `evals/agents/my-agent/tests/`:
 7. `long-horizon/compaction-001.yaml`
 8. `completion/handoff-001.yaml`
 
-**4. Register Agent**
+**4. Register the agent**
 
-The registry auto-updates on merge to main, or manually:
-```bash
-./scripts/registry/register-component.sh
-```
+Nothing to do: `oac build` adds the agent to `built-ai-configs/registry/registry.json` and
+`registry.v1.json`. To have an install tier ship it, add its `id` to `agents` in
+`agent-library/profiles/system/<tier>.json`. Do not run `scripts/registry/register-component.sh`
+for agents; it only touches the generated registry's date.
 
 #### Templates
 
-Pre-built templates are available in:
+Pre-built templates (they predate the canonical layout: add the `oac:` block and place the file in `agent-library/`) are in:
 ```
 .opencode/command/openagents/new-agents/templates/
 ├── agent-template.md              # Minimal agent template
@@ -500,7 +430,7 @@ export function myTool(param: string): string {
 
 ### Location
 
-Place tools in `.opencode/tool/my-tool/index.ts`
+Tools only load on OpenCode v1 (v2 does not scan them). They are hand-maintained in `built-ai-configs/opencode-v1/tool/`; the build neither writes nor checks them.
 
 ---
 
@@ -681,7 +611,7 @@ cp .opencode/prompts/core/openagent/TEMPLATE.md .opencode/prompts/core/openagent
 vim .opencode/prompts/core/openagent/my-variant.md
 
 # 3. Test variant
-./scripts/prompts/test-prompt.sh core/openagent my-variant
+./scripts/prompts/test-prompt.sh --agent=openagent --variant=my-variant
 
 # 4. Update README with results
 vim .opencode/prompts/core/openagent/README.md
@@ -690,6 +620,9 @@ vim .opencode/prompts/core/openagent/README.md
 ### Validate Before PR
 
 ```bash
+# Build, drift gate, tests
+make check-core
+
 # Validate component structure
 ./scripts/registry/validate-component.sh
 
@@ -701,7 +634,7 @@ cd evals/framework
 npm test
 
 # Validate registry
-make validate-registry
+bun run validate:registry
 ```
 
 ---
@@ -720,10 +653,10 @@ make validate-registry
 
 ### Registry Validation Fails
 
-**Problem**: `make validate-registry` fails
+**Problem**: `bun run validate:registry` fails
 
 **Solution**:
-1. Check `built-ai-configs/registry/registry.json` syntax
+1. Check `built-ai-configs/registry/registry.json` syntax (never hand-edit the agent and subagent entries: rebuild with `make build-canonical`)
 2. Ensure all referenced files exist
 3. Verify frontmatter in agent files is valid YAML
 4. Run `./scripts/registry/validate-component.sh` for details
@@ -743,10 +676,10 @@ make validate-registry
 **Problem**: Custom tool not accessible to agent
 
 **Solution**:
-1. Verify tool is in `.opencode/tool/my-tool/index.ts`
+1. Verify the tool is in `built-ai-configs/opencode-v1/tool/` and you are on OpenCode v1
 2. Check tool is exported properly
 3. Ensure agent has tool enabled in frontmatter
-4. Rebuild if needed: `cd .opencode/tool && npm run build`
+4. Reinstall for v1: `oac update --opencode v1`
 
 ---
 
@@ -759,9 +692,9 @@ make validate-registry
 - [Test Design Guide](../../evals/framework/docs/test-design-guide.md) - Writing effective tests
 
 ### Examples
-- [OpenAgent](../../.opencode/agent/core/openagent.md) - Universal orchestrator example
-- [OpenCoder](../../.opencode/agent/core/opencoder.md) - Development specialist example
-- [Subagents](../../.opencode/agent/subagents/) - Specialized subagent examples
+- [OpenAgent](../../agent-library/agents/core/openagent.md) - Universal orchestrator example
+- [OpenCoder](../../agent-library/agents/core/opencoder.md) - Development specialist example
+- [Subagents](../../agent-library/agents/subagents/) - Specialized subagent examples
 - [Test Suites](../../evals/agents/) - Comprehensive test examples
 
 ### Tools
