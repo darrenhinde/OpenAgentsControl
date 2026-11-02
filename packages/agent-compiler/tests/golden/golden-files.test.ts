@@ -226,7 +226,7 @@ describe("claude-code adapter against the live corpus", () => {
     expect((warnings ?? []).filter((w) => /permission|enforce/i.test(w))).toEqual([]);
   });
 
-  // The 7 committed Claude Code agents are build output (D-017). L-001 is why this asserts
+  // The committed Claude Code agents are build output (D-017). L-001 is why this asserts
   // bytes rather than shape: `104356a` shipped build output that had lost every `<example>`
   // dispatch block, and only a content comparison against a reviewed tree catches that.
   it("the committed plugins/claude-code/agents equal fresh build output byte-for-byte", async () => {
@@ -243,7 +243,13 @@ describe("claude-code adapter against the live corpus", () => {
     const emitted = all.filter((file) => file.mirrorOf !== undefined);
     const live = listFiles(LIVE_CC_AGENTS);
 
-    expect(primary.length, "the claude-code target should emit 7 agents").toBe(7);
+    // Derived from the corpus, not a literal: adding an agent must not turn this red.
+    const { loadCanonicalAgents } = await import("../../src/core/AgentLoader.js");
+    const { emitsTo } = await import("../../src/core/TargetPolicy.js");
+    const corpus = await loadCanonicalAgents(repoPath("agent-library/agents"));
+    const expectedIds = corpus.filter((a) => emitsTo(a, "claude-code")).map((a) => a.oac.id);
+    expect(primary.length, "the claude-code target should emit one file per agent that targets it").toBe(expectedIds.length);
+    expect(new Set(primary.map((file) => file.path)).size, "no duplicated output path").toBe(primary.length);
     expect(primary.every((file) => file.path.startsWith("built-ai-configs/claude-code/agents/"))).toBe(true);
     expect(emitted.map((file) => file.mirrorOf).sort()).toEqual(primary.map((file) => file.path).sort());
     for (const file of primary) {

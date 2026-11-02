@@ -13,6 +13,8 @@ import {
   lintV2Agents,
   type LintFile,
 } from "../../../src/verify/lint/opencode.js";
+import { loadCanonicalAgents } from "../../../src/core/AgentLoader.js";
+import { emitsTo } from "../../../src/core/TargetPolicy.js";
 import { repoPath } from "../../support/pending.js";
 
 const agent = (name: string, extra = "", body = "body"): string =>
@@ -123,7 +125,12 @@ describe("the planned trees", () => {
     const text = (target: string): LintFile[] => files.filter((x) => x.target === target && x.mirrorOf === undefined).map((x) => ({ path: x.path, text: x.content }));
     expect(lintV1Agents(text("opencode-v1"))).toEqual([]);
     expect(lintV2Agents(text("opencode"))).toEqual([]);
-    expect(text("opencode").length).toBe(33); // image-specialist is v1-only
-    expect(text("opencode-v1").length).toBe(34);
+    // Counts come from the corpus (an agent that targets only opencode-v1 is v1-only), so adding an
+    // agent does not turn this red; dropping or duplicating one in the build still does.
+    const corpus = await loadCanonicalAgents(repoPath("agent-library/agents"));
+    expect(text("opencode").length).toBe(corpus.filter((a) => emitsTo(a, "opencode")).length);
+    expect(text("opencode-v1").length).toBe(corpus.filter((a) => emitsTo(a, "opencode-v1")).length);
+    expect(new Set(text("opencode").map((x) => x.path)).size).toBe(text("opencode").length);
+    expect(new Set(text("opencode-v1").map((x) => x.path)).size).toBe(text("opencode-v1").length);
   });
 });
