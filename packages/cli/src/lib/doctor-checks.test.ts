@@ -245,8 +245,8 @@ describe('openCodeFlavorCheck', () => {
   });
 
   test('a 0.x host is reported by its real major, never as v1', () => {
-    expect(check('v2', true, 0).message).toContain('OpenCode 0 is on PATH');
-    expect(check('v2', false, 0).message).toContain('OpenCode 0 is installed');
+    expect(check('v2', true, 0).message).toContain('OpenCode 0.x is older than both');
+    expect(check('v2', false, 0).message).toContain('OpenCode 0.x is older than both');
   });
 
   test('no host found is informational, not a failure', () => {
@@ -265,6 +265,6 @@ describe('openCodeFlavorCheck', () => {
   test('doctor and update agree on a 0.x host: a v1 install on host 0 is a mismatch, not ok', () => {
     expect(check('v1', true, 0).status).toBe('error');
     expect(check('v2', true, 0).status).toBe('error');
-    expect(check('v2', false, 0).message).toContain('oac update --opencode v1');
+    expect(check('v2', false, 0).message).toContain('upgrade OpenCode');
   });
 });

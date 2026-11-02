@@ -191,10 +191,21 @@ export const openCodeFlavorCheck = (input: {
   const name = 'OpenCode version';
 
   if (hostMajor === null) {
+    // An unrecorded install has no stated flavor (v2 is only the default), so describe the layout.
+    const installed = recorded ? `installed for OpenCode ${flavor}` : 'v1 layout on disk, predates OpenCode v2 support';
     return {
       name,
       status: 'info',
-      message: `OpenCode not found on PATH (installed for OpenCode ${flavor}) — could not compare`,
+      message: `OpenCode not found on PATH (${installed}) — could not compare`,
+    };
+  }
+
+  // 0.x is older than both builds, so neither flavor matches and migrating would not help.
+  if (hostMajor === 0) {
+    return {
+      name,
+      status: recorded ? 'error' : 'warn',
+      message: `OpenCode ${hostMajor}.x is older than both the v1 and v2 builds, so OAC agents will not load correctly — upgrade OpenCode`,
     };
   }
 

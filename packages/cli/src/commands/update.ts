@@ -28,7 +28,7 @@ export type UpdateOptions = {
 };
 
 /** What a flavor change means for this run. */
-export type FlavorPlan = { flavor: OpenCodeFlavor; pruneStale: boolean; record: boolean };
+export type FlavorPlan = { flavor: OpenCodeFlavor; pruneStale: boolean; record: boolean; previousFlavor?: OpenCodeFlavor };
 
 export type UpdateScope = { files: string[]; config: OacConfig | null; originalTierUnknown: boolean };
 
@@ -137,8 +137,8 @@ function printSummary(result: InstallResult, isDryRun: boolean): void {
   const backedUpCount = result.backed_up.length;
 
   const parts: string[] = [];
-  if (result.pruned.length > 0) parts.push(`${result.pruned.length} removed`);
-  if (updatedCount > 0) parts.push(`${updatedCount} file(s) updated`);
+  if (result.pruned.length > 0) parts.push(`${result.pruned.length} ${isDryRun ? 'would be removed' : 'removed'}`);
+  if (updatedCount > 0) parts.push(`${updatedCount} file(s) ${isDryRun ? 'would be updated' : 'updated'}`);
   if (result.unchanged.length > 0) parts.push(`${result.unchanged.length} unchanged`);
   if (skippedCount > 0) parts.push(`${skippedCount} skipped (user-modified)`);
   if (backedUpCount > 0) parts.push(`${backedUpCount} backed up`);
@@ -182,6 +182,7 @@ async function runUpdate(
       verbose: opts.verbose,
       flavor: plan.flavor,
       pruneStale: plan.pruneStale,
+      previousFlavor: plan.previousFlavor,
     }, scope.files));
   } catch (err: unknown) {
     spinner.fail('Update failed.');
@@ -269,6 +270,8 @@ async function handleUpdate(opts: UpdateOptions): Promise<void> {
     flavor: transition.flavor,
     pruneStale: transition.action === 'migrate' || transition.action === 'switch',
     record: transition.action !== 'keep' || !project.recorded,
+    // A pre-record install is the v1 layout (same rule as the tracked-file mapping below).
+    previousFlavor: project.recorded ? project.flavor : 'v1',
   };
   if (hostMismatch(plan.flavor, hostMajor)) {
     warn(`Updating for OpenCode ${plan.flavor}, but OpenCode ${hostMajor} is on PATH. \`oac doctor\` explains the mismatch.`);

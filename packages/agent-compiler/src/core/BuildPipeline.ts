@@ -418,10 +418,16 @@ function assertClaudeDelegatesResolve(
   }
 }
 
-/** The `permission.task` keys of a canonical permission block, if it has any. */
+/**
+ * The `permission.task` keys of a canonical permission block, if it has any. By the time an agent
+ * is loaded, `permission` is the ORDERED form (`[{ capability, rules: [{ pattern, action }] }]`),
+ * so a task key is a rule `pattern` under the `task` capability, not an object key.
+ */
 function taskKeys(permission: unknown): string[] {
-  const task = (permission as { task?: unknown } | undefined)?.task;
-  return typeof task === "object" && task !== null ? Object.keys(task) : [];
+  if (!Array.isArray(permission)) return [];
+  return permission
+    .filter((entry) => entry?.capability === "task" && Array.isArray(entry.rules))
+    .flatMap((entry) => entry.rules.map((rule: { pattern: string }) => rule.pattern));
 }
 
 /**
