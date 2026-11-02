@@ -35,7 +35,7 @@ OpenCode v1 vs v2: [docs/features/opencode-v1-and-v2.md](../docs/features/openco
 | --- | --- | ---: | ---: | --- | --- |
 | `opencode` | `built-ai-configs/opencode/` | 33 | 0 | `.opencode/agent/` | this repo's own OpenCode, and installers (`oac install` / `install.sh`), which copy the paths `built-ai-configs/registry/registry.json` lists |
 | `opencode-v1` | `built-ai-configs/opencode-v1/` | 34 | 0 | — | installers asked for OpenCode v1, which copy the paths `built-ai-configs/registry/registry.v1.json` lists (no live mirror) |
-| `claude-code` | `built-ai-configs/claude-code/` | 7 | 8 | `plugins/claude-code/agents/` | the Claude Code marketplace: `.claude-plugin/marketplace.json` publishes `./plugins/claude-code` |
+| `claude-code` | `built-ai-configs/claude-code/` | 7 | 14 | `plugins/claude-code/agents/` | the Claude Code marketplace: `.claude-plugin/marketplace.json` publishes `./plugins/claude-code` |
 
 ### `opencode` — OpenCode v2 (the default)
 
@@ -79,9 +79,9 @@ target that host. Warnings counts the degradation warnings across all hosts.
 | `architecture-analyzer` | `subagents/planning/architecture-analyzer.md` | `architecture-analyzer.md` | `subagents/planning/architecture-analyzer.md` | — | 0 |
 | `batch-executor` | `subagents/core/batch-executor.md` | `batch-executor.md` | `subagents/core/batch-executor.md` | — | 0 |
 | `build-agent` | `subagents/code/build-agent.md` | `build-agent.md` | `subagents/code/build-agent.md` | — | 0 |
-| `coder-agent` | `subagents/code/coder-agent.md` | `coder-agent.md` | `subagents/code/coder-agent.md` | `coder-agent.md` | 1 |
+| `coder-agent` | `subagents/code/coder-agent.md` | `coder-agent.md` | `subagents/code/coder-agent.md` | `coder-agent.md` | 2 |
 | `command-creator` | `subagents/system-builder/command-creator.md` | `command-creator.md` | `subagents/system-builder/command-creator.md` | — | 0 |
-| `context-manager` | `subagents/core/context-manager.md` | `context-manager.md` | `subagents/core/context-manager.md` | `context-manager.md` | 1 |
+| `context-manager` | `subagents/core/context-manager.md` | `context-manager.md` | `subagents/core/context-manager.md` | `context-manager.md` | 3 |
 | `context-organizer` | `subagents/system-builder/context-organizer.md` | `context-organizer.md` | `subagents/system-builder/context-organizer.md` | — | 0 |
 | `context-retriever` | `subagents/core/context-retriever.md` | `context-retriever.md` | `subagents/core/context-retriever.md` | — | 0 |
 | `contextscout` | `subagents/core/contextscout.md` | `contextscout.md` | `subagents/core/contextscout.md` | `context-scout.md` | 0 |
@@ -92,7 +92,7 @@ target that host. Warnings counts the degradation warnings across all hosts.
 | `documentation` | `subagents/core/documentation.md` | `documentation.md` | `subagents/core/documentation.md` | — | 0 |
 | `domain-analyzer` | `subagents/system-builder/domain-analyzer.md` | `domain-analyzer.md` | `subagents/system-builder/domain-analyzer.md` | — | 0 |
 | `eval-runner` | `subagents/test/eval-runner.md` | `eval-runner.md` | `subagents/test/eval-runner.md` | — | 0 |
-| `externalscout` | `subagents/core/externalscout.md` | `externalscout.md` | `subagents/core/externalscout.md` | `external-scout.md` | 2 |
+| `externalscout` | `subagents/core/externalscout.md` | `externalscout.md` | `subagents/core/externalscout.md` | `external-scout.md` | 3 |
 | `frontend-specialist` | `subagents/development/frontend-specialist.md` | `frontend-specialist.md` | `subagents/development/frontend-specialist.md` | — | 0 |
 | `image-specialist` | `subagents/utils/image-specialist.md` | — | `subagents/utils/image-specialist.md` | — | 0 |
 | `openagent` | `core/openagent.md` | `openagent.md` | `core/openagent.md` | — | 0 |
@@ -106,7 +106,7 @@ target that host. Warnings counts the degradation warnings across all hosts.
 | `system-builder` | `meta/system-builder.md` | `system-builder.md` | `meta/system-builder.md` | — | 0 |
 | `task-manager` | `subagents/core/task-manager.md` | `task-manager.md` | `subagents/core/task-manager.md` | `task-manager.md` | 2 |
 | `technical-writer` | `content/technical-writer.md` | `technical-writer.md` | `content/technical-writer.md` | — | 0 |
-| `tester` | `subagents/code/test-engineer.md` | `tester.md` | `subagents/code/test-engineer.md` | `test-engineer.md` | 1 |
+| `tester` | `subagents/code/test-engineer.md` | `tester.md` | `subagents/code/test-engineer.md` | `test-engineer.md` | 3 |
 | `workflow-designer` | `subagents/system-builder/workflow-designer.md` | `workflow-designer.md` | `subagents/system-builder/workflow-designer.md` | — | 0 |
 
 ## Degradation warnings
@@ -126,11 +126,15 @@ None: every agent carries over completely.
 ### `claude-code`
 
 - **`coder-agent`** → `built-ai-configs/claude-code/agents/coder-agent.md`
+  - Agent 'coder-agent': Claude Code tool 'Edit' is granted unscoped: 5 scoped rule(s) [deny **/*.env*, deny **/*.key, deny **/*.secret, deny node_modules/**, deny .git/**] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0) is not supported by Claude Code
 - **`context-manager`** → `built-ai-configs/claude-code/agents/context-manager.md`
+  - Agent 'context-manager': Claude Code tool 'Write' is granted unscoped: 5 scoped rule(s) [allow .opencode/context/**/*.md, allow .opencode/context/**/*.json, deny **/*.env*, deny **/*.key, deny **/*.secret] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'context-manager': Claude Code tool 'Bash' is granted unscoped: 5 scoped rule(s) [deny *, allow find .opencode/context*, allow ls -la .opencode/context*, allow mkdir -p .opencode/context*, allow mv .opencode/context*] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
 - **`externalscout`** → `built-ai-configs/claude-code/agents/external-scout.md`
   - Permission 'skill' has no Claude Code tool: 2 rule(s) are dropped because Claude Code exposes no tool this capability maps to. Claude Code will not enforce them.
+  - Agent 'externalscout': Claude Code tool 'Read' is granted unscoped: 3 scoped rule(s) [deny **/*, allow .opencode/skills/context7/**, allow .tmp/external-context/**] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
 - **`reviewer`** → `built-ai-configs/claude-code/agents/code-reviewer.md`
   - Feature 'temperature' (0.1) is not supported by Claude Code
@@ -138,4 +142,6 @@ None: every agent carries over completely.
   - Permission 'skill' has no Claude Code tool: 2 rule(s) are dropped because Claude Code exposes no tool this capability maps to. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
 - **`tester`** → `built-ai-configs/claude-code/agents/test-engineer.md`
+  - Agent 'tester': Claude Code tool 'Edit' is granted unscoped: 3 scoped rule(s) [deny **/*.env*, deny **/*.key, deny **/*.secret] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'tester': Claude Code tool 'Bash' is granted unscoped: 13 scoped rule(s) [deny *, allow npx vitest *, allow npx jest *, allow pytest *, allow npm test *, allow npm run test *, +7 more] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code

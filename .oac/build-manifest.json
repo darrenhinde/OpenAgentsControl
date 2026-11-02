@@ -167,7 +167,7 @@
       "root": ".opencode/agent"
     },
     "built-ai-configs/README.md": {
-      "sha256": "45611d741f3e672464beab817650159c2ce2398c0df0b50103648b0fcfdf22e4",
+      "sha256": "c2e0222367b070988bee6374de8f4439a8f434447f9f330c8a9bf0ec74c8fa1d",
       "target": "hosts-readme",
       "root": "built-ai-configs/README.md"
     },
