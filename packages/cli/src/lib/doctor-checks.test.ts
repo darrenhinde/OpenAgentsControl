@@ -256,4 +256,10 @@ describe('openCodeFlavorCheck', () => {
     expect(check('v2', false, 2).message).toContain('oac update');
     expect(check('v2', false, null).status).toBe('info');
   });
+
+  test('doctor and update agree on a 0.x host: a v1 install on host 0 is a mismatch, not ok', () => {
+    expect(check('v1', true, 0).status).toBe('error');
+    expect(check('v2', true, 0).status).toBe('error');
+    expect(check('v2', false, 0).message).toContain('oac update --opencode v1');
+  });
 });

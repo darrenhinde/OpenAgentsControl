@@ -48,6 +48,15 @@ export const flavorOfConfig = (
     ? { flavor: DEFAULT_FLAVOR, recorded: false }
     : { flavor: config.opencode.target, recorded: true };
 
+/**
+ * The one host-vs-install comparison. OpenCode v1 means host major 1 exactly; v2 means 2 or more.
+ * An unknown host (null) never mismatches, and a 0.x host matches neither flavor. Pure.
+ */
+export const isV1Host = (hostMajor: number): boolean => hostMajor === 1;
+export const isV2Host = (hostMajor: number | null): boolean => hostMajor !== null && hostMajor >= 2;
+export const hostMismatch = (flavor: OpenCodeFlavor, hostMajor: number | null): boolean =>
+  hostMajor !== null && (flavor === 'v1' ? !isV1Host(hostMajor) : !isV2Host(hostMajor));
+
 // ── Transitions ───────────────────────────────────────────────────────────────
 
 export type FlavorTransition =
@@ -77,7 +86,7 @@ export type TransitionInput = {
  *
  * The one rule that matters: an install is never silently moved to or from v1. A recorded choice
  * is kept; an explicit flag is obeyed; and an install that predates the record — which is a v1
- * layout — is migrated to v2 only when the host is not v1.
+ * layout — is migrated to v2 only when the host is known to be v2 or newer.
  */
 export const transitionFlavor = (input: TransitionInput): FlavorTransition => {
   const { recorded, current, requested, hostMajor } = input;
@@ -90,11 +99,11 @@ export const transitionFlavor = (input: TransitionInput): FlavorTransition => {
   // Legacy: installed before OAC supported two OpenCode majors, so the files are the v1 layout.
   if (requested === 'v1') return { action: 'record', flavor: 'v1' };
   if (requested === 'v2') return { action: 'migrate', flavor: 'v2' };
-  if (hostMajor === 1) {
+  if (!isV2Host(hostMajor)) {
     return {
       action: 'refuse',
       message:
-        'This install predates OpenCode v2 support and your OpenCode is v1, so OAC will not move it on its own.\n' +
+        'This install predates OpenCode v2 support and your OpenCode is not v2 (v1, older, or not detected), so OAC will not move it on its own.\n' +
         '  Stay on v1:   oac update --opencode v1   (records the choice; nothing else changes)\n' +
         '  Move to v2:   upgrade OpenCode, then oac update --opencode v2',
     };

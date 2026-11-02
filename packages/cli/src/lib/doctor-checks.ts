@@ -3,6 +3,7 @@ import { getIdeDisplayName, type DetectedIde } from './ide-detect.js';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
+import { hostMismatch, isV2Host } from './flavor.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -198,7 +199,7 @@ export const openCodeFlavorCheck = (input: {
   }
 
   if (!recorded) {
-    return hostMajor === 1
+    return !isV2Host(hostMajor)
       ? {
           name,
           status: 'warn',
@@ -211,14 +212,14 @@ export const openCodeFlavorCheck = (input: {
         };
   }
 
-  if (flavor === 'v2' && hostMajor === 1) {
+  if (flavor === 'v2' && hostMismatch(flavor, hostMajor)) {
     return {
       name,
       status: 'error',
       message: "installed for OpenCode v2 but OpenCode v1 is on PATH — run 'oac update --opencode v1', or upgrade OpenCode",
     };
   }
-  if (flavor === 'v1' && hostMajor >= 2) {
+  if (flavor === 'v1' && hostMismatch(flavor, hostMajor)) {
     return {
       name,
       status: 'error',

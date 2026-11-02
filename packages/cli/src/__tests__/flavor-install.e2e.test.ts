@@ -14,7 +14,7 @@
  */
 import { afterEach, describe, expect, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -191,6 +191,16 @@ describe('an install that predates the flavor record', () => {
     expect(await exists(dir, '.opencode/agent/core/openagent.md')).toBe(true);
   });
 
+  test('with no host detected is refused untouched too, never silently migrated', async () => {
+    const dir = await legacy();
+    const r = oac(dir, ['update'], 'none');
+    expect(r.code).toBe(1);
+    expect(r.out).toContain('--opencode v1');
+    expect(r.out).toContain('--opencode v2');
+    expect(await exists(dir, '.opencode/agent/core/openagent.md')).toBe(true);
+    expect(await exists(dir, '.opencode/agent/openagent.md')).toBe(false);
+  });
+
   test('--opencode v1 just records the choice and keeps the layout', async () => {
     const dir = await legacy();
     expect(oac(dir, ['update', '--opencode', 'v1'], '1.19.3').code).toBe(0);
@@ -209,6 +219,47 @@ describe('an install that predates the flavor record', () => {
     const backups = (await walk(join(dir, '.oac/backups'))).filter((f) => f.endsWith('core/openagent.md'));
     expect(backups.length).toBe(1);
     expect(lintV2Agents(await agentTexts(dir))).toEqual([]);
+  });
+});
+
+describe('a project installed by install.sh (marker only, no manifest)', () => {
+  const shellInstalled = async (): Promise<string> => {
+    const dir = await newProject();
+    // What `install.sh --opencode v1` leaves: v1 files and the marker, but no .oac/.
+    await mkdir(join(dir, '.opencode/agent/core'), { recursive: true });
+    await writeFile(join(dir, '.opencode/agent/core/openagent.md'), 'from install.sh\n');
+    await writeFile(join(dir, '.opencode/.oac-opencode'), 'v1\n');
+    return dir;
+  };
+
+  test('oac init honours the marker: v1 layout, no flat v2 agents beside the nested ones', async () => {
+    const dir = await shellInstalled();
+    const r = oac(dir, ['init', '--profile', 'full'], '1.19.3');
+    expect(r.code).toBe(0);
+    expect(await exists(dir, '.opencode/agent/openagent.md')).toBe(false);
+    expect(await exists(dir, '.opencode/agent/core/openagent.md')).toBe(true);
+    expect((await config(dir)).opencode).toEqual({ target: 'v1' });
+  });
+
+  test('oac init refuses to flip the marked flavor', async () => {
+    const dir = await shellInstalled();
+    const r = oac(dir, ['init', '--opencode', 'v2', '--profile', 'full'], '2.0.30');
+    expect(r.code).toBe(1);
+    expect(await exists(dir, '.opencode/agent/openagent.md')).toBe(false);
+  });
+
+  test('oac update explains the missing manifest instead of the generic message', async () => {
+    const dir = await shellInstalled();
+    const r = oac(dir, ['update'], '1.19.3');
+    expect(r.code).toBe(1);
+    expect(r.out).toContain('install.sh');
+    expect(r.out).not.toContain('No manifest found');
+  });
+
+  test('oac doctor reads the marker as the recorded flavor', async () => {
+    const dir = await shellInstalled();
+    const r = oac(dir, ['doctor'], '2.0.30');
+    expect(r.out).toContain('installed for OpenCode v1 but OpenCode 2');
   });
 });
 
