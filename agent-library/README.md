@@ -144,7 +144,7 @@ After the build, look at the three outputs, then try the ones you care about.
 
 | Host | Where the output is | Try it from this repo |
 | --- | --- | --- |
-| OpenCode v2 (default) | `built-ai-configs/opencode/agent/<id>.md`, mirrored to `.opencode/agent/<id>.md` | In the repo root, `opencode debug agents` lists the id (verified with OpenCode 2.1.4). Run it: `opencode run --agent <id> "<message>"` (flag confirmed in `opencode run --help`; not run here because it calls a model). |
+| OpenCode v2 (default) | `built-ai-configs/opencode/agent/<id>.md`, mirrored to `.opencode/agent/<id>.md` | In the repo root, `opencode debug agents` lists the id (verified with OpenCode 2.1.4; once the first call returned no agents, a rerun listed them). Run it: `opencode run --agent <id> "<message>"` (flag confirmed in `opencode run --help`; not run here because it calls a model). |
 | OpenCode v1 | `built-ai-configs/opencode-v1/agent/<dir>/<file>.md` | A v1 install is made by `oac init --opencode v1 --profile <tier>` in a project (add `--dry-run` to preview); it only installs agents that a system profile lists. You need an OpenCode 1.x to load them: v2 does not load v1 agents. Running v1 end to end was not verified here. |
 | Claude Code | `built-ai-configs/claude-code/agents/<id>.md`, mirrored to `plugins/claude-code/agents/<id>.md` | `claude --plugin-dir ./plugins/claude-code` loads the plugin for that session only (flag confirmed in `claude --help`; the plugin README gives the same command). Loading the agent inside a session was not verified here. |
 
