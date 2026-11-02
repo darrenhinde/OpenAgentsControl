@@ -36,7 +36,9 @@ hand-edited.
 6. the installer flavor tests (`scripts/tests/test-flavor-install.sh`, bash).
 
 `oac build` itself also reports degradation warnings, dead delegation references and lint
-findings on the built trees; the last two must be zero.
+findings on the tree it is about to write. A lint error fails the build; warnings, dead
+references and lint warnings are reported and fail only under `--strict`. Dead references and
+lint findings should be zero.
 
 ## Adding to the core
 
