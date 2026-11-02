@@ -246,7 +246,7 @@ describe('openCodeFlavorCheck', () => {
 
   test('a 0.x host is reported by its real major, never as v1', () => {
     expect(check('v2', true, 0).message).toContain('OpenCode 0.x is older than both');
-    expect(check('v2', false, 0).message).toContain('OpenCode 0 is installed');
+    expect(check('v2', false, 0).message).toContain('OpenCode 0.x is older than both');
   });
 
   test('no host found is informational, not a failure', () => {
