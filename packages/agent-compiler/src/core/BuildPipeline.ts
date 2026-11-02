@@ -425,9 +425,17 @@ function assertClaudeDelegatesResolve(
  */
 function taskKeys(permission: unknown): string[] {
   if (!Array.isArray(permission)) return [];
-  return permission
-    .filter((entry) => entry?.capability === "task" && Array.isArray(entry.rules))
-    .flatMap((entry) => entry.rules.map((rule: { pattern: string }) => rule.pattern));
+  const keys: string[] = [];
+  for (const entry of permission as unknown[]) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const { capability, rules } = entry as { capability?: unknown; rules?: unknown };
+    if (capability !== "task" || !Array.isArray(rules)) continue;
+    for (const rule of rules as unknown[]) {
+      const pattern = (rule as { pattern?: unknown } | null)?.pattern;
+      if (typeof pattern === "string") keys.push(pattern);
+    }
+  }
+  return keys;
 }
 
 /**
@@ -435,7 +443,8 @@ function taskKeys(permission: unknown): string[] {
  * to an agent that does not ship to `target` cannot resolve and fails the build.
  */
 function resolverFor(agents: readonly CanonicalAgentFile[], target: BuildTarget): AgentIdResolver {
-  return AgentIdResolver.fromCanonical(agents.filter((candidate) => emitsTo(candidate, target)));
+  return AgentIdResolver.fromCanonical(agents.filter((candidate) => emitsTo(candidate, target)))
+    .withNotShipped(AgentIdResolver.fromCanonical(agents), target);
 }
 
 /**
