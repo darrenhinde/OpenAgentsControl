@@ -47,7 +47,7 @@ writes, prunes and drift-checks those and nothing else.
 1. build the compiler and the CLI;
 2. the drift gate: a real build, then no change to any generated file;
 3. compiler tests (vitest) and CLI tests (`bun test`);
-4. typecheck of both packages;
+4. typecheck and lint of the compiler, typecheck of the CLI;
 5. the change-detection tests that decide which CI gates run;
 6. the installer flavor tests (`scripts/tests/test-flavor-install.sh`, bash).
 

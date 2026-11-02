@@ -23,12 +23,10 @@ The root `README.md` shows the `npm i -g` route; the package name is not final.
 | `oac remove [ref]` | Remove an installed component | `--dry-run`, `--yolo`, `--verbose` |
 | `oac update` | Refresh OAC-owned files; files you edited are skipped | `--dry-run`, `--check` (same as `--dry-run`), `--yolo` (back up your edits, then overwrite), `-p, --profile <id>`, `--opencode <v1\|v2>`, `--verbose` |
 | `oac doctor` | Check the setup, including that the recorded OpenCode version matches `opencode --version` | `--verbose`, `--json` |
-| `oac apply [ide]` | Write Claude Code agent files from the installed `.opencode/agent/` (`oac apply claude` writes `.claude/agents/<name>.md`) | `--all`, `--dry-run`, `--verbose`, `--yolo` |
+| `oac apply [ide]` | Write Claude Code agent files to `.claude/agents/<name>.md`: the compiled Claude agents (same files as `plugins/claude-code/agents`) for each installed agent that has one. Agents with no Claude build (excluded from Claude Code) fall back to a lossy conversion with a warning | `--all`, `--dry-run`, `--verbose`, `--yolo` |
 | `oac list` | List installed components | `--type <agent\|context\|skill\|config\|other>`, `--agents`, `--context`, `--skills`, `--verbose` |
 | `oac status` | One-screen summary of the install | `--verbose` |
 | `oac build` | Maintainers: compile `agent-library/agents/**` into `built-ai-configs/**` | `--target <tool...>` (opencode, opencode-v1, claude-code), `--check`, `--dry-run`, `--strict`, `--no-prune`, `--verbose`, `--json` (reserved) |
-
-<!-- TODO-after-code: (3) `oac apply claude` will copy the compiled Claude agent files instead of converting the installed `.opencode/agent/` ones; rewrite the `oac apply` row above when that lands. -->
 
 `oac build` reads `agent-library/` from the current directory, so run it at the repo root.
 `--check` exits 1 on drift; a build or lint error exits 1; `--strict` also fails on warnings.

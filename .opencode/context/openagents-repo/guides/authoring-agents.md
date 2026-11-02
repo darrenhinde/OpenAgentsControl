@@ -19,10 +19,8 @@ bash scripts/registry/validate-registry.sh
 ```
 
 Add the agent id to a system profile in `agent-library/profiles/system/<profile>.json` (`agents` list; subagents
-go in the same list) or users cannot install it. Order matters today: build first so the id is registered, then add it to
-the profile, then build again (a profile that lists an unregistered id fails the build). `profiles.<id>.components` in the
+go in the same list) or users cannot install it. A new agent and its profile entry build together in one `make build-canonical`. `profiles.<id>.components` in the
 registries is generated from it.
-<!-- TODO-after-code: (2) adding a new agent and listing it in a system profile will work in ONE build; replace the order sentence above. -->
 
 Directories under `agent-library/agents/`: `core/`, `content/`, `data/`, `meta/`,
 `subagents/{code,core,development,planning,system-builder,test,utils}/`. The source directory decides the

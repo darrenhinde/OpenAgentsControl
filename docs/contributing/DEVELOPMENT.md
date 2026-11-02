@@ -66,10 +66,9 @@ Never hand-edit anything marked GENERATED: CI fails on any difference. Details a
 ## What the checks run
 
 `make check-core` (also what CI reproduces): the drift gate (`make check-canonical-drift`), compiler tests
-(vitest), CLI tests (`bun test`), typecheck of both packages, change-detection tests
+(vitest), CLI tests (`bun test`), typecheck of both packages, the compiler lint (`pnpm --dir packages/agent-compiler run lint`), change-detection tests
 (`bun test scripts/validation`) and the installer tests (`scripts/tests/test-flavor-install.sh`).
-
-<!-- TODO-after-code: (1) check-core no longer hard-codes agent counts, so adding an agent keeps it green; today it fails on two count assertions in packages/agent-compiler/tests (golden-files.test.ts, lint-opencode.test.ts) after you add an agent. (4) pnpm run lint in packages/agent-compiler passes and is part of check-core. -->
+No test pins the number of agents, so adding an agent keeps it green.
 
 Other checks, each passing on a clean checkout:
 

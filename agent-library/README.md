@@ -103,7 +103,7 @@ make check-core             # 4. drift gate + compiler/CLI tests + typecheck + i
 git add -A && git commit    # 5. commit the source AND the generated files together
 ```
 
-`make check-core` also runs on every PR. <!-- TODO-after-code: (1) once check-core no longer hard-codes agent counts, state that adding an agent keeps it green; today it fails after adding an agent (see "Add an agent: the true order" below). (4) add `pnpm run lint` in packages/agent-compiler to the list of what check-core runs. -->
+`make check-core` also runs on every PR (it also lints the compiler). Adding an agent does not break it: no test pins the number of agents.
 
 Quick loops while editing (after `make oac-cli` once): `bun packages/cli/dist/index.js build --dry-run`
 previews, `... build --check` exits 1 if committed output is stale, `... build --target claude-code`
@@ -120,23 +120,20 @@ What the example above produced (built in a scratch copy of this repo):
 Also updated: `built-ai-configs/registry/registry.json` and `registry.v1.json`, `built-ai-configs/README.md`
 and `.oac/build-manifest.json`. Deleting the source file and rebuilding removes all its outputs.
 
-## Add an agent: the true order
+## Make the agent installable (profiles)
 
 A new agent is built and registered, but `oac init` / `install.sh` only install it if a system
 profile lists it. Profiles are `agent-library/profiles/system/<tier>.json` (essential, developer,
 business, advanced, full); a subagent goes in the same `agents` list as a primary agent (for example
 `developer.json` lists `contextscout` and `coder-agent` next to `openagent`).
 
-<!-- TODO-after-code: (2) adding a new agent AND listing it in a system profile will work in ONE build. When that lands, replace the three steps below with: save the file, add its id to `agents` in the profile, run `make build-canonical`. -->
-Today it takes two builds, in this order (run in a scratch clone):
+Save the file, add its `id` to `agents` in `agent-library/profiles/system/<tier>.json`, and run
+`make build-canonical` once. The build resolves profiles against the registry it is about to write, so a new
+agent and its profile entry go through in one build. A profile that names an id that does not exist still
+fails with `System profile "developer" cannot be installed: agent:<id> does not resolve: no registry component has id "<id>" of type "agent"`.
 
-1. Save the agent file and run `make build-canonical` (this registers the id).
-2. Add its `id` to `agents` in `agent-library/profiles/system/<tier>.json`.
-3. Run `make build-canonical` again.
-
-Listing the id in a profile before step 1 fails the build with
-`System profile "developer" cannot be installed: agent:changelog-writer does not resolve: no registry component has id "changelog-writer" of type "agent"`,
-and a second build does not recover until the id is registered some other way: undo the profile edit, build, then re-add it.
+Remember: an agent that ships to Claude Code needs `oac.overrides.claude-code.tools` (and a `description` with an
+`<example>`), or give it `exclude: [claude-code]`; otherwise the build fails with a message naming the missing field.
 
 ## Check it on each host
 

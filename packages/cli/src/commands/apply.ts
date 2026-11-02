@@ -313,7 +313,7 @@ export async function applyCommand(
 export function registerApplyCommand(program: Command): void {
   program
     .command('apply [ide]')
-    .description('Generate IDE config files from .opencode/agent/ definitions')
+    .description('Write IDE agent files (Claude Code: the compiled agents, same as plugins/claude-code/agents)')
     .option('--all', 'Apply to all detected IDEs', false)
     .option('--dry-run', 'Show what would be generated without writing', false)
     .option('--verbose', 'Show adapter warnings and transformation details', false)
