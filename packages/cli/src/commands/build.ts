@@ -40,7 +40,7 @@
  *    a Claude agent that has no `Task` tool, in place of OpenCode's "call ContextScout".
  *
  * What stops L-001 from coming back is not the build but two guards. The capability lint
- * (`verify/lint/capability.ts`, run by {@link reportLints} on every build and fatal under
+ * (`verify/lint/capability.ts`, run by {@link reportLints} on every build; a lint error always fails the build, and lint warnings fail under
  * `--strict`) flags an emitted agent told to delegate without `Task`, to run bash without
  * `Bash`, a Claude description with no `<example>`, or a leaked `.opencode/` path. The golden
  * test (`tests/golden/golden-files.test.ts`) asserts the committed Claude tree equals fresh
