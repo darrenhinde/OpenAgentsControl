@@ -8,7 +8,7 @@ import { readManifest, writeManifest, type ManifestFile } from '../lib/manifest.
 import { readConfig, writeConfig, createDefaultConfig, withOpenCodeFlavor, type OacInstallationScope } from '../lib/config.js';
 import { hostMismatch, parseFlavor, resolveInitFlavor, type OpenCodeFlavor } from '../lib/flavor.js';
 import { detectOpenCodeMajor } from '../lib/opencode-host.js';
-import { readProjectFlavor } from '../lib/project-flavor.js';
+import { readProjectFlavor, writeFlavorMarker } from '../lib/project-flavor.js';
 import { detectIdes } from '../lib/ide-detect.js';
 import {
   loadRegistry,
@@ -219,6 +219,7 @@ const ensureConfig = async (
     ...base,
     installationScope: { ...selection, profiles },
   }, flavor));
+  await writeFlavorMarker(projectRoot, flavor);
   verbose(existing === null ? 'Wrote .oac/config.json with installation scope.' : 'Updated installation scope.');
 };
 
