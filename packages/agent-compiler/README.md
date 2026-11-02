@@ -17,7 +17,6 @@ The build library behind `oac build`. It loads the canonical content tree
 | `core/CapabilityMatrix` | What each target (OpenCode, Claude Code) can express |
 | `adapters/OpenCodeAdapter` | Emits `built-ai-configs/opencode/agent/**` (mirrored to `.opencode/agent/**`) by stripping the `oac:` block |
 | `adapters/ClaudeAdapter` | Emits `built-ai-configs/claude-code/agents/**` (mirrored to `plugins/claude-code/agents/**`) from per-target overrides and host blocks |
-| `mappers/*` | Tool, permission, model and context translation for Claude Code |
 
 Targets are OpenCode and Claude Code only. Cursor and Windsurf support was
 removed on 2026-09-02 to keep the system simple to manage.
