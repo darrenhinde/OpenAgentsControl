@@ -49,6 +49,15 @@ describe("AgentIdResolver.resolve", () => {
   });
 });
 
+describe("AgentIdResolver not-shipped diagnostics", () => {
+  const roster = AgentIdResolver.from(A.slice(0, 2)).withNotShipped(AgentIdResolver.from(A), "claude-code");
+
+  it("distinguishes an agent that exists but is not emitted from one that does not exist", () => {
+    expect(() => roster.idFor("opencode", "documentation")).toThrow(/exists but is not emitted for claude-code/);
+    expect(() => roster.idFor("opencode", "nobody")).toThrow(/names no canonical agent/);
+  });
+});
+
 describe("AgentIdResolver.idFor", () => {
   const r = AgentIdResolver.from(A);
 

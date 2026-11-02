@@ -123,6 +123,38 @@ describe('migrating a v1-layout install to v2', () => {
     ]);
   });
 
+  test('files placed by install.sh then adopted by init (no manifest) are recorded as bundled and migrate cleanly', async () => {
+    // install.sh wrote the v1 files; `oac init` then syncs with no manifest.
+    for (const f of await listBundledFiles(pkg, 'v1')) {
+      const dest = f.replace('built-ai-configs/opencode-v1/', '.opencode/');
+      await put(project, dest, await readFile(join(pkg, f), 'utf8'));
+    }
+    const adopted = await syncFiles(await listBundledFiles(pkg, 'v1'), null, opts({ flavor: 'v1' }));
+    expect(Object.values(adopted.updatedManifest.files).filter((e) => e.source === 'custom')).toEqual([]);
+    await writeManifest(project, adopted.updatedManifest);
+    await appendFile(join(project, '.opencode/plugin/notify.ts'), '\nmy edit'); // an edit still survives as a backup
+
+    const { result } = await updateFiles(opts({ flavor: 'v2', pruneStale: true, previousFlavor: 'v1' }));
+
+    expect(result.skipped).toEqual([]);
+    expect(await exists(project, '.opencode/agent/core/openagent.md')).toBe(false);
+    expect(await exists(project, '.opencode/agent/openagent.md')).toBe(true);
+    expect(await exists(project, '.opencode/plugin/notify.ts')).toBe(false);
+    expect(result.backed_up.length).toBe(1);
+  });
+
+  test('a manifest that already records identical files as custom still migrates them', async () => {
+    await installV1();
+    const manifest = await readManifest(project);
+    for (const entry of Object.values(manifest!.files)) { entry.source = 'custom'; entry.protected = true; }
+    await writeManifest(project, manifest!);
+
+    const { result } = await updateFiles(opts({ flavor: 'v2', pruneStale: true, previousFlavor: 'v1' }));
+
+    expect(await exists(project, '.opencode/agent/core/openagent.md')).toBe(false);
+    expect(result.pruned).toContain('.opencode/agent/core/openagent.md');
+  });
+
   test('backs up a v1 file the user edited before removing it, so no duplicate agent survives', async () => {
     await installV1();
     await appendFile(join(project, '.opencode/agent/core/openagent.md'), '\nmy edit');

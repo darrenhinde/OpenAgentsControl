@@ -182,6 +182,8 @@ check-core: check-canonical-drift ## Full core health check: drift gate, compile
 	@echo "🔎 Typecheck..."
 	@pnpm --dir packages/agent-compiler exec tsc --noEmit
 	@pnpm --dir packages/cli exec tsc --noEmit
+	@echo "🔎 Lint (compiler)..."
+	@pnpm --dir packages/agent-compiler run lint
 	@echo "🧪 Change-detection tests..."
 	@bun test scripts/validation
 	@echo "🧪 Installer flavor tests (bash)..."

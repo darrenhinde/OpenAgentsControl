@@ -10,7 +10,7 @@
 
 import type { Command } from 'commander'
 import { basename, dirname, join } from 'node:path'
-import { copyFile, mkdir, stat, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { loadAgents, ClaudeAdapter } from '@controlstack/agent-compiler'
 import type { OpenAgent, ConversionResult } from '@controlstack/agent-compiler'
 import {
@@ -21,11 +21,50 @@ import {
 import type { IdeType } from '../lib/ide-detect.js'
 import { log, info, warn, error, success, dim, verbose, setVerbose } from '../ui/logger.js'
 import { createSpinner } from '../ui/spinner.js'
+import { getPackageRoot } from '../lib/bundled.js'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 /** Supported apply targets (opencode is the read-only source, not a write target). */
 const APPLY_TARGETS: IdeType[] = ['claude']
+
+// ─── Compiled Claude agents ───────────────────────────────────────────────────
+
+/** Where the build writes the Claude Code agents, relative to the package root. */
+const COMPILED_CLAUDE_DIR = 'built-ai-configs/claude-code/agents'
+/** The build ledger; maps each compiled file back to its canonical agent id. */
+const BUILD_LEDGER = '.oac/build-manifest.json'
+
+const normalizeId = (value: string): string => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+/**
+ * The agents `oac build` compiled for Claude Code, keyed by normalized canonical id. These are
+ * the authoritative Claude files (tools, dispatch examples, host blocks); converting the
+ * installed OpenCode copy instead loses all of that. Empty when the package ships no ledger.
+ */
+export async function loadCompiledClaudeAgents(
+  packageRoot: string
+): Promise<Map<string, { fileName: string; content: string }>> {
+  const compiled = new Map<string, { fileName: string; content: string }>()
+  let ledger: { files?: Record<string, { target?: string; agentId?: string }> }
+  try {
+    ledger = JSON.parse(await readFile(join(packageRoot, BUILD_LEDGER), 'utf-8'))
+  } catch {
+    return compiled
+  }
+  for (const [path, entry] of Object.entries(ledger.files ?? {})) {
+    if (entry.target !== 'claude-code' || !entry.agentId || !path.startsWith(`${COMPILED_CLAUDE_DIR}/`)) continue
+    try {
+      compiled.set(normalizeId(entry.agentId), {
+        fileName: basename(path),
+        content: await readFile(join(packageRoot, path), 'utf-8'),
+      })
+    } catch {
+      // Listed but not shipped: that agent falls back to conversion.
+    }
+  }
+  return compiled
+}
 
 // ─── Size helpers ─────────────────────────────────────────────────────────────
 
@@ -70,18 +109,31 @@ async function applyToIde(
   }
 
   const spinner = createSpinner(
-    `Converting ${agents.length} agent(s) for ${displayName}…`,
+    `Preparing ${agents.length} agent(s) for ${displayName}…`,
     { dryRun: options.dryRun },
   )
   spinner.start()
 
   const adapter = new ClaudeAdapter()
   const writes: Array<{ outputPath: string; relName: string; content: string }> = []
+  const compiled = await loadCompiledClaudeAgents(getPackageRoot())
+  const fallbackNames: string[] = []
   let failed = 0
   let warningCount = 0
 
   try {
     for (const agent of agents) {
+      // Prefer the compiled Claude file: one source file -> Claude, byte for byte.
+      const ready = compiled.get(normalizeId(agent.metadata.id ?? "")) ?? compiled.get(normalizeId(agent.metadata.name ?? ""))
+      if (ready) {
+        writes.push({
+          outputPath: join(outputDir, ready.fileName),
+          relName: join(outputDirRel, ready.fileName),
+          content: ready.content,
+        })
+        continue
+      }
+      fallbackNames.push(agent.metadata.name ?? agent.metadata.id ?? "unnamed")
       const result: ConversionResult = await adapter.fromOAC(agent)
       if (!result.success || result.configs.length === 0) {
         spinner.stop()
@@ -126,6 +178,12 @@ async function applyToIde(
     }
   }
 
+  if (fallbackNames.length > 0) {
+    warn(
+      `${fallbackNames.length} agent(s) have no compiled Claude Code version and were converted from the ` +
+        `installed OpenCode file instead (no tools: list, no dispatch examples; review before use): ${fallbackNames.join(', ')}`
+    )
+  }
   if (warningCount > 0) {
     warn(`${warningCount} conversion warning(s) — use --verbose to see details`)
   }

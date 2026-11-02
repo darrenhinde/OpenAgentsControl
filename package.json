@@ -17,6 +17,8 @@
     ".opencode/config.json",
     ".opencode/opencode.json",
     "built-ai-configs/opencode-v1/",
+    "built-ai-configs/claude-code/agents/",
+    ".oac/build-manifest.json",
     "!.opencode/node_modules/",
     "!**/node_modules/",
     "scripts/",

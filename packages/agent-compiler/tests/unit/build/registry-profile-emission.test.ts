@@ -145,4 +145,18 @@ describe("RegistryEmitter profile emission", () => {
 
     expect(second).toBe(first);
   });
+
+  it("builds a new agent and its profile entry in one pass, but still rejects an unknown id", async () => {
+    fixture();
+    writeAgent("brand-new", "subagent"); // not in the committed registry
+    const profilePath = join(root, "agent-library/profiles/system/selected.json");
+    const profile = JSON.parse(readFileSync(profilePath, "utf-8")) as { agents: string[] };
+    writeJson("agent-library/profiles/system/selected.json", { ...profile, agents: [...profile.agents, "brand-new"] });
+
+    const document = await new RegistryEmitter(root).emit();
+    expect((document.profiles as { selected: { components: string[] } }).selected.components).toContain("subagent:brand-new");
+
+    writeJson("agent-library/profiles/system/selected.json", { ...profile, agents: [...profile.agents, "no-such-agent"] });
+    await expect(new RegistryEmitter(root).emit()).rejects.toThrow(/agent:no-such-agent does not resolve/);
+  });
 });

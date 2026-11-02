@@ -163,6 +163,7 @@ type FileDecision =
   | { action: "install" }
   | { action: "update" }
   | { action: "protect"; observedHash: string }
+  | { action: "adopt"; hash: string }
   | { action: "skip"; reason: string }
   | { action: "yolo-overwrite"; backupNeeded: true };
 
@@ -175,6 +176,7 @@ async function decideFileAction(
   manifest: ManifestFile | null,
   destPath: string,
   options: InstallOptions,
+  sourcePath: string,
 ): Promise<FileDecision> {
   const manifestEntry = manifest?.files[relativePath];
   const diskExists = await stat(destPath).then((s) => s.isFile()).catch(() => false);
@@ -182,11 +184,19 @@ async function decideFileAction(
   // An unmanaged tree belongs to the user. Record, but never overwrite, its files.
   if (manifestEntry === undefined) {
     if (!diskExists) return { action: "install" };
+    // Byte-identical to the bundle (for example placed by install.sh): OAC's own file, not the user's.
+    const observedHash = await computeFileHash(destPath);
+    if (hashesMatch(observedHash, await computeFileHash(sourcePath))) return { action: "adopt", hash: observedHash };
     if (options.yolo) return { action: "yolo-overwrite", backupNeeded: true };
-    return { action: "protect", observedHash: await computeFileHash(destPath) };
+    return { action: "protect", observedHash };
   }
 
   if (manifestEntry.protected === true) {
+    // Heals a manifest written before adoption existed: identical to the bundle means not custom.
+    if (diskExists) {
+      const observedHash = await computeFileHash(destPath);
+      if (hashesMatch(observedHash, await computeFileHash(sourcePath))) return { action: "adopt", hash: observedHash };
+    }
     if (options.yolo && diskExists) return { action: "yolo-overwrite", backupNeeded: true };
     return {
       action: "skip",
@@ -241,7 +251,7 @@ async function processOneFile(
 
   const decisionResult = await (async () => {
     try {
-      return { ok: true as const, value: await decideFileAction(relativePath, manifest, destPath, options) };
+      return { ok: true as const, value: await decideFileAction(relativePath, manifest, destPath, options, sourcePath) };
     } catch (err) {
       return { ok: false as const, msg: err instanceof Error ? err.message : String(err) };
     }
@@ -270,6 +280,20 @@ async function processOneFile(
         installedAt: now,
       };
       return { patch: { installed: [relativePath] }, entry };
+    }
+
+    if (decision.action === "adopt") {
+      log(options, `adopt: ${relativePath} already matches the bundle`);
+      const existingEntry = manifest?.files[relativePath];
+      const entry: FileEntry = {
+        ...(existingEntry ?? {}),
+        sha256: decision.hash,
+        type: fileType,
+        source: managedSource,
+        installedAt: existingEntry?.installedAt ?? now,
+        protected: false,
+      };
+      return { patch: { unchanged: [relativePath] }, entry };
     }
 
     if (decision.action === "protect") {
@@ -438,11 +462,27 @@ export async function updateFiles(
   const eligibleDest = new Set([...eligibleSet].map(toDestPath));
   const timestamp = buildTimestamp();
   let acc = { result: phase1.result, updatedManifest: phase1.workingManifest };
+  // Hashes of the bundle being left, so a file tracked as custom that is still byte-identical to it
+  // (not an edit of the user's) can be pruned like any other previous-flavor file.
+  const previousHashes = new Map<string, string>();
+  if (options.pruneStale === true && options.previousFlavor !== undefined && options.previousFlavor !== (options.flavor ?? DEFAULT_FLAVOR)) {
+    for (const source of await listBundledFiles(options.packageRoot, options.previousFlavor)) {
+      previousHashes.set(toDestPath(source), await computeFileHash(getBundledFilePath(options.packageRoot, source)));
+    }
+  }
 
   for (const trackedPath of Object.keys(phase1.workingManifest.files)) {
     if (bundledSet.has(trackedPath)) continue;
 
-    const entry = phase1.workingManifest.files[trackedPath]!;
+    let entry = phase1.workingManifest.files[trackedPath]!;
+    if (options.pruneStale === true && (entry.source === "custom" || entry.protected === true)) {
+      const previous = previousHashes.get(trackedPath);
+      const absolute = path.join(options.projectRoot, trackedPath);
+      if (previous !== undefined && (await stat(absolute).then((s) => s.isFile()).catch(() => false)) &&
+          hashesMatch(await computeFileHash(absolute), previous)) {
+        entry = { ...entry, source: "bundled", protected: false, sha256: previous };
+      }
+    }
     if (options.pruneStale === true && isPrunable(trackedPath, entry, wholeBundle)) {
       const patch = await pruneFile(trackedPath, entry, options, timestamp);
       acc = {

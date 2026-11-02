@@ -377,7 +377,7 @@ export class RegistryEmitter {
       document[key] = key === "components"
         ? components
         : key === "profiles"
-          ? await this.profiles(base, agents)
+          ? await this.profiles(base, agents, components)
           : base[key];
     }
 
@@ -417,12 +417,18 @@ export class RegistryEmitter {
   /** Generate profile component lists when canonical profile content is available. */
   private async profiles(
     base: RegistryDocument,
-    agents: readonly CanonicalAgentFile[]
+    agents: readonly CanonicalAgentFile[],
+    plannedComponents: Record<string, RegistryEntry[]>
   ): Promise<unknown> {
     if (!existsSync(resolve(this.root, PROFILES_ROOT))) return base.profiles;
 
+    // Resolve against the components THIS build is about to write, not the committed file:
+    // a new agent and its profile entry must build in one pass. A truly unknown id still fails.
+    const planned: RegistryDocument = { ...base, components: plannedComponents };
+    const pending = new Map([[this.registryFile, JSON.stringify(planned)]]);
+
     const baseProfiles = isRecord(base.profiles) ? base.profiles : {};
-    const loader = new ProfileLoader(this.root, new ReferenceResolver(this.root, this.registryFile));
+    const loader = new ProfileLoader(this.root, new ReferenceResolver(this.root, this.registryFile, pending));
     const omit = {
       kinds: this.spec.unavailableProfileKinds,
       agents: new Set(agents.filter((agent) => !emitsTo(agent, this.target)).map((agent) => agent.oac.id)),
@@ -437,7 +443,7 @@ export class RegistryEmitter {
       ids.map(async (id) => {
         const resolved = await loader.resolveSystemProfile(id, omit);
         const baseProfile = baseProfiles[id];
-        return [id, this.profile(baseProfile, resolved, agentTypes, base)] as const;
+        return [id, this.profile(baseProfile, resolved, agentTypes, planned)] as const;
       })
     );
 

@@ -57,7 +57,14 @@ export class AgentIdResolver {
   private constructor(
     private readonly byExact: ReadonlyMap<string, ResolverAgent>,
     private readonly byNormalized: ReadonlyMap<string, ResolverAgent>,
+    /** Agents that exist in the corpus but are not in this roster, with the target they miss. */
+    private readonly notShipped?: { resolver: AgentIdResolver; target: string },
   ) {}
+
+  /** Same roster, but able to say "exists but is not emitted for <target>" for agents outside it. */
+  withNotShipped(all: AgentIdResolver, target: string): AgentIdResolver {
+    return new AgentIdResolver(this.byExact, this.byNormalized, { resolver: all, target });
+  }
 
   /** Build from explicit agents. Throws {@link AgentIdResolutionError} on any ambiguity. */
   static from(agents: readonly ResolverAgent[]): AgentIdResolver {
@@ -118,6 +125,12 @@ export class AgentIdResolver {
     if (isGlob(ref)) return ref;
     const agent = this.resolve(ref);
     if (agent === undefined) {
+      const elsewhere = this.notShipped?.resolver.resolve(ref);
+      if (elsewhere !== undefined) {
+        throw new AgentIdResolutionError(
+          `"${ref}" names agent "${elsewhere.id}", which exists but is not emitted for ${this.notShipped!.target}`,
+        );
+      }
       throw new AgentIdResolutionError(`"${ref}" names no canonical agent emitted for this target (accepted: an oac.id or display name of an agent that ships to it)`);
     }
     return target === "opencode" ? agent.id : agent.name;
