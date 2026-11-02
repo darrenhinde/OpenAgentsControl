@@ -339,5 +339,13 @@ describe('oac doctor', () => {
     expect(b.check?.status).toBe('error');
     expect(b.code).toBe(1);
   });
-});
 
+  test('a 0.x host gets upgrade advice, never a migration to the other flavor', async () => {
+    const v1 = await newProject();
+    oac(v1, ['init', '--opencode', 'v1'], '1.19.3');
+    const c = doctor(v1, '0.15.0').check;
+    expect(c?.status).toBe('error');
+    expect(c?.message).toContain('upgrade OpenCode');
+    expect(c?.message).not.toContain('--opencode v2');
+  });
+});
