@@ -124,7 +124,7 @@ report task status. That is precisely the breakage the index cites as Option A's
 Under **last-match-wins**, both files behave exactly as authored and intended.
 
 The repo's archived planning doc also states the intended rule at
-`docs/archive/planning/12-MASTER-SYNTHESIS.md:432`:
+`docs/history/archive/planning/12-MASTER-SYNTHESIS.md:432`:
 
 > "The `permission:` field uses **last-match-wins** evaluation (same as OpenCode's native
 > system) … Rules are evaluated in order; the LAST matching rule wins. This matches OpenCode's

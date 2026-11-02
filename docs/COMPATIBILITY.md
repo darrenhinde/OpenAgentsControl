@@ -51,7 +51,7 @@ curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/
 
 ## Full Documentation
 
-See [Platform Compatibility Guide](docs/getting-started/platform-compatibility.md) for:
+See [Platform Compatibility Guide](getting-started/platform-compatibility.md) for:
 - Detailed platform instructions
 - Troubleshooting guide
 - Manual installation steps

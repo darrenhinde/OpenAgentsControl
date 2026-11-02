@@ -122,7 +122,7 @@ OAC's agents are plain markdown, so they run on whatever models your host suppor
 **With the `oac` CLI (recommended):**
 
 ```bash
-npm i -g @controlstack/oac    # TODO: package name not final (npm scope is an open decision, see docs/plan/ROADMAP.md)
+npm i -g @controlstack/oac    # TODO: package name not final (npm scope is an open decision, see docs/history/plan/ROADMAP.md)
 cd your-project
 oac init                      # essential tier: one agent, core subagents, core standards
 oac init --profile developer  # or: business, advanced, full

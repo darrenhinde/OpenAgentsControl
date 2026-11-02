@@ -60,8 +60,6 @@ Makefile
 
 # Documentation that's not needed in package
 docs/
-ROADMAP.md
-COMPATIBILITY.md
 
 # Backup files
 *.backup-*/
