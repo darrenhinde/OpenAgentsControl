@@ -14,7 +14,23 @@ agent-library/agents + profiles   ->   packages/agent-compiler   ->   built-ai-c
 
 Author an agent once in `agent-library/`. `oac build` converts it for each tool. The drift
 gate fails CI if the committed output differs from a fresh build, so generated files are never
-hand-edited.
+hand-edited. Not everything under `built-ai-configs/` is generated; see the next section.
+
+## Generated vs hand-maintained
+
+The ledger `.oac/build-manifest.json` lists exactly the generated files (117 today). `oac build`
+writes, prunes and drift-checks those and nothing else.
+
+| Path | Status |
+| --- | --- |
+| `built-ai-configs/opencode/agent/*.md` | generated |
+| `built-ai-configs/opencode-v1/agent/**/*.md` | generated |
+| `built-ai-configs/claude-code/agents/*.md` | generated |
+| `built-ai-configs/registry/registry.json`, `registry.v1.json` | generated (agent, subagent and tier sections; other categories are carried through from the committed file) |
+| `built-ai-configs/README.md` | generated |
+| `.opencode/agent/*.md`, `plugins/claude-code/agents/*.md` | generated mirrors |
+| `.oac/build-manifest.json` | generated ledger |
+| `built-ai-configs/opencode-v1/{tool,plugin,plugins,skills,command}/**` (25 files) and `built-ai-configs/opencode-v1/agent/**/0-category.json` | **hand-maintained** v1 assets. Edit them directly; the build and the drift gate ignore them. |
 
 ## Tiers
 
@@ -45,4 +61,4 @@ lint findings should be zero.
 - New agent: one file in `agent-library/agents/**`, then `make build-canonical`.
 - New host: one adapter in `packages/agent-compiler/src/adapters/` and one entry in the target
   tables in `core/`. Anything the host cannot express must produce a degradation warning.
-- Never edit `built-ai-configs/`, `.opencode/agent/`, or `plugins/claude-code/agents/` by hand.
+- Never hand-edit a generated path from the table above. Hand-maintained v1 assets are edited in place.

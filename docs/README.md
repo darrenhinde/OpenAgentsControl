@@ -1,118 +1,36 @@
-# OpenAgents Control Documentation
+# Documentation map
 
-Welcome to the OpenAgents Control documentation! This directory contains all documentation organized by topic.
+Read in this order if you work on the repo. Users only need the first two rows.
 
-## 📚 Documentation Index
+| # | Read | For |
+| --- | --- | --- |
+| 1 | [../README.md](../README.md) | What OAC is, how to install it |
+| 2 | [getting-started/installation.md](getting-started/installation.md) | Installer options, collision handling ([collision-handling.md](getting-started/collision-handling.md)) |
+| 3 | [architecture/CORE.md](architecture/CORE.md) | The one flow: `agent-library/` -> compiler -> `built-ai-configs/`; what must stay green |
+| 4 | [../agent-library/README.md](../agent-library/README.md) | Write or change an agent: file anatomy, workflow, build errors |
+| 5 | [../packages/cli/README.md](../packages/cli/README.md) | The `oac` commands and flags; how `install.sh` relates |
+| 6 | [../packages/agent-compiler/README.md](../packages/agent-compiler/README.md) | The build library behind `oac build` |
+| 7 | [features/opencode-v1-and-v2.md](features/opencode-v1-and-v2.md) | Why v1 and v2 output differ, how the choice is recorded |
 
-### Getting Started
+What each tool gets, per host: [../built-ai-configs/README.md](../built-ai-configs/README.md) (generated).
+Component registry: [../built-ai-configs/registry/registry.json](../built-ai-configs/registry/registry.json) (generated).
 
-- **[Installation Guide](getting-started/installation.md)** - Complete installation guide with collision handling
-- **[Collision Handling](getting-started/collision-handling.md)** - Quick reference for install script collision strategies
+## Contributing
 
-### Features
+- [contributing/CONTRIBUTING.md](contributing/CONTRIBUTING.md): add or change a component, open a PR
+- [contributing/DEVELOPMENT.md](contributing/DEVELOPMENT.md): local setup, tests, troubleshooting
+- [contributing/CODE_OF_CONDUCT.md](contributing/CODE_OF_CONDUCT.md)
+- [github/GITHUB_SETTINGS.md](github/GITHUB_SETTINGS.md): repository settings checklist
 
-- **[System Builder](features/system-builder/)** - Build complete AI systems tailored to your domain
-  - [Quick Start](features/system-builder/README.md) - Get started with the system builder
-  - [Complete Guide](features/system-builder/guide.md) - Detailed documentation and examples
-- **[Agent System Blueprint](features/agent-system-blueprint.md)** - Architecture patterns and how to extend the system
+## Other topics
 
-### Contributing
+- [agents/](agents/): per-agent guides ([openagent](agents/openagent.md), [opencoder](agents/opencoder.md))
+- [features/system-builder/](features/system-builder/): build an AI system for your domain
+- [features/agent-system-blueprint.md](features/agent-system-blueprint.md): architecture patterns
+- [guides/building-with-opencode.md](guides/building-with-opencode.md)
+- [lessons-learnt/](lessons-learnt/): product decisions (D-NNN) and lessons (L-NNN)
+- [NORTH_STAR.md](NORTH_STAR.md), [ROADMAP.md](ROADMAP.md)
+- [maintenance/](maintenance/): audits and registry notes
+- [history/](history/) and [architecture/canonical-refactor/](architecture/canonical-refactor/): historical records, not current guidance
 
-- **[Contributing Guide](contributing/CONTRIBUTING.md)** - How to contribute to the project
-- **[Code of Conduct](contributing/CODE_OF_CONDUCT.md)** - Community guidelines
-
-### GitHub
-
-- **[GitHub Settings](github/GITHUB_SETTINGS.md)** - Repository settings checklist
-
-## 🚀 Quick Links
-
-### For New Users
-- Start with the main [README](../README.md) in the repository root
-- Follow the [Installation Guide](getting-started/installation.md)
-- Use `opencode --agent OpenAgent` to start building
-- Read the [OpenAgent Guide](agents/openagent.md) to understand the workflow
-
-### For Contributors
-- Read the [Contributing Guide](contributing/CONTRIBUTING.md)
-- Review the [Code of Conduct](contributing/CODE_OF_CONDUCT.md)
-- Check out [good first issues](https://github.com/darrenhinde/OpenAgentsControl/labels/good%20first%20issue)
-
-### For Advanced Users
-- Study the [Agent System Blueprint](features/agent-system-blueprint.md)
-- Try the [System Builder](features/system-builder/)
-- Create custom agents and commands
-
-## 📖 Documentation Structure
-
-```
-docs/
-├── README.md                           # This file
-├── getting-started/
-│   ├── installation.md                 # Installation guide
-│   └── collision-handling.md           # Collision handling reference
-├── features/
-│   ├── system-builder/
-│   │   ├── README.md                   # System builder quick start
-│   │   └── guide.md                    # System builder complete guide
-│   └── agent-system-blueprint.md       # Architecture patterns
-├── contributing/
-│   ├── CODE_OF_CONDUCT.md              # Community guidelines
-│   └── CONTRIBUTING.md                 # Contribution guide
-└── github/
-    └── GITHUB_SETTINGS.md              # Repository settings
-```
-
-## 🔍 Finding What You Need
-
-### I want to...
-
-**...install OpenAgents Control**
-→ [Installation Guide](getting-started/installation.md)
-
-**...understand collision handling**
-→ [Collision Handling](getting-started/collision-handling.md)
-
-**...build a custom AI system**
-→ [System Builder](features/system-builder/)
-
-**...understand the architecture**
-→ [Agent System Blueprint](features/agent-system-blueprint.md)
-
-**...contribute to the project**
-→ [Contributing Guide](contributing/CONTRIBUTING.md)
-
-**...report a bug or request a feature**
-→ [GitHub Issues](https://github.com/darrenhinde/OpenAgentsControl/issues)
-
-## 💡 Additional Resources
-
-- **Main README**: [../README.md](../README.md) - Complete overview and quick start
-- **CHANGELOG**: [../CHANGELOG.md](../CHANGELOG.md) - Version history and updates
-- **GitHub Repository**: https://github.com/darrenhinde/OpenAgentsControl
-- **OpenCode CLI Docs**: https://opencode.ai/docs
-- **Component Registry**: [../registry.json](../registry.json)
-
-## 📌 Current Version
-
-**v0.6.0** (January 28, 2026)
-
-Latest updates:
-- ExternalScout subagent for fetching live library documentation (18+ libraries)
-- Enhanced ContextScout with multi-model optimization
-- Complete command and agent documentation
-- Simplified agent architecture (OpenAgent + OpenCoder)
-
-## 🤝 Community
-
-- **Issues**: [Report bugs or request features](https://github.com/darrenhinde/OpenAgentsControl/issues)
-- **Discussions**: [Ask questions and share ideas](https://github.com/darrenhinde/OpenAgentsControl/discussions)
-- **Pull Requests**: [Contribute code](https://github.com/darrenhinde/OpenAgentsControl/pulls)
-
-## 📝 License
-
-This project is licensed under the MIT License. See [LICENSE](../LICENSE) for details.
-
----
-
-**Need help?** Check the [Contributing Guide](contributing/CONTRIBUTING.md) or open an [issue](https://github.com/darrenhinde/OpenAgentsControl/issues).
+[../CHANGELOG.md](../CHANGELOG.md) has version history.

@@ -1,481 +1,102 @@
 # Contributing to OpenAgents Control
 
-Thank you for your interest in contributing! This guide will help you add new components to the registry and understand the repository structure.
+Thanks for helping. This page is the short version; [DEVELOPMENT.md](DEVELOPMENT.md) has setup and
+troubleshooting. Start from the [docs map](../README.md).
 
-## 📚 Documentation
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Adding evaluators](ADDING_EVALUATOR.md)
 
-- **[Development Guide](DEVELOPMENT.md)** - Complete guide for developing on this repo (agents, commands, tools, testing)
-- **[Agent Creation System](../../.opencode/command/openagents/new-agents/README.md)** - ⭐ NEW: Research-backed agent creation with templates
-- **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines
-- **[Adding Evaluators](ADDING_EVALUATOR.md)** - How to add new test evaluators
+## Where things live
 
-## Repository Structure
+| You want to change | Edit | Then |
+| --- | --- | --- |
+| An agent or subagent | `agent-library/agents/<category>/<file>.md` | `make build-canonical`, commit the generated files with it |
+| Which agents an install tier ships | `agent-library/profiles/system/*.json` | `make build-canonical` |
+| Context files, commands, skills | `.opencode/context/**`, `.opencode/command/**`, `.opencode/skills/**` | see "Registry" below |
+| Tools and plugins (OpenCode v1) | `built-ai-configs/opencode-v1/{tool,plugin,plugins}/**` | hand-maintained, no build step |
+| The compiler or CLI | `packages/agent-compiler/src`, `packages/cli/src` | `make check-core` |
 
-```
-opencode-agents/
-├── .opencode/
-│   ├── agent/              # Agents (category-based)
-│   │   ├── core/
-│   │   │   ├── openagent.md        # Universal orchestrator
-│   │   │   └── opencoder.md        # Development specialist
-│   │   ├── meta/
-│   │   │   └── system-builder.md   # System architect
-│   │   ├── development/
-│   │   │   ├── frontend-specialist.md
-│   │   │   └── backend-specialist.md
-│   │   ├── content/
-│   │   │   └── copywriter.md
-│   │   └── subagents/          # Specialized subagents
-│   ├── prompts/            # Prompt library (variants and experiments)
-│   │   ├── core/
-│   │   │   ├── openagent/
-│   │   │   │   ├── gpt.md
-│   │   │   │   └── llama.md
-│   │   │   └── opencoder/
-│   │   │       └── gpt.md
-│   │   └── development/
-│   │       └── frontend-specialist/
-│   │           └── gpt.md
-│   ├── command/            # Slash commands
-│   ├── tool/               # Utility tools
-│   ├── plugin/             # Integrations
-│   └── context/            # Context files
-├── evals/
-│   ├── agents/             # Agent test suites
-│   ├── framework/          # Testing framework
-│   └── results/            # Test results
-├── scripts/
-│   ├── prompts/            # Prompt management
-│   └── tests/              # Test utilities
-└── docs/
-    ├── agents/             # Agent documentation
-    ├── contributing/       # Contribution guides
-    └── guides/             # User guides
-```
+**Never hand-edit** `built-ai-configs/{opencode,claude-code}/**`, `built-ai-configs/opencode-v1/agent/**/*.md`,
+`built-ai-configs/registry/*.json`, `built-ai-configs/README.md`, `.opencode/agent/*.md`,
+`plugins/claude-code/agents/*.md` or `.oac/build-manifest.json`: they are build output and CI
+fails on any difference. The exact list and the reasons are in
+[docs/architecture/CORE.md](../architecture/CORE.md).
 
-> **Note**: Agents are authored once in `agent-library/agents/<category>/` (for example
-> `agent-library/agents/core/openagent.md`) and compiled by `oac build` (`make build-canonical`)
-> into `built-ai-configs/<tool>/`: `built-ai-configs/opencode/`, `built-ai-configs/opencode-v1/` and `built-ai-configs/claude-code/`.
-> `.opencode/agent/` and `plugins/claude-code/agents/` are generated copies of `built-ai-configs/`.
-> Never edit `built-ai-configs/` or those copies; CI fails on any hand edit (D-018).
+## Adding or changing an agent
 
-### Key Directories
-
-- **`.opencode/agent/core/`** - Core system agents (openagent.md, opencoder.md)
-- **`.opencode/agent/meta/`** - Meta-level agents (system-builder.md)
-- **`.opencode/agent/development/`** - Development specialist agents
-- **`.opencode/agent/content/`** - Content creation agents
-- **`.opencode/agent/subagents/`** - Specialized subagents
-- **`.opencode/prompts/`** - Library of prompt variants for different models (category-based)
-- **`evals/`** - Testing framework and test suites
-- **`scripts/`** - Automation and utility scripts
-- **`docs/`** - Documentation and guides
-
-## Quick Start
-
-1. Fork the repository
-2. Create a new branch for your feature
-3. Add your component
-4. Test it works
-5. Submit a pull request
-
-## Adding New Components
-
-### Component Types
-
-- **Agents** (`agent-library/agents/<category>/*.md`) - Main AI agents, built into `built-ai-configs/` by `oac build`
-- **Subagents** (`agent-library/agents/subagents/<category>/*.md`) - Specialized helpers, built the same way
-- **Commands** (`.opencode/command/*.md`) - Slash commands
-- **Tools** (`.opencode/tool/*/index.ts`) - Utility tools
-- **Plugins** (`.opencode/plugin/*.ts`) - Integrations
-- **Contexts** (`.opencode/context/**/*.md`) - Context files
-
-### Component Structure
-
-#### For Markdown Files (Agents, Commands, Contexts)
-
-All markdown files should include YAML frontmatter:
-
-```markdown
----
-id: devops-specialist
-name: DevOps Specialist
-description: "Brief description of what this does"
-category: development
-type: standard
-version: 1.0.0
-author: community
-mode: primary  # For agents only
-temperature: 0.1  # Optional - for agents only
-tools:  # For agents only
-  read: true
-  edit: true
-  write: true
-permissions:  # Optional
-  bash:
-    "*": "deny"
----
-
-# Component Name
-
-Your component content here...
-```
-
-**Required fields:**
-- `description` - Brief description (all components)
-
-**Agent-specific fields:**
-- `mode` - Agent mode (primary, secondary, etc.)
-- `model` - AI model to use
-- `temperature` - Temperature setting
-- `tools` - Available tools
-- `permissions` - Security permissions
-
-#### For TypeScript Files (Tools, Plugins)
-
-Include JSDoc comments at the top:
-
-```typescript
-/**
- * Tool Name
- * 
- * Brief description of what this tool does
- */
-
-export function myTool() {
-  // Implementation
-}
-```
-
-### File Naming Conventions
-
-- **kebab-case** for file names: `my-new-agent.md`
-- **PascalCase** for TypeScript types/interfaces
-- **camelCase** for variables and functions
-
-### Adding Your Component
-
-1. **Create the component file** in the appropriate directory:
-   ```bash
-   # Example: Adding a new agent (canonical source, never the generated .opencode/agent/)
-   touch agent-library/agents/subagents/code/my-new-agent.md
-   ```
-
-2. **Add frontmatter and content** following the structure above, then run `oac build`
-   (`make build-canonical`) and commit the regenerated `built-ai-configs/` files and mirrors with it
-
-3. **Test your component**:
-   ```bash
-   # Validate structure
-   ./scripts/registry/validate-component.sh
-   ```
-
-4. **Update the registry** (automatic on merge to main):
-   ```bash
-   # Manual update (optional)
-   ./scripts/registry/register-component.sh
-   ```
-
-## Component Categories
-
-When adding components, they're automatically categorized:
-
-- **core** - Essential components included in minimal installs
-- **extended** - Additional features for developer profile
-- **advanced** - Experimental or specialized components
-
-The auto-registration script assigns categories based on component type and location.
-
-## Testing Your Component
-
-### Local Testing
-
-1. **Install locally**:
-   ```bash
-   # Test the installer
-   ./install.sh --list
-   ```
-
-2. **Validate structure**:
-   ```bash
-   ./scripts/registry/validate-component.sh
-   ```
-
-3. **Test with OpenCode**:
-   ```bash
-   opencode --agent your-new-agent
-   ```
-
-### Automated Testing
-
-When you submit a PR, GitHub Actions will:
-- Validate component structure
-- Validate prompts use defaults
-- Update the registry
-- Run validation checks
-
-**Important**: PRs will fail if agents don't use their default prompts. This ensures the main branch stays stable.
-
-## Prompt Library System
-
-OpenCode uses a model-specific prompt library to support different AI models while keeping the main branch stable.
-
-### How It Works
-
-```
-.opencode/
-├── agent/              # Active prompts (always default in PRs)
-│   ├── openagent.md
-│   └── opencoder.md
-└── prompts/            # Prompt library (model-specific variants)
-    ├── openagent/
-    │   ├── gpt.md          # GPT-4 optimized
-    │   ├── gemini.md       # Gemini optimized
-    │   ├── grok.md         # Grok optimized
-    │   ├── llama.md        # Llama/OSS optimized
-    │   ├── TEMPLATE.md     # Template for new variants
-    │   ├── README.md       # Capabilities table
-    │   └── results/        # Test results (all variants)
-    └── opencoder/
-        └── ...
-
-**Architecture:**
-- Agent files (`agent-library/agents/**/*.md`) = Canonical defaults, built into `built-ai-configs/` and `.opencode/agent/`
-- Prompt variants (`.opencode/prompts/<agent>/<model>.md`) = Model-specific optimizations
-```
-
-### For Contributors
-
-#### Testing a Prompt Variant
+Full guide with a worked example and the common build errors: [agent-library/README.md](../../agent-library/README.md).
 
 ```bash
-# Test a specific variant
-./scripts/prompts/test-prompt.sh core/openagent sonnet-4
-
-# View results
-cat .opencode/prompts/core/openagent/results/sonnet-4-results.json
+# 1. create or edit agent-library/agents/<category>/<file>.md
+#    (frontmatter + an `oac:` block with id, name, category, type;
+#     oac.overrides.claude-code.tools is required unless you exclude claude-code)
+make build-canonical     # 2. generate every tool's copy
+git status               # 3. review what changed under built-ai-configs/
+make check-core          # 4. must pass
+git add -A && git commit # 5. source and generated files in the same commit
 ```
 
-#### Creating a New Variant
+An agent that no tier lists in `agent-library/profiles/system/*.json` is built but not installed
+by `oac init` / `install.sh`.
 
-1. **Copy the template:**
-   ```bash
-   cp .opencode/prompts/core/openagent/TEMPLATE.md .opencode/prompts/core/openagent/my-variant.md
-   ```
+## Registry
 
-2. **Edit your variant:**
-   - Add variant info (target model, focus, author)
-   - Document changes from default
-   - Write your prompt
+`built-ai-configs/registry/registry.json` (and `registry.v1.json`) is generated by `oac build`
+for agents, subagents and install tiers. For the other categories (contexts, commands, tools,
+skills) the build carries the committed entries through unchanged, so a new one is not registered
+automatically:
 
-3. **Test it:**
-   ```bash
-   ./scripts/prompts/test-prompt.sh core/openagent my-variant
-   ```
+- Add it to the registry's matching category with the other entries, then check it:
+  `bun run validate:registry` (or `./scripts/registry/validate-registry.sh -v`). It verifies that every
+  path exists and every dependency resolves. Details: [scripts/registry/README.md](../../scripts/registry/README.md).
+- `./scripts/registry/auto-detect-components.sh --dry-run` shows what the legacy scanner would add or
+  fix for those categories; `--auto-add` applies it. The `Update Component Registry` workflow
+  (`update-registry.yml`) runs the same scanner but only when dispatched by hand: it no longer runs on push.
+- Do not use `./scripts/registry/register-component.sh` for agents. It only refreshes the registry's
+  `lastUpdated` date by editing a generated file in place, and the next `oac build` overwrites it.
 
-4. **Update the README:**
-   - Add your variant to the capabilities table in `.opencode/prompts/core/openagent/README.md`
-   - Document test results
-   - Explain what it optimizes for
+Declare dependencies of an agent in its `oac.dependencies` (`subagent:contextscout`,
+`context:standards-code`, ...), not in the registry file.
 
-5. **Submit PR:**
-   - Include your variant file (e.g., `my-variant.md`)
-   - Include updated README with results
-   - **Do NOT change the default prompt**
-   - **Do NOT change `agent-library/agents/core/openagent.md`** (or its generated copies)
+## Conventions
 
-#### PR Requirements for Prompts
-
-**All PRs must use default prompts.** CI automatically validates this.
-
-Before submitting a PR:
-```bash
-# Ensure you're using defaults
-./scripts/prompts/validate-pr.sh
-
-# If validation fails, restore defaults
-./scripts/prompts/use-prompt.sh core/openagent default
-./scripts/prompts/use-prompt.sh core/opencoder default
-```
-
-#### Why This System?
-
-- **Stability**: Main branch always uses tested defaults
-- **Experimentation**: Contributors can optimize for specific models
-- **Transparency**: Test results are documented for each variant
-- **Flexibility**: Users can choose the best prompt for their model
-
-### For Maintainers
-
-#### Promoting a Variant to Default
-
-When a variant proves superior:
-
-1. **Verify test results:**
-   ```bash
-   cat .opencode/prompts/core/openagent/results/variant-results.json
-   ```
-
-2. **Update agent file (canonical default):**
-   ```bash
-   cp .opencode/prompts/core/openagent/variant.md agent-library/agents/core/openagent.md
-   oac build   # or: make build-canonical
-   ```
-
-3. **Update capabilities table** in README
-
-4. **Commit with clear message:**
-   ```bash
-   git add agent-library/agents/core/openagent.md built-ai-configs/ .opencode/agent/ built-ai-configs/registry/registry.json .oac/build-manifest.json
-   git commit -m "feat(openagent): promote variant to default - improved X by Y%"
-   ```
-
-**Note:** In the new architecture, agent files are the canonical defaults. There are no `default.md` files in the prompts directory.
-
-## Pull Request Guidelines
-
-### PR Title Format
-
-Use conventional commits:
-- `feat: add new agent for X`
-- `fix: correct issue in Y command`
-- `docs: update Z documentation`
-- `chore: update dependencies`
-- `prompt: add new variant for X model`
-
-### PR Description
-
-Include:
-1. **What** - What component are you adding/changing?
-2. **Why** - Why is this useful?
-3. **How** - How does it work?
-4. **Testing** - How did you test it?
-
-Example:
-```markdown
-## What
-Adds a new `database-agent` for managing database migrations.
-
-## Why
-Automates common database tasks and ensures migration safety.
-
-## How
-- Scans migration files
-- Validates migration order
-- Runs migrations with rollback support
+- File names: kebab-case (`my-new-agent.md`). TypeScript: PascalCase types, camelCase values.
+- Markdown: clear, short, with examples. Bash: `set -e`, a comment for anything non-obvious.
+- TypeScript: follow the surrounding style, no `any`.
 
 ## Testing
-- [x] Validated with `./scripts/registry/validate-component.sh`
-- [x] Tested with PostgreSQL and MySQL
-- [x] Tested rollback scenarios
-```
-
-## Component Dependencies
-
-If your component depends on others, declare them in the registry:
-
-```json
-{
-  "id": "my-component",
-  "dependencies": ["tool:env", "agent:task-manager"]
-}
-```
-
-The installer will automatically install dependencies.
-
-## Registry Auto-Update
-
-The registry is automatically updated when:
-- You push to `main` branch
-- Changes are made to `.opencode/` directory
-
-The GitHub Action:
-1. Scans all components
-2. Extracts metadata
-3. Updates `built-ai-configs/registry/registry.json`
-4. Commits changes
-
-You don't need to manually edit `built-ai-configs/registry/registry.json`!
-
-## Code Style
-
-### Markdown
-- Use clear, concise language
-- Include examples
-- Add code blocks with syntax highlighting
-- Use proper heading hierarchy
-
-### TypeScript
-- Follow existing code style
-- Add JSDoc comments
-- Use TypeScript types (no `any`)
-- Export functions explicitly
-
-### Bash Scripts
-- Use `set -e` for error handling
-- Add comments for complex logic
-- Use meaningful variable names
-- Include help text
-
-## Quick Reference
-
-### Creating a New Agent
 
 ```bash
-# Use the automated system (recommended)
-/create-agent my-agent-name
-
-# Or manually follow the development guide
-# See: docs/contributing/DEVELOPMENT.md#creating-new-agents
+make check-core                         # drift gate, compiler and CLI tests, typecheck, installer tests
+./scripts/registry/validate-component.sh  # structure check for components (legacy)
+cd evals/framework && npm test          # eval framework, see DEVELOPMENT.md
 ```
 
-### Running Tests
+Try an agent by hand: `opencode --agent <oac.id>` (v2 addresses agents by id). In this repo OpenCode
+reads the generated `.opencode/agent/`, so rebuild first.
+
+## Prompt variants
+
+Model-specific prompt variants live in `.opencode/prompts/<category>/<agent>/<model>.md`
+(copy `TEMPLATE.md`; list the result in that folder's `README.md`). The canonical agent in
+`agent-library/` stays the default: **a PR must not change an agent's default prompt just to add a variant.**
 
 ```bash
-cd evals/framework
-npm test -- --agent=my-agent
+./scripts/prompts/test-prompt.sh --agent=openagent --variant=gpt    # copies the variant in, runs evals, restores
+./scripts/prompts/use-prompt.sh --agent=openagent --variant=gpt     # local experiment only
+./scripts/prompts/validate-pr.sh                                    # run before opening the PR
 ```
 
-### Validating Before PR
+`use-prompt.sh` copies a variant over `.opencode/agent/`, which is generated: do not commit that.
+To promote a variant, copy its body into the agent file in `agent-library/`, then `make build-canonical`.
 
-```bash
-# Validate structure
-./scripts/registry/validate-component.sh
+## Pull requests
 
-# Ensure using defaults
-./scripts/prompts/validate-pr.sh
+Title in conventional-commit form: `feat:`, `fix:`, `docs:`, `chore:`, `prompt:`.
+Describe what changed, why, and how you tested it. CI runs the drift gate, compiler and CLI tests,
+registry validation and the installer tests; `make check-core` reproduces most of it locally.
 
-# Run tests
-cd evals/framework && npm test
-```
+## Questions
 
-### Common Commands
-
-```bash
-# List available components
-./install.sh --list
-
-# Validate registry
-make validate-registry
-
-# Update registry
-make update-registry
-
-# Test a prompt variant
-./scripts/prompts/test-prompt.sh openagent my-variant
-```
-
-## Questions?
-
-- **Issues**: Open an issue for bugs or feature requests
-- **Discussions**: Use GitHub Discussions for questions
-- **Security**: Email security issues privately
-- **Development Help**: See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed guides
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the MIT License.
-
----
-
-Thank you for contributing! 🎉
+Issues for bugs and ideas, Discussions for questions, private email for security reports
+([SECURITY.md](../../SECURITY.md)). By contributing you agree your work is licensed under the MIT License.
