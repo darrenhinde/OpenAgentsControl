@@ -7,7 +7,7 @@ OWNER := darrenhinde
 
 .PHONY: help idea ideas board labels project-info issue-view issue-comment issue-close bug feature
 .PHONY: test-evals test-golden test-smoke test-verbose build-evals validate-evals
-.PHONY: build-canonical check-canonical-drift oac-cli test-local
+.PHONY: build-canonical check-canonical-drift check-core oac-cli test-local
 
 help: ## Show this help message
 	@echo "OpenAgents GitHub Project Management"
@@ -173,6 +173,18 @@ build-canonical: oac-cli ## Regenerate the committed trees from agent-library/ag
 check-canonical-drift: oac-cli ## Fail if the generated trees drift from agent-library/agents/** (CI gate)
 	@echo "🔍 Checking for generated-tree drift..."
 	@bash scripts/validation/check-build-drift.sh
+
+check-core: check-canonical-drift ## Full core health check: drift gate, compiler + CLI tests, typecheck, change-detection tests
+	@echo "🧪 Compiler tests..."
+	@pnpm --dir packages/agent-compiler exec vitest run
+	@echo "🧪 CLI tests..."
+	@cd packages/cli && bun test
+	@echo "🔎 Typecheck..."
+	@pnpm --dir packages/agent-compiler exec tsc --noEmit
+	@pnpm --dir packages/cli exec tsc --noEmit
+	@echo "🧪 Change-detection tests..."
+	@bun test scripts/validation
+	@echo "✅ Core is healthy"
 
 build-evals: ## Build the evaluation framework
 	@echo "🔨 Building evaluation framework..."
