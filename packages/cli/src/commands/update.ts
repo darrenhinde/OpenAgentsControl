@@ -137,8 +137,8 @@ function printSummary(result: InstallResult, isDryRun: boolean): void {
   const backedUpCount = result.backed_up.length;
 
   const parts: string[] = [];
-  if (result.pruned.length > 0) parts.push(`${result.pruned.length} removed`);
-  if (updatedCount > 0) parts.push(`${updatedCount} file(s) updated`);
+  if (result.pruned.length > 0) parts.push(`${result.pruned.length} ${isDryRun ? 'would be removed' : 'removed'}`);
+  if (updatedCount > 0) parts.push(`${updatedCount} file(s) ${isDryRun ? 'would be updated' : 'updated'}`);
   if (result.unchanged.length > 0) parts.push(`${result.unchanged.length} unchanged`);
   if (skippedCount > 0) parts.push(`${skippedCount} skipped (user-modified)`);
   if (backedUpCount > 0) parts.push(`${backedUpCount} backed up`);

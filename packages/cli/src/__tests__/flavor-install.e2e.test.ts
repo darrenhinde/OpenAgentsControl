@@ -195,6 +195,16 @@ describe('oac add and update honour the recorded flavor', () => {
     expect(await exists(v2, '.opencode/agent/core/openagent.md')).toBe(true);
   });
 
+  test('update --check words its summary as a preview', async () => {
+    const dir = await newProject();
+    oac(dir, ['init', '--opencode', 'v1', '--profile', 'essential'], '1.19.3');
+    const r = oac(dir, ['update', '--check', '--opencode', 'v2'], '2.0.30');
+    expect(r.code).toBe(0);
+    expect(r.out).toMatch(/would be (updated|removed)/);
+    expect(r.out).not.toMatch(/\d+ file\(s\) updated/);
+    expect(await exists(dir, '.opencode/agent/core/openagent.md')).toBe(true);
+  });
+
   test('init writes the marker, and an update with nothing to change reports it as unchanged', async () => {
     const dir = await newProject();
     oac(dir, ['init', '--opencode', 'v1'], '1.19.3');
