@@ -32,7 +32,8 @@ hand-edited.
 2. the drift gate: a real build, then no change to any generated file;
 3. compiler tests (vitest) and CLI tests (`bun test`);
 4. typecheck of both packages;
-5. the change-detection tests that decide which CI gates run.
+5. the change-detection tests that decide which CI gates run;
+6. the installer flavor tests (`scripts/tests/test-flavor-install.sh`, bash).
 
 `oac build` itself also reports degradation warnings, dead delegation references and lint
 findings on the built trees; the last two must be zero.

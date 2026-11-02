@@ -184,6 +184,8 @@ check-core: check-canonical-drift ## Full core health check: drift gate, compile
 	@pnpm --dir packages/cli exec tsc --noEmit
 	@echo "🧪 Change-detection tests..."
 	@bun test scripts/validation
+	@echo "🧪 Installer flavor tests (bash)..."
+	@/bin/bash scripts/tests/test-flavor-install.sh
 	@echo "✅ Core is healthy"
 
 build-evals: ## Build the evaluation framework
