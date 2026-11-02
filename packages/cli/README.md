@@ -28,6 +28,8 @@ The root `README.md` shows the `npm i -g` route; the package name is not final.
 | `oac status` | One-screen summary of the install | `--verbose` |
 | `oac build` | Maintainers: compile `agent-library/agents/**` into `built-ai-configs/**` | `--target <tool...>` (opencode, opencode-v1, claude-code), `--check`, `--dry-run`, `--strict`, `--no-prune`, `--verbose`, `--json` (reserved) |
 
+<!-- TODO-after-code: (3) `oac apply claude` will copy the compiled Claude agent files instead of converting the installed `.opencode/agent/` ones; rewrite the `oac apply` row above when that lands. -->
+
 `oac build` reads `agent-library/` from the current directory, so run it at the repo root.
 `--check` exits 1 on drift; a build or lint error exits 1; `--strict` also fails on warnings.
 Authoring guide: [agent-library/README.md](../../agent-library/README.md).
