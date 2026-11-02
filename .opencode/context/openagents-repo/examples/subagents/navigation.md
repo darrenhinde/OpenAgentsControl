@@ -25,7 +25,7 @@ subagents/
 | **Code reviewer** | `code-reviewer.md` |
 | **DB validator** | `db-validator.md` |
 | **Debugger** | `debugger.md` |
-| **Subagent concepts** | `../../concepts/subagents.md` |
+| **Subagent concepts** | `../../concepts/subagents-system.md` |
 
 ---
 

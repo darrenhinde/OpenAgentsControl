@@ -67,7 +67,7 @@ Or: `claude --disallowedTools "Task(Explore)"`
 ## Related
 
 - `../concepts/subagents-system.md` - Subagents overview
-- `../guides/creating-subagents.md` - Custom subagents
+- `../guides/authoring-agents.md` - Custom subagents
 - `../lookup/subagent-frontmatter.md` - Configuration
 
 **Reference**: https://docs.anthropic.com/en/docs/claude-code/sub-agents

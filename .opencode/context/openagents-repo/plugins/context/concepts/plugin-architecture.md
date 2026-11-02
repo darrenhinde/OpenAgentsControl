@@ -44,6 +44,6 @@ Plugins are directories containing a manifest (`.claude-plugin/plugin.json`) plu
 
 - `../guides/creating-plugins.md` - How to create plugins
 - `../lookup/plugin-structure.md` - Directory structure
-- `../../guides/adding-skill.md` - Adding skills to plugins
+- `../../../guides/adding-skill-basics.md` - Adding skills to plugins
 
 **Reference**: https://docs.anthropic.com/en/docs/claude-code/plugins

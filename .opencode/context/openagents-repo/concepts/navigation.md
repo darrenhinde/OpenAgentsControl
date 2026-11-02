@@ -1,40 +1,18 @@
-<!-- Context: openagents-repo/navigation | Priority: critical | Version: 1.0 | Updated: 2026-02-15 -->
+<!-- Context: openagents-repo/concepts/navigation | Priority: critical | Version: 2.0 | Updated: 2026-11-02 -->
 
-# OpenAgents Concepts
+# Concepts
 
-**Purpose**: Core concepts and ideas for OpenAgents Control
+**Purpose**: Ideas behind agents, skills, hooks and testing
 
----
+| File | Topic |
+|------|-------|
+| [agent-skills.md](agent-skills.md) | Markdown files that teach Claude how to do specific tasks |
+| [hooks-system.md](hooks-system.md) | User-defined shell commands that execute at Claude Code lifecycle points |
+| [subagent-testing-modes.md](subagent-testing-modes.md) | Understand the two ways to test subagents (standalone vs delegation) |
+| [subagents-system.md](subagents-system.md) | Specialized AI assistants with own context window for task-specific workflows |
 
-## Structure
+## Related
 
-```
-openagents-repo/concepts/
-├── navigation.md (this file)
-└── [concept files]
-```
-
----
-
-## Quick Routes
-
-| Task | Path |
-|------|------|
-| **View concepts** | `./` |
-| **Core concepts** | `../core-concepts/navigation.md` |
-| **Guides** | `../guides/navigation.md` |
-
----
-
-## By Type
-
-**Concepts** → Foundational concepts for OpenAgents  
-**Core Concepts** → Deep dives into core ideas
-
----
-
-## Related Context
-
-- **OpenAgents Navigation** → `../navigation.md`
-- **Core Concepts** → `../core-concepts/navigation.md`
-- **Guides** → `../guides/navigation.md`
+- [Root](../navigation.md)
+- [Core concepts](../core-concepts/navigation.md)
+- [Guides](../guides/navigation.md)

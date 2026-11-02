@@ -67,6 +67,6 @@ Or Claude delegates automatically when code is modified.
 ## Related
 
 - `./debugger.md` - Debugger subagent (with edit access)
-- `../../guides/creating-subagents.md` - Creation guide
+- `../../guides/authoring-agents.md` - Creation guide
 
 **Reference**: https://docs.anthropic.com/en/docs/claude-code/sub-agents

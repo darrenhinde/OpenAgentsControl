@@ -2,7 +2,7 @@
 
 # Guide: Adding Agent Tests
 
-**Prerequisites**: Load `adding-agent-basics.md` first  
+**Prerequisites**: Load `authoring-agents.md` first  
 **Purpose**: Additional test patterns for agents
 
 ---
@@ -47,39 +47,8 @@ expectations:
 ## Complete Example: API Specialist
 
 ```bash
-# 1. Create agent file
-cat > .opencode/agent/subagents/development/api-specialist.md << 'EOF'
----
-description: "Expert in REST and GraphQL API design"
-category: "development"
-type: "agent"
-tags: ["api", "rest", "graphql"]
-dependencies: ["subagent:tester"]
----
-
-# API Specialist
-
-**Purpose**: Design and implement robust APIs
-
-## Focus
-- REST API design
-- GraphQL schemas
-- API documentation
-- Authentication/authorization
-
-## Workflow
-1. Analyze requirements
-2. Design API structure
-3. Implement endpoints
-4. Add tests
-5. Document API
-
-## Constraints
-- Follow REST best practices
-- Use proper HTTP methods
-- Include error handling
-- Add comprehensive tests
-EOF
+# 1. Author the agent in agent-library/agents/ (guides/authoring-agents.md), then:
+make build-canonical
 
 # 2. Create test structure
 mkdir -p evals/agents/development/api-specialist/{config,tests}
@@ -104,10 +73,7 @@ expectations:
   - type: no_violations
 EOF
 
-# 3. Update registry
-./scripts/registry/auto-detect-components.sh --auto-add
-
-# 4. Validate
+# 3. Validate
 ./scripts/registry/validate-registry.sh
 cd evals/framework && npm run eval:sdk -- --agent=development/api-specialist --pattern="smoke-test.yaml"
 ```
@@ -118,8 +84,8 @@ cd evals/framework && npm run eval:sdk -- --agent=development/api-specialist --p
 
 | Problem | Solution |
 |---------|----------|
-| Auto-detect doesn't find agent | Check frontmatter is valid YAML |
-| Registry validation fails | Verify file path is correct |
+| Agent not found by the eval | Run `make build-canonical`; the agent must exist in `.opencode/agent/` |
+| Registry validation fails | `guides/updating-registry.md` |
 | Test fails unexpectedly | Load `debugging.md` for troubleshooting |
 
 ---
@@ -133,13 +99,12 @@ For Claude Code-only helpers, create a project subagent:
 - **Optional**: `tools`, `disallowedTools`, `permissionMode`, `skills`, `hooks`
 - **Reload**: restart Claude Code or run `/agents`
 
-See `creating-subagents.md` for Claude Code subagent details.
+Anything this repo ships goes through `authoring-agents.md` instead.
 
 ---
 
 ## Related
 
-- `adding-agent-basics.md` - Basic agent creation
+- `authoring-agents.md` - Agent creation
 - `testing-agent.md` - Testing guide
 - `debugging.md` - Troubleshooting
-- `creating-subagents.md` - Claude Code subagents

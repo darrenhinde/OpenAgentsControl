@@ -79,7 +79,7 @@ You are an expert debugger...
 ## Related
 
 - `../concepts/subagents-system.md` - Subagents overview
-- `../guides/creating-subagents.md` - Creation guide
+- `../guides/authoring-agents.md` - Creation guide
 - `../lookup/builtin-subagents.md` - Built-in subagents
 
 **Reference**: https://docs.anthropic.com/en/docs/claude-code/sub-agents

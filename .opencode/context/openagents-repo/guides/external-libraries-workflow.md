@@ -159,7 +159,7 @@ task(
 
 ### When Adding an Agent
 
-1. Read: `guides/adding-agent.md`
+1. Read: `guides/authoring-agents.md`
 2. **If agent uses external packages**:
    - Use ExternalScout to fetch docs
    - Document dependencies in agent metadata
@@ -168,7 +168,7 @@ task(
 
 ### When Adding a Skill
 
-1. Read: `guides/adding-skill.md`
+1. Read: `guides/adding-skill-basics.md`
 2. **If skill uses external packages**:
    - Use ExternalScout to fetch docs
    - Document dependencies in skill metadata
@@ -209,8 +209,8 @@ Before implementing with external libraries:
 
 ## Related Guides
 
-- `guides/adding-agent.md` - Creating new agents
-- `guides/adding-skill.md` - Creating new skills
+- `guides/authoring-agents.md` - Creating new agents
+- `guides/adding-skill-basics.md` - Creating new skills
 - `guides/debugging.md` - Troubleshooting (includes dependency issues)
 - `guides/updating-registry.md` - Registry management
 
