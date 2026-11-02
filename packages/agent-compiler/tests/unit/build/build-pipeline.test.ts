@@ -692,6 +692,21 @@ describe("claude-code delegation roster", () => {
     await expect(plan({ root })).rejects.toThrow(/boss.*claude-code.*ghost/s);
   });
 
+  it("fails a claude-code agent whose permission.task key names an agent outside the claude-code roster", async () => {
+    const boss = (key: string) =>
+      canonicalAgent("boss", ["claude-code"]).replace("permission:\n", `permission:\n  task:\n    "${key}": allow\n    "*": deny\n`);
+    put("agent-library/agents/subagents/test/v1only.md", canonicalAgent("v1only", ["opencode-v1"]));
+
+    for (const key of ["v1only", "nonexistent"]) {
+      put("agent-library/agents/subagents/test/boss.md", boss(key));
+      const failure = await plan({ root }).then(() => null, (error: Error) => error);
+      expect(failure?.message).toMatch(/boss\.md.*boss.*claude-code.*/s);
+      expect(failure?.message).toContain(key);
+    }
+
+    put("agent-library/agents/subagents/test/boss.md", boss("beta"));
+    await expect(plan({ root })).resolves.toBeDefined();
+  });
 });
 
 describe("dead references in the planned tree", () => {
