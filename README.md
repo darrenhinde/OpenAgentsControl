@@ -818,7 +818,7 @@ See: [Contributing Guide](docs/contributing/CONTRIBUTING.md) • [Code of Conduc
 
 ### Working on this repo
 
-Start at the [docs map](docs/README.md). To write or change an agent, read [agent-library/README.md](agent-library/README.md); the architecture is one page in [docs/architecture/CORE.md](docs/architecture/CORE.md). The loop is: edit `agent-library/agents/**`, run `make build-canonical`, then `make check-core`, and commit the generated files with the source.
+The minimum is one page: [agent-library/README.md](agent-library/README.md), which has the five-step loop (edit, `make build-canonical`, review, `make check-core`, commit the generated files with the source). [CORE.md](docs/architecture/CORE.md) (architecture), [CONTRIBUTING](docs/contributing/CONTRIBUTING.md) and [DEVELOPMENT](docs/contributing/DEVELOPMENT.md) (tool versions, setup) are optional depth; the [docs map](docs/README.md) lists the rest.
 
 ### Where the built files live
 

@@ -8,7 +8,7 @@ this page covers machine setup, the repo layout, what the checks run, and where 
 | Tool | Version | Why |
 | --- | --- | --- |
 | Bun | 1.3.14 (CI pins it) | runs the CLI, `make` targets and some tests |
-| pnpm | 10.33.4, taken from the `packageManager` field in `package.json` (Corepack picks it up) | installs the workspaces |
+| pnpm | 10.33.4, taken from the `packageManager` field in `package.json` | installs the workspaces |
 | Node.js | 20+ | compiler, typecheck and the eval framework |
 | jq | any | needed by `install.sh` and the installer tests |
 | Git, Bash | | macOS/Linux, or Git Bash on Windows |

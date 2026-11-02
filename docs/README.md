@@ -1,6 +1,8 @@
 # Documentation map
 
-Read in this order if you work on the repo. Users only need the first two rows.
+**Working on the repo? Read [../agent-library/README.md](../agent-library/README.md) (row 4) and nothing else is required.**
+[CORE.md](architecture/CORE.md), [CONTRIBUTING.md](contributing/CONTRIBUTING.md) and [DEVELOPMENT.md](contributing/DEVELOPMENT.md)
+are optional depth. Users only need the first two rows.
 
 | # | Read | For |
 | --- | --- | --- |
@@ -17,8 +19,8 @@ Component registry: [../built-ai-configs/registry/registry.json](../built-ai-con
 
 ## Contributing
 
-- [contributing/CONTRIBUTING.md](contributing/CONTRIBUTING.md): add or change a component, open a PR
-- [contributing/DEVELOPMENT.md](contributing/DEVELOPMENT.md): local setup, tests, troubleshooting
+- [contributing/CONTRIBUTING.md](contributing/CONTRIBUTING.md): conventions, registry, opening a PR
+- [contributing/DEVELOPMENT.md](contributing/DEVELOPMENT.md): tool versions, setup, repo layout, what the checks run
 - [contributing/CODE_OF_CONDUCT.md](contributing/CODE_OF_CONDUCT.md)
 - [github/GITHUB_SETTINGS.md](github/GITHUB_SETTINGS.md): repository settings checklist
 

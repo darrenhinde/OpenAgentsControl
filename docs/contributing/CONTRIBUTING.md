@@ -1,7 +1,15 @@
 # Contributing to OpenAgents Control
 
-Thanks for helping. This page is the short version; [DEVELOPMENT.md](DEVELOPMENT.md) has setup and
-troubleshooting. Start from the [docs map](../README.md).
+Thanks for helping.
+
+**Minimum reading:** [agent-library/README.md](../../agent-library/README.md). It covers writing or changing an agent end to
+end. This page (conventions, registry, PRs), [DEVELOPMENT.md](DEVELOPMENT.md) (tool versions, setup, layout) and
+[CORE.md](../architecture/CORE.md) (architecture) are optional depth. Docs map: [../README.md](../README.md).
+
+Before anything else, install the tools listed in [DEVELOPMENT.md](DEVELOPMENT.md#prerequisites): Bun 1.3.14 (CI pins it),
+pnpm 10.33.4 (the `packageManager` field), Node.js 20+ and jq (needed by `install.sh` and the tests), then
+`pnpm install --frozen-lockfile`. The pnpm warning `Ignored build scripts: esbuild` is harmless, and 14 degradation
+warnings from `oac build` is the normal baseline.
 
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Adding evaluators](ADDING_EVALUATOR.md)
@@ -26,18 +34,9 @@ fails on any difference. The exact list and the reasons are in
 
 Full guide with a worked example and the common build errors: [agent-library/README.md](../../agent-library/README.md).
 
-```bash
-# 1. create or edit agent-library/agents/<category>/<file>.md
-#    (frontmatter + an `oac:` block with id, name, category, type;
-#     oac.overrides.claude-code.tools is required unless you exclude claude-code)
-make build-canonical     # 2. generate every tool's copy
-git status               # 3. review what changed under built-ai-configs/
-make check-core          # 4. must pass
-git add -A && git commit # 5. source and generated files in the same commit
-```
-
-An agent that no tier lists in `agent-library/profiles/system/*.json` is built but not installed
-by `oac init` / `install.sh`.
+In short: edit `agent-library/agents/**`, `make build-canonical`, `make check-core`, commit the source and the
+generated files together. The five steps, the file anatomy, how to check each host and adding the agent to an
+install tier (`agent-library/profiles/system/*.json`) are in [agent-library/README.md](../../agent-library/README.md#the-workflow).
 
 ## Registry
 
@@ -67,13 +66,14 @@ Declare dependencies of an agent in its `oac.dependencies` (`subagent:contextsco
 ## Testing
 
 ```bash
-make check-core                         # drift gate, compiler and CLI tests, typecheck, installer tests
-./scripts/registry/validate-component.sh  # structure check for components (legacy)
-cd evals/framework && npm test          # eval framework, see DEVELOPMENT.md
+make check-core                                   # drift gate, compiler and CLI tests, typecheck, installer tests
+bun run validate:registry                         # registry paths and dependencies
+pnpm --dir evals/framework run test:ci            # eval framework unit tests (no model calls)
 ```
 
-Try an agent by hand: `opencode --agent <oac.id>` (v2 addresses agents by id). In this repo OpenCode
-reads the generated `.opencode/agent/`, so rebuild first.
+What each check covers and where the tests live: [DEVELOPMENT.md](DEVELOPMENT.md#what-the-checks-run).
+Try an agent by hand: `opencode run --agent <oac.id> "<message>"` (v2 addresses agents by id). In this repo
+OpenCode reads the generated `.opencode/agent/`, so rebuild first. More: [Check it on each host](../../agent-library/README.md#check-it-on-each-host).
 
 ## Prompt variants
 

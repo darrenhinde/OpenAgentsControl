@@ -51,5 +51,8 @@ oac build --check  # report drift, write nothing
 ```bash
 pnpm run build      # tsc
 pnpm run test       # vitest
-pnpm run lint       # eslint
 ```
+
+<!-- TODO-after-code: (4) add `pnpm run lint       # eslint` to the block above once it passes; today it fails with 6 errors, so it is not listed. -->
+
+`make check-core` (repo root) runs these tests, the typecheck and the drift gate; use that before pushing.
