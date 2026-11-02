@@ -35,6 +35,12 @@ export type InstallOptions = {
    * Set only when an install is deliberately moved between flavors. `updateFiles` only.
    */
   pruneStale?: boolean;
+  /**
+   * With `pruneStale`: the flavor being left. Files its bundle ships that sit in a flavor-sensitive
+   * directory, are absent from the new bundle and are not in the manifest (for example agents an
+   * `install.sh` run placed that the CLI's profile does not know) are pruned too. `updateFiles` only.
+   */
+  previousFlavor?: OpenCodeFlavor;
 };
 
 export type InstallResult = {
@@ -457,6 +463,23 @@ export async function updateFiles(
         result: mergeResult(acc.result, { removed_from_manifest: [trackedPath] }),
         updatedManifest: removeFileFromManifest(acc.updatedManifest, trackedPath),
       };
+    }
+  }
+
+  if (options.pruneStale === true && options.previousFlavor !== undefined && options.previousFlavor !== (options.flavor ?? DEFAULT_FLAVOR)) {
+    const tracked = new Set(Object.keys(manifest?.files ?? {}));
+    const previous = await listBundledFiles(options.packageRoot, options.previousFlavor);
+    for (const source of previous) {
+      const dest = toDestPath(source);
+      if (wholeBundle.has(dest) || tracked.has(dest) || !isInstallablePath(source)) continue;
+      if (!FLAVOR_SENSITIVE_PREFIXES.some((prefix) => dest.startsWith(prefix))) continue;
+      const absolute = path.join(options.projectRoot, dest);
+      if (!(await stat(absolute).then((s) => s.isFile()).catch(() => false))) continue;
+      // Not tracked, so there is no recorded hash: compare with the previous bundle's own copy.
+      // Identical -> removed; edited -> backed up first (same rule as a tracked file).
+      const sha256 = await computeFileHash(getBundledFilePath(options.packageRoot, source));
+      const patch = await pruneFile(dest, { sha256 } as FileEntry, options, timestamp);
+      acc = { ...acc, result: mergeResult(acc.result, patch) };
     }
   }
 

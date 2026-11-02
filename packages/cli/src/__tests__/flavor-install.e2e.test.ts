@@ -171,6 +171,30 @@ describe('oac add and update honour the recorded flavor', () => {
     expect(await readFile(join(dir, '.opencode/.oac-opencode'), 'utf8')).toBe('v2\n');
   });
 
+  test('a switch also removes untracked files of the previous flavor, backing up edited ones (install.sh leftovers)', async () => {
+    const copy = async (dir: string, from: string, to: string, edit = false): Promise<void> => {
+      const text = await readFile(join(REPO, from), 'utf8');
+      await mkdir(join(dir, to, '..'), { recursive: true });
+      await writeFile(join(dir, to), edit ? `${text}\nMY EDIT\n` : text);
+    };
+    // v1 -> v2: files install.sh placed that the CLI's profile (and so the manifest) does not know.
+    const v1 = await newProject();
+    oac(v1, ['init', '--opencode', 'v1', '--profile', 'essential'], '1.19.3');
+    await copy(v1, 'built-ai-configs/opencode-v1/agent/subagents/code/coder-agent.md', '.opencode/agent/subagents/code/coder-agent.md');
+    await copy(v1, 'built-ai-configs/opencode-v1/agent/subagents/core/batch-executor.md', '.opencode/agent/subagents/core/batch-executor.md', true);
+    expect(oac(v1, ['update', '--opencode', 'v2'], '2.0.30').code).toBe(0);
+    expect(await exists(v1, '.opencode/agent/subagents')).toBe(false);
+    expect((await walk(join(v1, '.oac/backups'))).filter((f) => f.endsWith('batch-executor.md')).length).toBe(1);
+
+    // v2 -> v1: a flat v2 agent left behind.
+    const v2 = await newProject();
+    oac(v2, ['init', '--profile', 'essential']);
+    await copy(v2, 'built-ai-configs/opencode/agent/coder-agent.md', '.opencode/agent/coder-agent.md');
+    expect(oac(v2, ['update', '--opencode', 'v1'], '1.19.3').code).toBe(0);
+    expect(await exists(v2, '.opencode/agent/coder-agent.md')).toBe(false);
+    expect(await exists(v2, '.opencode/agent/core/openagent.md')).toBe(true);
+  });
+
   test('init writes the marker, and an update with nothing to change reports it as unchanged', async () => {
     const dir = await newProject();
     oac(dir, ['init', '--opencode', 'v1'], '1.19.3');
