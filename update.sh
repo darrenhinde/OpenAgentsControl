@@ -209,8 +209,21 @@ resolve_install_dir() {
 # OpenCode flavor
 #############################################################################
 
-# Settle OPENCODE_FLAVOR to v1 or v2. An explicit --opencode wins; otherwise the marker written
-# by install.sh; otherwise v2. An install that predates the marker and still has nested agents
+# The flavor `oac` recorded in <project>/.oac/config.json ("opencode": {"target": "v1"}), or empty.
+# Needs no jq: the file is JSON the CLI wrote, so it is flattened and matched with sed.
+config_flavor() {
+    local install_dir="$1" config_file
+    [ "$(basename "$install_dir")" = ".opencode" ] || return 0
+    config_file="$(dirname "$install_dir")/.oac/config.json"
+    [ -f "$config_file" ] || return 0
+    tr -d '\n\r' < "$config_file" \
+        | sed -n -E 's/.*"opencode"[[:space:]]*:[[:space:]]*\{[[:space:]]*"target"[[:space:]]*:[[:space:]]*"(v[12])".*/\1/p'
+}
+
+# Settle OPENCODE_FLAVOR to v1 or v2. An explicit --opencode wins; otherwise what the install
+# recorded: .oac/config.json (written by the CLI) first, then the marker install.sh writes. If the
+# two disagree the config wins, because the CLI updates both and a stale marker is the wrong one.
+# Otherwise v2. An install that predates the marker and still has nested agents
 # is the v1 layout: it is left alone and the user is pointed at the tool that migrates safely.
 #
 # This script never converts one layout into the other: it only refreshes files that already
@@ -227,7 +240,8 @@ resolve_flavor() {
         *) print_error "Unknown OpenCode version '${OPENCODE_FLAVOR}'. Use v1 or v2."; exit 1 ;;
     esac
 
-    if [ -f "$install_dir/.oac-opencode" ]; then
+    recorded=$(config_flavor "$install_dir")
+    if [ -z "$recorded" ] && [ -f "$install_dir/.oac-opencode" ]; then
         recorded=$(tr -d '[:space:]' < "$install_dir/.oac-opencode")
         if [ "$recorded" != "v1" ] && [ "$recorded" != "v2" ]; then
             recorded=""
