@@ -264,7 +264,7 @@ against the corpus, and the authored order only makes sense under last-match), b
 **primary verification against OpenCode's actual resolver is still REQUIRED before Stage 1.**
 
 **In-repo sources (self-authored — corroborating, not probative):**
-- `docs/archive/planning/12-MASTER-SYNTHESIS.md:432` — *"The `permission:` field uses **last-match-wins**
+- `docs/history/archive/planning/12-MASTER-SYNTHESIS.md:432` — *"The `permission:` field uses **last-match-wins**
   evaluation (same as OpenCode's native system)"*
 - `.opencode/context/openagents-repo/standards/permission-patterns.md:11` — *"OpenCode v1.1.1+
   uses `permission:` … Rules follow **last-matching-wins** evaluation order."*

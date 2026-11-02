@@ -230,4 +230,4 @@ Until formal ADRs are adopted, use:
 3. Package-level READMEs for implemented package behavior.
 4. Current repository standards and context.
 5. Contributor guides and historical audits.
-6. `docs/archive/planning/` as archived historical proposals only.
+6. `docs/history/archive/planning/` as archived historical proposals only.

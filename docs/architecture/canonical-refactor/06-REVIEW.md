@@ -119,7 +119,7 @@ the claim of independence does not hold.**
 
 | Cited source | Verified? | What it actually is |
 |---|---|---|
-| `docs/archive/planning/12-MASTER-SYNTHESIS.md:432` | ✅ text at :432 | **This project's own planning doc**, describing a *different, rejected* format |
+| `docs/history/archive/planning/12-MASTER-SYNTHESIS.md:432` | ✅ text at :432 | **This project's own planning doc**, describing a *different, rejected* format |
 | `.opencode/context/openagents-repo/standards/permission-patterns.md:11` | ✅ verbatim | **This project's own context file** |
 | `.opencode/context/openagents-repo/standards/agent-frontmatter.md:45` | ✅ verbatim | **This project's own context file** |
 
@@ -455,7 +455,7 @@ target at all.
 
 ### C10 🟡 `03`'s citation drift
 
-`03:129` cites `docs/archive/planning/12-MASTER-SYNTHESIS.md:442`; the index cites `:432`; `:432` is
+`03:129` cites `docs/history/archive/planning/12-MASTER-SYNTHESIS.md:442`; the index cites `:432`; `:432` is
 correct (verified). Minor on its own, but it is the same quote used to close the most important
 question in the set (F3), and two of the docs citing it disagree on where it is.
 
