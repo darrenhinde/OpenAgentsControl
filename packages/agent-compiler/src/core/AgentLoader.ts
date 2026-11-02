@@ -410,7 +410,7 @@ function listMarkdownFiles(dir: string): string[] {
  * Separate from {@link AgentLoader} on purpose: `AgentLoader` preserves the legacy shape and
  * derives its identity from the filename. Canonical files carry their own identity in `oac.id`,
  * and the two do not always agree — `agent-library/agents/subagents/code/test-engineer.md` declares
- * `id: tester`, which is what `registry.json`, the profiles and the context docs all reference.
+ * `id: tester`, which is what `built-ai-configs/registry/registry.json`, the profiles and the context docs all reference.
  * Resolving by filename here would silently mint a `test-engineer` that nothing refers to, so
  * this class never infers identity from a path.
  */

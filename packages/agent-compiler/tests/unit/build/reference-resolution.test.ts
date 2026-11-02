@@ -8,7 +8,7 @@
  * reproduced on disk 2026-07-15, because the validator is blind in two ways the tests below
  * pin down structurally:
  *
- *   1. It reads `registry.json` and nothing else. It never parses the `dependencies:`
+ *   1. It reads `built-ai-configs/registry/registry.json` and nothing else. It never parses the `dependencies:`
  *      frontmatter that actually ships in the component files, so drift between a registry
  *      entry and its own file is undetectable. `.opencode/command/add-context.md` was exactly
  *      that: its registry entry listed the four correct bare ids while its frontmatter listed
@@ -74,7 +74,7 @@ const REPAIRED: readonly { ref: string; source: string; was: string }[] = [
   },
   {
     ref: "context:core/context-system/*",
-    source: "registry.json profiles.advanced.components",
+    source: "built-ai-configs/registry/registry.json profiles.advanced.components",
     was: "context:context-system/* (missing the core/ prefix, a dead wildcard)",
   },
 ];

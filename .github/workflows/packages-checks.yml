@@ -17,8 +17,8 @@ on:
       - '.opencode/agent/**'
       - 'plugins/claude-code/agents/**'
       - '.oac/**'
-      - 'registry.json'
-      - 'registry.v1.json'
+      - 'built-ai-configs/registry/registry.json'
+      - 'built-ai-configs/registry/registry.v1.json'
       - 'Makefile'
       - 'scripts/validation/check-build-drift.sh'
 

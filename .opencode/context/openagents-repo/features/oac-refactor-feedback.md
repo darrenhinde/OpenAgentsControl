@@ -379,7 +379,7 @@ interface ComponentMarketplace {
 │       ├── bin/
 │       └── package.json
 ├── .opencode/                 # Official components
-├── registry.json              # Official registry
+├── built-ai-configs/registry/registry.json              # Official registry
 ├── community-registry.json    # Community registry
 ├── pnpm-workspace.yaml        # Monorepo config
 └── package.json               # Root package

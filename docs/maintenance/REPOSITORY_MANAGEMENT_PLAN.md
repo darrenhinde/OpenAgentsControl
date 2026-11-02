@@ -48,7 +48,7 @@ The implemented repository has four central systems:
 
 1. **Agents and subagents** in `.opencode/agent/` define orchestrators and delegated specialists.
 2. **Context** in `.opencode/context/` records standards, workflows, and project knowledge discovered lazily by ContextScout.
-3. **Registry and profiles** in `registry.json` and `.opencode/profiles/` describe distributable components and dependencies.
+3. **Registry and profiles** in `built-ai-configs/registry/registry.json` and `.opencode/profiles/` describe distributable components and dependencies.
 4. **Evaluation and validation** in `evals/` and `scripts/` test agent behavior and repository structure.
 
 Additional systems include the shell installer/updater, Claude Code plugin, compatibility package, task management, skills, and experimental ability enforcement.

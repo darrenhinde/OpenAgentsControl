@@ -26,7 +26,7 @@ function fixture(withProfiles = true): void {
   mkdirSync(join(root, "agent-library/agents"), { recursive: true });
   writeAgent("primary", "agent");
   writeAgent("worker", "subagent");
-  writeJson("registry.json", {
+  writeJson("built-ai-configs/registry/registry.json", {
     components: {
       agents: [{ id: "primary", path: ".opencode/agent/primary.md" }, { id: "eval-runner", path: ".opencode/agent/eval-runner.md" }],
       subagents: [{ id: "worker", path: ".opencode/agent/worker.md" }],
@@ -104,7 +104,7 @@ describe("RegistryEmitter profile emission", () => {
   it("keeps the tool and plugin refs when emitting the v1 registry, which can load them", async () => {
     fixture();
 
-    const document = await new RegistryEmitter(root, { target: "opencode-v1", registryFile: "registry.json" }).emit();
+    const document = await new RegistryEmitter(root, { target: "opencode-v1", registryFile: "built-ai-configs/registry/registry.json" }).emit();
 
     expect((document.profiles as { selected: { components: string[] } }).selected.components).toEqual([
       "agent:eval-runner",
@@ -132,14 +132,14 @@ describe("RegistryEmitter profile emission", () => {
 
     const document = await new RegistryEmitter(root).emit();
 
-    expect(document.profiles).toEqual(JSON.parse(readFileSync(join(root, "registry.json"), "utf-8")).profiles);
+    expect(document.profiles).toEqual(JSON.parse(readFileSync(join(root, "built-ai-configs/registry/registry.json"), "utf-8")).profiles);
   });
 
   it("is byte-stable after emit, write, and emit", async () => {
     fixture();
     const emitter = new RegistryEmitter(root);
     const first = await emitter.emitJson();
-    writeFileSync(join(root, "registry.json"), first, "utf-8");
+    writeFileSync(join(root, "built-ai-configs/registry/registry.json"), first, "utf-8");
 
     const second = await new RegistryEmitter(root).emitJson();
 

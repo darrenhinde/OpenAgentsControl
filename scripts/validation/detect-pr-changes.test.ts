@@ -139,8 +139,8 @@ describe('classifyChangedPaths', () => {
       'built-ai-configs/claude-code/agents/coder-agent.md',
       'plugins/claude-code/agents/coder-agent.md',
       '.oac/build-manifest.json',
-      'registry.json',
-      'registry.v1.json',
+      'built-ai-configs/registry/registry.json',
+      'built-ai-configs/registry/registry.v1.json',
     ]) {
       expect(classifyChangedPaths([path])).toEqual({
         ...NO_CHANGES,
@@ -380,7 +380,7 @@ describe('Canonical drift gate contract', () => {
       "- 'agent-library/**'",
       "- '.opencode/agent/**'",
       "- '.oac/**'",
-      "- 'registry.json'",
+      "- 'built-ai-configs/registry/registry.json'",
       "- 'Makefile'",
       "- 'scripts/validation/check-build-drift.sh'",
     ]) {

@@ -13,9 +13,9 @@
  * Each target's primary output is its folder under `built-ai-configs/`: `built-ai-configs/opencode/agent/**` (v2),
  * `built-ai-configs/opencode-v1/agent/**` and `built-ai-configs/claude-code/agents/**`, side by side. The live paths
  * are byte-identical generated MIRRORS of those: `.opencode/agent/**` (this repo's own
- * OpenCode, and the paths `registry.json` hands installers) and `plugins/claude-code/agents/**`
+ * OpenCode, and the paths `built-ai-configs/registry/registry.json` hands installers) and `plugins/claude-code/agents/**`
  * (the Claude Code marketplace source). Mirrors are ledgered, pruned and drift-checked like any
- * other output, so a hand-edited mirror is drift. With `registry.json` and `registry.v1.json`
+ * other output, so a hand-edited mirror is drift. With `built-ai-configs/registry/registry.json` and `built-ai-configs/registry/registry.v1.json`
  * these are all BUILD OUTPUT: committed, and rebuilt by the CI drift gate
  * (`scripts/validation/check-build-drift.sh`), which fails on any diff.
  *

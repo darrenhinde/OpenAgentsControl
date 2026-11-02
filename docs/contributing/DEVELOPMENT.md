@@ -106,7 +106,7 @@ opencode-agents/
 │   ├── contributing/             # Contribution guides
 │   ├── features/                 # Feature documentation
 │   └── guides/                   # User guides
-└── registry.json                 # Component registry
+└── built-ai-configs/registry/registry.json                 # Component registry
 ```
 
 ### Key Directories Explained
@@ -723,7 +723,7 @@ make validate-registry
 **Problem**: `make validate-registry` fails
 
 **Solution**:
-1. Check `registry.json` syntax
+1. Check `built-ai-configs/registry/registry.json` syntax
 2. Ensure all referenced files exist
 3. Verify frontmatter in agent files is valid YAML
 4. Run `./scripts/registry/validate-component.sh` for details

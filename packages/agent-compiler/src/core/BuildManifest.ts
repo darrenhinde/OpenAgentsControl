@@ -9,7 +9,7 @@
  *   - {@link RegistryEmitter.emit} drops a generated registry ENTRY whose source is gone.
  *
  * Those are the same rule applied to two artefacts, so they must consult the same ledger or
- * they will disagree — and a disagreement here means `.opencode/**` and `registry.json` drift
+ * they will disagree — and a disagreement here means `.opencode/**` and `built-ai-configs/registry/registry.json` drift
  * apart, which is the exact class of bug this refactor exists to end. `BuildPipeline` already
  * imports `RegistryEmitter` (it emits the registry as a build target), so the ledger cannot
  * live in `BuildPipeline` without `RegistryEmitter` importing back into a cycle. It lives here

@@ -70,7 +70,7 @@ const installShLocal: CheckDef = {
     const target = join(d.work, ".opencode");
     const r = await runIsolated({
       dirs: d,
-      env: isoEnv(d, await toolPath(), { OAC_RAW_URL: `file://${ctx.repo}`, REGISTRY_URL: `file://${ctx.repo}/registry.json` }),
+      env: isoEnv(d, await toolPath(), { OAC_RAW_URL: `file://${ctx.repo}`, REGISTRY_URL: `file://${ctx.repo}/built-ai-configs/registry/registry.json` }),
       argv: ["/bin/bash", join(ctx.repo, "install.sh"), "essential", `--install-dir=${target}`],
       target: { repo: ctx.repo, repoDeny: "/nonexistent", launch: { checkId: ctx.checkId, workload: ctx.workload } },
       timeoutMs: 120_000,

@@ -1,5 +1,5 @@
 /**
- * Registry emission per target: `registry.json` (v2, default) and `registry.v1.json`.
+ * Registry emission per target: `built-ai-configs/registry/registry.json` (v2, default) and `built-ai-configs/registry/registry.v1.json`.
  *
  * Installers read paths from the registry, so the two files differ in exactly the entries whose
  * files differ: agents (flat `<id>.md` vs nested under `built-ai-configs/opencode-v1/`), and the components v2
@@ -41,8 +41,8 @@ beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "oac-regt-"));
   put("agent-library/agents/subagents/test/alpha.md", agent("alpha", ["opencode"]));
   put("agent-library/agents/subagents/test/imager.md", agent("imager", ["opencode-v1"]));
-  json("registry.json", BASE);
-  json("registry.v1.json", {
+  json("built-ai-configs/registry/registry.json", BASE);
+  json("built-ai-configs/registry/registry.v1.json", {
     ...BASE,
     components: {
       ...BASE.components,
@@ -57,9 +57,9 @@ const ids = (d: RegistryDocument, c: string): string[] => (d.components[c] ?? []
 const path = (d: RegistryDocument, c: string, id: string): string | undefined => d.components[c]?.find((e) => e.id === id)?.path;
 
 describe("REGISTRY_TARGETS", () => {
-  it("v2 writes registry.json, v1 writes registry.v1.json", () => {
-    expect(REGISTRY_TARGETS.opencode.file).toBe("registry.json");
-    expect(REGISTRY_TARGETS["opencode-v1"].file).toBe("registry.v1.json");
+  it("v2 writes built-ai-configs/registry/registry.json, v1 writes built-ai-configs/registry/registry.v1.json", () => {
+    expect(REGISTRY_TARGETS.opencode.file).toBe("built-ai-configs/registry/registry.json");
+    expect(REGISTRY_TARGETS["opencode-v1"].file).toBe("built-ai-configs/registry/registry.v1.json");
   });
 });
 
@@ -81,7 +81,7 @@ describe("v2 registry", () => {
 describe("v1 registry", () => {
   const v1 = (): RegistryEmitter => new RegistryEmitter(root, { target: "opencode-v1" });
 
-  it("reads registry.v1.json as its base and points agents at the nested v1 tree", async () => {
+  it("reads built-ai-configs/registry/registry.v1.json as its base and points agents at the nested v1 tree", async () => {
     const d = await v1().emit();
     expect(path(d, "subagents", "alpha")).toBe("built-ai-configs/opencode-v1/agent/subagents/test/alpha.md");
     expect(path(d, "subagents", "imager")).toBe("built-ai-configs/opencode-v1/agent/subagents/test/imager.md");
@@ -95,7 +95,7 @@ describe("v1 registry", () => {
 
   it("is a fixed point over its own output", async () => {
     const first = await v1().emitJson();
-    put("registry.v1.json", first);
+    put("built-ai-configs/registry/registry.v1.json", first);
     expect(await v1().emitJson()).toBe(first);
   });
 });

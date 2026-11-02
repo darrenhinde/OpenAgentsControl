@@ -1,6 +1,6 @@
 /**
  * Equivalence gate: the canonical profiles in `agent-library/profiles/**` must reconstruct the
- * legacy `registry.json` `.profiles.*.components` lists EXACTLY.
+ * legacy `built-ai-configs/registry/registry.json` `.profiles.*.components` lists EXACTLY.
  *
  * ─── Why this test exists ───────────────────────────────────────────────────────────────
  *
@@ -42,7 +42,7 @@ describe("canonical profile equivalence", () => {
   const root = repoPath();
   // The v1 registry carries a profile's full intent (tools and plugins included); the v2
   // registry's profiles are that minus what v2 cannot load, asserted in RegistryEmitter.test.ts.
-  const resolver = new ReferenceResolver(root, "registry.v1.json");
+  const resolver = new ReferenceResolver(root, "built-ai-configs/registry/registry.v1.json");
   const loader = new ProfileLoader(root, resolver);
   const registry = resolver.registry();
 

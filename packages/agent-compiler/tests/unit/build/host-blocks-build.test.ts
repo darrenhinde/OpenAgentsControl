@@ -30,8 +30,8 @@ function put(relativePath: string, content: string): void {
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "oac-hostblocks-"));
-  put("registry.json", `${JSON.stringify(REGISTRY, null, 2)}\n`);
-  put("registry.v1.json", `${JSON.stringify(REGISTRY, null, 2)}\n`);
+  put("built-ai-configs/registry/registry.json", `${JSON.stringify(REGISTRY, null, 2)}\n`);
+  put("built-ai-configs/registry/registry.v1.json", `${JSON.stringify(REGISTRY, null, 2)}\n`);
 });
 
 afterEach(() => {

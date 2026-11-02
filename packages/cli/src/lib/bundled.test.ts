@@ -166,16 +166,17 @@ describe('findPackageRoot', () => {
     expect(result).toBe(fakeRoot);
   });
 
-  // ✅ Regression: the published tarball ships registry.json NEXT TO .opencode/ at
+  // ✅ Regression: the published tarball ships built-ai-configs/registry/registry.json NEXT TO .opencode/ at
   // the package root. The previous heuristic excluded any directory containing a
-  // registry.json, so it walked straight past the real root and `oac init` failed
+  // built-ai-configs/registry/registry.json, so it walked straight past the real root and `oac init` failed
   // on every `npm i -g` install. The root must still be found.
-  test('finds the package root even when registry.json sits beside .opencode/', async () => {
+  test('finds the package root even when built-ai-configs/registry/registry.json sits beside .opencode/', async () => {
     // Arrange — mirror the installed layout exactly
     const installedRoot = join(tmpDir, 'installed-pkg');
     await mkdir(join(installedRoot, '.opencode', 'agent'), { recursive: true });
     await writePackageJson(installedRoot, '@controlstack/oac');
-    await writeFile(join(installedRoot, 'registry.json'), '{"components":[]}', 'utf8');
+    await mkdir(join(installedRoot, 'built-ai-configs/registry'), { recursive: true });
+    await writeFile(join(installedRoot, 'built-ai-configs/registry/registry.json'), '{"components":[]}', 'utf8');
     const startDir = join(installedRoot, 'packages', 'cli', 'dist');
     await mkdir(startDir, { recursive: true });
 
@@ -508,8 +509,8 @@ describe('listBundledFiles by flavor', () => {
     await put('built-ai-configs/opencode-v1/command/openagents/x.md', 'v1 text');
     await put('built-ai-configs/opencode-v1/tool/gemini/index.ts');
     await put('built-ai-configs/opencode-v1/tool/package.json'); // never installable
-    await put('registry.json', registry([['openagent', '.opencode/agent/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
-    await put('registry.v1.json', registry([['openagent', 'built-ai-configs/opencode-v1/agent/core/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
+    await put('built-ai-configs/registry/registry.json', registry([['openagent', '.opencode/agent/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
+    await put('built-ai-configs/registry/registry.v1.json', registry([['openagent', 'built-ai-configs/opencode-v1/agent/core/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
   });
   afterAll(async () => {
     await rm(pkg, { recursive: true, force: true });

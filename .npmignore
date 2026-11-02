@@ -73,7 +73,7 @@ COMPATIBILITY.md
 !.opencode/
 !scripts/
 !bin/
-!registry.json
+!built-ai-configs/registry/registry.json
 !install.sh
 !VERSION
 !LICENSE

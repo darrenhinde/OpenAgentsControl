@@ -1,6 +1,6 @@
 /**
- * RegistryTargets — what differs between `registry.json` (OpenCode v2, the default) and
- * `registry.v1.json` (OpenCode v1, opt-in). Pure data, so removing v1 is deleting one entry.
+ * RegistryTargets — what differs between `built-ai-configs/registry/registry.json` (OpenCode v2, the default) and
+ * `built-ai-configs/registry/registry.v1.json` (OpenCode v1, opt-in). Pure data, so removing v1 is deleting one entry.
  *
  * Installers read a component's `path` from the registry. A path under `built-ai-configs/opencode-v1/` installs
  * to `.opencode/` in the user's project (the folder name is never used there); the registry
@@ -27,7 +27,7 @@ export interface RegistryTargetSpec {
 
 export const REGISTRY_TARGETS: Readonly<Record<RegistryTarget, RegistryTargetSpec>> = {
   opencode: {
-    file: "registry.json",
+    file: "built-ai-configs/registry/registry.json",
     defaultAgentRoot: ".opencode/agent",
     // Flat: v2 derives the agent id from the file name.
     agentPath: (agent, root) => `${root}/${agent.oac.id}.md`,
@@ -36,7 +36,7 @@ export const REGISTRY_TARGETS: Readonly<Record<RegistryTarget, RegistryTargetSpe
     unavailableProfileKinds: ["tools", "plugins"],
   },
   "opencode-v1": {
-    file: "registry.v1.json",
+    file: "built-ai-configs/registry/registry.v1.json",
     defaultAgentRoot: "built-ai-configs/opencode-v1/agent",
     agentPath: (agent, root) => `${root}/${agent.relativePath}`,
     unavailableCategories: [],

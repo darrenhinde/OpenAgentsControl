@@ -31,7 +31,7 @@ const VARIANTS: Array<[v1: string, v2: string]> = [
 ];
 
 describe("registries only name files that exist", () => {
-  for (const file of ["registry.json", "registry.v1.json"]) {
+  for (const file of ["built-ai-configs/registry/registry.json", "built-ai-configs/registry/registry.v1.json"]) {
     it(`${file}: every path and files[] entry is on disk`, () => {
       const registry = JSON.parse(readFileSync(repoPath(file), "utf-8")) as {
         components: Record<string, Array<{ id: string; path?: string; files?: string[] }>>;

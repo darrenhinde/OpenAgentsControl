@@ -6,13 +6,13 @@
 
 | Target | Output in this repo | Installed to a project as |
 |---|---|---|
-| `opencode` (v2, default) | `built-ai-configs/opencode/agent/<oac.id>.md`, mirrored to `.opencode/agent/<oac.id>.md`; `registry.json` | `.opencode/agent/<oac.id>.md` |
-| `opencode-v1` | `built-ai-configs/opencode-v1/agent/<category>/<file>.md`, `registry.v1.json` | `.opencode/agent/<category>/<file>.md` |
+| `opencode` (v2, default) | `built-ai-configs/opencode/agent/<oac.id>.md`, mirrored to `.opencode/agent/<oac.id>.md`; `built-ai-configs/registry/registry.json` | `.opencode/agent/<oac.id>.md` |
+| `opencode-v1` | `built-ai-configs/opencode-v1/agent/<category>/<file>.md`, `built-ai-configs/registry/registry.v1.json` | `.opencode/agent/<category>/<file>.md` |
 | `claude-code` | `built-ai-configs/claude-code/agents/<name>.md`, mirrored to `plugins/claude-code/agents/<name>.md` | the Claude Code plugin (`plugins/claude-code`) |
 
-`built-ai-configs/` holds every target's build side by side, so the formats can be compared (D-018; `built-ai-configs/README.md` is the generated index). The live paths `.opencode/agent/` (this repo's own OpenCode, and the paths in `registry.json`) and `plugins/claude-code/agents/` (the marketplace source) are byte-identical generated mirrors: the build writes, prunes and drift-checks them with their `built-ai-configs/` folder, and a hand edit to either is drift.
+`built-ai-configs/` holds every target's build side by side, so the formats can be compared (D-018; `built-ai-configs/README.md` is the generated index). The live paths `.opencode/agent/` (this repo's own OpenCode, and the paths in `built-ai-configs/registry/registry.json`) and `plugins/claude-code/agents/` (the marketplace source) are byte-identical generated mirrors: the build writes, prunes and drift-checks them with their `built-ai-configs/` folder, and a hand edit to either is drift.
 
-`built-ai-configs/opencode-v1/` (formerly `v1-opencode/`) is a **display and source folder only**. It has no live mirror; `registry.v1.json` points into it. An install writes its contents into the user's `.opencode/`; the name never appears in a project. It also holds everything v2 cannot load: `tool/`, `plugin/`, `plugins/`, and v1 variants of the two hand-authored files whose delegation examples differ (`command/openagents/check-context-deps.md`, `skills/task-management/SKILL.md`).
+`built-ai-configs/opencode-v1/` (formerly `v1-opencode/`) is a **display and source folder only**. It has no live mirror; `built-ai-configs/registry/registry.v1.json` points into it. An install writes its contents into the user's `.opencode/`; the name never appears in a project. It also holds everything v2 cannot load: `tool/`, `plugin/`, `plugins/`, and v1 variants of the two hand-authored files whose delegation examples differ (`command/openagents/check-context-deps.md`, `skills/task-management/SKILL.md`).
 
 `opencode-v1` is a build-level sibling of `opencode`: an agent that declares `opencode` is emitted for both. Declaring `opencode-v1` alone makes an agent v1-only (`image-specialist`).
 
@@ -78,4 +78,4 @@ The hosts-tier row is not wired into any workflow and nothing is downloaded by t
 
 ## Removing v1 later
 
-Delete `packages/agent-compiler/src/adapters/v1/`, the `opencode-v1` entries in `BuildPipeline.ts`, `TargetPolicy.ts` and `RegistryTargets.ts`, `built-ai-configs/opencode-v1/`, `registry.v1.json`, the v1 branches in `packages/cli/src/lib/flavor*.ts` and `bundled.ts`, and the `--opencode` option. Agents declared `opencode-v1` only (`image-specialist`) go with it.
+Delete `packages/agent-compiler/src/adapters/v1/`, the `opencode-v1` entries in `BuildPipeline.ts`, `TargetPolicy.ts` and `RegistryTargets.ts`, `built-ai-configs/opencode-v1/`, `built-ai-configs/registry/registry.v1.json`, the v1 branches in `packages/cli/src/lib/flavor*.ts` and `bundled.ts`, and the `--opencode` option. Agents declared `opencode-v1` only (`image-specialist`) go with it.

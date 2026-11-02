@@ -240,7 +240,7 @@ describe("lintBuild", () => {
     const results = lintBuild([
       { target: "claude-code", path: "plugins/claude-code/agents/x.md", content: "---\nname: x\ndescription: d\ntools: Read\n---\ncall ContextScout now\n" },
       { target: "opencode", path: ".opencode/agent/y.md", content: "---\ndescription: d\nmode: subagent\n---\nbody\n" },
-      { target: "registry", path: "registry.json", content: "{}" },
+      { target: "registry", path: "built-ai-configs/registry/registry.json", content: "{}" },
     ]);
     expect(results.map((r) => [r.target, rules(r.findings)])).toEqual([
       ["claude-code", ["delegation-without-task", "description-no-example"]],

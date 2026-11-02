@@ -22,7 +22,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-REGISTRY_FILE="registry.json"
+REGISTRY_FILE="built-ai-configs/registry/registry.json"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 AUTO_ADD=false
 DRY_RUN=false
@@ -847,7 +847,7 @@ main() {
     else
         print_info "Run with --auto-add to apply these changes to registry"
         echo ""
-        echo "Or manually update registry.json"
+        echo "Or manually update built-ai-configs/registry/registry.json"
     fi
     
     # Final security warning

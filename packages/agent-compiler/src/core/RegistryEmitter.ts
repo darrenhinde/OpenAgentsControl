@@ -1,15 +1,15 @@
 /**
- * Generates `registry.json` from the canonical `agent-library/agents/**` tree.
+ * Generates `built-ai-configs/registry/registry.json` from the canonical `agent-library/agents/**` tree.
  *
  * ─── Why this exists ────────────────────────────────────────────────────────────────────
  *
- * Adding a component today means editing `registry.json` by hand, or running
+ * Adding a component today means editing `built-ai-configs/registry/registry.json` by hand, or running
  * `scripts/registry/auto-detect-components.sh --auto-add` — 895 lines of bash that does not
  * GENERATE the registry at all. It APPENDS: it diffs the `.opencode/**` tree against the
  * registry's existing `path` values, parses frontmatter with `sed`/`grep`, and `jq`-appends
  * whatever it did not recognise. Nothing ever re-derives an entry that already exists, so an
  * entry that drifts from its own file drifts forever. That is exactly what happened —
- * `registry.json` carries names, descriptions, tags and dependency lists that no file on disk
+ * `built-ai-configs/registry/registry.json` carries names, descriptions, tags and dependency lists that no file on disk
  * agrees with any more, and `subagent:batch-executor` is missing outright despite shipping in
  * `.opencode/agent/subagents/core/batch-executor.md` and being depended on by both
  * `openagent` and `opencoder`.
@@ -19,7 +19,7 @@
  *
  * ─── Phase 2 scope: agents and profiles ─────────────────────────────────────────────────
  *
- * `install.sh` reads `registry.json` and is the only shipping install path, so the blast
+ * `install.sh` reads `built-ai-configs/registry/registry.json` and is the only shipping install path, so the blast
  * radius of a mistake here is "nobody can install". The emitter regenerates the
  * `components.agents` and `components.subagents` arrays and profile component lists from the
  * canonical trees that own them. It carries all other component categories, profile metadata,
@@ -59,7 +59,7 @@
  * been pruned yet ({@link BuildPipeline.write} plans before it reconciles), so an existence
  * check would still see the file and carry the entry — the answer would depend on the order two
  * phases happen to run in. The ledger is ordering-independent, and using the same mechanism as
- * file pruning is what keeps `.opencode/**` and `registry.json` from drifting apart.
+ * file pruning is what keeps `.opencode/**` and `built-ai-configs/registry/registry.json` from drifting apart.
  *
  * No ledger prunes nothing, matching {@link BuildPipeline}'s rule: no record of having written
  * a file is not evidence that we wrote it, so a first build carries everything.
@@ -93,7 +93,7 @@ import { emitsTo } from "./TargetPolicy.js";
 // ============================================================================
 
 /**
- * One entry in a `registry.json` `components.<category>` array.
+ * One entry in a `built-ai-configs/registry/registry.json` `components.<category>` array.
  *
  * Deliberately open: phase 1 carries non-agent entries through verbatim, and they legitimately
  * carry fields this emitter does not model (`aliases` on 3 contexts, `files` on skills).
@@ -114,7 +114,7 @@ export interface RegistryEntry {
   [key: string]: unknown;
 }
 
-/** A parsed `registry.json`. Open for the same reason as {@link RegistryEntry}. */
+/** A parsed `built-ai-configs/registry/registry.json`. Open for the same reason as {@link RegistryEntry}. */
 export interface RegistryDocument {
   components: Record<string, RegistryEntry[]>;
   [key: string]: unknown;
@@ -127,8 +127,8 @@ interface RegistryProfile {
 
 export interface RegistryEmitterOptions {
   /**
-   * Which registry to emit: `opencode` (v2, `registry.json`, the default) or `opencode-v1`
-   * (`registry.v1.json`). Selects the defaults below; each can still be overridden.
+   * Which registry to emit: `opencode` (v2, `built-ai-configs/registry/registry.json`, the default) or `opencode-v1`
+   * (`built-ai-configs/registry/registry.v1.json`). Selects the defaults below; each can still be overridden.
    */
   target?: RegistryTarget;
   /** Root of the canonical agent tree, relative to the repo root. */
@@ -190,7 +190,7 @@ const NON_ASCII = /[\u0080-\uFFFF]/g;
 /**
  * Escape every non-ASCII character as `\uXXXX`.
  *
- * `JSON.stringify` emits raw UTF-8; the committed `registry.json` escapes instead, in 3 places
+ * `JSON.stringify` emits raw UTF-8; the committed `built-ai-configs/registry/registry.json` escapes instead, in 3 places
  * (an em-dash and two emoji, in carried-through context descriptions). Without this the
  * generated file differs from the committed one on bytes nobody changed, and the subtask-11
  * diff gate reports noise. Safe to apply to the whole document: in valid JSON a non-ASCII
@@ -208,7 +208,7 @@ function escapeNonAscii(json: string): string {
  * Serialise a registry document the way the committed file is written: 2-space indent,
  * `\uXXXX`-escaped non-ASCII, trailing newline.
  *
- * Verified byte-exact against the committed `registry.json` — parsing it and re-serialising it
+ * Verified byte-exact against the committed `built-ai-configs/registry/registry.json` — parsing it and re-serialising it
  * through this function reproduces it exactly, so every difference the diff gate reports is
  * semantic rather than a formatting artefact.
  */
@@ -541,7 +541,7 @@ function wasGeneratedByUs(entry: RegistryEntry, previouslyGenerated: ReadonlySet
 }
 
 /**
- * Generate `registry.json` for a repository, as the bytes to write.
+ * Generate `built-ai-configs/registry/registry.json` for a repository, as the bytes to write.
  *
  * The build's entry point into this module — see `tests/unit/build/determinism.test.ts`.
  *

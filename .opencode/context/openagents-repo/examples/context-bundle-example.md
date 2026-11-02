@@ -55,7 +55,7 @@ Create a new data analyst agent for the OpenAgents Control repository. This agen
 - Must follow naming convention: `data-analyst.md` (kebab-case)
 - Must include tags for discoverability
 - Must specify tools and permissions
-- Must be registered in `registry.json`
+- Must be registered in `built-ai-configs/registry/registry.json`
 
 **Naming Conventions**:
 - File name: `data-analyst.md` (kebab-case)
@@ -91,7 +91,7 @@ Create a new data analyst agent for the OpenAgents Control repository. This agen
 - `evals/agents/data/data-analyst/README.md` - Agent documentation
 
 **Modify**:
-- `registry.json` - Add data-analyst agent entry
+- `built-ai-configs/registry/registry.json` - Add data-analyst agent entry
 - `.opencode/context/navigation.md` - Add data category context if needed
 
 ## Success Criteria
@@ -108,7 +108,7 @@ Create a new data analyst agent for the OpenAgents Control repository. This agen
 ## Validation Requirements
 
 **Scripts to Run**:
-- `./scripts/registry/validate-registry.sh` - Validates registry.json schema and entries
+- `./scripts/registry/validate-registry.sh` - Validates built-ai-configs/registry/registry.json schema and entries
 - `./scripts/validation/validate-test-suites.sh` - Validates eval test structure
 
 **Tests to Run**:
@@ -191,7 +191,7 @@ Create a complete data analyst agent for the OpenAgents Control repository follo
    - Create README: `README.md`
 
 4. **Update Registry**:
-   - Add entry to `registry.json` following schema
+   - Add entry to `built-ai-configs/registry/registry.json` following schema
    - Include: id, name, description, category, type, path, version, tags
 
 5. **Validate**:

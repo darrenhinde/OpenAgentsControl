@@ -29,7 +29,7 @@ export type InitOptions = {
   yolo: boolean;
   dryRun: boolean;
   verbose: boolean;
-  /** Install tier from registry.json `profiles`. Defaults to `essential`. */
+  /** Install tier from built-ai-configs/registry/registry.json `profiles`. Defaults to `essential`. */
   profile: string;
   /** Keep only the profile's context files. */
   contextOnly: boolean;

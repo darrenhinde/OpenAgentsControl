@@ -9,7 +9,7 @@
 
 ## What Are Profiles?
 
-Profiles are pre-configured component bundles in `registry.json` that users install:
+Profiles are pre-configured component bundles in `built-ai-configs/registry/registry.json` that users install:
 - **essential** - Minimal setup (openagent + core subagents)
 - **developer** - Full dev environment (all dev agents + tools)
 - **business** - Content/product focus (content agents + tools)
@@ -51,7 +51,7 @@ When adding a new agent, **ALWAYS** check:
 ### 1. Agent Added to Components
 ```bash
 # Check agent exists in registry
-cat registry.json | jq '.components.agents[] | select(.id == "your-agent")'
+cat built-ai-configs/registry/registry.json | jq '.components.agents[] | select(.id == "your-agent")'
 ```
 
 ### 2. Agent Added to Appropriate Profiles
@@ -82,13 +82,13 @@ cat registry.json | jq '.components.agents[] | select(.id == "your-agent")'
 
 ```bash
 # Check if agent is in developer profile
-cat registry.json | jq '.profiles.developer.components[] | select(. == "agent:your-agent")'
+cat built-ai-configs/registry/registry.json | jq '.profiles.developer.components[] | select(. == "agent:your-agent")'
 
 # Check if agent is in business profile
-cat registry.json | jq '.profiles.business.components[] | select(. == "agent:your-agent")'
+cat built-ai-configs/registry/registry.json | jq '.profiles.business.components[] | select(. == "agent:your-agent")'
 
 # Check if agent is in full profile
-cat registry.json | jq '.profiles.full.components[] | select(. == "agent:your-agent")'
+cat built-ai-configs/registry/registry.json | jq '.profiles.full.components[] | select(. == "agent:your-agent")'
 ```
 
 ---
@@ -152,17 +152,17 @@ cat registry.json | jq '.profiles.full.components[] | select(. == "agent:your-ag
 echo "Checking profile coverage..."
 
 # Get all agent IDs
-agents=$(cat registry.json | jq -r '.components.agents[].id')
+agents=$(cat built-ai-configs/registry/registry.json | jq -r '.components.agents[].id')
 
 for agent in $agents; do
   # Get agent category
-  category=$(cat registry.json | jq -r ".components.agents[] | select(.id == \"$agent\") | .category")
+  category=$(cat built-ai-configs/registry/registry.json | jq -r ".components.agents[] | select(.id == \"$agent\") | .category")
   
   # Check which profiles include this agent
-  in_developer=$(cat registry.json | jq ".profiles.developer.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
-  in_business=$(cat registry.json | jq ".profiles.business.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
-  in_full=$(cat registry.json | jq ".profiles.full.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
-  in_advanced=$(cat registry.json | jq ".profiles.advanced.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
+  in_developer=$(cat built-ai-configs/registry/registry.json | jq ".profiles.developer.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
+  in_business=$(cat built-ai-configs/registry/registry.json | jq ".profiles.business.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
+  in_full=$(cat built-ai-configs/registry/registry.json | jq ".profiles.full.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
+  in_advanced=$(cat built-ai-configs/registry/registry.json | jq ".profiles.advanced.components[] | select(. == \"agent:$agent\")" 2>/dev/null)
   
   # Validate based on category
   case $category in
@@ -221,7 +221,7 @@ Save this as: `scripts/registry/validate-profile-coverage.sh`
    ```
 
 2. **Manually add to profiles**:
-   Edit `registry.json` and add `"agent:your-agent"` to appropriate profiles
+   Edit `built-ai-configs/registry/registry.json` and add `"agent:your-agent"` to appropriate profiles
 
 3. **Validate registry**:
    ```bash

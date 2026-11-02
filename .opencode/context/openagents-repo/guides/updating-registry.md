@@ -182,7 +182,7 @@ The script automatically:
 
 ## Manual Updates (Not Recommended)
 
-Only edit `registry.json` manually if auto-detect doesn't work.
+Only edit `built-ai-configs/registry/registry.json` manually if auto-detect doesn't work.
 
 **Prefer frontmatter**: Add tags/dependencies to component frontmatter instead of editing registry directly.
 
@@ -255,10 +255,10 @@ REGISTRY_URL="file://$(pwd)/registry.json" ./install.sh --component agent:your-a
 
 ```bash
 # List all agents
-cat registry.json | jq '.components.agents[].id'
+cat built-ai-configs/registry/registry.json | jq '.components.agents[].id'
 
 # Check specific component
-cat registry.json | jq '.components.agents[] | select(.id == "your-agent")'
+cat built-ai-configs/registry/registry.json | jq '.components.agents[] | select(.id == "your-agent")'
 ```
 
 ---
@@ -428,7 +428,7 @@ Registry can be auto-updated after merge:
 **Solution**: Ensure referenced component exists in registry:
 ```bash
 # Check if dependency exists
-jq '.components.subagents[] | select(.id == "coder-agent")' registry.json
+jq '.components.subagents[] | select(.id == "coder-agent")' built-ai-configs/registry/registry.json
 
 # If missing, add the dependency component first
 ```
@@ -439,9 +439,9 @@ jq '.components.subagents[] | select(.id == "coder-agent")' registry.json
 
 **Cause**: The context file might have been renamed or the ID in registry doesn't match the requested name.
 
-**Solution**: Add an alias to the component in `registry.json`.
+**Solution**: Add an alias to the component in `built-ai-configs/registry/registry.json`.
 
-1. Find the component in `registry.json`
+1. Find the component in `built-ai-configs/registry/registry.json`
 2. Add `"aliases": ["old-name", "alternative-name"]`
 3. Validate registry
 
@@ -456,7 +456,7 @@ Aliases allow components to be referenced by multiple names. This is useful for:
 
 ### Adding Aliases
 
-Currently, aliases must be added **manually** to `registry.json` (auto-detect does not yet support them).
+Currently, aliases must be added **manually** to `built-ai-configs/registry/registry.json` (auto-detect does not yet support them).
 
 ```json
 {

@@ -1,12 +1,12 @@
 /**
- * Resolves `type:id` references against `registry.json`.
+ * Resolves `type:id` references against `built-ai-configs/registry/registry.json`.
  *
  * ─── Why this exists ────────────────────────────────────────────────────────────────────
  *
  * `scripts/registry/validate-registry.sh` prints "244/244 valid, 0 missing dependencies" and
  * exits 0. That is a FALSE GREEN. It is blind in two structural ways:
  *
- *   1. It reads `registry.json` and nothing else, so component `dependencies:` authored in
+ *   1. It reads `built-ai-configs/registry/registry.json` and nothing else, so component `dependencies:` authored in
  *      on-disk frontmatter are never parsed. Drift between a registry entry and the file that
  *      actually ships is undetectable — which is how three dead refs in
  *      `.opencode/command/add-context.md` shipped unnoticed.
@@ -22,13 +22,13 @@
  *
  * {@link ReferenceResolver.findDeadReferences} covers the *legacy* corpus: registry component
  * dependencies, registry profile component lists, and `.opencode/**` `dependencies:`
- * frontmatter. That is deliberately the same corpus `registry.json` governs today, because
- * `registry.json` is what `install.sh` actually reads at install time.
+ * frontmatter. That is deliberately the same corpus `built-ai-configs/registry/registry.json` governs today, because
+ * `built-ai-configs/registry/registry.json` is what `install.sh` actually reads at install time.
  *
  * The canonical `agent-library/agents/**` tree is NOT part of that corpus — it is not yet wired
  * into any install path. Scan it explicitly with {@link ReferenceResolver.resolveMany} if you
  * want its verdict; be aware it surfaces `subagent:batch-executor`, which exists on disk but
- * is absent from `registry.json`.
+ * is absent from `built-ai-configs/registry/registry.json`.
  */
 
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
@@ -184,12 +184,12 @@ export class ReferenceResolver {
    * @param root - Repository root. Everything is resolved relative to this, so the resolver
    *               is testable against a fixture tree rather than a hardcoded path.
    */
-  constructor(root: string, registryFile = "registry.json") {
+  constructor(root: string, registryFile = "built-ai-configs/registry/registry.json") {
     this.root = root;
     this.registryFile = registryFile;
   }
 
-  /** The parsed `registry.json`, read once per instance. */
+  /** The parsed `built-ai-configs/registry/registry.json`, read once per instance. */
   registry(): Registry {
     if (this.registryCache === undefined) {
       this.registryCache = JSON.parse(
@@ -286,27 +286,27 @@ export class ReferenceResolver {
   // Reference collection — the three sources the repo authors
   // --------------------------------------------------------------------------
 
-  /** Every reference authored in `registry.json` component `dependencies` arrays. */
+  /** Every reference authored in `built-ai-configs/registry/registry.json` component `dependencies` arrays. */
   componentReferences(): Reference[] {
     return Object.entries(this.registry().components).flatMap(([category, components]) =>
       components.flatMap((component) =>
         (component.dependencies ?? []).map((ref) => ({
           ref,
-          source: `registry.json components.${category}[id=${component.id}].dependencies`,
+          source: `built-ai-configs/registry/registry.json components.${category}[id=${component.id}].dependencies`,
         }))
       )
     );
   }
 
   /**
-   * Every reference authored in `registry.json` profile component lists.
+   * Every reference authored in `built-ai-configs/registry/registry.json` profile component lists.
    * `validate-registry.sh` never looks here — this is where the dead wildcard lives.
    */
   profileReferences(): Reference[] {
     return Object.entries(this.registry().profiles).flatMap(([name, profile]) =>
       (profile.components ?? []).map((ref) => ({
         ref,
-        source: `registry.json profiles.${name}.components`,
+        source: `built-ai-configs/registry/registry.json profiles.${name}.components`,
       }))
     );
   }
@@ -337,7 +337,7 @@ export class ReferenceResolver {
     });
   }
 
-  /** Every reference in the legacy corpus `registry.json` governs. */
+  /** Every reference in the legacy corpus `built-ai-configs/registry/registry.json` governs. */
   allReferences(): Reference[] {
     return [
       ...this.componentReferences(),

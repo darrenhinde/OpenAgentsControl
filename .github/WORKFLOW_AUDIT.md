@@ -65,7 +65,7 @@ Version Bump PR Merge
 ├── README.md (600+ lines)
 ├── QUICK_START.md
 ├── install.sh, update.sh
-├── registry.json, package.json
+├── built-ai-configs/registry/registry.json, package.json
 ├── docs/ (comprehensive)
 ├── scripts/ (26+ scripts in 7 subdirs)
 ├── evals/ (evaluation framework)
@@ -108,7 +108,7 @@ Version Bump PR Merge
 │   └── maintenance/ (cleanup, validation)
 │
 ├── config/ [NEW]
-│   ├── registry.json
+│   ├── built-ai-configs/registry/registry.json
 │   └── env.example
 │
 └── ... (rest unchanged)
@@ -125,7 +125,7 @@ Version Bump PR Merge
 - [x] Add test-non-interactive.sh
 - [x] Add test-e2e-install.sh
 - [x] Fix CHANGELOG.md duplicates
-- [x] Update registry.json metadata
+- [x] Update built-ai-configs/registry/registry.json metadata
 
 ### Short-Term (Next Sprint)
 
@@ -189,4 +189,4 @@ concurrency:
 - `install.sh` (bug fix for non-interactive collision handling)
 - `scripts/tests/README.md` (updated test documentation)
 - `CHANGELOG.md` (fixed duplicates, added 0.5.1)
-- `registry.json` (updated lastUpdated metadata)
+- `built-ai-configs/registry/registry.json` (updated lastUpdated metadata)

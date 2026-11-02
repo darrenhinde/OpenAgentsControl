@@ -16,7 +16,7 @@
  *
  *   - `.opencode/profiles/<name>/profile.json` — the per-profile file. Read only by
  *     `scripts/registry/check-dependencies.ts`.
- *   - `registry.json` `.profiles.<name>.components` — what `install.sh` ACTUALLY reads
+ *   - `built-ai-configs/registry/registry.json` `.profiles.<name>.components` — what `install.sh` ACTUALLY reads
  *     (`get_profile_components`, install.sh:292). This is the runtime authority.
  *
  * They disagree on every profile (e.g. `advanced`: 51 components on disk vs 68 in the
@@ -64,7 +64,7 @@ export interface LoadedProfile {
   profile: Profile;
   /** Component refs from `profile.json`. */
   components: string[];
-  /** Component refs from `registry.json` `.profiles.<id>.components` — what `install.sh` reads. */
+  /** Component refs from `built-ai-configs/registry/registry.json` `.profiles.<id>.components` — what `install.sh` reads. */
   registryComponents: string[];
 }
 
@@ -77,12 +77,12 @@ export interface ClosureResult {
   missing: Resolution[];
 }
 
-/** How `profile.json` and `registry.json` disagree about one profile. */
+/** How `profile.json` and `built-ai-configs/registry/registry.json` disagree about one profile. */
 export interface ProfileDrift {
   id: string;
-  /** Refs in `profile.json` that `registry.json` omits. */
+  /** Refs in `profile.json` that `built-ai-configs/registry/registry.json` omits. */
   onlyInProfileJson: string[];
-  /** Refs in `registry.json` that `profile.json` omits. `install.sh` installs these anyway. */
+  /** Refs in `built-ai-configs/registry/registry.json` that `profile.json` omits. `install.sh` installs these anyway. */
   onlyInRegistry: string[];
 }
 
@@ -223,7 +223,7 @@ export class ProfileLoader {
   /**
    * Expand a profile to its transitive closure and report what does not resolve.
    *
-   * Seeds from the union of `profile.json` and `registry.json` (see the file header: they have
+   * Seeds from the union of `profile.json` and `built-ai-configs/registry/registry.json` (see the file header: they have
    * drifted and neither is a superset), then follows each component's declared `dependencies`
    * from the registry. Cycles terminate on the `seen` set.
    */
@@ -246,7 +246,7 @@ export class ProfileLoader {
       })),
       ...loaded.registryComponents.map((ref) => ({
         ref,
-        source: `registry.json profiles.${id}.components`,
+        source: `built-ai-configs/registry/registry.json profiles.${id}.components`,
       })),
     ];
 
@@ -276,10 +276,10 @@ export class ProfileLoader {
   }
 
   /**
-   * How `profile.json` and `registry.json` disagree about a profile.
+   * How `profile.json` and `built-ai-configs/registry/registry.json` disagree about a profile.
    *
    * Not a validation step — a diagnostic. The two lists have genuinely drifted, and only
-   * `registry.json` is read at install time.
+   * `built-ai-configs/registry/registry.json` is read at install time.
    */
   async drift(id: string): Promise<ProfileDrift> {
     const { components, registryComponents } = await this.load(id);

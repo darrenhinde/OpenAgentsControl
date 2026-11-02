@@ -78,7 +78,7 @@ profile_component_paths() {
             | if $component == null then empty else ($component.files // [$component.path])[] end
         end
         | sub("^\\.opencode/"; "")
-    ' "$REPO_ROOT/registry.json"
+    ' "$REPO_ROOT/built-ai-configs/registry/registry.json"
 }
 
 test_profile_closure() {
@@ -238,10 +238,10 @@ test_directory_structure() {
 test_registry_consistency() {
     echo -e "\n${BOLD}Test: Registry Consistency${NC}"
     
-    if [ -f "$REPO_ROOT/registry.json" ]; then
+    if [ -f "$REPO_ROOT/built-ai-configs/registry/registry.json" ]; then
         if command -v jq &> /dev/null; then
             local agent_count
-            agent_count=$(jq '.components.agents | length' "$REPO_ROOT/registry.json")
+            agent_count=$(jq '.components.agents | length' "$REPO_ROOT/built-ai-configs/registry/registry.json")
             
             if [ "$agent_count" -gt 0 ]; then
                 pass "Registry has $agent_count agents defined"
@@ -250,7 +250,7 @@ test_registry_consistency() {
             fi
             
             local profile_count
-            profile_count=$(jq '.profiles | keys | length' "$REPO_ROOT/registry.json")
+            profile_count=$(jq '.profiles | keys | length' "$REPO_ROOT/built-ai-configs/registry/registry.json")
             
             if [ "$profile_count" -ge 4 ]; then
                 pass "Registry has $profile_count profiles"
@@ -261,7 +261,7 @@ test_registry_consistency() {
             warn "jq not installed, skipping JSON validation"
         fi
     else
-        fail "registry.json not found"
+        fail "built-ai-configs/registry/registry.json not found"
     fi
 }
 

@@ -91,7 +91,7 @@ task(
 
 ```bash
 # List all subagent names
-cat registry.json | jq -r '.components.subagents[] | "\(.name)"'
+cat built-ai-configs/registry/registry.json | jq -r '.components.subagents[] | "\(.name)"'
 ```
 
 **Output**:
@@ -363,7 +363,7 @@ if subagent_type not in available_types:
 
 ## Related Files
 
-- **Registry**: `registry.json` - Component catalog
+- **Registry**: `built-ai-configs/registry/registry.json` - Component catalog
 - **Subagents**: `.opencode/agent/subagents/` - Subagent definitions
 - **Validation**: `scripts/registry/validate-registry.sh`
 

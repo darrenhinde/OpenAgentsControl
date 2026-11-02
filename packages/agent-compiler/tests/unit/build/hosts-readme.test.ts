@@ -68,8 +68,8 @@ const BASE_REGISTRY = {
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "oac-hosts-readme-"));
-  put("registry.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
-  put("registry.v1.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
+  put("built-ai-configs/registry/registry.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
+  put("built-ai-configs/registry/registry.v1.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
   put("agent-library/agents/subagents/test/alpha.md", canonicalAgent("alpha", ["opencode"]));
   // temperature has no Claude Code equivalent: the claude-code build warns about it.
   put(
@@ -106,8 +106,8 @@ describe("built-ai-configs/README.md contents", () => {
     expect(readme).toContain("| `opencode` | `built-ai-configs/opencode/` | 2 | 0 | `.opencode/agent/` |");
     expect(readme).toContain("| `opencode-v1` | `built-ai-configs/opencode-v1/` | 2 | 0 | — |");
     expect(readme).toContain("| `claude-code` | `built-ai-configs/claude-code/` | 1 | 1 | `plugins/claude-code/agents/` |");
-    expect(readme).toContain("registry.json");
-    expect(readme).toContain("registry.v1.json");
+    expect(readme).toContain("built-ai-configs/registry/registry.json");
+    expect(readme).toContain("built-ai-configs/registry/registry.v1.json");
     expect(readme).toContain(".claude-plugin/marketplace.json");
   });
 

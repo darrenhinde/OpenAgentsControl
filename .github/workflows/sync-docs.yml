@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'registry.json'
+      - 'built-ai-configs/registry/registry.json'
       - '.opencode/agent/**'
       - '.opencode/command/**'
       - '.opencode/context/**'
@@ -59,8 +59,8 @@ jobs:
             exit 0
           fi
           
-          # Check if registry.json changed
-          if git diff HEAD^ HEAD --name-only | grep -q "registry.json"; then
+          # Check if built-ai-configs/registry/registry.json changed
+          if git diff HEAD^ HEAD --name-only | grep -q "built-ai-configs/registry/registry.json"; then
             echo "needs_sync=true" >> $GITHUB_OUTPUT
             echo "changes_detected=Registry updated" >> $GITHUB_OUTPUT
             exit 0
@@ -120,7 +120,7 @@ jobs:
             
             ### Task
             
-            Please review the current \`registry.json\` and update the following documentation files to ensure they accurately reflect the current component counts and descriptions:
+            Please review the current \`built-ai-configs/registry/registry.json\` and update the following documentation files to ensure they accurately reflect the current component counts and descriptions:
             
             1. **README.md** - Update installation profile component counts:
                - Essential profile: Update component count
@@ -135,7 +135,7 @@ jobs:
             
             ### Instructions
             
-            1. Read \`registry.json\` to get current component counts
+            1. Read \`built-ai-configs/registry/registry.json\` to get current component counts
             2. Extract profile component counts from \`.profiles.<profile>.components | length\`
             3. Update README.md sections that reference component counts
             4. Ensure consistency across all documentation
@@ -145,7 +145,7 @@ jobs:
             
             ### Context Files to Load
             
-            - \`registry.json\` - Source of truth for components
+            - \`built-ai-configs/registry/registry.json\` - Source of truth for components
             - \`README.md\` - Main documentation file
             - \`docs/README.md\` - Documentation index
             
@@ -174,7 +174,7 @@ jobs:
           echo ""
           echo "The workflow will:"
           echo "1. OpenCode reads the issue"
-          echo "2. Analyzes registry.json"
+          echo "2. Analyzes built-ai-configs/registry/registry.json"
           echo "3. Updates documentation files"
           echo "4. Commits changes to the branch"
           echo "5. Another workflow will create a PR after OpenCode finishes"

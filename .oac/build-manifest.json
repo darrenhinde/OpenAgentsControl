@@ -117,7 +117,7 @@
       "root": ".opencode/agent"
     },
     ".opencode/agent/repo-manager.md": {
-      "sha256": "0192d5a7bac045a119d6610f4289d0c9c7474f8a1dbabbbb396b49bf3dbefbc1",
+      "sha256": "3dffdf6bbf441e1c1b1df008f598265918e457250fb01e1d722d03c157b76433",
       "target": "opencode",
       "root": ".opencode/agent"
     },
@@ -167,7 +167,7 @@
       "root": ".opencode/agent"
     },
     "built-ai-configs/README.md": {
-      "sha256": "7c0359be20b274a21d1c2f1870ceff4dbc9375ce5bdb0b5dac776ba1b371c0ac",
+      "sha256": "45611d741f3e672464beab817650159c2ce2398c0df0b50103648b0fcfdf22e4",
       "target": "hosts-readme",
       "root": "built-ai-configs/README.md"
     },
@@ -232,7 +232,7 @@
       "root": "built-ai-configs/opencode-v1/agent"
     },
     "built-ai-configs/opencode-v1/agent/meta/repo-manager.md": {
-      "sha256": "98861c0730bb975b79dc7bf5537fc413da81c91078053e6ffb2888a0145d619d",
+      "sha256": "31a40331a8315e0757511366a4f7978837f8a814aada7a0ff3997f3390f9ff5a",
       "target": "opencode-v1",
       "root": "built-ai-configs/opencode-v1/agent"
     },
@@ -492,7 +492,7 @@
       "root": "built-ai-configs/opencode/agent"
     },
     "built-ai-configs/opencode/agent/repo-manager.md": {
-      "sha256": "0192d5a7bac045a119d6610f4289d0c9c7474f8a1dbabbbb396b49bf3dbefbc1",
+      "sha256": "3dffdf6bbf441e1c1b1df008f598265918e457250fb01e1d722d03c157b76433",
       "target": "opencode",
       "root": "built-ai-configs/opencode/agent"
     },
@@ -541,6 +541,16 @@
       "target": "opencode",
       "root": "built-ai-configs/opencode/agent"
     },
+    "built-ai-configs/registry/registry.json": {
+      "sha256": "62d99a1f25f1e14cff82d60f08b8120c4af391bcf3fed066c0dad5e0114aa378",
+      "target": "registry",
+      "root": "built-ai-configs/registry/registry.json"
+    },
+    "built-ai-configs/registry/registry.v1.json": {
+      "sha256": "96db12df90da96835ac6c247927efede23622b84d9dd7e3b27c3195caa1449c1",
+      "target": "registry-v1",
+      "root": "built-ai-configs/registry/registry.v1.json"
+    },
     "plugins/claude-code/agents/code-reviewer.md": {
       "sha256": "b93c33289b9d0ba5283dbc9ddefdb2e8c3165e7caa1cf1ff8f6356798f388b01",
       "target": "claude-code",
@@ -575,16 +585,6 @@
       "sha256": "cc41b8213755670f397fdc1833042dced3f92e9068a73c2d2625502dbba9fe01",
       "target": "claude-code",
       "root": "plugins/claude-code/agents"
-    },
-    "registry.json": {
-      "sha256": "62d99a1f25f1e14cff82d60f08b8120c4af391bcf3fed066c0dad5e0114aa378",
-      "target": "registry",
-      "root": "registry.json"
-    },
-    "registry.v1.json": {
-      "sha256": "96db12df90da96835ac6c247927efede23622b84d9dd7e3b27c3195caa1449c1",
-      "target": "registry-v1",
-      "root": "registry.v1.json"
     }
   }
 }

@@ -7,19 +7,19 @@ echo "🔍 Checking profile coverage..."
 echo ""
 
 # Get all agent IDs
-agents=$(jq -r '.components.agents[].id' registry.json)
+agents=$(jq -r '.components.agents[].id' built-ai-configs/registry/registry.json)
 
 errors=0
 
 for agent in $agents; do
   # Get agent category
-  category=$(jq -r ".components.agents[] | select(.id == \"$agent\") | .category" registry.json)
+  category=$(jq -r ".components.agents[] | select(.id == \"$agent\") | .category" built-ai-configs/registry/registry.json)
   
   # Check which profiles include this agent
-  in_developer=$(jq -r ".profiles.developer.components[] | select(. == \"agent:$agent\")" registry.json 2>/dev/null || echo "")
-  in_business=$(jq -r ".profiles.business.components[] | select(. == \"agent:$agent\")" registry.json 2>/dev/null || echo "")
-  in_full=$(jq -r ".profiles.full.components[] | select(. == \"agent:$agent\")" registry.json 2>/dev/null || echo "")
-  in_advanced=$(jq -r ".profiles.advanced.components[] | select(. == \"agent:$agent\")" registry.json 2>/dev/null || echo "")
+  in_developer=$(jq -r ".profiles.developer.components[] | select(. == \"agent:$agent\")" built-ai-configs/registry/registry.json 2>/dev/null || echo "")
+  in_business=$(jq -r ".profiles.business.components[] | select(. == \"agent:$agent\")" built-ai-configs/registry/registry.json 2>/dev/null || echo "")
+  in_full=$(jq -r ".profiles.full.components[] | select(. == \"agent:$agent\")" built-ai-configs/registry/registry.json 2>/dev/null || echo "")
+  in_advanced=$(jq -r ".profiles.advanced.components[] | select(. == \"agent:$agent\")" built-ai-configs/registry/registry.json 2>/dev/null || echo "")
   
   # Validate based on category
   case $category in

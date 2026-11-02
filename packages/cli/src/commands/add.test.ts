@@ -15,7 +15,8 @@ const makeFixture = async (): Promise<{ projectRoot: string; packageRoot: string
   temporaryRoots.push(projectRoot, packageRoot);
   await mkdir(join(packageRoot, '.opencode', 'context'), { recursive: true });
   await writeFile(join(packageRoot, componentPath), '# Bundled version', 'utf8');
-  await writeFile(join(packageRoot, 'registry.json'), JSON.stringify({
+  await mkdir(join(packageRoot, 'built-ai-configs/registry'), { recursive: true });
+  await writeFile(join(packageRoot, 'built-ai-configs/registry/registry.json'), JSON.stringify({
     version: '1.0.0',
     components: {
       contexts: [{ id: 'example', name: 'Example', type: 'context', path: componentPath, description: '' }],

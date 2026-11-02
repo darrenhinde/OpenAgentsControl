@@ -1,6 +1,6 @@
 /**
  * Registry Fetcher
- * Fetches and parses registry.json from GitHub
+ * Fetches and parses built-ai-configs/registry/registry.json from GitHub
  */
 
 import { RegistrySchema, type Registry, type Component, type Profile } from '../types/registry'
@@ -29,7 +29,7 @@ export async function fetchRegistry(
 
   if (source === 'github') {
     // Fetch from GitHub raw URL
-    const url = `https://raw.githubusercontent.com/${repository}/${branch}/registry.json`
+    const url = `https://raw.githubusercontent.com/${repository}/${branch}/built-ai-configs/registry/registry.json`
     
     const response = await fetch(url)
     

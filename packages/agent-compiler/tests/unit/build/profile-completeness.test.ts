@@ -148,7 +148,7 @@ describe("ProfileLoader (shipped)", () => {
     const { ReferenceResolver } = await import("../../../src/core/ReferenceResolver.js");
     const { missing } = await new ProfileLoader(
       repoPath(),
-      new ReferenceResolver(repoPath(), "registry.v1.json"),
+      new ReferenceResolver(repoPath(), "built-ai-configs/registry/registry.v1.json"),
     ).resolveClosure(profile);
 
     expect(missing).toEqual([]);

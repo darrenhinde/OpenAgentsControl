@@ -18,7 +18,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-REGISTRY_FILE="registry.json"
+REGISTRY_FILE="built-ai-configs/registry/registry.json"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 AUTO_ADD=false
 DRY_RUN=false
@@ -321,7 +321,7 @@ main() {
     else
         print_info "Run with --auto-add to add these components to registry"
         echo ""
-        echo "Or manually add them to registry.json"
+        echo "Or manually add them to built-ai-configs/registry/registry.json"
     fi
     
     exit 0

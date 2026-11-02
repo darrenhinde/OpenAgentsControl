@@ -190,7 +190,7 @@ REGISTRY_URL="file://$(pwd)/registry.json" ./install.sh --list
 
 **Solutions**:
 1. **Missing dependencies**: Install curl and jq
-2. **Registry not found**: Check registry.json exists
+2. **Registry not found**: Check built-ai-configs/registry/registry.json exists
 3. **Component not found**: Verify component in registry
 
 **Fix**:
@@ -248,7 +248,7 @@ ERROR: Agent not found: development/frontend-specialist
 ls -la .opencode/agent/subagents/development/frontend-specialist.md
 
 # Check registry
-cat registry.json | jq '.components.agents[] | select(.id == "frontend-specialist")'
+cat built-ai-configs/registry/registry.json | jq '.components.agents[] | select(.id == "frontend-specialist")'
 ```
 
 **Solutions**:
@@ -275,14 +275,14 @@ cat registry.json | jq '.components.agents[] | select(.id == "frontend-specialis
 ```
 VERSION: 0.5.0
 package.json: 0.4.0
-registry.json: 0.5.0
+built-ai-configs/registry/registry.json: 0.5.0
 ```
 
 **Diagnosis**:
 ```bash
 cat VERSION
 cat package.json | jq '.version'
-cat registry.json | jq '.version'
+cat built-ai-configs/registry/registry.json | jq '.version'
 ```
 
 **Solution**:
@@ -290,7 +290,7 @@ Update all to same version:
 ```bash
 echo "0.5.0" > VERSION
 jq '.version = "0.5.0"' package.json > tmp && mv tmp package.json
-jq '.version = "0.5.0"' registry.json > tmp && mv tmp registry.json
+jq '.version = "0.5.0"' built-ai-configs/registry/registry.json > tmp && mv tmp built-ai-configs/registry/registry.json
 ```
 
 ---

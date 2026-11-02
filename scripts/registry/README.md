@@ -1,6 +1,6 @@
 # Registry Validation Scripts
 
-This directory contains scripts to validate the `registry.json` file.
+This directory contains scripts to validate the `built-ai-configs/registry/registry.json` file.
 
 ## Available Scripts
 
@@ -62,7 +62,7 @@ bun run scripts/registry/validate-registry.ts -f
 
 Both scripts validate:
 
-1. **Registry JSON Format** - Ensures `registry.json` is valid JSON
+1. **Registry JSON Format** - Ensures `built-ai-configs/registry/registry.json` is valid JSON
 2. **Component Paths** - Verifies all file paths in the registry exist
 3. **Component Dependencies** - Validates that all dependencies reference existing components
 

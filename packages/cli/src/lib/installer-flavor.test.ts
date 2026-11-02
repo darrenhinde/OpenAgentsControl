@@ -42,8 +42,8 @@ beforeEach(async () => {
   await put(pkg, 'built-ai-configs/opencode-v1/agent/core/openagent.md', 'v1 openagent');
   await put(pkg, 'built-ai-configs/opencode-v1/tool/gemini/index.ts', 'tool');
   await put(pkg, 'built-ai-configs/opencode-v1/plugin/notify.ts', 'plugin');
-  await put(pkg, 'registry.json', registry([['openagent', '.opencode/agent/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
-  await put(pkg, 'registry.v1.json', registry([['openagent', 'built-ai-configs/opencode-v1/agent/core/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
+  await put(pkg, 'built-ai-configs/registry/registry.json', registry([['openagent', '.opencode/agent/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
+  await put(pkg, 'built-ai-configs/registry/registry.v1.json', registry([['openagent', 'built-ai-configs/opencode-v1/agent/core/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
 });
 afterEach(async () => {
   await rm(pkg, { recursive: true, force: true });

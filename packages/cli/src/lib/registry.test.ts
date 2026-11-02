@@ -275,19 +275,20 @@ describe('resolveProfile — wildcards', () => {
 // ── Flavor-aware registry ─────────────────────────────────────────────────────
 
 describe('flavor-aware registry', () => {
-  test('v1 reads registry.v1.json from the package root', async () => {
+  test('v1 reads built-ai-configs/registry/registry.v1.json from the package root', async () => {
     const { mkdtemp, writeFile, rm } = await import('node:fs/promises');
     const { tmpdir } = await import('node:os');
     const { join } = await import('node:path');
     const root = await mkdtemp(join(tmpdir(), 'oac-registry-flavor-'));
     try {
       const doc = (id: string) => JSON.stringify({ version: '1', components: { agents: [{ id, name: id, type: 'agent', path: `.opencode/agent/${id}.md` }] } });
-      await writeFile(join(root, 'registry.json'), doc('v2agent'));
-      await writeFile(join(root, 'registry.v1.json'), doc('v1agent'));
+      await (await import('node:fs/promises')).mkdir(join(root, 'built-ai-configs/registry'), { recursive: true });
+      await writeFile(join(root, 'built-ai-configs/registry/registry.json'), doc('v2agent'));
+      await writeFile(join(root, 'built-ai-configs/registry/registry.v1.json'), doc('v1agent'));
       expect((await readRegistry(root)).components.agents[0]?.id).toBe('v2agent');
       expect((await readRegistry(root, 'v2')).components.agents[0]?.id).toBe('v2agent');
       expect((await readRegistry(root, 'v1')).components.agents[0]?.id).toBe('v1agent');
-      expect(getRegistryPath(root, 'v1')).toBe(join(root, 'registry.v1.json'));
+      expect(getRegistryPath(root, 'v1')).toBe(join(root, 'built-ai-configs/registry/registry.v1.json'));
     } finally {
       await rm(root, { recursive: true, force: true });
     }

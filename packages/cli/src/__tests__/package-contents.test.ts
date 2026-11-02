@@ -52,7 +52,7 @@ describe('published package profile contents', () => {
 
     // Act
     const missing = missingFromPackage(
-      [...profileFiles, ...bundledFiles, 'registry.json', 'registry.v1.json'],
+      [...profileFiles, ...bundledFiles, 'built-ai-configs/registry/registry.json', 'built-ai-configs/registry/registry.v1.json'],
       packedPaths,
     );
 

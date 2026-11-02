@@ -31,7 +31,7 @@ export const parseFlavor = (value: string): OpenCodeFlavor | null => {
 
 /** The registry file a flavor installs from, relative to the package root. Pure. */
 export const registryFileFor = (flavor: OpenCodeFlavor): string =>
-  flavor === 'v1' ? 'registry.v1.json' : 'registry.json';
+  flavor === 'v1' ? 'built-ai-configs/registry/registry.v1.json' : 'built-ai-configs/registry/registry.json';
 
 /** True for a bundle path that sits under the v1 source folder. Pure. */
 export const isV1Source = (relativePath: string): boolean => relativePath.startsWith(V1_PREFIX);

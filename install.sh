@@ -59,7 +59,7 @@ OPENCODE_FLAVOR="${OAC_OPENCODE:-v2}"
 # Registry URL - supports local fallback for development.
 # Priority: 1) REGISTRY_URL env var, 2) Local registry file, 3) Remote GitHub.
 # The registry file depends on the flavor, so it is resolved in fetch_registry once the
-# arguments are parsed: registry.json for v2, registry.v1.json for v1.
+# arguments are parsed: built-ai-configs/registry/registry.json for v2, built-ai-configs/registry/registry.v1.json for v1.
 
 INSTALL_DIR="${OPENCODE_INSTALL_DIR:-.opencode}"  # Allow override via environment variable
 TEMP_DIR="/tmp/opencode-installer-$$"
@@ -276,9 +276,9 @@ normalize_flavor() {
 
 registry_file_name() {
     if [ "$OPENCODE_FLAVOR" = "v1" ]; then
-        echo "registry.v1.json"
+        echo "built-ai-configs/registry/registry.v1.json"
     else
-        echo "registry.json"
+        echo "built-ai-configs/registry/registry.json"
     fi
 }
 

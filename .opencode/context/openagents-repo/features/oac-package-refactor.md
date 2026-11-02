@@ -2042,7 +2042,7 @@ oac help [command]
 │   ├── oac.config.json         # Default config
 │   └── ide-mappings.json       # IDE mappings
 ├── .opencode/                  # Existing structure
-├── registry.json               # Official registry
+├── built-ai-configs/registry/registry.json               # Official registry
 ├── community-registry.json     # Community registry
 └── package.json
 ```
@@ -2265,7 +2265,7 @@ oac help [command]
 **Preserve existing workflows**:
 - ✅ Keep `install.sh` for direct usage
 - ✅ Keep `bin/oac.js` as entry point
-- ✅ Keep registry.json format
+- ✅ Keep built-ai-configs/registry/registry.json format
 - ✅ Keep `.opencode/` structure
 - ✅ Support legacy `oac [profile]` syntax
 

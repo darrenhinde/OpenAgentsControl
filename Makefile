@@ -159,7 +159,7 @@ high-priority: ## List all high priority items
 # =============================================================================
 
 # The canonical build: agent-library/agents/** is the source; built-ai-configs/** (with its live mirrors
-# .opencode/agent/** and plugins/claude-code/agents/**), registry.json, registry.v1.json and
+# .opencode/agent/** and plugins/claude-code/agents/**), built-ai-configs/registry/registry.json, built-ai-configs/registry/registry.v1.json and
 # .oac/build-manifest.json are its committed output. `check-canonical-drift` is exactly what CI
 # runs (.github/workflows/packages-checks.yml), so a contributor can reproduce a red gate here.
 oac-cli: ## Build the oac CLI and its agent-compiler dependency

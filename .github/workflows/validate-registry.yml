@@ -67,7 +67,7 @@ jobs:
             echo "drift_detected=true" >> "$GITHUB_OUTPUT"
             echo "## Registry drift detected" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "The repository already contains components not represented in registry.json." >> "$GITHUB_STEP_SUMMARY"
+            echo "The repository already contains components not represented in built-ai-configs/registry/registry.json." >> "$GITHUB_STEP_SUMMARY"
             echo "This is reported but does not block security validation until the existing drift is reconciled." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "drift_detected=false" >> "$GITHUB_OUTPUT"

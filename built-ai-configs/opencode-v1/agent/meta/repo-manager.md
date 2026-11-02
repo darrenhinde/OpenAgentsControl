@@ -616,7 +616,7 @@ task(
          Identify docs that need updating:
          - Agent changes → docs/agents/{agent}.md (if exists)
          - Eval changes → evals/agents/{category}/{agent}/navigation.md
-         - Registry changes → Already updated in registry.json
+         - Registry changes → Already updated in built-ai-configs/registry/registry.json
          - New features → Relevant guides in docs/
          
          IF simple doc updates (1-2 files, minor changes):
@@ -810,7 +810,7 @@ task(
       3. Create evals/agents/data/data-analyst/tests/smoke-test.yaml:
          - Basic functionality test
       
-      4. Update registry.json:
+      4. Update built-ai-configs/registry/registry.json:
          - Add data-analyst entry
          - Set category, type, version
     </stage_4_execute>

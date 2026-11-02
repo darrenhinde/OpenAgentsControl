@@ -129,7 +129,7 @@ npm profile get  # Check email verification status
 - `.opencode/` - Agents, commands, context, profiles, skills, tools
 - `scripts/` - Installation scripts
 - `bin/` - CLI entry point
-- `registry.json` - Component registry
+- `built-ai-configs/registry/registry.json` - Component registry
 - `install.sh` - Main installer
 - Docs (README, CHANGELOG, LICENSE)
 

@@ -132,7 +132,7 @@ Made by the maintainer on 2026-10-20 and 2026-10-21.
 Made by the maintainer on 2026-10-20 and 2026-10-21.
 
 - **Decision:** `built-ai-configs/<target>/` is the single, committed, browsable build output for every AI tool: `built-ai-configs/opencode/agent/`, `built-ai-configs/opencode-v1/` (agents plus the v1-only commands, plugins, skills and tools) and `built-ai-configs/claude-code/agents/`. A generated `built-ai-configs/README.md` indexes it.
-  - **The live paths are mirrors.** `oac build` copies `.opencode/agent/**` and `plugins/claude-code/agents/**` byte for byte from `built-ai-configs/`. They stay because installers already in use read the `registry.json` paths (`.opencode/agent/...`), and the Claude marketplace reads `./plugins/claude-code`. `registry.v1.json` points into `built-ai-configs/opencode-v1/`.
+  - **The live paths are mirrors.** `oac build` copies `.opencode/agent/**` and `plugins/claude-code/agents/**` byte for byte from `built-ai-configs/`. They stay because installers already in use read the `built-ai-configs/registry/registry.json` paths (`.opencode/agent/...`), and the Claude marketplace reads `./plugins/claude-code`. `built-ai-configs/registry/registry.v1.json` points into `built-ai-configs/opencode-v1/`.
   - **The drift gate covers `built-ai-configs/` and both mirrors.** A hand edit to a mirror counts as drift, the same as a hand edit to `built-ai-configs/`.
   - **The folder is called `built-ai-configs/`, not `dist/`.** `dist` and `build` are gitignored across the repo, and `dist/` already means throwaway compiled package code.
 - **Why:** the maintainer wants people to "quickly look at one folder to look at how it all works": every tool's output side by side, comparable without a build.

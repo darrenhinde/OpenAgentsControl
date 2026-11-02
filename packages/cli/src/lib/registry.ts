@@ -46,7 +46,7 @@ export const ComponentTypeSchema = z.enum([
   "config",
 ]);
 
-/** A single component entry from registry.json. */
+/** A single component entry from built-ai-configs/registry/registry.json. */
 export const RegistryComponentSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -349,7 +349,7 @@ export const resolveProfile = (
 // ── I/O ────────────────────────────────────────────────────────────────────────
 
 /**
- * Reads and validates registry.json from `packageRoot`.
+ * Reads and validates built-ai-configs/registry/registry.json from `packageRoot`.
  * Throws with a clear, actionable message when:
  *   - the file does not exist
  *   - the JSON is malformed
@@ -396,7 +396,7 @@ export const readRegistry = async (
 };
 
 /**
- * Convenience alias: reads registry.json from `packageRoot`.
+ * Convenience alias: reads built-ai-configs/registry/registry.json from `packageRoot`.
  * Identical to `readRegistry` — provided for callers that prefer this name.
  */
 export const loadRegistry = readRegistry;

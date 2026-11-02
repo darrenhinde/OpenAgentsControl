@@ -81,7 +81,7 @@ Body text only Claude Code gets (e.g. "context is pre-loaded").
 make build-canonical && make check-canonical-drift
 ```
 
-Your subagent appears in `built-ai-configs/README.md`'s matrix and in `registry.json`.
+Your subagent appears in `built-ai-configs/README.md`'s matrix and in `built-ai-configs/registry/registry.json`.
 
 ---
 
@@ -101,7 +101,7 @@ You are a code reviewer...
 ```
 
 That creates an agent **only for Claude Code, on that machine** — it is not in the
-canonical corpus, not shipped by `registry.json`, and not this repo's management path.
+canonical corpus, not shipped by `built-ai-configs/registry/registry.json`, and not this repo's management path.
 Use it for private/local experiments only; anything this repo ships goes through
 `agent-library/agents/**`.
 

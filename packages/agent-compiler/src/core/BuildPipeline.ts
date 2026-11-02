@@ -5,7 +5,7 @@
  *
  * Load `agent-library/agents/**`, ask each agent which targets it declares, run the matching
  * adapter, and collect the result as an ordered set of (path, bytes) pairs. Emitting
- * `registry.json` is folded in as a target of its own, because it is generated from exactly
+ * `built-ai-configs/registry/registry.json` is folded in as a target of its own, because it is generated from exactly
  * the same input and must be gated by exactly the same determinism rules.
  *
  * ─── Why planning and writing are separate ──────────────────────────────────────────────
@@ -137,7 +137,7 @@ export interface BuildPlan {
    * files built alongside them. {@link write} prunes, and {@link check} reports orphans, only
    * for ledger entries whose target is listed here; every other target's ledger entries are
    * carried forward verbatim. Without this, `--target claude-code` reads every `built-ai-configs/opencode/**`,
-   * `.opencode/agent/**`, `built-ai-configs/opencode-v1/**` and `registry.v1.json` entry as an orphan and
+   * `.opencode/agent/**`, `built-ai-configs/opencode-v1/**` and `built-ai-configs/registry/registry.v1.json` entry as an orphan and
    * deletes it. A target's mirrors are owned with it.
    */
   owns: ReadonlyArray<BuildFile["target"]>;
@@ -148,7 +148,7 @@ export interface BuildOptions {
   root: string;
   /** Restrict the build to these targets. Defaults to {@link BUILD_TARGETS} plus the registry. */
   targets?: readonly BuildTarget[];
-  /** Skip `registry.json`. Defaults to false. */
+  /** Skip `built-ai-configs/registry/registry.json`. Defaults to false. */
   skipRegistry?: boolean;
   /**
    * Accepted and ignored: {@link plan} never writes, so a dry run IS a plan. Present because
@@ -216,7 +216,7 @@ export interface TargetLayout {
   root: string;
   /**
    * Live paths that receive byte-identical copies of everything under {@link root}: the
-   * repo's own `.opencode/agent/` (dogfood, and the `registry.json` paths installers read) and
+   * repo's own `.opencode/agent/` (dogfood, and the `built-ai-configs/registry/registry.json` paths installers read) and
    * `plugins/claude-code/agents/` (the Claude marketplace source). Generated, never edited.
    */
   mirrors: readonly string[];
@@ -235,15 +235,15 @@ export const TARGET_LAYOUT: Readonly<Record<BuildFile["target"], TargetLayout>> 
     mirrors: [OPENCODE_AGENT_ROOT],
   },
   // The v1 build has no live mirror: it is display-only here, and installs read it from its
-  // built-ai-configs/ folder (registry.v1.json).
+  // built-ai-configs/ folder (built-ai-configs/registry/registry.v1.json).
   "opencode-v1": { emitted: OPENCODE_V1_AGENT_ROOT, root: OPENCODE_V1_AGENT_ROOT, mirrors: [] },
   "claude-code": {
     emitted: "plugins/claude-code/agents",
     root: `${HOSTS_ROOT}/claude-code/agents`,
     mirrors: ["plugins/claude-code/agents"],
   },
-  registry: { emitted: "registry.json", root: "registry.json", mirrors: [] },
-  "registry-v1": { emitted: "registry.v1.json", root: "registry.v1.json", mirrors: [] },
+  registry: { emitted: "built-ai-configs/registry/registry.json", root: "built-ai-configs/registry/registry.json", mirrors: [] },
+  "registry-v1": { emitted: "built-ai-configs/registry/registry.v1.json", root: "built-ai-configs/registry/registry.v1.json", mirrors: [] },
   // The generated index of built-ai-configs/ (core/HostsReadme.ts). Only a full build owns it.
   [HOSTS_README_TARGET]: { emitted: HOSTS_README_PATH, root: HOSTS_README_PATH, mirrors: [] },
 };
@@ -413,10 +413,10 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   if (options.skipRegistry !== true) {
     // One registry per OpenCode major. The v1 registry is only built with the v1 target.
     const registries: Array<{ target: "registry" | "registry-v1"; registryTarget: RegistryTarget; path: string }> = [
-      { target: "registry", registryTarget: "opencode", path: "registry.json" },
+      { target: "registry", registryTarget: "opencode", path: "built-ai-configs/registry/registry.json" },
     ];
     if (targets.includes("opencode-v1")) {
-      registries.push({ target: "registry-v1", registryTarget: "opencode-v1", path: "registry.v1.json" });
+      registries.push({ target: "registry-v1", registryTarget: "opencode-v1", path: "built-ai-configs/registry/registry.v1.json" });
     }
     for (const { target, registryTarget, path } of registries) {
       const registry = await new RegistryEmitter(root, { target: registryTarget }).emit();
@@ -455,7 +455,7 @@ function coversAllHosts(targets: readonly BuildTarget[]): boolean {
 
 /**
  * Which ledger targets a build over `targets` is authoritative for. Mirrors the registry rule
- * in {@link plan}: `registry.json` is built unless skipped, `registry.v1.json` only with v1,
+ * in {@link plan}: `built-ai-configs/registry/registry.json` is built unless skipped, `built-ai-configs/registry/registry.v1.json` only with v1,
  * and `built-ai-configs/README.md` only when every host is built (it is independent of the registries).
  */
 function ownedTargets(
@@ -497,7 +497,7 @@ export async function build(options: BuildOptions): Promise<Map<string, string>>
  * Emit one agent, named by `oac.id`, for one target.
  *
  * Identity is `oac.id` and never a filename: `agent-library/agents/subagents/code/test-engineer.md`
- * declares `id: tester`, and `tester` is what `registry.json`, the profiles and the context
+ * declares `id: tester`, and `tester` is what `built-ai-configs/registry/registry.json`, the profiles and the context
  * docs all reference. Resolving by path here would mint an id nothing refers to.
  *
  * @throws when no agent declares `id`, or when that agent does not declare `target`.

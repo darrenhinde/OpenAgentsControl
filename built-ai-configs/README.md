@@ -33,8 +33,8 @@ OpenCode v1 vs v2: [docs/features/opencode-v1-and-v2.md](../docs/features/openco
 
 | Host | Folder | Agents | Warnings | Live mirror | Read by |
 | --- | --- | ---: | ---: | --- | --- |
-| `opencode` | `built-ai-configs/opencode/` | 33 | 0 | `.opencode/agent/` | this repo's own OpenCode, and installers (`oac install` / `install.sh`), which copy the paths `registry.json` lists |
-| `opencode-v1` | `built-ai-configs/opencode-v1/` | 34 | 0 | — | installers asked for OpenCode v1, which copy the paths `registry.v1.json` lists (no live mirror) |
+| `opencode` | `built-ai-configs/opencode/` | 33 | 0 | `.opencode/agent/` | this repo's own OpenCode, and installers (`oac install` / `install.sh`), which copy the paths `built-ai-configs/registry/registry.json` lists |
+| `opencode-v1` | `built-ai-configs/opencode-v1/` | 34 | 0 | — | installers asked for OpenCode v1, which copy the paths `built-ai-configs/registry/registry.v1.json` lists (no live mirror) |
 | `claude-code` | `built-ai-configs/claude-code/` | 7 | 8 | `plugins/claude-code/agents/` | the Claude Code marketplace: `.claude-plugin/marketplace.json` publishes `./plugins/claude-code` |
 
 ### `opencode` — OpenCode v2 (the default)
@@ -44,7 +44,7 @@ Built agents: `built-ai-configs/opencode/agent/`.
 - Flat: one `<id>.md` per agent directly under `agent/`; the file name is the agent name OpenCode uses.
 - Frontmatter: `description`, `mode` (`primary` / `subagent`), optional `temperature`, and `permission:` rules per capability (`bash`, `edit`, `task`, …) that OpenCode enforces glob by glob.
 - No `oac:` block and no `name:` field: v2 names an agent by its file.
-- Mirrored byte-for-byte to `.opencode/agent/`, read by this repo's own OpenCode, and installers (`oac install` / `install.sh`), which copy the paths `registry.json` lists.
+- Mirrored byte-for-byte to `.opencode/agent/`, read by this repo's own OpenCode, and installers (`oac install` / `install.sh`), which copy the paths `built-ai-configs/registry/registry.json` lists.
   The mirror is generated too: edit neither copy.
 
 ### `opencode-v1` — OpenCode v1 (legacy, on request)
@@ -55,7 +55,7 @@ Built agents: `built-ai-configs/opencode-v1/agent/`.
 - Frontmatter keeps a display `name:` alongside `description`, `mode`, `temperature` and `permission:`.
 - Generated from the same canonical source as v2: every agent that ships to `opencode` (declared, or the omitted-`targets:` default) is also built here, plus agents that declare only `opencode-v1` (v1-only, e.g. one that depends on a v1-only tool).
 - Only the agent files listed in the matrix below are build output. The other folders (`command/`, `plugin/`, `plugins/`, `skills/`, `tool/`) and the other files under `agent/` (such as `0-category.json`) are hand-maintained v1-only assets; `oac build` never writes or prunes them.
-- Read by installers asked for OpenCode v1, which copy the paths `registry.v1.json` lists (no live mirror).
+- Read by installers asked for OpenCode v1, which copy the paths `built-ai-configs/registry/registry.v1.json` lists (no live mirror).
 
 ### `claude-code` — Claude Code
 

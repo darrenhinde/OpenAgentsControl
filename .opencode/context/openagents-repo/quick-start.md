@@ -68,7 +68,7 @@ Before working on this repo, understand these 4 systems:
 .opencode/agent/subagents/               # Subagents
 evals/agents/{category}/{agent}/         # Agent tests
 evals/framework/src/                     # Eval framework code
-registry.json                            # Component catalog
+built-ai-configs/registry/registry.json                            # Component catalog
 install.sh                               # Installer
 scripts/registry/validate-registry.sh    # Validate registry
 scripts/registry/auto-detect-components.sh # Auto-detect components
@@ -140,7 +140,7 @@ opencode-agents/
 │   ├── registry/                # Registry tools
 │   └── validation/              # Validation tools
 ├── docs/                        # Documentation
-├── registry.json                # Component catalog
+├── built-ai-configs/registry/registry.json                # Component catalog
 └── install.sh                   # Installer
 ```
 

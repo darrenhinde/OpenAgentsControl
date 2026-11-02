@@ -5,7 +5,7 @@
  * "244/244 valid, 0 missing dependencies" and exits 0 — a FALSE GREEN. It is blind in two
  * specific ways, both verified on disk (see reference-resolution.test.ts):
  *
- *   1. It only ever reads `registry.json`. Component `dependencies:` authored in on-disk
+ *   1. It only ever reads `built-ai-configs/registry/registry.json`. Component `dependencies:` authored in on-disk
  *      frontmatter are never parsed, so frontmatter that has drifted from its registry
  *      entry is invisible to it.
  *   2. It walks `.components.*[].dependencies` only. `.profiles.*.components` — 209 refs
@@ -59,7 +59,7 @@ export interface Registry {
 export interface Reference {
   /** The raw `type:id` string as authored. */
   ref: string;
-  /** Human-readable origin, e.g. `.opencode/command/add-context.md` or `registry.json profiles.advanced`. */
+  /** Human-readable origin, e.g. `.opencode/command/add-context.md` or `built-ai-configs/registry/registry.json profiles.advanced`. */
   source: string;
 }
 
@@ -70,7 +70,7 @@ export interface Resolution extends Reference {
 }
 
 export function loadRegistry(): Registry {
-  return JSON.parse(readFileSync(repoPath("registry.json"), "utf-8")) as Registry;
+  return JSON.parse(readFileSync(repoPath("built-ai-configs/registry/registry.json"), "utf-8")) as Registry;
 }
 
 interface Index {
@@ -163,27 +163,27 @@ export function resolveReference(ref: string, registryIndex: Index): Resolution 
   };
 }
 
-/** Every reference authored in `registry.json` component `dependencies` arrays. */
+/** Every reference authored in `built-ai-configs/registry/registry.json` component `dependencies` arrays. */
 export function registryComponentReferences(registry: Registry): Reference[] {
   return Object.entries(registry.components).flatMap(([category, components]) =>
     components.flatMap((component) =>
       (component.dependencies ?? []).map((ref) => ({
         ref,
-        source: `registry.json components.${category}[id=${component.id}].dependencies`,
+        source: `built-ai-configs/registry/registry.json components.${category}[id=${component.id}].dependencies`,
       }))
     )
   );
 }
 
 /**
- * Every reference authored in `registry.json` profile component lists.
+ * Every reference authored in `built-ai-configs/registry/registry.json` profile component lists.
  * `validate-registry.sh` never looks here.
  */
 export function profileReferences(registry: Registry): Reference[] {
   return Object.entries(registry.profiles).flatMap(([name, profile]) =>
     (profile.components ?? []).map((ref) => ({
       ref,
-      source: `registry.json profiles.${name}.components`,
+      source: `built-ai-configs/registry/registry.json profiles.${name}.components`,
     }))
   );
 }

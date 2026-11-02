@@ -96,8 +96,8 @@ const BASE_REGISTRY = {
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "oac-build-"));
-  put("registry.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
-  put("registry.v1.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
+  put("built-ai-configs/registry/registry.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
+  put("built-ai-configs/registry/registry.v1.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
   put("agent-library/agents/subagents/test/alpha.md", canonicalAgent("alpha", ["opencode"]));
   put("agent-library/agents/subagents/test/beta.md", canonicalAgent("beta", ["opencode", "claude-code"]));
 });
@@ -147,14 +147,14 @@ describe("oac.targets", () => {
     expect(files.some((f) => f.target === "opencode-v1")).toBe(false);
   });
 
-  it("emits registry.v1.json only when the v1 target is built", async () => {
+  it("emits built-ai-configs/registry/registry.v1.json only when the v1 target is built", async () => {
     const both = await build({ root });
     const v2Only = await build({ root, targets: ["opencode"] });
 
-    expect(both.has("registry.json")).toBe(true);
-    expect(both.has("registry.v1.json")).toBe(true);
-    expect(v2Only.has("registry.json")).toBe(true);
-    expect(v2Only.has("registry.v1.json")).toBe(false);
+    expect(both.has("built-ai-configs/registry/registry.json")).toBe(true);
+    expect(both.has("built-ai-configs/registry/registry.v1.json")).toBe(true);
+    expect(v2Only.has("built-ai-configs/registry/registry.json")).toBe(true);
+    expect(v2Only.has("built-ai-configs/registry/registry.v1.json")).toBe(false);
   });
 
   it("keeps name: in the v1 sibling", async () => {
@@ -376,8 +376,8 @@ describe("orphan removal", () => {
 
 describe("targeted builds", () => {
   // Regression (2026-10-20): `oac build --target claude-code` deleted every `.opencode/agent/*`,
-  // `built-ai-configs/opencode-v1/agent/**` and `registry.v1.json`, and dropped their ledger entries. The plan
-  // only held claude-code (+ registry.json) files, so every OTHER target's ledger entry looked
+  // `built-ai-configs/opencode-v1/agent/**` and `built-ai-configs/registry/registry.v1.json`, and dropped their ledger entries. The plan
+  // only held claude-code (+ built-ai-configs/registry/registry.json) files, so every OTHER target's ledger entry looked
   // like an orphan whose source was gone.
   const STAGE = { "claude-code": ".tmp/stage" } as const;
   const UNSELECTED = [
@@ -387,7 +387,7 @@ describe("targeted builds", () => {
     "built-ai-configs/opencode/agent/beta.md",
     "built-ai-configs/opencode-v1/agent/subagents/test/alpha.md",
     "built-ai-configs/opencode-v1/agent/subagents/test/beta.md",
-    "registry.v1.json",
+    "built-ai-configs/registry/registry.v1.json",
   ];
 
   it("never prunes, and keeps verbatim the ledger entries of, targets it did not build", async () => {
@@ -503,7 +503,7 @@ describe("built-ai-configs/ layout and live mirrors", () => {
 describe("failure handling", () => {
   it("rejects duplicate typed identities in carried-through component categories", async () => {
     put(
-      "registry.json",
+      "built-ai-configs/registry/registry.json",
       `${JSON.stringify({
         ...BASE_REGISTRY,
         components: {

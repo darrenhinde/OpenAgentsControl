@@ -22,7 +22,7 @@ Two CRITICAL files required by ContextScout were NOT included in the registry:
 ## Solution
 
 ### 1. Added Critical Files to Registry
-Created two new registry entries in `registry.json`:
+Created two new registry entries in `built-ai-configs/registry/registry.json`:
 
 ```json
 {
@@ -74,7 +74,7 @@ Updated ContextScout's dependencies to explicitly require these files:
 ## Files Modified
 
 ### Registry & Configuration
-- `registry.json` - Added 2 critical context entries, updated ContextScout dependencies
+- `built-ai-configs/registry/registry.json` - Added 2 critical context entries, updated ContextScout dependencies
 
 ### Profiles
 - `.opencode/profiles/essential/profile.json` - Added critical files
@@ -118,13 +118,13 @@ ls -la .opencode/context/core/config/paths.json
 
 ## Why This Happened
 
-The installer uses `registry.json` to determine which files to download. If a file isn't listed in the registry, it won't be installed. 
+The installer uses `built-ai-configs/registry/registry.json` to determine which files to download. If a file isn't listed in the registry, it won't be installed. 
 
 These two files were essential infrastructure files that were:
 - Referenced by agent code
 - Required for ContextScout operation
 - Present in the repository
-- **BUT** not included in `registry.json`
+- **BUT** not included in `built-ai-configs/registry/registry.json`
 
 ## Prevention
 
@@ -141,7 +141,7 @@ bun run scripts/registry/validate-registry.ts
 ```
 
 3. **When adding new critical infrastructure files:**
-   - Add them to `registry.json`
+   - Add them to `built-ai-configs/registry/registry.json`
    - Include them in all relevant profiles
    - Add as dependencies to components that require them
 

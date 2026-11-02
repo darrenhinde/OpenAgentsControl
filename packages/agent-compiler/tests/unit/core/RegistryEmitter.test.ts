@@ -1,9 +1,9 @@
 /**
- * Registry emission — `registry.json` is GENERATED from `agent-library/agents/**`, not hand-edited.
+ * Registry emission — `built-ai-configs/registry/registry.json` is GENERATED from `agent-library/agents/**`, not hand-edited.
  *
  * ─── What is actually at stake ──────────────────────────────────────────────────────────
  *
- * `install.sh` reads `registry.json` and is the only shipping install path. Every assertion
+ * `install.sh` reads `built-ai-configs/registry/registry.json` and is the only shipping install path. Every assertion
  * here is really a statement about whether a real user can install this repo, which is why
  * this suite leans on the LIVE corpus rather than fixtures alone: a fixture tree cannot tell
  * us that the thing we ship is intact.
@@ -25,7 +25,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -42,7 +42,7 @@ import { CanonicalAgentLoader } from "../../../src/core/AgentLoader.js";
 import { emitsTo } from "../../../src/core/TargetPolicy.js";
 import { repoPath } from "../../support/pending.js";
 
-const COMMITTED_JSON = readFileSync(repoPath("registry.json"), "utf-8");
+const COMMITTED_JSON = readFileSync(repoPath("built-ai-configs/registry/registry.json"), "utf-8");
 const COMMITTED = JSON.parse(COMMITTED_JSON) as RegistryDocument;
 
 /** Categories phase 1 generates. Everything else is carried through verbatim. */
@@ -68,7 +68,7 @@ const NONDETERMINISM = [
  * ─── Updated by subtask 10, deliberately ────────────────────────────────────────────────
  *
  * This list used to assert the committed registry OMITS these 7 — it pinned the bug. Subtask
- * 10 ran `oac build`, which emits `registry.json` in place, so all 7 are now registered and
+ * 10 ran `oac build`, which emits `built-ai-configs/registry/registry.json` in place, so all 7 are now registered and
  * that assertion inverted. Per this file's own contract ("when a subtask repairs one, the test
  * turns red and forces a deliberate edit here"), the edit is made rather than the test
  * relaxed: the list now guards that generation KEEPS registering them. It stops being a
@@ -86,17 +86,17 @@ const RECOVERED_BY_GENERATION = [
 ] as const;
 
 /**
- * Dependency edges that were once authored ONLY in `registry.json` — no agent file and no
+ * Dependency edges that were once authored ONLY in `built-ai-configs/registry/registry.json` — no agent file and no
  * sidecar entry declared them, so generating from the canonical tree used to DROP them.
  *
  * That was a real regression, not a cleanup: `install.sh` resolves these transitively
  * (`resolve_dependencies`, install.sh:420), so installing `subagent:externalscout` pulls in
  * `skill:context7` and would have stopped doing so. They were hand-authored straight into
- * `registry.json` and never made it into any file, which is precisely the drift this refactor
+ * `built-ai-configs/registry/registry.json` and never made it into any file, which is precisely the drift this refactor
  * exists to end.
  *
  * Subtask 09b backfilled all 13 into `oac.dependencies` in `agent-library/agents/**`, in the exact
- * order `registry.json` declares them, so the emitter now reproduces every one. This list is
+ * order `built-ai-configs/registry/registry.json` declares them, so the emitter now reproduces every one. This list is
  * therefore no longer a snapshot of a loss — it is the guard that the backfill stays put. Each
  * edge was verified to resolve against the registry before being carried over; the sibling dead
  * ref `context:context-system/*` (profiles-only, expands to 0) was deliberately NOT introduced
@@ -126,10 +126,11 @@ function byId(document: RegistryDocument, category: string): Map<string, Registr
   return new Map(entries(document, category).map((entry) => [entry.id, entry]));
 }
 
-/** A throwaway repo root containing only a `registry.json`, for fixed-point testing. */
+/** A throwaway repo root containing only a `built-ai-configs/registry/registry.json`, for fixed-point testing. */
 function scratchRoot(registryJson: string): string {
   const root = mkdtempSync(join(tmpdir(), "oac-registry-"));
-  writeFileSync(join(root, "registry.json"), registryJson);
+  mkdirSync(join(root, "built-ai-configs/registry"), { recursive: true });
+  writeFileSync(join(root, "built-ai-configs/registry/registry.json"), registryJson);
   return root;
 }
 
@@ -138,7 +139,7 @@ function scratchRoot(registryJson: string): string {
 // ============================================================================
 
 describe("serializeRegistry", () => {
-  it("reproduces the committed registry.json byte-for-byte from its own parse", () => {
+  it("reproduces the committed built-ai-configs/registry/registry.json byte-for-byte from its own parse", () => {
     // If this drifts, every generated-vs-committed diff drowns in whitespace and escaping
     // noise and the subtask-11 gate stops meaning anything. It also pins the non-ASCII
     // escaping: the committed file writes `—` and two emoji as escapes, which bare
@@ -165,7 +166,7 @@ describe("serializeRegistry", () => {
 
 describe("determinism", () => {
   it("emits canonical agent entries without an agent-metadata sidecar", async () => {
-    // The scratch root has only registry.json: canonical agent metadata is loaded from content.
+    // The scratch root has only built-ai-configs/registry/registry.json: canonical agent metadata is loaded from content.
     const root = scratchRoot(COMMITTED_JSON);
 
     try {
@@ -191,7 +192,7 @@ describe("determinism", () => {
     const json = await emitRegistry(repoPath());
 
     for (const { name, pattern } of NONDETERMINISM) {
-      expect(json, `generated registry.json contains ${name}`).not.toMatch(pattern);
+      expect(json, `generated built-ai-configs/registry/registry.json contains ${name}`).not.toMatch(pattern);
     }
   });
 
@@ -213,7 +214,7 @@ describe("determinism", () => {
   });
 
   it("is a fixed point over its own output", async () => {
-    // Subtask 10 writes this output back to registry.json, and the emitter then reads that as
+    // Subtask 10 writes this output back to built-ai-configs/registry/registry.json, and the emitter then reads that as
     // its own base. If emitting were not idempotent the tree would oscillate and the diff gate
     // would fail forever on a tree nobody touched.
     const first = await emitRegistry(repoPath());
@@ -601,7 +602,7 @@ describe("registry defects", () => {
   it.each(RECOVERED_BY_GENERATION)("keeps %s registered, which only generation ever added", async (id) => {
     // Both sides are asserted on purpose. The generated document proves the emitter still
     // derives the entry from the canonical file; the committed one proves the emit actually
-    // reached disk. Checking only the emitter would let `registry.json` silently regress to a
+    // reached disk. Checking only the emitter would let `built-ai-configs/registry/registry.json` silently regress to a
     // hand-edited copy that drops these 7 again — the exact failure this refactor ends.
     const document = await new RegistryEmitter(repoPath()).emit();
 
@@ -623,8 +624,8 @@ describe("registry defects", () => {
     expect(byId(document, "subagents").has("batch-executor")).toBe(true);
   });
 
-  it("preserves the dependency edges that only registry.json used to declare", async () => {
-    // These edges were hand-authored in registry.json and absent from both the agent files and
+  it("preserves the dependency edges that only built-ai-configs/registry/registry.json used to declare", async () => {
+    // These edges were hand-authored in built-ai-configs/registry/registry.json and absent from both the agent files and
     // agent-metadata.json, so generating from the canonical tree used to lose them. Subtask 09b
     // backfilled them into `oac.dependencies`. This asserts the round trip: every edge the
     // committed registry declares is still declared by the generated one, so `install.sh`
@@ -637,7 +638,7 @@ describe("registry defects", () => {
       const after = new Set(subagents.get(id)?.dependencies ?? []);
 
       for (const dependency of backfilled) {
-        expect(before.has(dependency), `${id} -> ${dependency} vanished from registry.json`).toBe(
+        expect(before.has(dependency), `${id} -> ${dependency} vanished from built-ai-configs/registry/registry.json`).toBe(
           true
         );
         expect(
@@ -648,10 +649,10 @@ describe("registry defects", () => {
     }
   });
 
-  it("emits the backfilled edges in the order registry.json declares them", async () => {
+  it("emits the backfilled edges in the order built-ai-configs/registry/registry.json declares them", async () => {
     // Order is not cosmetic: the emitter maps `oac.dependencies` positionally, and the
     // subtask-11 `oac build && git diff --exit-code` gate compares bytes. A reordered list is a
-    // spurious diff, so the canonical files must carry registry.json's own order.
+    // spurious diff, so the canonical files must carry built-ai-configs/registry/registry.json's own order.
     const subagents = byId(await new RegistryEmitter(repoPath()).emit(), "subagents");
 
     for (const id of Object.keys(REGISTRY_ONLY_DEPENDENCIES)) {
@@ -682,8 +683,8 @@ describe("the v1 registry", () => {
     expect(byId(document, "subagents").get("image-specialist")?.dependencies).toContain("tool:gemini");
   });
 
-  it("matches the committed registry.v1.json byte-for-byte", async () => {
-    expect(await v1().emitJson()).toBe(readFileSync(repoPath("registry.v1.json"), "utf-8"));
+  it("matches the committed built-ai-configs/registry/registry.v1.json byte-for-byte", async () => {
+    expect(await v1().emitJson()).toBe(readFileSync(repoPath("built-ai-configs/registry/registry.v1.json"), "utf-8"));
   });
 
   it("differs from the v2 registry only in the entries whose files differ", async () => {

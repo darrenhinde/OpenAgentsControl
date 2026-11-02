@@ -108,7 +108,7 @@ REGISTRY_URL="file://$(pwd)/registry.json" ./install.sh --list
 # Check all version files
 cat VERSION
 cat package.json | jq '.version'
-cat registry.json | jq '.version'
+cat built-ai-configs/registry/registry.json | jq '.version'
 ```
 
 ### Update Version
@@ -120,8 +120,8 @@ echo "0.X.Y" > VERSION
 # Update package.json
 jq '.version = "0.X.Y"' package.json > tmp && mv tmp package.json
 
-# Update registry.json
-jq '.version = "0.X.Y"' registry.json > tmp && mv tmp registry.json
+# Update built-ai-configs/registry/registry.json
+jq '.version = "0.X.Y"' built-ai-configs/registry/registry.json > tmp && mv tmp built-ai-configs/registry/registry.json
 ```
 
 ### Bump Version Script
@@ -346,13 +346,13 @@ find scripts -name "*.sh"
 
 ```bash
 # List all agents
-cat registry.json | jq '.components.agents[].id'
+cat built-ai-configs/registry/registry.json | jq '.components.agents[].id'
 
 # Check specific component
-cat registry.json | jq '.components.agents[] | select(.id == "{agent-name}")'
+cat built-ai-configs/registry/registry.json | jq '.components.agents[] | select(.id == "{agent-name}")'
 
 # Count components
-cat registry.json | jq '.components.agents | length'
+cat built-ai-configs/registry/registry.json | jq '.components.agents | length'
 ```
 
 ### Test Locally

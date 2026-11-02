@@ -51,8 +51,6 @@ export function classifyChangedPaths(paths: readonly string[]): ChangeFlags {
       path.startsWith('.opencode/agent/') ||
       path.startsWith('plugins/claude-code/agents/') ||
       path.startsWith('.oac/') ||
-      path === 'registry.json' ||
-      path === 'registry.v1.json' ||
       // The gate's own machinery.
       path === 'Makefile' ||
       path === 'scripts/validation/check-build-drift.sh' ||

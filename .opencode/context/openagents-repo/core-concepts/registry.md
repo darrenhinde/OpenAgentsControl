@@ -9,14 +9,14 @@
 
 ## What Is the Registry?
 
-The registry is a centralized catalog (`registry.json`) that tracks all components in OpenAgents Control:
+The registry is a centralized catalog (`built-ai-configs/registry/registry.json`) that tracks all components in OpenAgents Control:
 - **Agents** - AI agent prompts
 - **Subagents** - Delegated specialists
 - **Commands** - Slash commands
 - **Tools** - Custom tools
 - **Contexts** - Context files
 
-**Location**: `registry.json` (root directory)
+**Location**: `built-ai-configs/registry/registry.json` (root directory)
 
 ---
 
@@ -84,7 +84,7 @@ The auto-detect system scans `.opencode/` and automatically updates the registry
 3. Extract metadata (description, category, type, tags)
 4. Validate paths exist
 5. Generate component entries
-6. Update registry.json
+6. Update built-ai-configs/registry/registry.json
 ```
 
 ### Running Auto-Detect
@@ -265,9 +265,9 @@ The install system uses the registry to distribute components.
 
 ```
 1. User runs install.sh
-2. Check for local registry.json (development mode)
+2. Check for local built-ai-configs/registry/registry.json (development mode)
 3. If not local, fetch from GitHub (production mode)
-4. Parse registry.json
+4. Parse built-ai-configs/registry/registry.json
 5. Show component selection UI
 6. Resolve dependencies
 7. Download components from GitHub
@@ -380,7 +380,7 @@ File exists: .opencode/agent/core/openagent.md
 # Check version consistency
 cat VERSION
 cat package.json | jq '.version'
-cat registry.json | jq '.version'
+cat built-ai-configs/registry/registry.json | jq '.version'
 
 # All should match
 ```
@@ -391,7 +391,7 @@ cat registry.json | jq '.version'
 # Bump version
 echo "0.X.Y" > VERSION
 jq '.version = "0.X.Y"' package.json > tmp && mv tmp package.json
-jq '.version = "0.X.Y"' registry.json > tmp && mv tmp registry.json
+jq '.version = "0.X.Y"' built-ai-configs/registry/registry.json > tmp && mv tmp built-ai-configs/registry/registry.json
 ```
 
 ---
@@ -474,7 +474,7 @@ jq '.version = "0.X.Y"' registry.json > tmp && mv tmp registry.json
 
 ### Version Mismatch
 
-**Problem**: VERSION, package.json, registry.json don't match  
+**Problem**: VERSION, package.json, built-ai-configs/registry/registry.json don't match  
 **Solution**: Update all version files to match
 
 ---

@@ -91,7 +91,7 @@ Updated profile files to remove references to deleted components:
 ## Files Modified
 
 ### Registry & Configuration
-- `registry.json` - Fixed dead references, added 27 new entries, updated dependencies
+- `built-ai-configs/registry/registry.json` - Fixed dead references, added 27 new entries, updated dependencies
 - `.opencode/config/agent-metadata.json` - Updated agent dependencies
 
 ### Profiles

@@ -2,7 +2,7 @@
  * @controlstack/agent-compiler
  * 
  * The build library behind `oac build`: loads canonical content/ and emits
- * OpenCode and Claude Code trees plus registry.json.
+ * OpenCode and Claude Code trees plus built-ai-configs/registry/registry.json.
  * 
  * @module @controlstack/agent-compiler
  * 
@@ -94,7 +94,7 @@ export type { CanonicalAgentFile } from "./core/AgentLoader.js";
 // ============================================================================
 
 /**
- * Generates `registry.json` from canonical component and profile trees, replacing the
+ * Generates `built-ai-configs/registry/registry.json` from canonical component and profile trees, replacing the
  * hand-editing that `scripts/registry/auto-detect-components.sh` only ever appended to.
  *
  * It owns `components.agents`, `components.subagents`, and profile component lists; contexts,
@@ -106,7 +106,7 @@ export type { CanonicalAgentFile } from "./core/AgentLoader.js";
  * ```typescript
  * import { emitRegistry } from '@controlstack/agent-compiler';
  *
- * // The bytes to write to registry.json — identical across runs.
+ * // The bytes to write to built-ai-configs/registry/registry.json — identical across runs.
  * const json = await emitRegistry(process.cwd());
  * ```
  */
@@ -194,7 +194,7 @@ export type {
 // ============================================================================
 
 /**
- * Resolves `type:id` references against `registry.json`, catching the reference rot that
+ * Resolves `type:id` references against `built-ai-configs/registry/registry.json`, catching the reference rot that
  * `scripts/registry/validate-registry.sh` reports as 244/244 green.
  */
 export { ReferenceResolver, formatResolutions } from "./core/ReferenceResolver.js";

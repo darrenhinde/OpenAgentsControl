@@ -159,7 +159,7 @@ Before committing changes to agents, commands, or context files:
    ./scripts/registry/auto-detect-components.sh --auto-add
    ```
    - Extracts dependencies from frontmatter
-   - Updates registry.json
+   - Updates built-ai-configs/registry/registry.json
 
 4. **Validate registry**:
    ```bash
@@ -262,7 +262,7 @@ dependencies:
 
 **Example output**:
 ```
-Validating registry.json...
+Validating built-ai-configs/registry/registry.json...
 
 ✗ Dependency not found: opencoder → context:core/standards/code
 
@@ -338,7 +338,7 @@ dependencies:
 
 **5. Commit with descriptive message**:
 ```bash
-git add .opencode/agent/my-agent.md registry.json
+git add .opencode/agent/my-agent.md built-ai-configs/registry/registry.json
 git commit -m "Add my-agent with coder-agent and code standards dependencies"
 ```
 
@@ -346,7 +346,7 @@ git commit -m "Add my-agent with coder-agent and code standards dependencies"
 
 **1. Check which agents depend on it**:
 ```bash
-jq '.components[] | .[] | select(.dependencies[]? | contains("context:core/standards/code")) | {id, name}' registry.json
+jq '.components[] | .[] | select(.dependencies[]? | contains("context:core/standards/code")) | {id, name}' built-ai-configs/registry/registry.json
 ```
 
 **2. Update context file**:
@@ -375,7 +375,7 @@ git commit -m "Update code standards - affects opencoder, openagent, reviewer"
 **1. Check dependencies first**:
 ```bash
 # Find what depends on this component
-jq '.components[] | .[] | select(.dependencies[]? == "subagent:old-agent") | {id, name}' registry.json
+jq '.components[] | .[] | select(.dependencies[]? == "subagent:old-agent") | {id, name}' built-ai-configs/registry/registry.json
 ```
 
 **2. Remove from dependents**:

@@ -47,7 +47,7 @@ async function runTests(): Promise<void> {
   printHeader('Test 1: Fetch Registry')
   try {
     const registry = await fetchRegistry({ source: 'github' })
-    printSuccess(`Fetched from: https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/registry.json`)
+    printSuccess(`Fetched from: https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/built-ai-configs/registry/registry.json`)
     printSuccess(`Registry version: ${registry.version}`)
     printSuccess(`Context components found: ${registry.components.contexts?.length || 0}`)
     passed++

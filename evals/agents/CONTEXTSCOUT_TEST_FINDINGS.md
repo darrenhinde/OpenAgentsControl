@@ -21,7 +21,7 @@ We created comprehensive tests for ContextScout integration and ran initial test
 
 **Actual**: OpenAgent used `grep` and `read` directly to find information
 - Used `grep` to search for "registry"
-- Read `registry.json` directly
+- Read `built-ai-configs/registry/registry.json` directly
 - Used `grep` to search for "auto-detect"
 - Eventually found `.opencode/context/openagents-repo/core-concepts/registry.md`
 - **Did NOT use the `task` tool to delegate to ContextScout**

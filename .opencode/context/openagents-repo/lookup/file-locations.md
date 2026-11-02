@@ -56,7 +56,7 @@ opencode-agents/
 │   ├── contributing/                # Contribution guides
 │   ├── features/                    # Feature docs
 │   └── getting-started/             # User guides
-├── registry.json                    # Component catalog
+├── built-ai-configs/registry/registry.json                    # Component catalog
 ├── install.sh                       # Installer
 ├── VERSION                          # Current version
 └── package.json                     # Node dependencies
@@ -81,7 +81,7 @@ opencode-agents/
 | **Registry scripts** | `scripts/registry/` |
 | **Validation scripts** | `scripts/validation/` |
 | **Documentation** | `docs/` |
-| **Registry** | `registry.json` |
+| **Registry** | `built-ai-configs/registry/registry.json` |
 | **Installer** | `install.sh` |
 | **Version** | `VERSION` |
 
@@ -108,7 +108,7 @@ opencode-agents/
 ### Core Files
 
 ```
-registry.json                        # Component catalog
+built-ai-configs/registry/registry.json                        # Component catalog
 install.sh                           # Main installer
 update.sh                            # Update script
 VERSION                              # Current version (0.5.0)

@@ -18,7 +18,7 @@ packages/agent-compiler (oac build)
         ▼
 built-ai-configs/opencode/        built-ai-configs/opencode-v1/        built-ai-configs/claude-code/
   + byte-identical mirrors: .opencode/agent/ · plugins/claude-code/agents/
-  + registry.json · registry.v1.json · built-ai-configs/README.md · .oac/build-manifest.json
+  + built-ai-configs/registry/registry.json · built-ai-configs/registry/registry.v1.json · built-ai-configs/README.md · .oac/build-manifest.json
 ```
 
 ## What an author writes (the canonical format)
@@ -46,7 +46,7 @@ Key details:
 | `opencode-v1` (legacy, on request) | nested `agent/<category>/<file>.md` | adds back `name:` | everything — 0 warnings | none |
 | `claude-code` | flat `agents/<name>.md` | `name`, `description` (with `<example>` dispatch blocks), authored `tools` / `disallowedTools` | body text via `oac:only`, tools via authored override | 8 warnings: per-glob `permission:` rules and `temperature` have no Claude Code equivalent |
 
-The engine also emits, from the same input and under the same determinism rules: `registry.json` / `registry.v1.json` (what installers read), the generated `built-ai-configs/README.md` index, and `.oac/build-manifest.json` (the write ledger).
+The engine also emits, from the same input and under the same determinism rules: `built-ai-configs/registry/registry.json` / `built-ai-configs/registry/registry.v1.json` (what installers read), the generated `built-ai-configs/README.md` index, and `.oac/build-manifest.json` (the write ledger).
 
 ## What the engine refuses to lose silently
 

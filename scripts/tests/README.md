@@ -2,7 +2,7 @@
 
 This directory contains test scripts for validating the OpenCode installer functionality and compatibility.
 
-**CI Integration:** These tests run automatically via `.github/workflows/installer-checks.yml` on any PR that modifies `install.sh`, `update.sh`, or `registry.json`.
+**CI Integration:** These tests run automatically via `.github/workflows/installer-checks.yml` on any PR that modifies `install.sh`, `update.sh`, or `built-ai-configs/registry/registry.json`.
 
 ## Quick Start
 

@@ -123,7 +123,7 @@ make build-canonical        # builds the CLI, then: 34+ agents -> all hosts
 What this does:
 
 - Emits every host's copy under `built-ai-configs/<host>/` (and the byte-identical live mirrors)
-- **Emits `registry.json` / `registry.v1.json`** — there is no separate registry step
+- **Emits `built-ai-configs/registry/registry.json` / `built-ai-configs/registry/registry.v1.json`** — there is no separate registry step
 - Regenerates `built-ai-configs/README.md` (the agents-by-host index) and `.oac/build-manifest.json`
 - Reports degradation warnings for anything a host cannot express
 

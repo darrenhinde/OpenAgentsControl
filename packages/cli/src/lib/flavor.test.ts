@@ -26,9 +26,9 @@ describe('parseFlavor', () => {
 });
 
 describe('registryFileFor', () => {
-  test('v2 reads registry.json and v1 reads registry.v1.json', () => {
-    expect(registryFileFor('v2')).toBe('registry.json');
-    expect(registryFileFor('v1')).toBe('registry.v1.json');
+  test('v2 reads built-ai-configs/registry/registry.json and v1 reads built-ai-configs/registry/registry.v1.json', () => {
+    expect(registryFileFor('v2')).toBe('built-ai-configs/registry/registry.json');
+    expect(registryFileFor('v1')).toBe('built-ai-configs/registry/registry.v1.json');
   });
 });
 

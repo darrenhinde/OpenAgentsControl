@@ -64,7 +64,7 @@ You are a validation specialist. Your task is to comprehensively validate the Op
 
 ### Step 1: Validate Registry JSON
 
-1. Read and parse `registry.json`
+1. Read and parse `built-ai-configs/registry/registry.json`
 2. Validate JSON syntax
 3. Check schema structure:
    - `version` field exists

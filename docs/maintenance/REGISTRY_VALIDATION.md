@@ -16,7 +16,7 @@ We have three levels of validation to catch issues before they reach users:
 
 ### 1. Registry Validator (`validate-registry.ts`)
 
-Validates that all paths in `registry.json` point to actual files on disk.
+Validates that all paths in `built-ai-configs/registry/registry.json` point to actual files on disk.
 
 **Usage:**
 ```bash
@@ -108,13 +108,13 @@ name: Registry Validation
 on:
   push:
     paths:
-      - 'registry.json'
+      - 'built-ai-configs/registry/registry.json'
       - '.opencode/profiles/**'
       - '.opencode/config/**'
       - 'scripts/registry/**'
   pull_request:
     paths:
-      - 'registry.json'
+      - 'built-ai-configs/registry/registry.json'
       - '.opencode/profiles/**'
       - '.opencode/config/**'
       - 'scripts/registry/**'
@@ -225,14 +225,14 @@ bun run scripts/registry/check-dependencies.ts
 
 ### When Adding New Components
 
-1. **Add to registry.json:**
+1. **Add to built-ai-configs/registry/registry.json:**
    - Ensure unique ID
    - Correct path relative to repo root
    - Appropriate category (essential, standard, advanced)
 
 2. **Add to profiles:**
    - Update `.opencode/profiles/<name>/profile.json`
-   - Also check if profiles section exists in registry.json
+   - Also check if profiles section exists in built-ai-configs/registry/registry.json
 
 3. **Add dependencies:**
    - If component references other components, add to `dependencies` array
@@ -245,7 +245,7 @@ bun run scripts/registry/check-dependencies.ts
 
 ### When Removing Components
 
-1. **Remove from registry.json:**
+1. **Remove from built-ai-configs/registry/registry.json:**
    - Delete the component entry
 
 2. **Update dependent components:**
@@ -254,7 +254,7 @@ bun run scripts/registry/check-dependencies.ts
 
 3. **Update profiles:**
    - Remove from all profile.json files
-   - Check both `.opencode/profiles/` and registry.json profiles section
+   - Check both `.opencode/profiles/` and built-ai-configs/registry/registry.json profiles section
 
 4. **Run validation:**
    ```bash
@@ -271,7 +271,7 @@ bun run scripts/registry/check-dependencies.ts
    - Delete the monolithic file entry from registry
 
 3. **Update dependencies:**
-   - Find all references to old ID: `grep -r "context:old-id" .opencode/ registry.json`
+   - Find all references to old ID: `grep -r "context:old-id" .opencode/ built-ai-configs/registry/registry.json`
    - Update to reference new split files
 
 4. **Update profiles:**
@@ -322,7 +322,7 @@ bun run scripts/registry/check-dependencies.ts --verbose
 
 ## Related Documentation
 
-- [Registry Structure](REGISTRY_STRUCTURE.md) - How registry.json is organized
+- [Registry Structure](REGISTRY_STRUCTURE.md) - How built-ai-configs/registry/registry.json is organized
 - [Adding Components](../guides/ADDING_COMPONENTS.md) - Step-by-step guide
 - [ContextScout Fix](CONTEXTSCOUT_FIX.md) - Example of fixing missing dependencies
 - [Registry Fixes Summary](REGISTRY_FIXES_SUMMARY.md) - Previous fixes made

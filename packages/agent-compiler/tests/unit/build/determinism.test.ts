@@ -124,14 +124,14 @@ describe("full build determinism", () => {
     }
   });
 
-  it("emits registry.json with stable ordering", async () => {
+  it("emits built-ai-configs/registry/registry.json with stable ordering", async () => {
     const { emitRegistry } = await importPendingSymbols<{
       emitRegistry: (root: string) => Promise<string>;
     }>(
       "src/core/RegistryEmitter.ts",
       ["emitRegistry"],
       "subtask 08 (src/core/RegistryEmitter.ts)",
-      "registry.json is emitted with stable key and array ordering, so a rebuild that " +
+      "built-ai-configs/registry/registry.json is emitted with stable key and array ordering, so a rebuild that " +
         "changes nothing produces no diff"
     );
 
@@ -140,11 +140,11 @@ describe("full build determinism", () => {
 
     expect(second).toBe(first);
     for (const { name, pattern } of NONDETERMINISM) {
-      expect(first, `registry.json contains ${name}`).not.toMatch(pattern);
+      expect(first, `built-ai-configs/registry/registry.json contains ${name}`).not.toMatch(pattern);
     }
   });
 
-  it("reproduces the committed registry.json exactly", async () => {
+  it("reproduces the committed built-ai-configs/registry/registry.json exactly", async () => {
     // The generated tree is committed, so a rebuild on a clean checkout must be a no-op.
     const { emitRegistry } = await importPendingSymbols<{
       emitRegistry: (root: string) => Promise<string>;
@@ -152,9 +152,9 @@ describe("full build determinism", () => {
       "src/core/RegistryEmitter.ts",
       ["emitRegistry"],
       "subtask 08 (src/core/RegistryEmitter.ts)",
-      "rebuilding registry.json reproduces the committed file byte-for-byte"
+      "rebuilding built-ai-configs/registry/registry.json reproduces the committed file byte-for-byte"
     );
 
-    expect(await emitRegistry(repoPath())).toBe(readFileSync(repoPath("registry.json"), "utf-8"));
+    expect(await emitRegistry(repoPath())).toBe(readFileSync(repoPath("built-ai-configs/registry/registry.json"), "utf-8"));
   });
 });

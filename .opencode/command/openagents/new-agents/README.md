@@ -306,7 +306,7 @@ evals/agents/{agent-name}/
       └─ completion/
           └─ handoff-001.yaml
 
-registry.json (updated)
+built-ai-configs/registry/registry.json (updated)
 ```
 
 ## Usage Examples

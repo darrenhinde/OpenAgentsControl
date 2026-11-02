@@ -93,8 +93,8 @@ const PACKAGE_NAME = "@controlstack/oac";
  *
  * The name is the only reliable anchor. Structural heuristics do not survive both
  * layouts: an earlier version required `.opencode/` + `package.json` and the ABSENCE
- * of `registry.json` (to skip the monorepo root in dev), but the published tarball
- * ships `registry.json` NEXT TO `.opencode/` at its root — so that rule rejected the
+ * of `built-ai-configs/registry/registry.json` (to skip the monorepo root in dev), but the published tarball
+ * ships `built-ai-configs/registry/registry.json` NEXT TO `.opencode/` at its root — so that rule rejected the
  * very directory it needed to find, and `oac init` could not locate its bundled files
  * on a real `npm i -g` install.
  */
@@ -212,8 +212,8 @@ async function registryPaths(packageRoot: string, file: string): Promise<Set<str
  */
 async function v2OnlyPaths(packageRoot: string): Promise<Set<string>> {
   const [v2, v1] = await Promise.all([
-    registryPaths(packageRoot, "registry.json"),
-    registryPaths(packageRoot, "registry.v1.json"),
+    registryPaths(packageRoot, "built-ai-configs/registry/registry.json"),
+    registryPaths(packageRoot, "built-ai-configs/registry/registry.v1.json"),
   ]);
   return new Set([...v2].filter((p) => !v1.has(p)));
 }

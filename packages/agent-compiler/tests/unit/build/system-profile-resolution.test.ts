@@ -116,7 +116,7 @@ function fixture(
     if (ids !== undefined) components[field] = ids.map((id) => ({ id, path: `${dir}/${id}.md` }));
   }
 
-  writeJson(root, "registry.json", { components, profiles: {} });
+  writeJson(root, "built-ai-configs/registry/registry.json", { components, profiles: {} });
 }
 
 describe("profile schemas", () => {

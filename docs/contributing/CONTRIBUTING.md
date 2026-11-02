@@ -326,7 +326,7 @@ When a variant proves superior:
 
 4. **Commit with clear message:**
    ```bash
-   git add agent-library/agents/core/openagent.md built-ai-configs/ .opencode/agent/ registry.json .oac/build-manifest.json
+   git add agent-library/agents/core/openagent.md built-ai-configs/ .opencode/agent/ built-ai-configs/registry/registry.json .oac/build-manifest.json
    git commit -m "feat(openagent): promote variant to default - improved X by Y%"
    ```
 
@@ -392,10 +392,10 @@ The registry is automatically updated when:
 The GitHub Action:
 1. Scans all components
 2. Extracts metadata
-3. Updates `registry.json`
+3. Updates `built-ai-configs/registry/registry.json`
 4. Commits changes
 
-You don't need to manually edit `registry.json`!
+You don't need to manually edit `built-ai-configs/registry/registry.json`!
 
 ## Code Style
 

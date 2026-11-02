@@ -36,7 +36,7 @@ cd "$ROOT"
 # mirror is drift too. The Claude agents are build output like the rest (D-017): their
 # frontmatter comes from oac.overrides.claude-code and their body from <!-- oac:only --> host
 # blocks in agent-library/agents/**. See the docblock in packages/cli/src/commands/build.ts.
-GENERATED=(hosts .opencode/agent plugins/claude-code/agents registry.json registry.v1.json .oac/build-manifest.json)
+GENERATED=(built-ai-configs .opencode/agent plugins/claude-code/agents built-ai-configs/registry/registry.json built-ai-configs/registry/registry.v1.json .oac/build-manifest.json)
 
 if [ ! -f packages/cli/dist/index.js ]; then
   echo "error: packages/cli/dist/index.js is missing — build the CLI first:" >&2
@@ -61,8 +61,8 @@ cat >&2 <<'EOF'
 
 ❌ The generated trees drift from the canonical source.
 
-Files under built-ai-configs/, .opencode/agent/, plugins/claude-code/agents/, registry.json,
-registry.v1.json and .oac/build-manifest.json are BUILD OUTPUT (.opencode/agent/ and
+Files under built-ai-configs/, .opencode/agent/, plugins/claude-code/agents/, built-ai-configs/registry/registry.json,
+built-ai-configs/registry/registry.v1.json and .oac/build-manifest.json are BUILD OUTPUT (.opencode/agent/ and
 plugins/claude-code/agents/ are mirrors of built-ai-configs/opencode/agent/ and built-ai-configs/claude-code/agents/).
 They are committed, but they are not hand-edited: `oac build` regenerates them from
 agent-library/agents/**, and this gate fails when the committed bytes disagree with what the

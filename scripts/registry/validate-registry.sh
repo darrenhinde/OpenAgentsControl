@@ -2,7 +2,7 @@
 
 #############################################################################
 # Registry Validator Script
-# Validates that all paths in registry.json point to actual files
+# Validates that all paths in built-ai-configs/registry/registry.json point to actual files
 # Exit codes:
 #   0 = All paths valid
 #   1 = Missing files found
@@ -21,7 +21,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-REGISTRY_FILE="registry.json"
+REGISTRY_FILE="built-ai-configs/registry/registry.json"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 VERBOSE=false
 FIX_MODE=false
@@ -483,7 +483,7 @@ print_summary() {
                 echo "  - $file"
             done
             echo ""
-            echo "Consider adding these to registry.json or removing them."
+            echo "Consider adding these to built-ai-configs/registry/registry.json or removing them."
         fi
         
         return 0

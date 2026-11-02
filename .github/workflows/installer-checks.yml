@@ -6,7 +6,7 @@ on:
     paths:
       - 'install.sh'
       - 'update.sh'
-      - 'registry.json'
+      - 'built-ai-configs/registry/registry.json'
       - 'scripts/tests/test-*.sh'
   push:
     branches: [main]
