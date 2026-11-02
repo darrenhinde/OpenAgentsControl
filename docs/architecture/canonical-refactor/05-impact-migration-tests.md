@@ -1,6 +1,6 @@
 # 05 — Impact Analysis, Migration Staging & Test Spec
 
-> **Current state (2026-09-02):** This migration plan is historical. The active metadata workflow is canonical `content/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded.
+> **Current state (2026-09-02):** This migration plan is historical. The active metadata workflow is canonical `agent-library/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded.
 
 > **Owner:** Agent E
 > **Status:** Spec only — no implementation code. **v2** (2026-07-15): the false "160 agents"
@@ -196,7 +196,7 @@ Explicitly *not* the #298 pattern (one +19k PR). Each stage is a handful of PRs 
 
 ### Stage 1 — Stand up `/content` + `packages/core` (schema & loader) *(additive)*
 - **Goal:** neutral source of truth exists and parses; **one** agent authored canonically.
-- **Deliverable:** `/content/agents/code-reviewer.md` (the worked example from `00-INDEX.md`);
+- **Deliverable:** `/agent-library/agents/code-reviewer.md` (the worked example from `00-INDEX.md`);
   `packages/core` = Zod `OpenAgentSchema` (moved/extended from
   `packages/compatibility-layer/src/types.ts`) + registry loader (from `core/AgentLoader.ts`).
   Nothing deleted; `.opencode/` still authoritative for everything else.
@@ -317,7 +317,7 @@ The smallest test that proves the whole idea. **This is the only test that must 
 any deletion.** Two assertions on **one** agent (`code-reviewer`):
 
 1. **Golden snapshot — opencode target**
-   `oac build --target opencode` on `/content/agents/code-reviewer.md` ⇒ compare emitted
+   `oac build --target opencode` on `/agent-library/agents/code-reviewer.md` ⇒ compare emitted
    `.opencode/agent/subagents/code/reviewer.md` (+ `agent-metadata.json` sidecar) against a
    committed golden file. Asserts: `name` PascalCased, `mode: subagent`, `temperature: 0.1`
    preserved, `permission` granular block correct, **no `model:` line** (null → default).
@@ -337,7 +337,7 @@ any deletion.** Two assertions on **one** agent (`code-reviewer`):
    `version` matches `VERSION`, every referenced agent file exists on disk. Proves the output
    isn't just byte-stable but *loadable*.
 
-Fixtures: one input (`/content/agents/code-reviewer.md`) + two golden outputs + two expected
+Fixtures: one input (`/agent-library/agents/code-reviewer.md`) + two golden outputs + two expected
 warning strings. Golden files are regenerated with an `--update` flag (vitest snapshot update),
 reviewed in PR — the human-diff of a golden change is a feature, not a chore.
 
@@ -373,7 +373,7 @@ Initial concrete cases per layer (2–3 each), to be authored when its stage arr
   3. A fully-supported agent → **zero** warnings (no false positives).
 
 - **Layer 4 — Structural / manifest**
-  1. Full build emits the same **count** of agents as `/content/agents/*` (guards the 7-vs-34
+  1. Full build emits the same **count** of agents as `/agent-library/agents/*` (guards the 7-vs-34
      drift regression directly).
   2. Manifest `sha256` per file matches on-disk content (reuse `sha256.test.ts`).
   3. `plugin.json.version` == `marketplace.json` version == `VERSION`.

@@ -11,7 +11,7 @@ export type ChangeFlags = {
    * Anything that can move the generated trees, and therefore must re-run the drift gate:
    * the canonical source, the build that reads it, and the committed output itself.
    *
-   * Separate from `has-packages` on purpose. A content-only edit must run the drift gate but
+   * Separate from `has-packages` on purpose. An agent-library-only edit must run the drift gate but
    * has no reason to run the cli/compatibility-layer test suites, and a PR that hand-edits
    * `.opencode/agent/**` alone touches no `packages/**` path at all — folding this into
    * `has-packages` would either skip the gate on exactly the change it exists to catch, or
@@ -42,7 +42,7 @@ export function classifyChangedPaths(paths: readonly string[]): ChangeFlags {
     ),
     'has-canonical': hasWorkspaceChange || paths.some((path) =>
       // The canonical source.
-      path.startsWith('content/') ||
+      path.startsWith('agent-library/') ||
       // The build that turns it into output.
       path.startsWith('packages/') ||
       // The committed output — a hand-edit here is precisely what the gate exists to catch.

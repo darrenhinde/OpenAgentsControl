@@ -12,9 +12,9 @@ const readProfile = <T>(path: string): T =>
 describe("user-facing profile memberships", () => {
   it("keeps maintainer context out of engineering while preserving core quick starts", async () => {
     const engineering = readProfile<{ contexts: string[] }>(
-      "../../../../content/profiles/context/engineering.json",
+      "../../../../agent-library/profiles/context/engineering.json",
     );
-    const core = readProfile<{ contexts: string[] }>("../../../../content/profiles/context/core.json");
+    const core = readProfile<{ contexts: string[] }>("../../../../agent-library/profiles/context/core.json");
     const resolved = await new ProfileLoader(REPOSITORY_ROOT).resolveSystemProfile("developer");
 
     expect(engineering.contexts).not.toContain("openagents-repo/*");
@@ -26,7 +26,7 @@ describe("user-facing profile memberships", () => {
 
   it.each(SYSTEM_PROFILE_IDS)("omits config:readme from %s", (profileId) => {
     const profile = readProfile<{ config?: string[] }>(
-      `../../../../content/profiles/system/${profileId}.json`,
+      `../../../../agent-library/profiles/system/${profileId}.json`,
     );
 
     expect(profile.config ?? []).not.toContain("readme");

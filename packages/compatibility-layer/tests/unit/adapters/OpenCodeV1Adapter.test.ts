@@ -1,5 +1,5 @@
 /**
- * OpenCodeV1Adapter — emitting `.opencode/agent/**` from `content/agents/**`.
+ * OpenCodeV1Adapter — emitting `.opencode/agent/**` from `agent-library/agents/**`.
  *
  * The adapter's contract is narrow enough to state in one line: the emitted file is the
  * canonical file minus its `oac:` block. So the tests here are mostly about proving that
@@ -29,7 +29,7 @@ import {
   UNKNOWN_TARGET_SOURCE,
 } from "../../support/host-blocks.js";
 
-const CONTENT_ROOT = repoPath("content/agents");
+const CONTENT_ROOT = repoPath("agent-library/agents");
 const OPENCODE_ROOT = repoPath("hosts/opencode-v1/agent");
 
 let resolver: AgentIdResolver;
@@ -255,7 +255,7 @@ describe("OpenCodeV1Adapter permissions", () => {
     // `true` for CoderAgent's deny-all-then-allowlist. If that mapper ever reaches this build
     // path, this test is what catches it.
     const { content } = await adapter().fromCanonical(
-      readFileSync(repoPath("content/agents/subagents/code/coder-agent.md"), "utf-8")
+      readFileSync(repoPath("agent-library/agents/subagents/code/coder-agent.md"), "utf-8")
     );
 
     const permission = frontmatterOf(content)["permission"] as Record<string, unknown>;
@@ -269,7 +269,7 @@ describe("OpenCodeV1Adapter permissions", () => {
     // §1.2.7's closed vocabulary but IS a real OpenCode permission key (config.ts:575), so a
     // parser built to that enum would drop this block and silently grant every skill.
     const { content } = await adapter().fromCanonical(
-      readFileSync(repoPath("content/agents/subagents/core/externalscout.md"), "utf-8")
+      readFileSync(repoPath("agent-library/agents/subagents/core/externalscout.md"), "utf-8")
     );
 
     const permission = frontmatterOf(content)["permission"] as Record<
@@ -349,7 +349,7 @@ describe("OpenCodeV1Adapter round-trip", () => {
   });
 
   it("derives the output path from the file, not from oac.category + oac.id", () => {
-    // `content/agents/subagents/code/test-engineer.md` declares `id: tester`. Composing the
+    // `agent-library/agents/subagents/code/test-engineer.md` declares `id: tester`. Composing the
     // path from the id would emit `subagents/code/tester.md` and orphan the `test-engineer.md`
     // OpenCode actually loads.
     expect(adapter().outputPath("subagents/code/test-engineer.md", "tester")).toBe(
@@ -364,7 +364,7 @@ describe("OpenCodeV1Adapter round-trip", () => {
 
 describe("OpenCodeV1Adapter determinism", () => {
   it("emits byte-identical output across runs and instances", async () => {
-    const source = readFileSync(repoPath("content/agents/core/openagent.md"), "utf-8");
+    const source = readFileSync(repoPath("agent-library/agents/core/openagent.md"), "utf-8");
 
     const first = await adapter().fromCanonical(source);
     const second = await adapter().fromCanonical(source);
@@ -374,8 +374,8 @@ describe("OpenCodeV1Adapter determinism", () => {
 
   it("emits no timestamp or absolute host path", async () => {
     const { content } = await adapter().fromCanonical(
-      readFileSync(repoPath("content/agents/core/openagent.md"), "utf-8"),
-      { filePath: "/Users/someone/content/agents/core/openagent.md" }
+      readFileSync(repoPath("agent-library/agents/core/openagent.md"), "utf-8"),
+      { filePath: "/Users/someone/agent-library/agents/core/openagent.md" }
     );
 
     // filePath is a diagnostic only — it must never leak into emitted bytes, or the output
@@ -438,8 +438,8 @@ describe("OpenCodeV1Adapter rejection", () => {
 
   it("names the file it rejected", async () => {
     await expect(
-      adapter().fromCanonical("# no frontmatter\n", { filePath: "content/agents/broken.md" })
-    ).rejects.toThrow(/content\/agents\/broken\.md/);
+      adapter().fromCanonical("# no frontmatter\n", { filePath: "agent-library/agents/broken.md" })
+    ).rejects.toThrow(/agent-library\/agents\/broken\.md/);
   });
 
   it("refuses fromOAC() rather than reordering an unordered permission map", async () => {
@@ -527,7 +527,7 @@ describe("OpenCodeV1Adapter host blocks", () => {
   const RH = AgentIdResolver.from([{ id: "probe", oacName: "Probe", name: "Probe" }]);
 
   it("keeps the opencode-v1 block and drops every other target's, before rewriting refs", async () => {
-    const { content } = await adapter().fromCanonical(HOST_BLOCK_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" });
+    const { content } = await adapter().fromCanonical(HOST_BLOCK_SOURCE, { resolver: RH, filePath: "agent-library/agents/core/probe.md" });
     expect(content).toContain("V1-ONLY text.");
     expect(content).toContain("OPENCODE-ANY text.");
     expect(content).not.toContain("CLAUDE-ONLY");
@@ -539,13 +539,13 @@ describe("OpenCodeV1Adapter host blocks", () => {
 
   it("fails on an unknown marker target with the canonical file:line", async () => {
     await expect(
-      adapter().fromCanonical(UNKNOWN_TARGET_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" })
-    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: unknown target "emacs"`));
+      adapter().fromCanonical(UNKNOWN_TARGET_SOURCE, { resolver: RH, filePath: "agent-library/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^agent-library/agents/core/probe\\.md:${FIRST_MARKER_LINE}: unknown target "emacs"`));
   });
 
   it("fails on a malformed marker with the canonical file:line", async () => {
     await expect(
-      adapter().fromCanonical(MALFORMED_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" })
-    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: malformed oac:only marker`));
+      adapter().fromCanonical(MALFORMED_SOURCE, { resolver: RH, filePath: "agent-library/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^agent-library/agents/core/probe\\.md:${FIRST_MARKER_LINE}: malformed oac:only marker`));
   });
 });

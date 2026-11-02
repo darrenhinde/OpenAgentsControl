@@ -28,10 +28,10 @@ Agents are **authored once, in one canonical place**, and every AI tool's copy i
 
 ### Choose Category
 
-Canonical agents live under `content/agents/`:
+Canonical agents live under `agent-library/agents/`:
 
 ```
-content/agents/
+agent-library/agents/
 ├── core/                # system agents (openagent, opencoder)
 ├── subagents/
 │   ├── code/            # coding subagents
@@ -49,7 +49,7 @@ content/agents/
 ### Create the File
 
 ```bash
-touch content/agents/subagents/<group>/<agent-id>.md
+touch agent-library/agents/subagents/<group>/<agent-id>.md
 ```
 
 Write it in the **canonical format** — full rules in `standards/agent-frontmatter.md`:
@@ -159,7 +159,7 @@ REGISTRY_URL="file://$(pwd)/registry.json" ./install.sh --list
 
 ## Checklist
 
-- [ ] Canonical file created under `content/agents/**` (NOT `.opencode/agent/`)
+- [ ] Canonical file created under `agent-library/agents/**` (NOT `.opencode/agent/`)
 - [ ] Valid YAML; OpenCode root fields at top; metadata only in `oac:`
 - [ ] `oac:` complete: id, name, category, type, version, author, tags, dependencies
 - [ ] Shipping scope right: `targets:` omitted (default) or explicit/`exclude` where intended

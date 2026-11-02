@@ -3,7 +3,7 @@
 #############################################################################
 # Auto-Detect Components Script v2.0.0
 # Legacy maintenance utility for non-canonical `.opencode` components.
-# Canonical agent registry entries are emitted from `content/agents/**` by
+# Canonical agent registry entries are emitted from `agent-library/agents/**` by
 # RegistryEmitter during `oac build`; this script does not read sidecar metadata.
 # Validates existing entries, fixes typos, removes deleted components, and
 # performs security checks on component files.

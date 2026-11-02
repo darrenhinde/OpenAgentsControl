@@ -53,8 +53,8 @@ opencode-agents/
     └── guides/             # User guides
 ```
 
-> **Note**: Agents are authored once in `content/agents/<category>/` (for example
-> `content/agents/core/openagent.md`) and compiled by `oac build` (`make build-canonical`)
+> **Note**: Agents are authored once in `agent-library/agents/<category>/` (for example
+> `agent-library/agents/core/openagent.md`) and compiled by `oac build` (`make build-canonical`)
 > into `hosts/<tool>/`: `hosts/opencode/`, `hosts/opencode-v1/` and `hosts/claude-code/`.
 > `.opencode/agent/` and `plugins/claude-code/agents/` are generated copies of `hosts/`.
 > Never edit `hosts/` or those copies; CI fails on any hand edit (D-018).
@@ -83,8 +83,8 @@ opencode-agents/
 
 ### Component Types
 
-- **Agents** (`content/agents/<category>/*.md`) - Main AI agents, built into `hosts/` by `oac build`
-- **Subagents** (`content/agents/subagents/<category>/*.md`) - Specialized helpers, built the same way
+- **Agents** (`agent-library/agents/<category>/*.md`) - Main AI agents, built into `hosts/` by `oac build`
+- **Subagents** (`agent-library/agents/subagents/<category>/*.md`) - Specialized helpers, built the same way
 - **Commands** (`.opencode/command/*.md`) - Slash commands
 - **Tools** (`.opencode/tool/*/index.ts`) - Utility tools
 - **Plugins** (`.opencode/plugin/*.ts`) - Integrations
@@ -158,7 +158,7 @@ export function myTool() {
 1. **Create the component file** in the appropriate directory:
    ```bash
    # Example: Adding a new agent (canonical source, never the generated .opencode/agent/)
-   touch content/agents/subagents/code/my-new-agent.md
+   touch agent-library/agents/subagents/code/my-new-agent.md
    ```
 
 2. **Add frontmatter and content** following the structure above, then run `oac build`
@@ -240,7 +240,7 @@ OpenCode uses a model-specific prompt library to support different AI models whi
         └── ...
 
 **Architecture:**
-- Agent files (`content/agents/**/*.md`) = Canonical defaults, built into `hosts/` and `.opencode/agent/`
+- Agent files (`agent-library/agents/**/*.md`) = Canonical defaults, built into `hosts/` and `.opencode/agent/`
 - Prompt variants (`.opencode/prompts/<agent>/<model>.md`) = Model-specific optimizations
 ```
 
@@ -282,7 +282,7 @@ cat .opencode/prompts/core/openagent/results/sonnet-4-results.json
    - Include your variant file (e.g., `my-variant.md`)
    - Include updated README with results
    - **Do NOT change the default prompt**
-   - **Do NOT change `content/agents/core/openagent.md`** (or its generated copies)
+   - **Do NOT change `agent-library/agents/core/openagent.md`** (or its generated copies)
 
 #### PR Requirements for Prompts
 
@@ -318,7 +318,7 @@ When a variant proves superior:
 
 2. **Update agent file (canonical default):**
    ```bash
-   cp .opencode/prompts/core/openagent/variant.md content/agents/core/openagent.md
+   cp .opencode/prompts/core/openagent/variant.md agent-library/agents/core/openagent.md
    oac build   # or: make build-canonical
    ```
 
@@ -326,7 +326,7 @@ When a variant proves superior:
 
 4. **Commit with clear message:**
    ```bash
-   git add content/agents/core/openagent.md hosts/ .opencode/agent/ registry.json .oac/build-manifest.json
+   git add agent-library/agents/core/openagent.md hosts/ .opencode/agent/ registry.json .oac/build-manifest.json
    git commit -m "feat(openagent): promote variant to default - improved X by Y%"
    ```
 

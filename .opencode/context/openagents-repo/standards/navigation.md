@@ -3,7 +3,7 @@
 
 ## Agent authoring
 
-1. Edit the canonical agent under `content/agents/**`.
+1. Edit the canonical agent under `agent-library/agents/**`.
 2. Keep OpenCode settings at the frontmatter root and OpenAgents Control metadata in `oac:`.
 3. Regenerate artifacts through the compatibility build; RegistryEmitter creates the registry from canonical content.
 4. Validate the emitted registry.

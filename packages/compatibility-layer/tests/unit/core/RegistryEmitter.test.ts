@@ -1,5 +1,5 @@
 /**
- * Registry emission — `registry.json` is GENERATED from `content/agents/**`, not hand-edited.
+ * Registry emission — `registry.json` is GENERATED from `agent-library/agents/**`, not hand-edited.
  *
  * ─── What is actually at stake ──────────────────────────────────────────────────────────
  *
@@ -95,7 +95,7 @@ const RECOVERED_BY_GENERATION = [
  * `registry.json` and never made it into any file, which is precisely the drift this refactor
  * exists to end.
  *
- * Subtask 09b backfilled all 13 into `oac.dependencies` in `content/agents/**`, in the exact
+ * Subtask 09b backfilled all 13 into `oac.dependencies` in `agent-library/agents/**`, in the exact
  * order `registry.json` declares them, so the emitter now reproduces every one. This list is
  * therefore no longer a snapshot of a loss — it is the guard that the backfill stays put. Each
  * edge was verified to resolve against the registry before being carried over; the sibling dead
@@ -170,7 +170,7 @@ describe("determinism", () => {
 
     try {
       const document = await new RegistryEmitter(root, {
-        contentRoot: repoPath("content/agents"),
+        contentRoot: repoPath("agent-library/agents"),
       }).emit();
 
       expect(byId(document, "agents").get("openagent")).toMatchObject({
@@ -221,7 +221,7 @@ describe("determinism", () => {
 
     try {
       const second = await new RegistryEmitter(root, {
-        contentRoot: repoPath("content/agents"),
+        contentRoot: repoPath("agent-library/agents"),
       }).emitJson();
 
       expect(second).toBe(first);
@@ -324,13 +324,13 @@ describe("carry-through of everything the canonical tree does not own", () => {
 
   it("generates eval-runner from its canonical source like any other agent", async () => {
     // `agent:eval-runner` used to be the one hand-authored agent the registry had to CARRY. It was
-    // canonicalised (content/agents/subagents/test/eval-runner.md) when v1 and v2 output split:
+    // canonicalised (agent-library/agents/subagents/test/eval-runner.md) when v1 and v2 output split:
     // its extra frontmatter keys would have become request.body fields on v2. The carry-through
     // mechanism itself is still pinned by the fixture-based tests below.
 
     // Arrange
     const document = await new RegistryEmitter(repoPath()).emit();
-    const canonical = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
+    const canonical = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
 
     // Act
     const canonicalIds = new Set(canonical.map((agent) => agent.oac.id));
@@ -365,7 +365,7 @@ describe("carry-through of everything the canonical tree does not own", () => {
  * The other half of carry-through, and the harder half.
  *
  * Carrying every unclaimed base entry is what keeps `eval-runner` alive, but applied blindly it
- * recreates the defect this emitter exists to cure: delete `content/agents/x.md` and the build
+ * recreates the defect this emitter exists to cure: delete `agent-library/agents/x.md` and the build
  * removes `.opencode/agent/x.md` while leaving `x` in the registry forever. The output is a
  * stable fixed point, so `oac build && git diff --exit-code` stays green while being wrong —
  * the drift gate cannot see it.
@@ -412,7 +412,7 @@ describe("withdrawal of entries the build itself generated", () => {
 
     try {
       return await new RegistryEmitter(root, {
-        contentRoot: repoPath("content/agents"),
+        contentRoot: repoPath("agent-library/agents"),
         generatedPaths: ledger,
       }).emit();
     } finally {
@@ -485,7 +485,7 @@ describe("generation from the canonical tree", () => {
   it("derives each canonical entry's identity, tags, category, version, and dependencies from content", async () => {
     // Arrange
     const document = await new RegistryEmitter(repoPath()).emit();
-    const agents = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
+    const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
     const emitted = new Map(
       [...entries(document, "agents"), ...entries(document, "subagents")].map((entry) => [
         entry.id,
@@ -528,7 +528,7 @@ describe("generation from the canonical tree", () => {
   });
 
   it("points path at the built install tree, not the canonical source", async () => {
-    // install.sh copies `.path` verbatim. If it named `content/agents/**` the installer would
+    // install.sh copies `.path` verbatim. If it named `agent-library/agents/**` the installer would
     // fetch files that do not exist in the published layout.
     const document = await new RegistryEmitter(repoPath()).emit();
 
@@ -541,7 +541,7 @@ describe("generation from the canonical tree", () => {
 
   it("registers every canonical agent", async () => {
     const document = await new RegistryEmitter(repoPath()).emit();
-    const agents = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
+    const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
     const registered = new Set([
       ...byId(document, "agents").keys(),
       ...byId(document, "subagents").keys(),
@@ -564,7 +564,7 @@ describe("generation from the canonical tree", () => {
   });
 
   it("resolves a fixture tree independently of the live corpus", async () => {
-    const agents = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
+    const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
     const openagent = agents.find((agent) => agent.oac.id === "openagent");
 
     expect(entryForAgent(openagent!, ".opencode/agent")).toMatchObject({
@@ -642,7 +642,7 @@ describe("registry defects", () => {
         );
         expect(
           after.has(dependency),
-          `${id} -> ${dependency} was dropped — backfill it into content/agents/, do not weaken this test`
+          `${id} -> ${dependency} was dropped — backfill it into agent-library/agents/, do not weaken this test`
         ).toBe(true);
       }
     }
@@ -667,7 +667,7 @@ describe("the v1 registry", () => {
 
   it("registers every canonical agent, including the v1-only ones, at its nested v1 path", async () => {
     const document = await v1().emit();
-    const agents = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
+    const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
     const subagents = byId(document, "subagents");
     expect(subagents.get("image-specialist")?.path).toBe("hosts/opencode-v1/agent/subagents/utils/image-specialist.md");
     expect(byId(document, "agents").get("openagent")?.path).toBe("hosts/opencode-v1/agent/core/openagent.md");

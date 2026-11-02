@@ -42,7 +42,7 @@ See `tests/` subdirectory for installer test scripts.
 
 ### Registry Management
 
-- `registry/auto-detect-components.sh` - Legacy scanner for non-canonical `.opencode/` components; canonical agents are emitted from `content/agents/**` by `oac build`
+- `registry/auto-detect-components.sh` - Legacy scanner for non-canonical `.opencode/` components; canonical agents are emitted from `agent-library/agents/**` by `oac build`
 - `registry/register-component.sh` - Register a new component in the registry
 - `registry/validate-component.sh` - Validate component structure and metadata
 - `registry/validate-registry.sh` - Validate all registry paths

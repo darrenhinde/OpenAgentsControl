@@ -444,7 +444,7 @@ Context files are downloaded from the main repository via `/install-context`:
 
 `agents/` is generated. Don't create or edit files in it: the drift gate fails on any hand edit (D-018).
 
-1. Create the canonical agent under `content/agents/` (for example `content/agents/subagents/code/my-subagent.md`). Add `claude-code` to `oac.targets`, and put the Claude frontmatter under `oac.overrides.claude-code`:
+1. Create the canonical agent under `agent-library/agents/` (for example `agent-library/agents/subagents/code/my-subagent.md`). Add `claude-code` to `oac.targets`, and put the Claude frontmatter under `oac.overrides.claude-code`:
    ```yaml
    oac:
      id: my-subagent

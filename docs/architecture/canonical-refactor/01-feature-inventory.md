@@ -1,6 +1,6 @@
 # 01 — Feature & Content Inventory
 
-> **Current state (2026-09-02):** This inventory records the pre-migration architecture. The active metadata workflow is canonical `content/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded.
+> **Current state (2026-09-02):** This inventory records the pre-migration architecture. The active metadata workflow is canonical `agent-library/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded.
 
 > **Owner:** Agent A
 > **Status:** Spec only — no implementation. **v2** (2026-07-15): census re-verified from
@@ -1178,7 +1178,7 @@ must preserve the escaping** — a naive template would reintroduce the injectio
 > `[ ]` = must be verified in the migrated system before `.opencode/` is demoted.
 
 ### Agents
-- [ ] **34 agent bodies** preserved verbatim → `/content/agents/**/*.md` body
+- [ ] **34 agent bodies** preserved verbatim → `/agent-library/agents/**/*.md` body
 - [ ] `name` → neutral `name` + `id`; adapters slugify (OpenCode PascalCase, Claude kebab)
 - [ ] `description` → neutral `description`
 - [ ] `mode: primary|subagent` → neutral `role`

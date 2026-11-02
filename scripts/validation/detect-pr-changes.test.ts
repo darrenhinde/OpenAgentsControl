@@ -121,7 +121,7 @@ describe('classifyChangedPaths', () => {
   })
 
   test('routes canonical source changes to the drift gate', () => {
-    for (const path of ['content/agents/core/openagent.md', 'content/profiles/default.yaml']) {
+    for (const path of ['agent-library/agents/core/openagent.md', 'agent-library/profiles/default.yaml']) {
       expect(classifyChangedPaths([path])).toEqual({
         ...NO_CHANGES,
         'has-canonical': true,
@@ -162,7 +162,7 @@ describe('classifyChangedPaths', () => {
     expect(
       classifyChangedPaths([
         'content-old/agents/x.md',
-        'nested/content/agents/x.md',
+        'nested/agent-library/agents/x.md',
         'contents/x.md',
         '.opencode/command/add-context.md',
         'registry.json.bak',
@@ -377,7 +377,7 @@ describe('Canonical drift gate contract', () => {
     const workflow = await readFile(PACKAGES_WORKFLOW_PATH, 'utf8')
 
     for (const path of [
-      "- 'content/**'",
+      "- 'agent-library/**'",
       "- '.opencode/agent/**'",
       "- '.oac/**'",
       "- 'registry.json'",

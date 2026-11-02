@@ -1,7 +1,7 @@
 # @controlstack/compatibility-layer
 
 The build library behind `oac build`. It loads the canonical content tree
-(`content/agents/**`, `content/profiles/**`) and emits the per-tool trees plus
+(`agent-library/agents/**`, `agent-library/profiles/**`) and emits the per-tool trees plus
 `registry.json`.
 
 ## What it contains

@@ -1,5 +1,5 @@
 /**
- * `oac build` — generate every target's tree from the canonical `content/agents/**` source.
+ * `oac build` — generate every target's tree from the canonical `agent-library/agents/**` source.
  *
  * ## This file is wiring, not logic
  *
@@ -32,7 +32,7 @@
  *
  * That gap is now closed in the canonical source itself (D-017):
  *
- * 1. **Frontmatter** comes from `oac.overrides.claude-code` in each `content/agents/**` file:
+ * 1. **Frontmatter** comes from `oac.overrides.claude-code` in each `agent-library/agents/**` file:
  *    the authored `tools`/`disallowedTools` and the Claude `description` with its `<example>`
  *    blocks, which are how Claude Code selects an agent.
  * 2. **Body** differences are `<!-- oac:only ... -->` host blocks (`core/HostBlocks.ts`): text

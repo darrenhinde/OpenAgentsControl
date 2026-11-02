@@ -18,7 +18,7 @@ import matter from "gray-matter";
 import { CanonicalAgentSchema, OacBlockSchema } from "../../../src/types.js";
 import { listFiles, packagePath, requireDir } from "../../support/pending.js";
 
-const OWED_BY = "subtask 09 (content/agents/)";
+const OWED_BY = "subtask 09 (agent-library/agents/)";
 const FIXTURE = packagePath("tests/golden/fixtures/fixture-reviewer.md");
 
 /**
@@ -175,10 +175,10 @@ describe("canonical agent files", () => {
 // CANONICAL CORPUS — real authored files and the registry-carried exception
 // ============================================================================
 
-describe("content/agents corpus", () => {
+describe("agent-library/agents corpus", () => {
   it("every file parses against the canonical schema", () => {
     const dir = requireDir(
-      "content/agents",
+      "agent-library/agents",
       OWED_BY,
       "every authored agent file parses against the oac: schema, with no unknown fields and " +
         "no bad categories"
@@ -200,7 +200,7 @@ describe("content/agents corpus", () => {
   it("includes eval-runner, which was canonicalised so its extra keys stay out of v2's request.body", () => {
     // Arrange
     const dir = requireDir(
-      "content/agents",
+      "agent-library/agents",
       OWED_BY,
       "the canonical corpus must be available to verify its registry-carried exception"
     );
@@ -215,7 +215,7 @@ describe("content/agents corpus", () => {
 
   it("gives every agent a unique oac id", () => {
     const dir = requireDir(
-      "content/agents",
+      "agent-library/agents",
       OWED_BY,
       "agent ids are unique, so the build can address each agent unambiguously"
     );
@@ -233,7 +233,7 @@ describe("content/agents corpus", () => {
     );
 
     expect(duplicated, "two agents share an oac id").toEqual([]);
-    expect(ids.length, "no agent file parsed — is content/agents/ populated?").toBeGreaterThan(0);
+    expect(ids.length, "no agent file parsed — is agent-library/agents/ populated?").toBeGreaterThan(0);
   });
 
   it("emits no oac: key into any generated OpenCode agent file", () => {

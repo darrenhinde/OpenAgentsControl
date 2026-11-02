@@ -113,7 +113,7 @@ opencode-agents/
 
 #### `.opencode/agent/` (generated)
 Main agent prompts. These are the "brains" of the system. **Don't edit them here:** the source is
-`content/agents/<category>/`, and `oac build` (`make build-canonical`) compiles it into `hosts/<tool>/`
+`agent-library/agents/<category>/`, and `oac build` (`make build-canonical`) compiles it into `hosts/<tool>/`
 (`hosts/opencode/`, `hosts/opencode-v1/`, `hosts/claude-code/`). `.opencode/agent/` and
 `plugins/claude-code/agents/` are generated copies of `hosts/`; CI fails on a hand edit (D-018).
 The source categories are:
@@ -309,7 +309,7 @@ The agent creation system follows these proven patterns:
 
 If you prefer manual creation, follow this structure:
 
-**1. Create Agent File** (`content/agents/<category>/my-agent.md`, then run `oac build`)
+**1. Create Agent File** (`agent-library/agents/<category>/my-agent.md`, then run `oac build`)
 
 Canonical files also carry an `oac:` block (id, category, targets, overrides); see `.opencode/context/openagents-repo/standards/agent-frontmatter.md`.
 
@@ -641,7 +641,7 @@ Use the templates in `.opencode/command/openagents/new-agents/templates/` as sta
 
 ```bash
 # 1. Edit the canonical agent file, then rebuild hosts/ and its mirrors
-vim content/agents/<category>/my-agent.md
+vim agent-library/agents/<category>/my-agent.md
 make build-canonical
 
 # 2. Test changes

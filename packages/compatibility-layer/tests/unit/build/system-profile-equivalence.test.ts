@@ -1,10 +1,10 @@
 /**
- * Equivalence gate: the canonical profiles in `content/profiles/**` must reconstruct the
+ * Equivalence gate: the canonical profiles in `agent-library/profiles/**` must reconstruct the
  * legacy `registry.json` `.profiles.*.components` lists EXACTLY.
  *
  * ─── Why this test exists ───────────────────────────────────────────────────────────────
  *
- * Seeding `content/profiles/**` was a translation of the legacy hand-maintained lists, and
+ * Seeding `agent-library/profiles/**` was a translation of the legacy hand-maintained lists, and
  * any translation can silently drop or invent a component. The registry emitter generates
  * `.profiles` from canonical content, while `install.sh` reads the generated registry. If they
  * ever disagree, the build would ship two different products.
@@ -47,7 +47,7 @@ describe("canonical profile equivalence", () => {
   const registry = resolver.registry();
 
   it.each(PROFILES)(
-    "content/profiles/system/%s.json reconstructs registry.profiles.%s.components exactly",
+    "agent-library/profiles/system/%s.json reconstructs registry.profiles.%s.components exactly",
     async (name) => {
       // Arrange
       const resolved = await loader.resolveSystemProfile(name);

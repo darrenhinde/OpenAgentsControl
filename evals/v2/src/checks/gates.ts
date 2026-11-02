@@ -12,7 +12,7 @@ const noHiddenTools: CheckDef = {
   tier: "quick",
   workload: "trusted-static",
   run: (ctx: RunContext): Promise<CheckOutcome> => {
-    const canonical = lintNoHiddenTools(listFiles(ctx.repo, "content/agents", md));
+    const canonical = lintNoHiddenTools(listFiles(ctx.repo, "agent-library/agents", md));
     const emitted = lintNoHiddenTools(listFiles(ctx.repo, ".opencode/agent", md));
     for (const h of [...canonical, ...emitted]) ctx.log(`HIDDEN ${h.action.padEnd(9)} ${h.path}  (${h.key}: ${h.allows.length} allow rule(s), then "*": deny)`);
     const agents = new Set(emitted.map((h) => h.path));

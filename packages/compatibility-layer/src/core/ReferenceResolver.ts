@@ -25,7 +25,7 @@
  * frontmatter. That is deliberately the same corpus `registry.json` governs today, because
  * `registry.json` is what `install.sh` actually reads at install time.
  *
- * The canonical `content/agents/**` tree is NOT part of that corpus — it is not yet wired
+ * The canonical `agent-library/agents/**` tree is NOT part of that corpus — it is not yet wired
  * into any install path. Scan it explicitly with {@link ReferenceResolver.resolveMany} if you
  * want its verdict; be aware it surfaces `subagent:batch-executor`, which exists on disk but
  * is absent from `registry.json`.

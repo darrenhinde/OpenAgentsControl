@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# The drift gate: regenerate the committed trees from content/agents/**, then fail if the
+# The drift gate: regenerate the committed trees from agent-library/agents/**, then fail if the
 # build changed anything. This is the structural guarantee the canonical refactor rests on —
 # generated trees stay COMMITTED, so a hand-edit to one must turn CI red rather than merely
 # being discouraged.
@@ -35,7 +35,7 @@ cd "$ROOT"
 # generated mirrors of hosts/opencode/agent and hosts/claude-code/agents, so a hand-edited
 # mirror is drift too. The Claude agents are build output like the rest (D-017): their
 # frontmatter comes from oac.overrides.claude-code and their body from <!-- oac:only --> host
-# blocks in content/agents/**. See the docblock in packages/cli/src/commands/build.ts.
+# blocks in agent-library/agents/**. See the docblock in packages/cli/src/commands/build.ts.
 GENERATED=(hosts .opencode/agent plugins/claude-code/agents registry.json registry.v1.json .oac/build-manifest.json)
 
 if [ ! -f packages/cli/dist/index.js ]; then
@@ -53,7 +53,7 @@ after="$(snapshot)"
 
 if [ "$before" = "$after" ]; then
   echo ""
-  echo "✅ No drift — the generated trees match content/agents/**."
+  echo "✅ No drift — the generated trees match agent-library/agents/**."
   exit 0
 fi
 
@@ -65,11 +65,11 @@ Files under hosts/, .opencode/agent/, plugins/claude-code/agents/, registry.json
 registry.v1.json and .oac/build-manifest.json are BUILD OUTPUT (.opencode/agent/ and
 plugins/claude-code/agents/ are mirrors of hosts/opencode/agent/ and hosts/claude-code/agents/).
 They are committed, but they are not hand-edited: `oac build` regenerates them from
-content/agents/**, and this gate fails when the committed bytes disagree with what the
+agent-library/agents/**, and this gate fails when the committed bytes disagree with what the
 build produces.
 
 To fix:
-  1. Make your change in content/agents/** (the canonical source), not in the output.
+  1. Make your change in agent-library/agents/** (the canonical source), not in the output.
   2. Run:  make build-canonical
   3. Commit the regenerated files along with your source change.
 

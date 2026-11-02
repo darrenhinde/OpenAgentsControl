@@ -13,7 +13,7 @@ function writeJson(relativePath: string, value: unknown): void {
 }
 
 function writeAgent(id: string, type: "agent" | "subagent"): void {
-  const path = join(root, "content/agents", `${id}.md`);
+  const path = join(root, "agent-library/agents", `${id}.md`);
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(
     path,
@@ -23,7 +23,7 @@ function writeAgent(id: string, type: "agent" | "subagent"): void {
 }
 
 function fixture(withProfiles = true): void {
-  mkdirSync(join(root, "content/agents"), { recursive: true });
+  mkdirSync(join(root, "agent-library/agents"), { recursive: true });
   writeAgent("primary", "agent");
   writeAgent("worker", "subagent");
   writeJson("registry.json", {
@@ -55,8 +55,8 @@ function fixture(withProfiles = true): void {
 
   if (!withProfiles) return;
 
-  writeJson("content/profiles/context/core.json", { id: "core", contexts: ["core/*"] });
-  writeJson("content/profiles/system/selected.json", {
+  writeJson("agent-library/profiles/context/core.json", { id: "core", contexts: ["core/*"] });
+  writeJson("agent-library/profiles/system/selected.json", {
     id: "selected",
     agents: ["worker", "primary", "eval-runner"],
     contextProfiles: ["core"],

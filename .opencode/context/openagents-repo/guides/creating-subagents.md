@@ -8,12 +8,12 @@
 
 ## The OAC Way (canonical authoring)
 
-A subagent is authored once in `content/agents/**` and emitted to every host by `oac build`.
+A subagent is authored once in `agent-library/agents/**` and emitted to every host by `oac build`.
 Full step-by-step in `adding-agent-basics.md`; the subagent-specific notes are here.
 
 ### File shape
 
-`content/agents/subagents/<group>/<agent-id>.md`:
+`agent-library/agents/subagents/<group>/<agent-id>.md`:
 
 ```markdown
 ---
@@ -103,7 +103,7 @@ You are a code reviewer...
 That creates an agent **only for Claude Code, on that machine** — it is not in the
 canonical corpus, not shipped by `registry.json`, and not this repo's management path.
 Use it for private/local experiments only; anything this repo ships goes through
-`content/agents/**`.
+`agent-library/agents/**`.
 
 ---
 

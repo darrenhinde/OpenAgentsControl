@@ -1,7 +1,7 @@
 <!-- Context: openagents-repo/standards/agent-frontmatter | Priority: critical | Version: 2.1 | Updated: 2026-10-25 -->
 # Standard: Agent Frontmatter
 
-Canonical agent files live in `content/agents/**`. Their frontmatter combines valid OpenCode configuration with an `oac:` block for OpenAgents Control metadata.
+Canonical agent files live in `agent-library/agents/**`. Their frontmatter combines valid OpenCode configuration with an `oac:` block for OpenAgents Control metadata.
 
 ```yaml
 ---
@@ -49,7 +49,7 @@ Consequence: adding a new build target costs the corpus nothing — agents defau
 
 ## Build flow
 
-The RegistryEmitter consumes `content/agents/**` and emits registry and target artifacts. Edit canonical content, then regenerate and validate; never edit generated output: `hosts/**`, or its mirrors `.opencode/agent/**` and `plugins/claude-code/agents/**`.
+The RegistryEmitter consumes `agent-library/agents/**` and emits registry and target artifacts. Edit canonical content, then regenerate and validate; never edit generated output: `hosts/**`, or its mirrors `.opencode/agent/**` and `plugins/claude-code/agents/**`.
 
 ## Checklist
 

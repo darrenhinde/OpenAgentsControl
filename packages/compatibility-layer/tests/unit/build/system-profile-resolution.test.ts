@@ -84,11 +84,11 @@ function fixture(
     config?: string[];
   } = {}
 ): void {
-  writeJson(root, "content/profiles/context/basic-context.json", options.contextProfile ?? {
+  writeJson(root, "agent-library/profiles/context/basic-context.json", options.contextProfile ?? {
     id: "basic-context",
     contexts: ["team-standard"],
   });
-  writeJson(root, "content/profiles/system/basic-system.json", options.systemProfile ?? {
+  writeJson(root, "agent-library/profiles/system/basic-system.json", options.systemProfile ?? {
     id: "basic-system",
     agents: ["simple-responder"],
     contextProfiles: ["basic-context"],
@@ -97,7 +97,7 @@ function fixture(
   const components: Record<string, { id: string; path: string }[]> = {
     agents: (options.agents ?? ["simple-responder"]).map((id) => ({
       id,
-      path: `content/agents/${id}.md`,
+      path: `agent-library/agents/${id}.md`,
     })),
     contexts: (options.contexts ?? ["team-standard"]).map((id) => ({
       id,

@@ -1,6 +1,6 @@
 # 03 — Adapter & Transform Specs (Agent C) — **v2**
 
-> **Current state (2026-09-02):** This adapter specification is historical. The active metadata workflow is canonical `content/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded. `eval-runner.md` remains an intentionally registry-carried, non-canonical evaluation harness—not a sidecar replacement.
+> **Current state (2026-09-02):** This adapter specification is historical. The active metadata workflow is canonical `agent-library/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded. `eval-runner.md` remains an intentionally registry-carried, non-canonical evaluation harness—not a sidecar replacement.
 
 > **Status:** Specification only — no implementation code. **v2** (realigned to Option A
 > permissions + MVI context metadata, per `00-INDEX.md` v2).

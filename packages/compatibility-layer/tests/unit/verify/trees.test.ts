@@ -91,7 +91,7 @@ describe("hosts/opencode-v1/ carries everything v2 cannot load", () => {
 describe("delegation examples in hand-authored carried files", () => {
   let resolver: AgentIdResolver;
   beforeAll(async () => {
-    resolver = AgentIdResolver.fromCanonical(await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory());
+    resolver = AgentIdResolver.fromCanonical(await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory());
   });
 
   it.each(VARIANTS)("%s is the v1 text, and %s is exactly its v2 rewrite", (v1, v2) => {

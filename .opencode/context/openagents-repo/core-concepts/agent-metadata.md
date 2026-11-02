@@ -3,7 +3,7 @@
 
 ## Current metadata workflow
 
-`content/agents/**` is the canonical source. Keep OpenCode configuration and OpenAgents Control metadata together in the agent's frontmatter:
+`agent-library/agents/**` is the canonical source. Keep OpenCode configuration and OpenAgents Control metadata together in the agent's frontmatter:
 
 ```yaml
 ---
@@ -27,10 +27,10 @@ oac:
 
 ## Registry generation
 
-Do not edit registry entries or a metadata sidecar. The RegistryEmitter reads canonical `content/agents/**` files and emits the registry during the compatibility build.
+Do not edit registry entries or a metadata sidecar. The RegistryEmitter reads canonical `agent-library/agents/**` files and emits the registry during the compatibility build.
 
 ```text
-content/agents/** (frontmatter + oac)
+agent-library/agents/** (frontmatter + oac)
   → RegistryEmitter
   → generated registry and target outputs
 ```

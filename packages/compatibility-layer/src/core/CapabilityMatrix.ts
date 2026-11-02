@@ -129,7 +129,7 @@ const CAPABILITY_MATRIX: FeatureDefinition[] = [
     //
     // OpenCode strips the `oac:` block too, so `category` is likewise not a frontmatter field
     // there — but its agents are emitted to `.opencode/agent/<category>/<name>.md`, mirroring
-    // content/agents/, so the category survives structurally and round-trips via the path.
+    // agent-library/agents/, so the category survives structurally and round-trips via the path.
     // Claude's are flat (`plugins/claude-code/agents/<id>.md`), so it is lost outright.
     support: { oac: "full", claude: "none", opencode: "full" },
     notes: {

@@ -1064,7 +1064,7 @@ describe("ClaudeAdapter", () => {
 describe("ClaudeAdapter host blocks", () => {
   it("keeps the claude-code block and drops every OpenCode block", async () => {
     const { content } = await new ClaudeAdapter().fromCanonical(HOST_BLOCK_SOURCE, {
-      filePath: "content/agents/core/probe.md",
+      filePath: "agent-library/agents/core/probe.md",
     });
     expect(content).toContain("CLAUDE-ONLY text.");
     expect(content).not.toContain("V2-ONLY");
@@ -1076,14 +1076,14 @@ describe("ClaudeAdapter host blocks", () => {
 
   it("fails on an unknown marker target with the canonical file:line", async () => {
     await expect(
-      new ClaudeAdapter().fromCanonical(UNKNOWN_TARGET_SOURCE, { filePath: "content/agents/core/probe.md" })
-    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: unknown target "emacs"`));
+      new ClaudeAdapter().fromCanonical(UNKNOWN_TARGET_SOURCE, { filePath: "agent-library/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^agent-library/agents/core/probe\\.md:${FIRST_MARKER_LINE}: unknown target "emacs"`));
   });
 
   it("fails on a malformed marker with the canonical file:line", async () => {
     await expect(
-      new ClaudeAdapter().fromCanonical(MALFORMED_SOURCE, { filePath: "content/agents/core/probe.md" })
-    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: malformed oac:only marker`));
+      new ClaudeAdapter().fromCanonical(MALFORMED_SOURCE, { filePath: "agent-library/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^agent-library/agents/core/probe\\.md:${FIRST_MARKER_LINE}: malformed oac:only marker`));
   });
 
   it("without a filePath still reports the file line", async () => {

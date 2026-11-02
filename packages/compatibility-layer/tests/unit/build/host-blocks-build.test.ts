@@ -12,7 +12,7 @@ import { plan } from "../../../src/core/BuildPipeline.js";
 import type { BuildTarget } from "../../../src/types.js";
 import { FIRST_MARKER_LINE, HOST_BLOCK_SOURCE, UNKNOWN_TARGET_SOURCE } from "../../support/host-blocks.js";
 
-const REL = "content/agents/core/probe.md";
+const REL = "agent-library/agents/core/probe.md";
 const REGISTRY = {
   version: "1.0.0",
   metadata: { lastUpdated: "2026-01-01" },

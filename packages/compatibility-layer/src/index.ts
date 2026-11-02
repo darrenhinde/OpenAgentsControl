@@ -69,7 +69,7 @@ export {
 
 /**
  * Loads canonical agent files — OpenCode frontmatter plus the `oac:` block — from a
- * configurable content root (`content/agents/**` by default).
+ * configurable content root (`agent-library/agents/**` by default).
  *
  * Identity comes from `oac.id`, never the filename: `subagents/code/test-engineer.md`
  * declares `id: tester`, and `tester` is what the registry, profiles and context docs
@@ -77,7 +77,7 @@ export {
  *
  * @example
  * ```typescript
- * const agents = await loadCanonicalAgents('content/agents');
+ * const agents = await loadCanonicalAgents('agent-library/agents');
  * // sorted by oac.id, deterministic regardless of filesystem enumeration order
  * ```
  */
@@ -130,7 +130,7 @@ export type {
 // ============================================================================
 
 /**
- * The whole of `oac build`: load `content/agents/**`, honour each agent's shipping scope
+ * The whole of `oac build`: load `agent-library/agents/**`, honour each agent's shipping scope
  * (`TargetPolicy.emitsTo` — targets minus exclude, plus the v1-follows rule), run the
  * matching adapter, and reconcile the generated trees.
  *
@@ -258,7 +258,7 @@ export { BaseAdapter } from "./adapters/BaseAdapter.js";
 export { ClaudeAdapter } from "./adapters/ClaudeAdapter.js";
 
 /**
- * OpenCodeAdapter — emits `.opencode/agent/**` from the canonical `content/agents/**` tree by
+ * OpenCodeAdapter — emits `.opencode/agent/**` from the canonical `agent-library/agents/**` tree by
  * stripping the `oac:` block. The canonical build target.
  *
  * @example

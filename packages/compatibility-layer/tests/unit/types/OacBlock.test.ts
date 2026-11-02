@@ -43,8 +43,8 @@ function createConflictingSidecarFixture(): {
   contentRoot: string;
 } {
   const root = mkdtempSync(join(tmpdir(), "oac-retired-sidecar-"));
-  const agentPath = join(root, "content/agents/fixture-agent.md");
-  const contentRoot = join(root, "content/agents");
+  const agentPath = join(root, "agent-library/agents/fixture-agent.md");
+  const contentRoot = join(root, "agent-library/agents");
 
   mkdirSync(dirname(agentPath), { recursive: true });
   writeFileSync(

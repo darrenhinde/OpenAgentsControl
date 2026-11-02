@@ -1,6 +1,6 @@
 # 06 — Adversarial Cold Review
 
-> **Current state (2026-09-02):** This review records the prior architecture. The active metadata workflow is canonical `content/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded. `eval-runner.md` remains an intentionally registry-carried, non-canonical evaluation harness—not a sidecar replacement.
+> **Current state (2026-09-02):** This review records the prior architecture. The active metadata workflow is canonical `agent-library/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded. `eval-runner.md` remains an intentionally registry-carried, non-canonical evaluation harness—not a sidecar replacement.
 
 > **Reviewer:** independent; no involvement in the conversation that produced `00`–`05`.
 > **Method:** every load-bearing claim re-derived from the working tree. Where I could not
@@ -491,7 +491,7 @@ CC description:       "Review code for security vulnerabilities, correctness, an
 ```
 
 **Two source files, 108 vs 269 lines, entirely different descriptions, both claiming to be
-`code-reviewer`.** Which body becomes `/content/agents/code-reviewer.md`? No document says.
+`code-reviewer`.** Which body becomes `/agent-library/agents/code-reviewer.md`? No document says.
 Seven agents are in this position.
 
 Tellingly, `00`'s worked example (`00:275`) uses the **CC description** — while `01:80` presents
@@ -627,7 +627,7 @@ Where an implementer hits a wall. Walked end-to-end as instructed.
 
 ### G1 🔴 Walkthrough: `coder-agent.md` → `/content` → `oac build`. It stops at step 2.
 
-**Step 1 — Author `/content/agents/coder-agent.md`.** Fine; `00:299-312` shows the target.
+**Step 1 — Author `/agent-library/agents/coder-agent.md`.** Fine; `00:299-312` shows the target.
 
 **Step 2 — Parse. FAIL.** The agent's real metadata (`agent-metadata.json`) carries
 `dependencies: ["subagent:task-manager", "context:standards-code", …]`. Its registry entry and
@@ -866,7 +866,7 @@ that content can be hostile**, and `01:1313` correctly requires the defense be p
 But the refactor **inverts the trust model** and nobody notices. Today `install.sh` copies inert
 files. After the refactor, `oac build` **parses untrusted content and generates executable
 artifacts** — permission blocks, `hooks.json` shell commands (`03:464`), `router.sh` invocations
-baked into allowlists. A malicious or compromised `/content/agents/*.md` can inject an
+baked into allowlists. A malicious or compromised `/agent-library/agents/*.md` can inject an
 `{scope: "*", decision: "allow"}` bash rule, or a `HookActionSchema.command` (`02:768` —
 `command: z.string().min(1)`, **no validation whatsoever**) that runs at every SessionStart.
 

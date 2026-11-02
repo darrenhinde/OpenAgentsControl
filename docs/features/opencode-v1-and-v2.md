@@ -1,6 +1,6 @@
 # OpenCode v2 by default, v1 on request
 
-`oac build` compiles `content/agents/**` for two OpenCode majors (D-016). v2 is the default everywhere; v1 is an explicit opt-in and is deleted as one unit when its support window ends.
+`oac build` compiles `agent-library/agents/**` for two OpenCode majors (D-016). v2 is the default everywhere; v1 is an explicit opt-in and is deleted as one unit when its support window ends.
 
 ## What gets built
 

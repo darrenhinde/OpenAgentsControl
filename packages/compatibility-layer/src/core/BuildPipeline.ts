@@ -3,7 +3,7 @@
  *
  * ─── What it does ───────────────────────────────────────────────────────────────────────
  *
- * Load `content/agents/**`, ask each agent which targets it declares, run the matching
+ * Load `agent-library/agents/**`, ask each agent which targets it declares, run the matching
  * adapter, and collect the result as an ordered set of (path, bytes) pairs. Emitting
  * `registry.json` is folded in as a target of its own, because it is generated from exactly
  * the same input and must be gated by exactly the same determinism rules.
@@ -199,7 +199,7 @@ export type { BuildManifest, ManifestEntry } from "./BuildManifest.js";
 // ============================================================================
 
 const DEFAULTS = {
-  contentRoot: "content/agents",
+  contentRoot: "agent-library/agents",
 } as const;
 
 /**
@@ -496,7 +496,7 @@ export async function build(options: BuildOptions): Promise<Map<string, string>>
 /**
  * Emit one agent, named by `oac.id`, for one target.
  *
- * Identity is `oac.id` and never a filename: `content/agents/subagents/code/test-engineer.md`
+ * Identity is `oac.id` and never a filename: `agent-library/agents/subagents/code/test-engineer.md`
  * declares `id: tester`, and `tester` is what `registry.json`, the profiles and the context
  * docs all reference. Resolving by path here would mint an id nothing refers to.
  *

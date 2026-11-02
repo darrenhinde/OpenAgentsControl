@@ -1,6 +1,6 @@
 # 02 — Canonical IR Schema — **v3**
 
-> **Current state (2026-09-02):** This schema analysis is historical. The active metadata workflow is canonical `content/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded.
+> **Current state (2026-09-02):** This schema analysis is historical. The active metadata workflow is canonical `agent-library/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded.
 
 > **Status:** Specification only — v3 (post `06-REVIEW.md` repairs). No implementation.
 > Zod blocks are *illustrative*: they define the target shape of `packages/core/src/schema/*.ts`,

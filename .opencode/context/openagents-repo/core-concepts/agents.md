@@ -1,7 +1,7 @@
 # Core Concept: Agents
 
 > ⚠️ **SUPERSEDED (2026-10-25)** — the agent-authoring flow below predates the canonical
-> refactor. Agents are now authored ONLY under `content/agents/**` with an `oac:` block;
+> refactor. Agents are now authored ONLY under `agent-library/agents/**` with an `oac:` block;
 > `.opencode/agent/**` is generated output and the registry is emitted by `oac build`
 > (no `auto-detect-components.sh` step). **Follow `guides/adding-agent-basics.md` and
 > `standards/agent-frontmatter.md` instead.** The concepts in this file remain useful as

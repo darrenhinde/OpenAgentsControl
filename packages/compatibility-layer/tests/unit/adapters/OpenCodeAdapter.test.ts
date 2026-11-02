@@ -110,7 +110,7 @@ describe("OpenCodeAdapter (v2) against the real corpus", () => {
   let agents: CanonicalAgentFile[];
   let resolver: AgentIdResolver;
   beforeAll(async () => {
-    const all = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
+    const all = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
     resolver = AgentIdResolver.fromCanonical(all);
     // v1-only agents (image-specialist) have no v2 file.
     agents = all.filter((a) => emitsTo(a, "opencode"));
@@ -165,7 +165,7 @@ describe("OpenCodeAdapter (v2) host blocks", () => {
   it("keeps the opencode block and drops every other target's, before rewriting refs", async () => {
     // The claude-code block names `Ghost`, which RH cannot resolve: filtering after the
     // delegation rewrite would throw here.
-    const { content } = await adapter().fromCanonical(HOST_BLOCK_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" });
+    const { content } = await adapter().fromCanonical(HOST_BLOCK_SOURCE, { resolver: RH, filePath: "agent-library/agents/core/probe.md" });
     expect(content).toContain("V2-ONLY text.");
     expect(content).toContain("OPENCODE-ANY text.");
     expect(content).not.toContain("CLAUDE-ONLY");
@@ -177,15 +177,15 @@ describe("OpenCodeAdapter (v2) host blocks", () => {
 
   it("fails on an unknown marker target with the canonical file:line", async () => {
     await expect(
-      adapter().fromCanonical(UNKNOWN_TARGET_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" })
-    ).rejects.toThrow(new RegExp(`^content/agents/core/probe\\.md:${FIRST_MARKER_LINE}: unknown target "emacs"`));
+      adapter().fromCanonical(UNKNOWN_TARGET_SOURCE, { resolver: RH, filePath: "agent-library/agents/core/probe.md" })
+    ).rejects.toThrow(new RegExp(`^agent-library/agents/core/probe\\.md:${FIRST_MARKER_LINE}: unknown target "emacs"`));
   });
 
   it("fails on a malformed marker with the canonical file:line", async () => {
     await expect(
-      adapter().fromCanonical(MALFORMED_SOURCE, { resolver: RH, filePath: "content/agents/core/probe.md" })
+      adapter().fromCanonical(MALFORMED_SOURCE, { resolver: RH, filePath: "agent-library/agents/core/probe.md" })
     ).rejects.toSatisfy(
-      (e: unknown) => e instanceof HostBlocksError && e.file === "content/agents/core/probe.md" && e.line === FIRST_MARKER_LINE
+      (e: unknown) => e instanceof HostBlocksError && e.file === "agent-library/agents/core/probe.md" && e.line === FIRST_MARKER_LINE
     );
   });
 });

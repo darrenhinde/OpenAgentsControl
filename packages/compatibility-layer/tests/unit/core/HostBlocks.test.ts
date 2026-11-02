@@ -102,7 +102,7 @@ describe("filterHostBlocks", () => {
   describe("errors", () => {
     const err = (body: string, target = "claude-code"): HostBlocksError => {
       try {
-        filterHostBlocks(body, target, { file: "content/agents/x.md" });
+        filterHostBlocks(body, target, { file: "agent-library/agents/x.md" });
       } catch (e) {
         expect(e).toBeInstanceOf(HostBlocksError);
         return e as HostBlocksError;
@@ -113,14 +113,14 @@ describe("filterHostBlocks", () => {
     it("unknown target in a marker names the file, line and target", () => {
       const e = err(j("A", "<!-- oac:only claude-code,cursr -->", "X", CLOSE));
       expect(e.message).toBe(
-        'content/agents/x.md:2: unknown target "cursr" in oac:only marker (known: opencode, opencode-v1, claude-code)',
+        'agent-library/agents/x.md:2: unknown target "cursr" in oac:only marker (known: opencode, opencode-v1, claude-code)',
       );
-      expect(e.file).toBe("content/agents/x.md");
+      expect(e.file).toBe("agent-library/agents/x.md");
       expect(e.line).toBe(2);
     });
 
     it("unknown build target argument throws", () => {
-      expect(err("A\n", "cursor").message).toMatch(/content\/agents\/x\.md: unknown build target "cursor"/);
+      expect(err("A\n", "cursor").message).toMatch(/agent-library\/agents\/x\.md: unknown build target "cursor"/);
     });
 
     it("unclosed open throws at the open line", () => {

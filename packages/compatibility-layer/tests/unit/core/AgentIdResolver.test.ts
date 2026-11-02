@@ -98,7 +98,7 @@ describe("AgentIdResolver.from rejects ambiguity", () => {
 
 describe("the real corpus", () => {
   it("builds without ambiguity and maps every id to a unique v1 name", async () => {
-    const agents = await new CanonicalAgentLoader(repoPath("content/agents")).loadFromDirectory();
+    const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
     const r = AgentIdResolver.fromCanonical(agents);
     const names = agents.map((a) => r.idFor("opencode-v1", a.oac.id));
     const ids = agents.map((a) => r.idFor("opencode", a.oac.id));

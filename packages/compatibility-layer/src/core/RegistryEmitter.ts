@@ -1,5 +1,5 @@
 /**
- * Generates `registry.json` from the canonical `content/agents/**` tree.
+ * Generates `registry.json` from the canonical `agent-library/agents/**` tree.
  *
  * ─── Why this exists ────────────────────────────────────────────────────────────────────
  *
@@ -15,7 +15,7 @@
  * `openagent` and `opencoder`.
  *
  * This emitter inverts that: the canonical file is the input, the registry entry is OUTPUT.
- * Adding an agent becomes "add one file under `content/agents/`, run the build".
+ * Adding an agent becomes "add one file under `agent-library/agents/`, run the build".
  *
  * ─── Phase 2 scope: agents and profiles ─────────────────────────────────────────────────
  *
@@ -28,7 +28,7 @@
  *
  * ─── Which profile list is authoritative ────────────────────────────────────────────────
  *
- * Canonical system profiles under `content/profiles/system/` now own install component lists.
+ * Canonical system profiles under `agent-library/profiles/system/` now own install component lists.
  * Their resolution includes context-profile subscriptions and validates every ref against the
  * registry. The legacy registry profile retains ownership of presentation metadata such as
  * `name`, `description`, `badge`, and `additionalPaths`, which canonical profile schemas do
@@ -153,10 +153,10 @@ export interface RegistryEmitterOptions {
 }
 
 const DEFAULTS = {
-  contentRoot: "content/agents",
+  contentRoot: "agent-library/agents",
 } as const;
 
-const PROFILES_ROOT = "content/profiles";
+const PROFILES_ROOT = "agent-library/profiles";
 const SYSTEM_PROFILES_ROOT = `${PROFILES_ROOT}/system`;
 
 /** Retired config entries must not survive carry-through from the base registry. */
@@ -502,7 +502,7 @@ export class RegistryEmitter {
  *
  * The carry-through is not a convenience — it is load-bearing. `agent:eval-runner` ships in
  * `.opencode/agent/eval-runner.md` and sits in the committed registry, but has no
- * `content/agents/` counterpart yet. Generating agents purely from the canonical tree would
+ * `agent-library/agents/` counterpart yet. Generating agents purely from the canonical tree would
  * delete it from the registry and uninstall the eval harness for everyone. Anything not yet
  * canonicalised is preserved verbatim, keeping its own key order and any fields this emitter
  * does not model.

@@ -167,7 +167,7 @@
       "root": ".opencode/agent"
     },
     "hosts/README.md": {
-      "sha256": "2dd4dec8fd0e5a0ac63f9d75f9e56329d3183ec0312ca20bcd4b548a1d8b4046",
+      "sha256": "fd2e83b7a62eeadf3e48d20576313a2e6df934a1bf9351256f3866af4ce91477",
       "target": "hosts-readme",
       "root": "hosts/README.md"
     },

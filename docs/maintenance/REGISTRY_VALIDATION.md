@@ -1,6 +1,6 @@
 # Registry Validation & Dependency Checking
 
-> **Current state (2026-09-02):** This maintenance record predates the canonical metadata migration. Current agent metadata comes only from `content/agents/**` `oac:` blocks through RegistryEmitter; do not edit or restore the retired metadata sidecar.
+> **Current state (2026-09-02):** This maintenance record predates the canonical metadata migration. Current agent metadata comes only from `agent-library/agents/**` `oac:` blocks through RegistryEmitter; do not edit or restore the retired metadata sidecar.
 
 This document describes the comprehensive validation system to prevent registry inconsistencies and ensure the installer works correctly.
 
@@ -195,7 +195,7 @@ npx husky add .husky/pre-commit "bun run scripts/registry/check-dependencies.ts"
 **Solution:**
 1. Check if the dependency was renamed or removed
 2. Update the component's dependencies
-3. For agents, update dependencies in the canonical `content/agents/**` source and regenerate the registry with `oac build`
+3. For agents, update dependencies in the canonical `agent-library/agents/**` source and regenerate the registry with `oac build`
 
 ### Issue: Split files not in registry
 

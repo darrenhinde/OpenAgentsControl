@@ -8,7 +8,7 @@
  * committed and is not recoverable.
  *
  * The live case is not hypothetical. `.opencode/agent/eval-runner.md` is a real, shipped,
- * hand-authored agent with no `content/agents/` counterpart — deliberately, until it is
+ * hand-authored agent with no `agent-library/agents/` counterpart — deliberately, until it is
  * canonicalised. The obvious pruning rule ("delete anything under `.opencode/agent/` with no
  * canonical source") deletes it. So the rule is inverted: the build removes only what a
  * PREVIOUS build recorded writing. These tests pin that inversion from both sides — that a
@@ -98,8 +98,8 @@ beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "oac-build-"));
   put("registry.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
   put("registry.v1.json", `${JSON.stringify(BASE_REGISTRY, null, 2)}\n`);
-  put("content/agents/subagents/test/alpha.md", canonicalAgent("alpha", ["opencode"]));
-  put("content/agents/subagents/test/beta.md", canonicalAgent("beta", ["opencode", "claude-code"]));
+  put("agent-library/agents/subagents/test/alpha.md", canonicalAgent("alpha", ["opencode"]));
+  put("agent-library/agents/subagents/test/beta.md", canonicalAgent("beta", ["opencode", "claude-code"]));
 });
 
 afterEach(() => {
@@ -167,7 +167,7 @@ describe("oac.targets", () => {
     write(await plan({ root }), { root });
     expect(existsSync(join(root, "hosts/opencode-v1/agent/subagents/test/alpha.md"))).toBe(true);
 
-    rmSync(join(root, "content/agents/subagents/test/alpha.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
     const result = write(await plan({ root }), { root });
 
     expect(result.removed).toContain("hosts/opencode-v1/agent/subagents/test/alpha.md");
@@ -258,7 +258,7 @@ describe("orphan removal", () => {
     write(await plan({ root }), { root });
     expect(existsSync(join(root, ALPHA_OUT))).toBe(true);
 
-    rmSync(join(root, "content/agents/subagents/test/alpha.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
     const result = write(await plan({ root }), { root });
 
     expect(result.removed).toContain(ALPHA_OUT);
@@ -285,8 +285,8 @@ describe("orphan removal", () => {
     // directory at all, so the tidy-up aborted the whole build AFTER it had already deleted
     // the file. Caught by running the real command, not by any test that existed at the time.
     write(await plan({ root }), { root });
-    rmSync(join(root, "content/agents/subagents/test/alpha.md"));
-    rmSync(join(root, "content/agents/subagents/test/beta.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/beta.md"));
 
     const result = write(await plan({ root }), { root });
 
@@ -300,8 +300,8 @@ describe("orphan removal", () => {
   it("leaves a directory alone while it still holds a file the build does not own", async () => {
     put("hosts/opencode-v1/agent/subagents/test/notes.md", "hand-written, not generated\n");
     write(await plan({ root }), { root });
-    rmSync(join(root, "content/agents/subagents/test/alpha.md"));
-    rmSync(join(root, "content/agents/subagents/test/beta.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/beta.md"));
 
     write(await plan({ root }), { root });
 
@@ -319,7 +319,7 @@ describe("orphan removal", () => {
 
   it("keeps — and reports — an orphan a human has edited since it was generated", async () => {
     write(await plan({ root }), { root });
-    rmSync(join(root, "content/agents/subagents/test/alpha.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
     writeFileSync(join(root, ALPHA_OUT), "hand-edited, and not by the build\n", "utf-8");
 
     const result = write(await plan({ root }), { root });
@@ -351,7 +351,7 @@ describe("orphan removal", () => {
 
   it("--no-prune leaves orphans in place", async () => {
     write(await plan({ root }), { root });
-    rmSync(join(root, "content/agents/subagents/test/alpha.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
 
     const result = write(await plan({ root }), { root, prune: false });
 
@@ -361,7 +361,7 @@ describe("orphan removal", () => {
 
   it("reports an orphan as drift under check() without removing it", async () => {
     write(await plan({ root }), { root });
-    rmSync(join(root, "content/agents/subagents/test/alpha.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
 
     const drift = check(await plan({ root }), { root });
 
@@ -422,7 +422,7 @@ describe("targeted builds", () => {
   it("still prunes orphans of the targets it DID build", async () => {
     write(await plan({ root }), { root, outputRoots: STAGE });
     // beta stops targeting claude-code: its staged claude output is now an orphan.
-    put("content/agents/subagents/test/beta.md", canonicalAgent("beta", ["opencode"]));
+    put("agent-library/agents/subagents/test/beta.md", canonicalAgent("beta", ["opencode"]));
 
     const result = write(await plan({ root, targets: ["claude-code"] }), {
       root,
@@ -484,7 +484,7 @@ describe("hosts/ layout and live mirrors", () => {
 
   it("prunes a mirror together with its primary when the source goes", async () => {
     write(await plan({ root }), { root });
-    rmSync(join(root, "content/agents/subagents/test/beta.md"));
+    rmSync(join(root, "agent-library/agents/subagents/test/beta.md"));
 
     const result = write(await plan({ root }), { root });
 
@@ -522,7 +522,7 @@ describe("failure handling", () => {
   });
 
   it("rejects the whole build on a schema violation rather than emitting a partial tree", async () => {
-    put("content/agents/subagents/test/broken.md", "---\nname: broken\n---\n\nNo oac block.\n");
+    put("agent-library/agents/subagents/test/broken.md", "---\nname: broken\n---\n\nNo oac block.\n");
 
     await expect(plan({ root })).rejects.toThrow();
   });
@@ -534,7 +534,7 @@ describe("failure handling", () => {
     // widening. The list is authored; an agent that omits it is incomplete, and the build says
     // so rather than picking a default.
     put(
-      "content/agents/subagents/test/gamma.md",
+      "agent-library/agents/subagents/test/gamma.md",
       canonicalAgent("gamma", ["claude-code"]).replace(
         "  overrides:\n    claude-code:\n      tools: [Read]\n",
         "",
@@ -549,7 +549,7 @@ describe("failure handling", () => {
   it("names the source file in a refusal, not just the agent id", async () => {
     // The adapter only knows `gamma`. Whoever has to make the decision needs the path.
     put(
-      "content/agents/subagents/test/gamma.md",
+      "agent-library/agents/subagents/test/gamma.md",
       canonicalAgent("gamma", ["claude-code"]).replace(
         "  overrides:\n    claude-code:\n      tools: [Read]\n",
         "",
@@ -557,7 +557,7 @@ describe("failure handling", () => {
     );
 
     await expect(plan({ root, targets: ["claude-code"], skipRegistry: true })).rejects.toThrow(
-      /content\/agents\/subagents\/test\/gamma\.md:/,
+      /agent-library\/agents\/subagents\/test\/gamma\.md:/,
     );
   });
 
@@ -565,7 +565,7 @@ describe("failure handling", () => {
     const built = await plan({ root: REPO });
 
     for (const warning of built.warnings) {
-      expect(warning.source, warning.reason).toMatch(/^content\/agents\/.+\.md$/);
+      expect(warning.source, warning.reason).toMatch(/^agent-library\/agents\/.+\.md$/);
     }
   });
 });

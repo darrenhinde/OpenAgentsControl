@@ -8,7 +8,7 @@
  *      block that Claude Code cannot represent, and must therefore fail CLOSED).
  *
  *   2. `plugins/claude-code/agents/` — the 7 committed Claude Code agents. They are build
- *      output, emitted in place from `content/agents/**` via `oac.overrides.claude-code`
+ *      output, emitted in place from `agent-library/agents/**` via `oac.overrides.claude-code`
  *      (frontmatter) and `<!-- oac:only -->` host blocks (body) (D-017). The committed tree
  *      must equal a fresh build byte-for-byte, so a hand-edit or an un-rebuilt source change
  *      fails here as well as in the drift gate. L-001 (`104356a` overwriting the hand-adapted
@@ -182,7 +182,7 @@ describe.each(TARGETS)("%s adapter goldens", (target) => {
 });
 
 describe("claude-code adapter against the live corpus", () => {
-  const OWED_BY = "subtasks 07 + 09 (ClaudeAdapter + content/agents/)";
+  const OWED_BY = "subtasks 07 + 09 (ClaudeAdapter + agent-library/agents/)";
 
   it("refuses to emit an agent that never says what it may do on Claude Code", async () => {
     // This once asserted that an ordered rule list degraded fail-closed with a warning. It no

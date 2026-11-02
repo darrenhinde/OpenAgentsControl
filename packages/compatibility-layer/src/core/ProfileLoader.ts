@@ -102,11 +102,11 @@ export interface SystemProfileResolution {
 
 const PROFILES_DIR = ".opencode/profiles";
 
-/** Canonical system profiles: `content/profiles/system/<id>.json`. */
-const SYSTEM_PROFILES_DIR = "content/profiles/system";
+/** Canonical system profiles: `agent-library/profiles/system/<id>.json`. */
+const SYSTEM_PROFILES_DIR = "agent-library/profiles/system";
 
-/** Canonical context profiles: `content/profiles/context/<id>.json`. */
-const CONTEXT_PROFILES_DIR = "content/profiles/context";
+/** Canonical context profiles: `agent-library/profiles/context/<id>.json`. */
+const CONTEXT_PROFILES_DIR = "agent-library/profiles/context";
 
 /** Locale-independent ordering. `localeCompare` is locale-dependent — never use it here. */
 function compare(a: string, b: string): number {
@@ -294,14 +294,14 @@ export class ProfileLoader {
   }
 
   // --------------------------------------------------------------------------
-  // Canonical profiles (content/profiles/**)
+  // Canonical profiles (agent-library/profiles/**)
   // --------------------------------------------------------------------------
 
   /**
    * Resolve a system profile to its full component closure.
    *
    * Unlike the legacy profile sources above, canonical profiles have exactly ONE source
-   * (`content/profiles/**`), so there is no union to referee: a profile is sound only when
+   * (`agent-library/profiles/**`), so there is no union to referee: a profile is sound only when
    * EVERY component it names — directly or via a context profile — resolves against the
    * registry. Any miss fails the whole profile, closed.
    *
@@ -380,7 +380,7 @@ export class ProfileLoader {
   /**
    * Resolve one id from the `agents` field against BOTH registry categories.
    *
-   * The canonical tree collapses subagents into agents (`content/agents/subagents/**` is
+   * The canonical tree collapses subagents into agents (`agent-library/agents/subagents/**` is
    * still an agent file), so an authored id may legitimately live in either legacy
    * category until the registry emitter splits them back out. Primary form is `agent:`;
    * `subagent:` is the fallback. Both failing reports the primary with the fallback noted.

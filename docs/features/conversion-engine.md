@@ -1,6 +1,6 @@
 # The conversion engine
 
-One canonical source (`content/agents/**`), one engine (`packages/compatibility-layer`), one build command (`oac build`) — every AI tool's copy of the agents is generated from that single input. This page is the plain-English inventory of what the engine manages today: what an author writes, what the engine converts, what it refuses to lose silently, and what it does not manage (yet).
+One canonical source (`agent-library/agents/**`), one engine (`packages/compatibility-layer`), one build command (`oac build`) — every AI tool's copy of the agents is generated from that single input. This page is the plain-English inventory of what the engine manages today: what an author writes, what the engine converts, what it refuses to lose silently, and what it does not manage (yet).
 
 Verified 2026-10-23: drift gate clean (34 agents → 117 files, 0 written / 0 changed), 754 unit tests + 13 golden tests green.
 
@@ -9,7 +9,7 @@ Verified 2026-10-23: drift gate clean (34 agents → 117 files, 0 written / 0 ch
 > You edit one file per agent; the engine derives every host's copy from it, records anything a host cannot express as a warning instead of losing it silently, and a git-diff gate proves the output never drifts from the source.
 
 ```
-content/agents/**            ← the ONLY thing you edit
+agent-library/agents/**            ← the ONLY thing you edit
         │
         ▼
 packages/compatibility-layer (oac build)
@@ -23,7 +23,7 @@ hosts/opencode/        hosts/opencode-v1/        hosts/claude-code/
 
 ## What an author writes (the canonical format)
 
-One Markdown file per agent in `content/agents/**`, containing exactly three authoring layers:
+One Markdown file per agent in `agent-library/agents/**`, containing exactly three authoring layers:
 
 | Layer | Syntax | Purpose |
 |---|---|---|

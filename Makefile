@@ -158,7 +158,7 @@ high-priority: ## List all high priority items
 # Evaluation Framework Commands
 # =============================================================================
 
-# The canonical build: content/agents/** is the source; hosts/** (with its live mirrors
+# The canonical build: agent-library/agents/** is the source; hosts/** (with its live mirrors
 # .opencode/agent/** and plugins/claude-code/agents/**), registry.json, registry.v1.json and
 # .oac/build-manifest.json are its committed output. `check-canonical-drift` is exactly what CI
 # runs (.github/workflows/packages-checks.yml), so a contributor can reproduce a red gate here.
@@ -166,11 +166,11 @@ oac-cli: ## Build the oac CLI and its compatibility-layer dependency
 	@pnpm --dir packages/compatibility-layer run build
 	@pnpm --dir packages/cli run build
 
-build-canonical: oac-cli ## Regenerate the committed trees from content/agents/**
+build-canonical: oac-cli ## Regenerate the committed trees from agent-library/agents/**
 	@echo "🔨 Building canonical trees..."
 	@bun packages/cli/dist/index.js build
 
-check-canonical-drift: oac-cli ## Fail if the generated trees drift from content/agents/** (CI gate)
+check-canonical-drift: oac-cli ## Fail if the generated trees drift from agent-library/agents/** (CI gate)
 	@echo "🔍 Checking for generated-tree drift..."
 	@bash scripts/validation/check-build-drift.sh
 

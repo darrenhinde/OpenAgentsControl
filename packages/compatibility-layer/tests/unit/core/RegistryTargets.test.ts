@@ -39,8 +39,8 @@ const BASE = {
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "oac-regt-"));
-  put("content/agents/subagents/test/alpha.md", agent("alpha", ["opencode"]));
-  put("content/agents/subagents/test/imager.md", agent("imager", ["opencode-v1"]));
+  put("agent-library/agents/subagents/test/alpha.md", agent("alpha", ["opencode"]));
+  put("agent-library/agents/subagents/test/imager.md", agent("imager", ["opencode-v1"]));
   json("registry.json", BASE);
   json("registry.v1.json", {
     ...BASE,

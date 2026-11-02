@@ -116,7 +116,7 @@ Format: **Decision** · **Why** · **Rules out** · **Revisit when**. Newest las
 
 Made by the maintainer on 2026-10-20 and 2026-10-21.
 
-- **Decision:** Claude Code agents are generated from `content/agents/**` like every other target. One merged prompt per agent, host-neutral by default.
+- **Decision:** Claude Code agents are generated from `agent-library/agents/**` like every other target. One merged prompt per agent, host-neutral by default.
   - **Per-host frontmatter** goes in `oac.overrides.<host>`: `name`, `model`, `tools` and `description`, including `overrides.claude-code.description` with its `<example>` dispatch blocks.
   - **Per-host body text** goes in `<!-- oac:only <targets> -->` blocks (`src/core/HostBlocks.ts`). An unknown target, an unbalanced marker or a nested block fails the build.
   - **`plugins/claude-code/agents/` is emitted in place**, covered by the drift gate and golden-tested.

@@ -1,6 +1,6 @@
 # OAC Canonical Refactor — Master Spec Index
 
-> **Current state (2026-09-02):** This is historical refactor documentation. The active metadata workflow is canonical `content/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded.
+> **Current state (2026-09-02):** This is historical refactor documentation. The active metadata workflow is canonical `agent-library/agents/**` `oac:` blocks emitted by RegistryEmitter; sidecar metadata and sidecar merging are superseded.
 
 > **Status:** Specification — v2 (post spec-pass reconciliation). No implementation yet.
 > **Goal:** Re-architect OAC from an OpenCode-specific project into a tool-agnostic,
@@ -309,7 +309,7 @@ write being allowed (verified). Therefore:
 
 Defaulting `write`/`edit`/`bash` to `deny` (as v1 did) would silently break real agents.
 
-### Neutral source — `/content/agents/code-reviewer.md`
+### Neutral source — `/agent-library/agents/code-reviewer.md`
 
 ```yaml
 ---
@@ -339,7 +339,7 @@ examples:
 <system prompt / instructions — authored once>
 ```
 
-### A scoping-heavy agent — `/content/agents/coder-agent.md` (why Option A exists)
+### A scoping-heavy agent — `/agent-library/agents/coder-agent.md` (why Option A exists)
 
 ```yaml
 capabilities:
