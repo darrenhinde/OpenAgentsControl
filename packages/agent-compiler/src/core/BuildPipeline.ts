@@ -635,6 +635,7 @@ function manifestFor(files: readonly BuildFile[], outputRoots: OutputRoots): Bui
       sha256: sha256(file.content),
       target: file.target,
       root: rebase(rootOf(file), file.target, outputRoots),
+      ...(file.agentId === undefined ? {} : { agentId: file.agentId }),
     };
   }
   return { version: 1, files: entries };

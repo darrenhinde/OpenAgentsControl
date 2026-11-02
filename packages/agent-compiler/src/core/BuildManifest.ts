@@ -46,6 +46,8 @@ export interface ManifestEntry {
    * having to be told which staging layout a PREVIOUS build happened to use.
    */
   root: string;
+  /** The canonical `oac.id` of the agent this file was built from (agent outputs only). */
+  agentId?: string;
 }
 
 /** The build's ledger of what it wrote. Deterministic: sorted keys, no timestamps. */
