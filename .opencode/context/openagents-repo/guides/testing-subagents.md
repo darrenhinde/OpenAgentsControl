@@ -56,10 +56,10 @@ npm run eval:sdk -- --subagent=contextscout --pattern="01-test.yaml" --debug
 
 ```bash
 # Check agent file
-cat .opencode/agent/subagents/core/contextscout.md | head -20
+cat .opencode/agent/contextscout.md | head -20
 
 # Verify frontmatter
-grep -A 5 "^id:" .opencode/agent/subagents/core/contextscout.md
+grep -A 5 "^id:" .opencode/agent/contextscout.md
 ```
 
 **Expected**:

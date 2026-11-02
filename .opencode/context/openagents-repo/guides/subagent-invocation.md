@@ -78,7 +78,7 @@ task(
 
 // ❌ Using registry path
 task(
-  subagent_type=".opencode/agent/subagents/core/task-manager.md",
+  subagent_type=".opencode/agent/task-manager.md",
   ...
 )
 ```
@@ -337,7 +337,7 @@ if subagent_type not in available_types:
 
 **Solutions**:
 1. Check registry for correct name
-2. Verify subagent exists in `.opencode/agent/subagents/`
+2. Verify subagent exists in `.opencode/agent/`
 3. Use exact name from registry `name` field
 4. If subagent not registered, use direct operations instead
 
@@ -364,7 +364,7 @@ if subagent_type not in available_types:
 ## Related Files
 
 - **Registry**: `built-ai-configs/registry/registry.json` - Component catalog
-- **Subagents**: `.opencode/agent/subagents/` - Subagent definitions
+- **Subagents**: `.opencode/agent/` - Subagent definitions
 - **Validation**: `scripts/registry/validate-registry.sh`
 
 ---

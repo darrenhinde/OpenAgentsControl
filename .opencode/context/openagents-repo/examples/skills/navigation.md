@@ -21,7 +21,7 @@ skills/
 | Task | Path |
 |------|------|
 | **Multi-file skill** | `multi-file-skill.md` |
-| **Skill concepts** | `../../concepts/skills.md` |
+| **Skill concepts** | `../../concepts/agent-skills.md` |
 | **Skill guides** | `../../guides/navigation.md` |
 
 ---

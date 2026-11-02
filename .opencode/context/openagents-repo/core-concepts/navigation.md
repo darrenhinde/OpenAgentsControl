@@ -1,39 +1,18 @@
-<!-- Context: openagents-repo/navigation | Priority: critical | Version: 1.0 | Updated: 2026-02-15 -->
+<!-- Context: openagents-repo/core-concepts/navigation | Priority: critical | Version: 2.0 | Updated: 2026-11-02 -->
 
-# OpenAgents Core Concepts
+# Core Concepts
 
-**Purpose**: Deep-dive documentation on core OpenAgents Control concepts
+**Purpose**: Foundational concepts for working in this repo
 
----
+| File | Topic |
+|------|-------|
+| [agent-metadata.md](agent-metadata.md) | Core Concept: Agent Metadata |
+| [canonical-build.md](canonical-build.md) | How agents get from one source file to every AI tool. Read this first when working in this repo |
+| [evals.md](evals.md) | Understanding how agent testing works |
+| [registry.md](registry.md) | What `built-ai-configs/registry/registry.json` is, who writes which part, how installs use it |
 
-## Structure
+## Related
 
-```
-openagents-repo/core-concepts/
-├── navigation.md (this file)
-└── [core concept files]
-```
-
----
-
-## Quick Routes
-
-| Task | Path |
-|------|------|
-| **View core concepts** | `./` |
-| **Concepts** | `../concepts/navigation.md` |
-| **Guides** | `../guides/navigation.md` |
-
----
-
-## By Type
-
-**Core Concepts** → In-depth documentation on fundamental OpenAgents ideas
-
----
-
-## Related Context
-
-- **OpenAgents Navigation** → `../navigation.md`
-- **Concepts** → `../concepts/navigation.md`
-- **Guides** → `../guides/navigation.md`
+- [Root](../navigation.md)
+- [Guides](../guides/navigation.md)
+- [Lookup](../lookup/navigation.md)

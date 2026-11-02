@@ -19,15 +19,15 @@ oac:
   author: opencode
   tags: [example]
   dependencies: []
-  targets: [opencode]
+  exclude: [claude-code]
 ---
 ```
 
-`oac:` is OpenAgents Control metadata. It is not an OpenCode field; the compatibility build reads it from canonical content and emits target-specific artifacts.
+`oac:` is OpenAgents Control metadata. It is not an OpenCode field; `oac build` reads it from canonical content and emits target-specific artifacts.
 
 ## Registry generation
 
-Do not edit registry entries or a metadata sidecar. The RegistryEmitter reads canonical `agent-library/agents/**` files and emits the registry during the compatibility build.
+Do not edit registry entries or a metadata sidecar. The RegistryEmitter reads canonical `agent-library/agents/**` files and emits the registry during `oac build`.
 
 ```text
 agent-library/agents/** (frontmatter + oac)
@@ -35,7 +35,7 @@ agent-library/agents/** (frontmatter + oac)
   → generated registry and target outputs
 ```
 
-When changing an agent, edit its canonical file, then run the project's compatibility build and registry validation. Generated `.opencode/agent/**` and `plugins/**` files are outputs, not sources.
+When changing an agent, edit its canonical file, then run `make build-canonical` and `bash scripts/registry/validate-registry.sh`. Generated `.opencode/agent/**` and `plugins/**` files are outputs, not sources.
 
 ## Metadata checklist
 
@@ -52,3 +52,4 @@ When changing an agent, edit its canonical file, then run the project's compatib
 
 - [Agent frontmatter](../standards/agent-frontmatter.md)
 - [Subagent structure](../standards/subagent-structure.md)
+- [Canonical build](canonical-build.md), [Authoring agents](../guides/authoring-agents.md)

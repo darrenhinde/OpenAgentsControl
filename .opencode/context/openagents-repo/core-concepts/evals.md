@@ -488,7 +488,7 @@ Update agent prompt to:
 
 - **Testing guide**: `guides/testing-agent.md`
 - **Debugging guide**: `guides/debugging.md`
-- **Agent concepts**: `core-concepts/agents.md`
+- **Agent concepts**: `core-concepts/canonical-build.md`
 
 ---
 

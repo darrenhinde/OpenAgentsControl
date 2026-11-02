@@ -17,7 +17,7 @@ oac:
   author: opencode
   tags: [example]
   dependencies: []
-  targets: [opencode]
+  exclude: [claude-code]   # omit `targets:` to ship to every host; see guides/authoring-agents.md
 ---
 
 # MyAgent
@@ -32,6 +32,6 @@ oac:
 
 ## Generation
 
-RegistryEmitter reads canonical content and emits the registry and target-specific files. Output lands in `built-ai-configs/<target>/`, mirrored to `.opencode/agent/**` and `plugins/claude-code/agents/**`. Do not edit any of these generated files, and do not maintain metadata in a sidecar.
+`oac build` reads canonical content and emits the registry and target-specific files. Output lands in `built-ai-configs/<target>/`, mirrored to `.opencode/agent/**` and `plugins/claude-code/agents/**`. Do not edit any of these generated files, and do not maintain metadata in a sidecar.
 
 See [agent frontmatter](agent-frontmatter.md) for field details.

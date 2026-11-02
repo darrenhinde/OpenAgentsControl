@@ -1,4 +1,4 @@
-<!-- Context: openagents-repo/navigation | Priority: critical | Version: 1.0 | Updated: 2026-02-15 -->
+<!-- Context: openagents-repo/navigation | Priority: critical | Version: 1.1 | Updated: 2026-11-02 -->
 
 # OpenAgents Examples
 
@@ -11,6 +11,8 @@
 ```
 openagents-repo/examples/
 ├── navigation.md (this file)
+├── context-bundle-example.md
+├── subagent-prompt-structure.md
 ├── hooks/
 │   └── navigation.md
 ├── skills/
@@ -29,7 +31,8 @@ openagents-repo/examples/
 | **Skill examples** | `skills/navigation.md` |
 | **Subagent examples** | `subagents/navigation.md` |
 | **Guides** | `../guides/navigation.md` |
-| **Blueprints** | `../blueprints/navigation.md` |
+| **Context bundle example** | `context-bundle-example.md` |
+| **Subagent prompt structure** | `subagent-prompt-structure.md` |
 
 ---
 
@@ -45,4 +48,4 @@ openagents-repo/examples/
 
 - **OpenAgents Navigation** → `../navigation.md`
 - **Guides** → `../guides/navigation.md`
-- **Blueprints** → `../blueprints/navigation.md`
+- **Templates** → `../templates/navigation.md`

@@ -29,6 +29,8 @@ context/
 | **Plugin overview** | `context-overview.md` |
 | **Architecture** | `architecture/navigation.md` |
 | **Capabilities** | `capabilities/navigation.md` |
+| **Concepts** | `concepts/navigation.md` |
+| **Guides** | `guides/navigation.md` |
 | **Create plugins** | `guides/creating-plugins.md` |
 | **Plugin structure** | `lookup/plugin-structure.md` |
 

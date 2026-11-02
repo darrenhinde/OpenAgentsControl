@@ -42,14 +42,14 @@ How an agent reaches each AI tool, defined in `oac:` and enforced by `TargetPoli
 - **`exclude: [host, …]`** → opt out of named hosts. Only meaningful with omitted `targets:`.
 - **`targets: [host, …]`** → explicit opt-in list, for exceptions (today: the v1-only agent, `targets: [opencode-v1]`).
 - Declaring both `targets` and `exclude` is allowed — `exclude` filters the declared list; an `exclude` entry naming a host the list already omits is a parse error, as is an override for a host the agent doesn't effectively ship to, and a targets/exclude combination that leaves nothing to emit.
-- An agent shipping to `claude-code` MUST have an authored `tools` list in `oac.overrides["claude-code"]` (the build refuses otherwise, fail-closed). A `description` with `<example>` dispatch blocks is strongly recommended — Claude routes on it — but is optional (it falls back to the canonical description).
+- An agent shipping to `claude-code` MUST have an authored `tools` list in `oac.overrides["claude-code"]` (the build refuses otherwise, fail-closed). A Claude `description` override must contain `<example>` dispatch blocks: the build lint `[description-no-example]` fails otherwise (Claude routes on it).
 - `opencode-v1` follows `opencode`: declaring `opencode` ships both majors.
 
 Consequence: adding a new build target costs the corpus nothing — agents default onto it and the build degrades what it cannot express. Opt out explicitly only where an agent must not ship.
 
 ## Build flow
 
-The RegistryEmitter consumes `agent-library/agents/**` and emits registry and target artifacts. Edit canonical content, then regenerate and validate; never edit generated output: `built-ai-configs/**`, or its mirrors `.opencode/agent/**` and `plugins/claude-code/agents/**`.
+`oac build` (`make build-canonical`) reads `agent-library/agents/**` and emits the target trees and registries. Edit canonical content, then rebuild; never edit generated output: `built-ai-configs/**`, or its mirrors `.opencode/agent/**` and `plugins/claude-code/agents/**`. Full field reference: `guides/authoring-agents.md`.
 
 ## Checklist
 
@@ -57,4 +57,4 @@ The RegistryEmitter consumes `agent-library/agents/**` and emits registry and ta
 - [ ] Complete `oac:` identity, category, type, version, author
 - [ ] Shipping scope right: `targets:` omitted (default) or explicit/`exclude` where intended
 - [ ] Dependencies declared in `oac.dependencies`
-- [ ] Compatibility build and registry validation run
+- [ ] `make build-canonical` and `make check-canonical-drift` pass

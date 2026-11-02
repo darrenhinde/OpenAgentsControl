@@ -542,12 +542,12 @@
       "root": "built-ai-configs/opencode/agent"
     },
     "built-ai-configs/registry/registry.json": {
-      "sha256": "62d99a1f25f1e14cff82d60f08b8120c4af391bcf3fed066c0dad5e0114aa378",
+      "sha256": "785f4d193322d4d61ca33078de54e3ab5e94d6a898890523a2ae60546dfa1587",
       "target": "registry",
       "root": "built-ai-configs/registry/registry.json"
     },
     "built-ai-configs/registry/registry.v1.json": {
-      "sha256": "96db12df90da96835ac6c247927efede23622b84d9dd7e3b27c3195caa1449c1",
+      "sha256": "c356aed45b26cb93b6a81f0f821f6f05b048c6bda8922546191d2042a62d285f",
       "target": "registry-v1",
       "root": "built-ai-configs/registry/registry.v1.json"
     },

@@ -61,6 +61,6 @@
 
 - `../concepts/agent-skills.md` - Skills overview
 - `../concepts/subagents-system.md` - Subagents overview
-- `../../standards/subagent-structure.md` - Subagent patterns
+- `../standards/subagent-structure.md` - Subagent patterns
 
 **Reference**: https://docs.anthropic.com/en/docs/claude-code/skills
