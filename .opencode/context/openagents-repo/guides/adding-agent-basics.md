@@ -18,7 +18,7 @@ Agents are **authored once, in one canonical place**, and every AI tool's copy i
 
 **Time**: ~15-20 minutes
 
-> **Never** create files under `.opencode/agent/`, `hosts/`, or `plugins/claude-code/agents/`
+> **Never** create files under `.opencode/agent/`, `built-ai-configs/`, or `plugins/claude-code/agents/`
 > directly — those are generated build output. A hand edit there fails the drift gate
 > (`scripts/validation/check-build-drift.sh`) and a build prunes orphans it.
 
@@ -122,12 +122,12 @@ make build-canonical        # builds the CLI, then: 34+ agents -> all hosts
 
 What this does:
 
-- Emits every host's copy under `hosts/<host>/` (and the byte-identical live mirrors)
+- Emits every host's copy under `built-ai-configs/<host>/` (and the byte-identical live mirrors)
 - **Emits `registry.json` / `registry.v1.json`** — there is no separate registry step
-- Regenerates `hosts/README.md` (the agents-by-host index) and `.oac/build-manifest.json`
+- Regenerates `built-ai-configs/README.md` (the agents-by-host index) and `.oac/build-manifest.json`
 - Reports degradation warnings for anything a host cannot express
 
-Open `hosts/README.md` after building — your agent should appear in the matrix.
+Open `built-ai-configs/README.md` after building — your agent should appear in the matrix.
 
 ---
 

@@ -669,8 +669,8 @@ describe("the v1 registry", () => {
     const document = await v1().emit();
     const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
     const subagents = byId(document, "subagents");
-    expect(subagents.get("image-specialist")?.path).toBe("hosts/opencode-v1/agent/subagents/utils/image-specialist.md");
-    expect(byId(document, "agents").get("openagent")?.path).toBe("hosts/opencode-v1/agent/core/openagent.md");
+    expect(subagents.get("image-specialist")?.path).toBe("built-ai-configs/opencode-v1/agent/subagents/utils/image-specialist.md");
+    expect(byId(document, "agents").get("openagent")?.path).toBe("built-ai-configs/opencode-v1/agent/core/openagent.md");
     const registered = new Set([...byId(document, "agents").keys(), ...subagents.keys()]);
     expect(agents.map((a) => a.oac.id).filter((id) => !registered.has(id))).toEqual([]);
   });

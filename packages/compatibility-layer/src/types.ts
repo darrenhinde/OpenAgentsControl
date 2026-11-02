@@ -310,7 +310,7 @@ export const HookDefinitionSchema = z.object({
  * markdown file header (YAML frontmatter).
  *
  * `name` is optional since the 2026-10-25 apply fix: OpenCode v2 agent files deliberately
- * omit it ("v2 names an agent by its file" — hosts/README.md), so a loader reading v2
+ * omit it ("v2 names an agent by its file" — built-ai-configs/README.md), so a loader reading v2
  * output must not reject what the build itself emits. {@link AgentLoader.loadFromFile}
  * backfills the display name from the filename stem; the canonical path additionally
  * carries `oac.name`. Adapters that need a name still get one — it is just derived, not

@@ -158,7 +158,7 @@ high-priority: ## List all high priority items
 # Evaluation Framework Commands
 # =============================================================================
 
-# The canonical build: agent-library/agents/** is the source; hosts/** (with its live mirrors
+# The canonical build: agent-library/agents/** is the source; built-ai-configs/** (with its live mirrors
 # .opencode/agent/** and plugins/claude-code/agents/**), registry.json, registry.v1.json and
 # .oac/build-manifest.json are its committed output. `check-canonical-drift` is exactly what CI
 # runs (.github/workflows/packages-checks.yml), so a contributor can reproduce a red gate here.

@@ -30,7 +30,7 @@ import {
 } from "../../support/host-blocks.js";
 
 const CONTENT_ROOT = repoPath("agent-library/agents");
-const OPENCODE_ROOT = repoPath("hosts/opencode-v1/agent");
+const OPENCODE_ROOT = repoPath("built-ai-configs/opencode-v1/agent");
 
 let resolver: AgentIdResolver;
 beforeAll(async () => {
@@ -90,8 +90,8 @@ describe("OpenCodeV1Adapter identity", () => {
     expect(capabilities.outputStructure).toBe("directory");
   });
 
-  it("writes agents under hosts/opencode-v1/agent/", () => {
-    expect(adapter().getConfigPath()).toBe("hosts/opencode-v1/agent/");
+  it("writes agents under built-ai-configs/opencode-v1/agent/", () => {
+    expect(adapter().getConfigPath()).toBe("built-ai-configs/opencode-v1/agent/");
   });
 });
 
@@ -315,7 +315,7 @@ describe("OpenCodeV1Adapter round-trip", () => {
   });
 
   it.each(sources.map((file) => [contentRelative(file), file] as const))(
-    "reproduces hosts/opencode-v1/agent/%s byte-for-byte",
+    "reproduces built-ai-configs/opencode-v1/agent/%s byte-for-byte",
     async (rel, file) => {
       const { content } = await adapter().fromCanonical(readFileSync(file, "utf-8"), {
         filePath: file,
@@ -344,7 +344,7 @@ describe("OpenCodeV1Adapter round-trip", () => {
   it("maps each source onto its committed output path", () => {
     for (const file of sources) {
       const rel = contentRelative(file);
-      expect(adapter().outputPath(rel, "any-id")).toBe(`hosts/opencode-v1/agent/${rel}`);
+      expect(adapter().outputPath(rel, "any-id")).toBe(`built-ai-configs/opencode-v1/agent/${rel}`);
     }
   });
 
@@ -353,7 +353,7 @@ describe("OpenCodeV1Adapter round-trip", () => {
     // path from the id would emit `subagents/code/tester.md` and orphan the `test-engineer.md`
     // OpenCode actually loads.
     expect(adapter().outputPath("subagents/code/test-engineer.md", "tester")).toBe(
-      "hosts/opencode-v1/agent/subagents/code/test-engineer.md"
+      "built-ai-configs/opencode-v1/agent/subagents/code/test-engineer.md"
     );
   });
 });

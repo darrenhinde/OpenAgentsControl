@@ -113,9 +113,9 @@ opencode-agents/
 
 #### `.opencode/agent/` (generated)
 Main agent prompts. These are the "brains" of the system. **Don't edit them here:** the source is
-`agent-library/agents/<category>/`, and `oac build` (`make build-canonical`) compiles it into `hosts/<tool>/`
-(`hosts/opencode/`, `hosts/opencode-v1/`, `hosts/claude-code/`). `.opencode/agent/` and
-`plugins/claude-code/agents/` are generated copies of `hosts/`; CI fails on a hand edit (D-018).
+`agent-library/agents/<category>/`, and `oac build` (`make build-canonical`) compiles it into `built-ai-configs/<tool>/`
+(`built-ai-configs/opencode/`, `built-ai-configs/opencode-v1/`, `built-ai-configs/claude-code/`). `.opencode/agent/` and
+`plugins/claude-code/agents/` are generated copies of `built-ai-configs/`; CI fails on a hand edit (D-018).
 The source categories are:
 - **core/openagent.md** - Universal orchestrator with plan-first workflow
 - **core/opencoder.md** - Development specialist for direct code execution
@@ -640,7 +640,7 @@ Use the templates in `.opencode/command/openagents/new-agents/templates/` as sta
 ### Update an Existing Agent
 
 ```bash
-# 1. Edit the canonical agent file, then rebuild hosts/ and its mirrors
+# 1. Edit the canonical agent file, then rebuild built-ai-configs/ and its mirrors
 vim agent-library/agents/<category>/my-agent.md
 make build-canonical
 

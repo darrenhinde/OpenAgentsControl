@@ -81,7 +81,7 @@ Body text only Claude Code gets (e.g. "context is pre-loaded").
 make build-canonical && make check-canonical-drift
 ```
 
-Your subagent appears in `hosts/README.md`'s matrix and in `registry.json`.
+Your subagent appears in `built-ai-configs/README.md`'s matrix and in `registry.json`.
 
 ---
 

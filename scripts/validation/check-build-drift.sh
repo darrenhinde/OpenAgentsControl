@@ -30,9 +30,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
 # The trees `oac build` emits IN PLACE, and therefore everything this gate watches.
-# hosts/ holds every target's primary output side by side (hosts/opencode, hosts/opencode-v1,
-# hosts/claude-code); .opencode/agent and plugins/claude-code/agents are byte-identical
-# generated mirrors of hosts/opencode/agent and hosts/claude-code/agents, so a hand-edited
+# built-ai-configs/ holds every target's primary output side by side (built-ai-configs/opencode, built-ai-configs/opencode-v1,
+# built-ai-configs/claude-code); .opencode/agent and plugins/claude-code/agents are byte-identical
+# generated mirrors of built-ai-configs/opencode/agent and built-ai-configs/claude-code/agents, so a hand-edited
 # mirror is drift too. The Claude agents are build output like the rest (D-017): their
 # frontmatter comes from oac.overrides.claude-code and their body from <!-- oac:only --> host
 # blocks in agent-library/agents/**. See the docblock in packages/cli/src/commands/build.ts.
@@ -61,9 +61,9 @@ cat >&2 <<'EOF'
 
 ❌ The generated trees drift from the canonical source.
 
-Files under hosts/, .opencode/agent/, plugins/claude-code/agents/, registry.json,
+Files under built-ai-configs/, .opencode/agent/, plugins/claude-code/agents/, registry.json,
 registry.v1.json and .oac/build-manifest.json are BUILD OUTPUT (.opencode/agent/ and
-plugins/claude-code/agents/ are mirrors of hosts/opencode/agent/ and hosts/claude-code/agents/).
+plugins/claude-code/agents/ are mirrors of built-ai-configs/opencode/agent/ and built-ai-configs/claude-code/agents/).
 They are committed, but they are not hand-edited: `oac build` regenerates them from
 agent-library/agents/**, and this gate fails when the committed bytes disagree with what the
 build produces.

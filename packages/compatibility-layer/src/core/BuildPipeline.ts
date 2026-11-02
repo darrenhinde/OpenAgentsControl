@@ -99,7 +99,7 @@ export interface BuildFile {
   /** Repo-relative POSIX path the file lands at when emitted in place. */
   path: string;
   /**
-   * Set on a live-path MIRROR: the primary path (under `hosts/`) whose bytes this file copies.
+   * Set on a live-path MIRROR: the primary path (under `built-ai-configs/`) whose bytes this file copies.
    * A mirror is written, ledgered, pruned and drift-checked like any other file; it is skipped
    * only where a second copy would double-count, such as the lints.
    */
@@ -108,7 +108,7 @@ export interface BuildFile {
   content: string;
   /**
    * The target that produced it; `"registry"` / `"registry-v1"` for the two registry files and
-   * `"hosts-readme"` for the generated `hosts/README.md` index.
+   * `"hosts-readme"` for the generated `built-ai-configs/README.md` index.
    */
   target: BuildTarget | "registry" | "registry-v1" | typeof HOSTS_README_TARGET;
   /** `oac.id` of the source agent, or `undefined` for whole-tree artefacts. */
@@ -136,8 +136,8 @@ export interface BuildPlan {
    * The targets this plan is AUTHORITATIVE for: the selected build targets plus the registry
    * files built alongside them. {@link write} prunes, and {@link check} reports orphans, only
    * for ledger entries whose target is listed here; every other target's ledger entries are
-   * carried forward verbatim. Without this, `--target claude-code` reads every `hosts/opencode/**`,
-   * `.opencode/agent/**`, `hosts/opencode-v1/**` and `registry.v1.json` entry as an orphan and
+   * carried forward verbatim. Without this, `--target claude-code` reads every `built-ai-configs/opencode/**`,
+   * `.opencode/agent/**`, `built-ai-configs/opencode-v1/**` and `registry.v1.json` entry as an orphan and
    * deletes it. A target's mirrors are owned with it.
    */
   owns: ReadonlyArray<BuildFile["target"]>;
@@ -203,10 +203,10 @@ const DEFAULTS = {
 } as const;
 
 /**
- * The committed folder holding every host's built output side by side (`hosts/<host>/`).
+ * The committed folder holding every host's built output side by side (`built-ai-configs/<host>/`).
  * Not to be confused with `src/hosts/`, the host drivers in this package.
  */
-export const HOSTS_ROOT = "hosts";
+export const HOSTS_ROOT = "built-ai-configs";
 
 /** Where one target's files go. */
 export interface TargetLayout {
@@ -235,7 +235,7 @@ export const TARGET_LAYOUT: Readonly<Record<BuildFile["target"], TargetLayout>> 
     mirrors: [OPENCODE_AGENT_ROOT],
   },
   // The v1 build has no live mirror: it is display-only here, and installs read it from its
-  // hosts/ folder (registry.v1.json).
+  // built-ai-configs/ folder (registry.v1.json).
   "opencode-v1": { emitted: OPENCODE_V1_AGENT_ROOT, root: OPENCODE_V1_AGENT_ROOT, mirrors: [] },
   "claude-code": {
     emitted: "plugins/claude-code/agents",
@@ -244,7 +244,7 @@ export const TARGET_LAYOUT: Readonly<Record<BuildFile["target"], TargetLayout>> 
   },
   registry: { emitted: "registry.json", root: "registry.json", mirrors: [] },
   "registry-v1": { emitted: "registry.v1.json", root: "registry.v1.json", mirrors: [] },
-  // The generated index of hosts/ (core/HostsReadme.ts). Only a full build owns it.
+  // The generated index of built-ai-configs/ (core/HostsReadme.ts). Only a full build owns it.
   [HOSTS_README_TARGET]: { emitted: HOSTS_README_PATH, root: HOSTS_README_PATH, mirrors: [] },
 };
 
@@ -427,7 +427,7 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
     }
   }
 
-  // hosts/README.md describes EVERY host, so only a build over every target may write it. A
+  // built-ai-configs/README.md describes EVERY host, so only a build over every target may write it. A
   // targeted build leaves it alone and carries its ledger entry forward (see ownedTargets).
   if (coversAllHosts(targets)) {
     files.push({
@@ -448,7 +448,7 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   };
 }
 
-/** True when `targets` selects every build target — the only build that owns hosts/README.md. */
+/** True when `targets` selects every build target — the only build that owns built-ai-configs/README.md. */
 function coversAllHosts(targets: readonly BuildTarget[]): boolean {
   return BUILD_TARGETS.every((target) => targets.includes(target));
 }
@@ -456,7 +456,7 @@ function coversAllHosts(targets: readonly BuildTarget[]): boolean {
 /**
  * Which ledger targets a build over `targets` is authoritative for. Mirrors the registry rule
  * in {@link plan}: `registry.json` is built unless skipped, `registry.v1.json` only with v1,
- * and `hosts/README.md` only when every host is built (it is independent of the registries).
+ * and `built-ai-configs/README.md` only when every host is built (it is independent of the registries).
  */
 function ownedTargets(
   targets: readonly BuildTarget[],
@@ -588,7 +588,7 @@ function rebase(path: string, target: BuildFile["target"], outputRoots: OutputRo
  */
 function prunable(absolute: string, path: string, entry: ManifestEntry): string | null {
   // Nothing on disk means nothing to delete, so there is nothing to refuse either. Checked
-  // first so a ledger written for an older layout (e.g. `v1-opencode/`, now `hosts/opencode-v1/`)
+  // first so a ledger written for an older layout (e.g. `v1-opencode/`, now `built-ai-configs/opencode-v1/`)
   // drops its vanished entries quietly instead of reporting each one as "kept".
   if (!existsSync(absolute)) {
     return "already gone";

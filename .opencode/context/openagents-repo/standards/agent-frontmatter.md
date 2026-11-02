@@ -49,7 +49,7 @@ Consequence: adding a new build target costs the corpus nothing — agents defau
 
 ## Build flow
 
-The RegistryEmitter consumes `agent-library/agents/**` and emits registry and target artifacts. Edit canonical content, then regenerate and validate; never edit generated output: `hosts/**`, or its mirrors `.opencode/agent/**` and `plugins/claude-code/agents/**`.
+The RegistryEmitter consumes `agent-library/agents/**` and emits registry and target artifacts. Edit canonical content, then regenerate and validate; never edit generated output: `built-ai-configs/**`, or its mirrors `.opencode/agent/**` and `plugins/claude-code/agents/**`.
 
 ## Checklist
 

@@ -816,9 +816,9 @@ See: [Contributing Guide](docs/contributing/CONTRIBUTING.md) • [Code of Conduc
 
 ### Where the built files live
 
-Agents are written once in `agent-library/agents/**`. `oac build` (`make build-canonical`) compiles them for every tool into **`hosts/`**, one folder per tool: `hosts/opencode/`, `hosts/opencode-v1/` and `hosts/claude-code/`. `hosts/README.md` lists what's inside. To see what a tool gets, look there.
+Agents are written once in `agent-library/agents/**`. `oac build` (`make build-canonical`) compiles them for every tool into **`built-ai-configs/`**, one folder per tool: `built-ai-configs/opencode/`, `built-ai-configs/opencode-v1/` and `built-ai-configs/claude-code/`. `built-ai-configs/README.md` lists what's inside. To see what a tool gets, look there.
 
-`.opencode/agent/` and `plugins/claude-code/agents/` are byte-identical copies of `hosts/`, kept because installers and the Claude marketplace read those paths. Don't edit `hosts/` or these copies: CI fails on any hand edit. Change `content/` and rebuild instead.
+`.opencode/agent/` and `plugins/claude-code/agents/` are byte-identical copies of `built-ai-configs/`, kept because installers and the Claude marketplace read those paths. Don't edit `built-ai-configs/` or these copies: CI fails on any hand edit. Change `content/` and rebuild instead.
 
 ---
 

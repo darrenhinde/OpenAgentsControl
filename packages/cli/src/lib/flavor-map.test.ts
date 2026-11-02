@@ -11,9 +11,9 @@ const registry = (components: Record<string, Array<{ id: string; path: string; f
   });
 
 const v1 = registry({
-  agents: [{ id: 'openagent', path: 'hosts/opencode-v1/agent/core/openagent.md' }],
-  tools: [{ id: 'gemini', path: 'hosts/opencode-v1/tool/gemini/index.ts' }],
-  skills: [{ id: 'task-management', path: 'hosts/opencode-v1/skills/task-management/SKILL.md', files: ['hosts/opencode-v1/skills/task-management/SKILL.md', '.opencode/skills/task-management/router.sh'] }],
+  agents: [{ id: 'openagent', path: 'built-ai-configs/opencode-v1/agent/core/openagent.md' }],
+  tools: [{ id: 'gemini', path: 'built-ai-configs/opencode-v1/tool/gemini/index.ts' }],
+  skills: [{ id: 'task-management', path: 'built-ai-configs/opencode-v1/skills/task-management/SKILL.md', files: ['built-ai-configs/opencode-v1/skills/task-management/SKILL.md', '.opencode/skills/task-management/router.sh'] }],
   contexts: [{ id: 'nav', path: '.opencode/context/navigation.md' }],
 });
 const v2 = registry({
@@ -34,13 +34,13 @@ describe('mapTrackedFiles', () => {
     ]);
   });
 
-  test('v2 -> v1 maps back, producing hosts/opencode-v1 SOURCE paths', () => {
+  test('v2 -> v1 maps back, producing built-ai-configs/opencode-v1 SOURCE paths', () => {
     const out = mapTrackedFiles(['.opencode/agent/openagent.md'], v2, v1);
-    expect(out).toEqual(['hosts/opencode-v1/agent/core/openagent.md']);
+    expect(out).toEqual(['built-ai-configs/opencode-v1/agent/core/openagent.md']);
   });
 
   test('same flavor is the identity on component files', () => {
-    expect(mapTrackedFiles(['.opencode/agent/core/openagent.md'], v1, v1)).toEqual(['hosts/opencode-v1/agent/core/openagent.md']);
+    expect(mapTrackedFiles(['.opencode/agent/core/openagent.md'], v1, v1)).toEqual(['built-ai-configs/opencode-v1/agent/core/openagent.md']);
   });
 
   test('a tracked file no registry knows is kept as it is', () => {

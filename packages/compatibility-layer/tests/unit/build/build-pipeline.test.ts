@@ -126,7 +126,7 @@ describe("oac.targets", () => {
     const only = await build({ root, targets: ["opencode"], skipRegistry: true });
 
     expect([...only.keys()]).toEqual(
-      [...all.keys()].filter((path) => path.startsWith(".opencode/") || path.startsWith("hosts/opencode/")),
+      [...all.keys()].filter((path) => path.startsWith(".opencode/") || path.startsWith("built-ai-configs/opencode/")),
     );
     for (const [path, content] of only) expect(content).toBe(all.get(path));
   });
@@ -136,8 +136,8 @@ describe("oac.targets", () => {
     const v1 = files.filter((f) => f.target === "opencode-v1").map((f) => f.path);
 
     expect(v1).toEqual([
-      "hosts/opencode-v1/agent/subagents/test/alpha.md",
-      "hosts/opencode-v1/agent/subagents/test/beta.md",
+      "built-ai-configs/opencode-v1/agent/subagents/test/alpha.md",
+      "built-ai-configs/opencode-v1/agent/subagents/test/beta.md",
     ]);
   });
 
@@ -160,18 +160,18 @@ describe("oac.targets", () => {
   it("keeps name: in the v1 sibling", async () => {
     const files = await build({ root, targets: ["opencode-v1"], skipRegistry: true });
 
-    expect(files.get("hosts/opencode-v1/agent/subagents/test/alpha.md")).toContain("name: alpha");
+    expect(files.get("built-ai-configs/opencode-v1/agent/subagents/test/alpha.md")).toContain("name: alpha");
   });
 
   it("prunes v1 output when its source is deleted, within the v1 root only", async () => {
     write(await plan({ root }), { root });
-    expect(existsSync(join(root, "hosts/opencode-v1/agent/subagents/test/alpha.md"))).toBe(true);
+    expect(existsSync(join(root, "built-ai-configs/opencode-v1/agent/subagents/test/alpha.md"))).toBe(true);
 
     rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
     const result = write(await plan({ root }), { root });
 
-    expect(result.removed).toContain("hosts/opencode-v1/agent/subagents/test/alpha.md");
-    expect(existsSync(join(root, "hosts/opencode-v1/agent/subagents/test/alpha.md"))).toBe(false);
+    expect(result.removed).toContain("built-ai-configs/opencode-v1/agent/subagents/test/alpha.md");
+    expect(existsSync(join(root, "built-ai-configs/opencode-v1/agent/subagents/test/alpha.md"))).toBe(false);
   });
 
   it("strips the oac: block from OpenCode output but keeps the body", async () => {
@@ -252,7 +252,7 @@ describe("staged targets", () => {
 describe("orphan removal", () => {
   const ALPHA_OUT = ".opencode/agent/alpha.md";
   // v2 is flat; v1 keeps the category directories, which is where empty-directory tidying matters.
-  const V1_ALPHA = "hosts/opencode-v1/agent/subagents/test/alpha.md";
+  const V1_ALPHA = "built-ai-configs/opencode-v1/agent/subagents/test/alpha.md";
 
   it("removes generated output when its canonical source is deleted", async () => {
     write(await plan({ root }), { root });
@@ -292,20 +292,20 @@ describe("orphan removal", () => {
 
     expect(result.removed).toContain(ALPHA_OUT);
     expect(result.removed).toContain(V1_ALPHA);
-    expect(existsSync(join(root, "hosts/opencode-v1/agent/subagents/test"))).toBe(false);
+    expect(existsSync(join(root, "built-ai-configs/opencode-v1/agent/subagents/test"))).toBe(false);
     expect(existsSync(join(root, ".opencode/agent")), "the output root itself").toBe(true);
-    expect(existsSync(join(root, "hosts/opencode-v1/agent")), "the v1 output root itself").toBe(true);
+    expect(existsSync(join(root, "built-ai-configs/opencode-v1/agent")), "the v1 output root itself").toBe(true);
   });
 
   it("leaves a directory alone while it still holds a file the build does not own", async () => {
-    put("hosts/opencode-v1/agent/subagents/test/notes.md", "hand-written, not generated\n");
+    put("built-ai-configs/opencode-v1/agent/subagents/test/notes.md", "hand-written, not generated\n");
     write(await plan({ root }), { root });
     rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
     rmSync(join(root, "agent-library/agents/subagents/test/beta.md"));
 
     write(await plan({ root }), { root });
 
-    expect(existsSync(join(root, "hosts/opencode-v1/agent/subagents/test/notes.md"))).toBe(true);
+    expect(existsSync(join(root, "built-ai-configs/opencode-v1/agent/subagents/test/notes.md"))).toBe(true);
   });
 
   it("prunes nothing on a first build, when there is no ledger to prune from", async () => {
@@ -376,17 +376,17 @@ describe("orphan removal", () => {
 
 describe("targeted builds", () => {
   // Regression (2026-10-20): `oac build --target claude-code` deleted every `.opencode/agent/*`,
-  // `hosts/opencode-v1/agent/**` and `registry.v1.json`, and dropped their ledger entries. The plan
+  // `built-ai-configs/opencode-v1/agent/**` and `registry.v1.json`, and dropped their ledger entries. The plan
   // only held claude-code (+ registry.json) files, so every OTHER target's ledger entry looked
   // like an orphan whose source was gone.
   const STAGE = { "claude-code": ".tmp/stage" } as const;
   const UNSELECTED = [
     ".opencode/agent/alpha.md",
     ".opencode/agent/beta.md",
-    "hosts/opencode/agent/alpha.md",
-    "hosts/opencode/agent/beta.md",
-    "hosts/opencode-v1/agent/subagents/test/alpha.md",
-    "hosts/opencode-v1/agent/subagents/test/beta.md",
+    "built-ai-configs/opencode/agent/alpha.md",
+    "built-ai-configs/opencode/agent/beta.md",
+    "built-ai-configs/opencode-v1/agent/subagents/test/alpha.md",
+    "built-ai-configs/opencode-v1/agent/subagents/test/beta.md",
     "registry.v1.json",
   ];
 
@@ -429,28 +429,28 @@ describe("targeted builds", () => {
       outputRoots: STAGE,
     });
 
-    // The primary (hosts/) and its live mirror go together.
+    // The primary (built-ai-configs/) and its live mirror go together.
     expect(result.removed).toEqual([
-      ".tmp/stage/hosts/claude-code/agents/beta.md",
+      ".tmp/stage/built-ai-configs/claude-code/agents/beta.md",
       ".tmp/stage/plugins/claude-code/agents/beta.md",
     ]);
     for (const path of UNSELECTED) expect(existsSync(join(root, path)), path).toBe(true);
     expect(readManifest(root).files[".tmp/stage/plugins/claude-code/agents/beta.md"]).toBeUndefined();
-    expect(readManifest(root).files[".tmp/stage/hosts/claude-code/agents/beta.md"]).toBeUndefined();
+    expect(readManifest(root).files[".tmp/stage/built-ai-configs/claude-code/agents/beta.md"]).toBeUndefined();
   });
 });
 
 // ============================================================================
-// hosts/ primaries and their live mirrors
+// built-ai-configs/ primaries and their live mirrors
 // ============================================================================
 
-describe("hosts/ layout and live mirrors", () => {
+describe("built-ai-configs/ layout and live mirrors", () => {
   const PAIRS = [
-    ["hosts/opencode/agent/beta.md", ".opencode/agent/beta.md"],
-    ["hosts/claude-code/agents/beta.md", "plugins/claude-code/agents/beta.md"],
+    ["built-ai-configs/opencode/agent/beta.md", ".opencode/agent/beta.md"],
+    ["built-ai-configs/claude-code/agents/beta.md", "plugins/claude-code/agents/beta.md"],
   ] as const;
 
-  it("emits every target under hosts/ and mirrors the live paths byte-for-byte", async () => {
+  it("emits every target under built-ai-configs/ and mirrors the live paths byte-for-byte", async () => {
     const { files } = await plan({ root });
     const byPath = new Map(files.map((f) => [f.path, f]));
 
@@ -459,7 +459,7 @@ describe("hosts/ layout and live mirrors", () => {
       expect(byPath.get(mirror)?.mirrorOf, mirror).toBe(primary);
       expect(byPath.get(mirror)?.content).toBe(byPath.get(primary)?.content);
     }
-    // v1 is display-only: hosts/opencode-v1 and no live mirror.
+    // v1 is display-only: built-ai-configs/opencode-v1 and no live mirror.
     expect(files.filter((f) => f.target === "opencode-v1").every((f) => f.mirrorOf === undefined)).toBe(true);
     expect(files.some((f) => f.path.startsWith("v1-opencode/"))).toBe(false);
   });
@@ -468,9 +468,9 @@ describe("hosts/ layout and live mirrors", () => {
     write(await plan({ root }), { root });
     const ledger = readManifest(root).files;
 
-    expect(ledger["hosts/opencode/agent/beta.md"]?.root).toBe("hosts/opencode/agent");
+    expect(ledger["built-ai-configs/opencode/agent/beta.md"]?.root).toBe("built-ai-configs/opencode/agent");
     expect(ledger[".opencode/agent/beta.md"]?.root).toBe(".opencode/agent");
-    expect(ledger["hosts/claude-code/agents/beta.md"]?.root).toBe("hosts/claude-code/agents");
+    expect(ledger["built-ai-configs/claude-code/agents/beta.md"]?.root).toBe("built-ai-configs/claude-code/agents");
     expect(ledger["plugins/claude-code/agents/beta.md"]?.root).toBe("plugins/claude-code/agents");
   });
 

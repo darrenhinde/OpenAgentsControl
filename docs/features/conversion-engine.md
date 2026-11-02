@@ -16,9 +16,9 @@ packages/compatibility-layer (oac build)
   AgentLoader → mappers (permission / tool / model / context) → one adapter per host
         │
         ▼
-hosts/opencode/        hosts/opencode-v1/        hosts/claude-code/
+built-ai-configs/opencode/        built-ai-configs/opencode-v1/        built-ai-configs/claude-code/
   + byte-identical mirrors: .opencode/agent/ · plugins/claude-code/agents/
-  + registry.json · registry.v1.json · hosts/README.md · .oac/build-manifest.json
+  + registry.json · registry.v1.json · built-ai-configs/README.md · .oac/build-manifest.json
 ```
 
 ## What an author writes (the canonical format)
@@ -46,7 +46,7 @@ Key details:
 | `opencode-v1` (legacy, on request) | nested `agent/<category>/<file>.md` | adds back `name:` | everything — 0 warnings | none |
 | `claude-code` | flat `agents/<name>.md` | `name`, `description` (with `<example>` dispatch blocks), authored `tools` / `disallowedTools` | body text via `oac:only`, tools via authored override | 8 warnings: per-glob `permission:` rules and `temperature` have no Claude Code equivalent |
 
-The engine also emits, from the same input and under the same determinism rules: `registry.json` / `registry.v1.json` (what installers read), the generated `hosts/README.md` index, and `.oac/build-manifest.json` (the write ledger).
+The engine also emits, from the same input and under the same determinism rules: `registry.json` / `registry.v1.json` (what installers read), the generated `built-ai-configs/README.md` index, and `.oac/build-manifest.json` (the write ledger).
 
 ## What the engine refuses to lose silently
 
@@ -63,7 +63,7 @@ The engine also emits, from the same input and under the same determinism rules:
 
 ## What it does NOT manage (yet)
 
-The engine canonicalises **agents only**. Skills, commands, hooks, and plugins are still hand-maintained per host (`hosts/opencode-v1/` and `plugins/claude-code/` hold hand-authored copies). Also not built: Codex, AGENTS.md, and Cursor emitters (Cursor/Windsurf were dropped as targets in 2026-09). The effort-ranked path for these — descriptor-based emitters, opt-out `targets:` default (done 2026-10-23), generated capability matrix, Codex TOML + AGENTS.md — is in `research_notes/OAC strategy review/3_peer_lessons.md`.
+The engine canonicalises **agents only**. Skills, commands, hooks, and plugins are still hand-maintained per host (`built-ai-configs/opencode-v1/` and `plugins/claude-code/` hold hand-authored copies). Also not built: Codex, AGENTS.md, and Cursor emitters (Cursor/Windsurf were dropped as targets in 2026-09). The effort-ranked path for these — descriptor-based emitters, opt-out `targets:` default (done 2026-10-23), generated capability matrix, Codex TOML + AGENTS.md — is in `research_notes/OAC strategy review/3_peer_lessons.md`.
 
 ## Where to look
 
@@ -74,5 +74,5 @@ The engine canonicalises **agents only**. Skills, commands, hooks, and plugins a
 | Canonical spec | `docs/architecture/canonical-refactor/02-canonical-schema.md` |
 | Per-adapter spec | `docs/architecture/canonical-refactor/03-adapter-specs.md` |
 | OpenCode v1 vs v2 | `docs/features/opencode-v1-and-v2.md` |
-| Generated host index | `hosts/README.md` (never hand-edit) |
+| Generated host index | `built-ai-configs/README.md` (never hand-edit) |
 | Why this exists | D-017 in `docs/lessons-learnt/decisions.md` |

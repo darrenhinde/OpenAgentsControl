@@ -22,8 +22,8 @@ const rules = (r: { rule: string }[]): string[] => r.map((x) => x.rule).sort();
 
 describe("lintV1Agents", () => {
   const ok = [
-    f("hosts/opencode-v1/agent/a.md", agent("Alpha", "permission:\n  task:\n    \"*\": deny\n    Beta: allow\n", 'task(subagent_type="Beta")')),
-    f("hosts/opencode-v1/agent/b.md", agent("Beta")),
+    f("built-ai-configs/opencode-v1/agent/a.md", agent("Alpha", "permission:\n  task:\n    \"*\": deny\n    Beta: allow\n", 'task(subagent_type="Beta")')),
+    f("built-ai-configs/opencode-v1/agent/b.md", agent("Beta")),
   ];
 
   it("accepts a consistent tree", () => {

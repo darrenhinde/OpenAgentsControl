@@ -361,7 +361,7 @@ plugins/claude-code/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin metadata
 ├── settings.json                # Model config: opusplan
-├── agents/                      # Custom subagents (7 files, generated: mirror of hosts/claude-code/agents/)
+├── agents/                      # Custom subagents (7 files, generated: mirror of built-ai-configs/claude-code/agents/)
 │   ├── task-manager.md
 │   ├── context-scout.md
 │   ├── context-manager.md
@@ -460,7 +460,7 @@ Context files are downloaded from the main repository via `/install-context`:
    ```
    Claude-only body text goes in `<!-- oac:only claude-code -->` blocks.
 
-2. Run `oac build` (`make build-canonical`). It writes `hosts/claude-code/agents/my-subagent.md` and its mirror `plugins/claude-code/agents/my-subagent.md`. Commit both with the source.
+2. Run `oac build` (`make build-canonical`). It writes `built-ai-configs/claude-code/agents/my-subagent.md` and its mirror `plugins/claude-code/agents/my-subagent.md`. Commit both with the source.
 
 3. Create skill to invoke it:
    ```markdown

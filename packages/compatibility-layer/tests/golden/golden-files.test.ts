@@ -238,13 +238,13 @@ describe("claude-code adapter against the live corpus", () => {
 
     const built = await plan({ root: repoPath(), targets: ["claude-code"], skipRegistry: true });
     const all = built.files.filter((file) => file.target === "claude-code");
-    // The primary output is hosts/claude-code/agents; plugins/claude-code/agents is its mirror.
+    // The primary output is built-ai-configs/claude-code/agents; plugins/claude-code/agents is its mirror.
     const primary = all.filter((file) => file.mirrorOf === undefined);
     const emitted = all.filter((file) => file.mirrorOf !== undefined);
     const live = listFiles(LIVE_CC_AGENTS);
 
     expect(primary.length, "the claude-code target should emit 7 agents").toBe(7);
-    expect(primary.every((file) => file.path.startsWith("hosts/claude-code/agents/"))).toBe(true);
+    expect(primary.every((file) => file.path.startsWith("built-ai-configs/claude-code/agents/"))).toBe(true);
     expect(emitted.map((file) => file.mirrorOf).sort()).toEqual(primary.map((file) => file.path).sort());
     for (const file of primary) {
       expect(readFileSync(repoPath(file.path), "utf-8"), `${file.path} differs from the build`).toBe(file.content);

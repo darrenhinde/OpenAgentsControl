@@ -55,9 +55,9 @@ opencode-agents/
 
 > **Note**: Agents are authored once in `agent-library/agents/<category>/` (for example
 > `agent-library/agents/core/openagent.md`) and compiled by `oac build` (`make build-canonical`)
-> into `hosts/<tool>/`: `hosts/opencode/`, `hosts/opencode-v1/` and `hosts/claude-code/`.
-> `.opencode/agent/` and `plugins/claude-code/agents/` are generated copies of `hosts/`.
-> Never edit `hosts/` or those copies; CI fails on any hand edit (D-018).
+> into `built-ai-configs/<tool>/`: `built-ai-configs/opencode/`, `built-ai-configs/opencode-v1/` and `built-ai-configs/claude-code/`.
+> `.opencode/agent/` and `plugins/claude-code/agents/` are generated copies of `built-ai-configs/`.
+> Never edit `built-ai-configs/` or those copies; CI fails on any hand edit (D-018).
 
 ### Key Directories
 
@@ -83,7 +83,7 @@ opencode-agents/
 
 ### Component Types
 
-- **Agents** (`agent-library/agents/<category>/*.md`) - Main AI agents, built into `hosts/` by `oac build`
+- **Agents** (`agent-library/agents/<category>/*.md`) - Main AI agents, built into `built-ai-configs/` by `oac build`
 - **Subagents** (`agent-library/agents/subagents/<category>/*.md`) - Specialized helpers, built the same way
 - **Commands** (`.opencode/command/*.md`) - Slash commands
 - **Tools** (`.opencode/tool/*/index.ts`) - Utility tools
@@ -162,7 +162,7 @@ export function myTool() {
    ```
 
 2. **Add frontmatter and content** following the structure above, then run `oac build`
-   (`make build-canonical`) and commit the regenerated `hosts/` files and mirrors with it
+   (`make build-canonical`) and commit the regenerated `built-ai-configs/` files and mirrors with it
 
 3. **Test your component**:
    ```bash
@@ -240,7 +240,7 @@ OpenCode uses a model-specific prompt library to support different AI models whi
         └── ...
 
 **Architecture:**
-- Agent files (`agent-library/agents/**/*.md`) = Canonical defaults, built into `hosts/` and `.opencode/agent/`
+- Agent files (`agent-library/agents/**/*.md`) = Canonical defaults, built into `built-ai-configs/` and `.opencode/agent/`
 - Prompt variants (`.opencode/prompts/<agent>/<model>.md`) = Model-specific optimizations
 ```
 
@@ -326,7 +326,7 @@ When a variant proves superior:
 
 4. **Commit with clear message:**
    ```bash
-   git add agent-library/agents/core/openagent.md hosts/ .opencode/agent/ registry.json .oac/build-manifest.json
+   git add agent-library/agents/core/openagent.md built-ai-configs/ .opencode/agent/ registry.json .oac/build-manifest.json
    git commit -m "feat(openagent): promote variant to default - improved X by Y%"
    ```
 

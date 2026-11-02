@@ -147,7 +147,7 @@ export type {
  * import { plan, write } from '@controlstack/compatibility-layer';
  *
  * const built = await plan({ root: process.cwd() });
- * // Emit every target into hosts/<host>/ (opencode, opencode-v1, claude-code), mirror the
+ * // Emit every target into built-ai-configs/<host>/ (opencode, opencode-v1, claude-code), mirror the
  * // live paths (.opencode/agent/**, plugins/claude-code/agents/**), and write the registries.
  * const result = write(built, { root: process.cwd() });
  * ```

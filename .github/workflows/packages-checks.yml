@@ -13,7 +13,7 @@ on:
       - 'scripts/validation/detect-pr-changes.test.ts'
       # The canonical source, its committed output, and the drift gate's machinery.
       - 'agent-library/**'
-      - 'hosts/**'
+      - 'built-ai-configs/**'
       - '.opencode/agent/**'
       - 'plugins/claude-code/agents/**'
       - '.oac/**'

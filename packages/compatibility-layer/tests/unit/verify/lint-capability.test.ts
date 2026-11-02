@@ -227,7 +227,7 @@ describe("lintOpenCodeDelegations", () => {
 
   it("the committed v1 and v2 trees delegate only where permitted", () => {
     expect(lintOpenCodeDelegations(tree(repoPath(".opencode/agent")), "v2")).toEqual([]);
-    expect(lintOpenCodeDelegations(tree(repoPath("hosts/opencode-v1/agent")), "v1")).toEqual([]);
+    expect(lintOpenCodeDelegations(tree(repoPath("built-ai-configs/opencode-v1/agent")), "v1")).toEqual([]);
   });
 });
 

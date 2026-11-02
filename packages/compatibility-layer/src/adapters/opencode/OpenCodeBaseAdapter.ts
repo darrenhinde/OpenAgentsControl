@@ -3,8 +3,8 @@
  *
  * Split from the original single `OpenCodeAdapter` so that everything specific to one OpenCode
  * major lives in a thin subclass: `OpenCodeAdapter` (v2, `.opencode/agent/`, placed under
- * `hosts/opencode/agent/` by the build) and `v1/OpenCodeV1Adapter` (v1,
- * `hosts/opencode-v1/agent/`). Deleting v1 later deletes one subclass.
+ * `built-ai-configs/opencode/agent/` by the build) and `v1/OpenCodeV1Adapter` (v1,
+ * `built-ai-configs/opencode-v1/agent/`). Deleting v1 later deletes one subclass.
  *
  * Original description follows.
  *

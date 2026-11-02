@@ -8,10 +8,10 @@
  * there, under vitest, Node-clean. This module parses flags, checks targets, and prints.
  * Nothing here uses a Bun API.
  *
- * ## Every target is emitted in place, under `hosts/`
+ * ## Every target is emitted in place, under `built-ai-configs/`
  *
- * Each target's primary output is its folder under `hosts/`: `hosts/opencode/agent/**` (v2),
- * `hosts/opencode-v1/agent/**` and `hosts/claude-code/agents/**`, side by side. The live paths
+ * Each target's primary output is its folder under `built-ai-configs/`: `built-ai-configs/opencode/agent/**` (v2),
+ * `built-ai-configs/opencode-v1/agent/**` and `built-ai-configs/claude-code/agents/**`, side by side. The live paths
  * are byte-identical generated MIRRORS of those: `.opencode/agent/**` (this repo's own
  * OpenCode, and the paths `registry.json` hands installers) and `plugins/claude-code/agents/**`
  * (the Claude Code marketplace source). Mirrors are ledgered, pruned and drift-checked like any
@@ -19,7 +19,7 @@
  * these are all BUILD OUTPUT: committed, and rebuilt by the CI drift gate
  * (`scripts/validation/check-build-drift.sh`), which fails on any diff.
  *
- * `hosts/README.md` is generated too (`core/HostsReadme.ts`): an index of every host's folder,
+ * `built-ai-configs/README.md` is generated too (`core/HostsReadme.ts`): an index of every host's folder,
  * live mirrors, the agent × host matrix and every degradation warning. It describes all hosts,
  * so only a full build (no `--target`, or every target) writes it; a targeted build carries it
  * forward untouched, and the next full build refreshes it.

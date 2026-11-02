@@ -33,20 +33,20 @@ describe('registryFileFor', () => {
 });
 
 describe('toDestPath', () => {
-  test('hosts/opencode-v1/ installs to .opencode/ and the folder name never reaches the project', () => {
-    expect(toDestPath('hosts/opencode-v1/agent/core/openagent.md')).toBe('.opencode/agent/core/openagent.md');
-    expect(toDestPath('hosts/opencode-v1/tool/gemini/index.ts')).toBe('.opencode/tool/gemini/index.ts');
+  test('built-ai-configs/opencode-v1/ installs to .opencode/ and the folder name never reaches the project', () => {
+    expect(toDestPath('built-ai-configs/opencode-v1/agent/core/openagent.md')).toBe('.opencode/agent/core/openagent.md');
+    expect(toDestPath('built-ai-configs/opencode-v1/tool/gemini/index.ts')).toBe('.opencode/tool/gemini/index.ts');
   });
   test('every other path is its own destination', () => {
     expect(toDestPath('.opencode/agent/openagent.md')).toBe('.opencode/agent/openagent.md');
     expect(toDestPath('env.example')).toBe('env.example');
   });
   test('does not rewrite a path that merely contains the folder name', () => {
-    expect(toDestPath('.opencode/context/hosts/opencode-v1/x.md')).toBe('.opencode/context/hosts/opencode-v1/x.md');
+    expect(toDestPath('.opencode/context/built-ai-configs/opencode-v1/x.md')).toBe('.opencode/context/built-ai-configs/opencode-v1/x.md');
   });
   test('isV1Source recognises only the leading folder', () => {
-    expect(isV1Source('hosts/opencode-v1/x')).toBe(true);
-    expect(isV1Source('.opencode/hosts/opencode-v1/x')).toBe(false);
+    expect(isV1Source('built-ai-configs/opencode-v1/x')).toBe(true);
+    expect(isV1Source('.opencode/built-ai-configs/opencode-v1/x')).toBe(false);
   });
 });
 
