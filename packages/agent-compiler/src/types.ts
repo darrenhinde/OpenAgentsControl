@@ -527,7 +527,8 @@ export const TargetOverrideSchema = z
  */
 export const TargetOverridesSchema = z
   .object({
-    opencode: TargetOverrideSchema.optional(),
+    // No OpenCode adapter reads overrides, so accepting the key would be a silent no-op.
+    opencode: z.never({ message: "oac.overrides.opencode is not supported: the OpenCode adapters do not read overrides (only claude-code does)" }).optional(),
     "claude-code": TargetOverrideSchema.optional(),
   })
   .strict();

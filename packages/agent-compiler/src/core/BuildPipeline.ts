@@ -386,6 +386,32 @@ async function emitAgent(
 }
 
 /**
+ * The resolver for one target: its roster is only the agents that emit there, so a delegation
+ * to an agent that does not ship to `target` cannot resolve and fails the build.
+ */
+function resolverFor(agents: readonly CanonicalAgentFile[], target: BuildTarget): AgentIdResolver {
+  return AgentIdResolver.fromCanonical(agents.filter((candidate) => emitsTo(candidate, target)));
+}
+
+/** Two agents landing on one output path would silently overwrite each other. */
+function assertUniqueOutputPaths(files: readonly BuildFile[], agents: readonly CanonicalAgentFile[]): void {
+  const sourceOf = new Map(agents.map((agent) => [agent.oac.id, `${DEFAULTS.contentRoot}/${agent.relativePath}`]));
+  const owners = new Map<string, BuildFile>();
+  for (const file of files) {
+    if (file.agentId === undefined) continue;
+    const other = owners.get(file.path);
+    if (other !== undefined) {
+      throw new Error(
+        `output path collision: "${file.path}" is produced by both ${sourceOf.get(other.agentId!)} ` +
+          `(agent "${other.agentId}", target ${other.target}) and ${sourceOf.get(file.agentId)} ` +
+          `(agent "${file.agentId}", target ${file.target}). Give one a distinct name.`,
+      );
+    }
+    owners.set(file.path, file);
+  }
+}
+
+/**
  * Compute the full build. Reads the canonical tree; writes nothing, ever.
  *
  * A failure anywhere — a schema violation, an unrepresentable permission block an adapter
@@ -398,17 +424,20 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   const agents = await new CanonicalAgentLoader(join(root, DEFAULTS.contentRoot))
     .loadFromDirectory();
 
-  const resolver = AgentIdResolver.fromCanonical(agents);
+  const resolvers = new Map<BuildTarget, AgentIdResolver>();
   const files: BuildFile[] = [];
 
   // Agents outer, targets inner, both in a content-determined order. Iterating `oac.targets`
   // instead would make output order depend on the order an author happened to list them in.
   for (const agent of agents) {
     for (const target of targets) {
-      const file = await emitAgent(agent, target, resolver);
+      if (!resolvers.has(target)) resolvers.set(target, resolverFor(agents, target));
+      const file = await emitAgent(agent, target, resolvers.get(target)!);
       if (file !== null) files.push(...place(file));
     }
   }
+
+  assertUniqueOutputPaths(files, agents);
 
   if (options.skipRegistry !== true) {
     // One registry per OpenCode major. The v1 registry is only built with the v1 target.
@@ -523,7 +552,7 @@ export async function buildAgentIn(
     );
   }
 
-  const file = await emitAgent(agent, target, AgentIdResolver.fromCanonical(agents));
+  const file = await emitAgent(agent, target, resolverFor(agents, target));
   if (file === null) {
     const excluded = (agent.oac.exclude ?? []).length > 0
       ? ` minus exclude [${agent.oac.exclude.join(", ")}]`
@@ -708,7 +737,14 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
         result.removed.push(path);
       } else if (reason !== "already gone") {
         result.kept.push({ path, reason });
+        // Still on disk and still ours: keep the ledger line so check() and the next build see it.
+        next.files[path] = entry;
       }
+    }
+  } else {
+    // --no-prune leaves orphans in place; dropping their ledger line would hide them forever.
+    for (const [path, entry] of Object.entries(previous.files)) {
+      if (!(path in next.files) && existsSync(join(root, path))) next.files[path] = entry;
     }
   }
 
