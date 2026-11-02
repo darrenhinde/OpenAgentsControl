@@ -203,7 +203,7 @@ export const openCodeFlavorCheck = (input: {
       ? {
           name,
           status: 'warn',
-          message: 'install predates OpenCode v2 support and OpenCode v1 is installed — run \'oac update --opencode v1\' to record that choice',
+          message: `install predates OpenCode v2 support and OpenCode ${hostMajor} is installed — run 'oac update --opencode v1' to record that choice`,
         }
       : {
           name,
@@ -216,7 +216,7 @@ export const openCodeFlavorCheck = (input: {
     return {
       name,
       status: 'error',
-      message: "installed for OpenCode v2 but OpenCode v1 is on PATH — run 'oac update --opencode v1', or upgrade OpenCode",
+      message: `installed for OpenCode v2 but OpenCode ${hostMajor} is on PATH — run 'oac update --opencode v1', or upgrade OpenCode`,
     };
   }
   if (flavor === 'v1' && hostMismatch(flavor, hostMajor)) {

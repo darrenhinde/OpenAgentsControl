@@ -55,6 +55,9 @@ RAW_URL="${OAC_RAW_URL:-https://raw.githubusercontent.com/darrenhinde/OpenAgents
 # built-ai-configs/opencode-v1/ in the repository and installs into the user's .opencode/ - the folder name is
 # never used in a project.
 OPENCODE_FLAVOR="${OAC_OPENCODE:-v2}"
+# True when the user asked for a flavor (flag or OAC_OPENCODE) rather than getting the default.
+OPENCODE_FLAVOR_EXPLICIT=false
+[ -n "${OAC_OPENCODE:-}" ] && OPENCODE_FLAVOR_EXPLICIT=true
 
 # Registry URL - supports local fallback for development.
 # Priority: 1) REGISTRY_URL env var, 2) Local registry file, 3) Remote GitHub.
@@ -323,19 +326,47 @@ record_flavor() {
 
 FILES_WRITTEN=0
 
-# Write the marker when this run succeeded for the flavor, even if every file was skipped. A run
-# that installed nothing never flips an existing marker to a different flavor: the files on disk
-# are still the old flavor's.
+# Write the marker when this run left files of this flavor on disk: at least one file was written,
+# or nothing failed and every file was already there (an all-skipped re-run). Components that
+# failed do not matter once some file was written - a mostly complete install with no marker is
+# later refused by update.sh as "unknown version". A run that wrote nothing and failed records
+# nothing. refuse_flavor_switch has already ruled out an install of the other flavor.
 record_flavor_if_ok() {
     local written=$1 failed=$2
-    [ "$failed" -eq 0 ] || return 0
-    local existing=""
-    [ -f "${INSTALL_DIR}/.oac-opencode" ] && existing=$(tr -d '[:space:]' < "${INSTALL_DIR}/.oac-opencode")
-    if [ -n "$existing" ] && [ "$existing" != "$OPENCODE_FLAVOR" ] && [ "$written" -eq 0 ]; then
-        print_warning "${INSTALL_DIR} is recorded as OpenCode ${existing}; nothing was installed, so the record is unchanged."
-        return 0
+    if [ "$written" -gt 0 ] || [ "$failed" -eq 0 ]; then
+        record_flavor
     fi
-    record_flavor
+}
+
+# Refuse to install one flavor over an existing install of the other: the files would sit side by
+# side (flat v2 agents next to nested v1 agents, every agent defined twice). Same wording as
+# update.sh; `oac update --opencode <flavor>` is the tool that migrates safely.
+# What the install is, in order: .oac/config.json (the CLI's record, which wins), the marker file,
+# and - only when the user explicitly asked for a flavor - the layout on disk.
+refuse_flavor_switch() {
+    local actual="" project_root="" config_file=""
+    if [ "$(basename "$INSTALL_DIR")" = ".opencode" ]; then
+        project_root="$(dirname "$INSTALL_DIR")"
+        config_file="${project_root}/.oac/config.json"
+    fi
+    if [ -n "$config_file" ] && [ -f "$config_file" ]; then
+        actual=$(normalize_flavor "$(jq -r '.opencode.target // empty' "$config_file" 2>/dev/null | tr -d '\r')")
+    fi
+    if [ -z "$actual" ] && [ -f "${INSTALL_DIR}/.oac-opencode" ]; then
+        actual=$(normalize_flavor "$(tr -d '[:space:]' < "${INSTALL_DIR}/.oac-opencode")")
+    fi
+    if [ -z "$actual" ] && [ "$OPENCODE_FLAVOR_EXPLICIT" = true ]; then
+        if [ -d "${INSTALL_DIR}/agent/core" ] || [ -d "${INSTALL_DIR}/agent/subagents" ]; then
+            actual="v1"
+        elif [ -f "${INSTALL_DIR}/agent/openagent.md" ]; then
+            actual="v2"
+        fi
+    fi
+    if [ -n "$actual" ] && [ "$actual" != "$OPENCODE_FLAVOR" ]; then
+        print_error "${INSTALL_DIR} is an OpenCode ${actual} install; install.sh cannot add OpenCode ${OPENCODE_FLAVOR} files next to it."
+        print_error "Migrate it with: oac update --opencode ${OPENCODE_FLAVOR}   (or install.sh --opencode ${actual} to stay on ${actual})"
+        cleanup_and_exit 1
+    fi
 }
 
 # A registry path is only ever a relative path inside the repository. Same rule as the CLI's
@@ -1093,10 +1124,10 @@ show_collision_report() {
 
 get_install_strategy() {
     echo -e "${BOLD}How would you like to proceed?${NC}\n" >&2
-    echo "  1) ${GREEN}Skip existing${NC} - Only install new files, keep all existing files unchanged" >&2
-    echo "  2) ${YELLOW}Overwrite all${NC} - Replace existing files with new versions (your changes will be lost)" >&2
-    echo "  3) ${CYAN}Backup & overwrite${NC} - Backup existing files, then install new versions" >&2
-    echo "  4) ${RED}Cancel${NC} - Exit without making changes" >&2
+    echo -e "  1) ${GREEN}Skip existing${NC} - Only install new files, keep all existing files unchanged" >&2
+    echo -e "  2) ${YELLOW}Overwrite all${NC} - Replace existing files with new versions (your changes will be lost)" >&2
+    echo -e "  3) ${CYAN}Backup & overwrite${NC} - Backup existing files, then install new versions" >&2
+    echo -e "  4) ${RED}Cancel${NC} - Exit without making changes" >&2
     echo "" >&2
     read -r -p "Enter your choice [1-4]: " strategy_choice
     
@@ -1123,6 +1154,7 @@ get_install_strategy() {
 #############################################################################
 
 perform_installation() {
+    refuse_flavor_switch
     print_step "Preparing installation..."
     
     # Create base directory only - subdirectories created on-demand when files are installed
@@ -1364,7 +1396,7 @@ show_post_install() {
     echo ""
     print_step "Next Steps"
     
-    echo "1. Review the installed components in ${CYAN}${INSTALL_DIR}/${NC}"
+    echo -e "1. Review the installed components in ${CYAN}${INSTALL_DIR}/${NC}"
     
     # Check if env.example was installed
     if [ -f "${INSTALL_DIR}/env.example" ] || [ -f "env.example" ]; then
@@ -1473,11 +1505,13 @@ main() {
                 ;;
             --opencode=*)
                 OPENCODE_FLAVOR="${1#*=}"
+                OPENCODE_FLAVOR_EXPLICIT=true
                 shift
                 ;;
             --opencode)
                 if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
                     OPENCODE_FLAVOR="$2"
+                    OPENCODE_FLAVOR_EXPLICIT=true
                     shift 2
                 else
                     echo "Error: --opencode requires v1 or v2"

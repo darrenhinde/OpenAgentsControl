@@ -6,7 +6,7 @@ import { readConfig, writeConfig, withOpenCodeFlavor, createDefaultConfig, type 
 import { hostMismatch, parseFlavor, transitionFlavor, type OpenCodeFlavor } from '../lib/flavor.js';
 import { mapTrackedFiles } from '../lib/flavor-map.js';
 import { detectOpenCodeMajor } from '../lib/opencode-host.js';
-import { readFlavorMarker, readProjectFlavor } from '../lib/project-flavor.js';
+import { readFlavorMarker, readProjectFlavor, writeFlavorMarker } from '../lib/project-flavor.js';
 import { FULL_PROFILE_ID, getProfile, loadRegistry, resolveProfile, type Registry } from '../lib/registry.js';
 import { log, info, warn, error, success, dim, bold, verbose, setVerbose } from '../ui/logger.js';
 import { createSpinner, setDryRun } from '../ui/spinner.js';
@@ -139,12 +139,13 @@ function printSummary(result: InstallResult, isDryRun: boolean): void {
   const parts: string[] = [];
   if (result.pruned.length > 0) parts.push(`${result.pruned.length} removed`);
   if (updatedCount > 0) parts.push(`${updatedCount} file(s) updated`);
+  if (result.unchanged.length > 0) parts.push(`${result.unchanged.length} unchanged`);
   if (skippedCount > 0) parts.push(`${skippedCount} skipped (user-modified)`);
   if (backedUpCount > 0) parts.push(`${backedUpCount} backed up`);
   if (result.errors.length > 0) parts.push(`${result.errors.length} error(s)`);
 
-  if (parts.length === 0) {
-    info('Everything is already up to date.');
+  if (updatedCount === 0 && skippedCount === 0 && backedUpCount === 0 && result.pruned.length === 0 && result.errors.length === 0) {
+    info(`Everything is already up to date (${result.unchanged.length} file(s) unchanged).`);
     return;
   }
   log(parts.join('. ') + '.');
@@ -198,7 +199,11 @@ async function runUpdate(
     await writeManifest(projectRoot, updatedManifest);
     // Record the flavor whenever it is new information; otherwise leave the config as it was.
     const base = scope.config ?? (plan.record ? legacyConfig() : null);
-    if (base !== null) await writeConfig(projectRoot, plan.record ? withOpenCodeFlavor(base, plan.flavor) : base);
+    if (base !== null) {
+      await writeConfig(projectRoot, plan.record ? withOpenCodeFlavor(base, plan.flavor) : base);
+      // Keep the shell scripts' marker in step with the config (a stale one makes update.sh refuse).
+      await writeFlavorMarker(projectRoot, plan.flavor);
+    }
     verbose('Manifest written.');
   } else if (!opts.dryRun && result.errors.length > 0) {
     warn('Manifest not written due to errors above. Fix the issues and re-run.');

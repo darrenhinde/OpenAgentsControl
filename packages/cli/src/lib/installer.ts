@@ -42,6 +42,8 @@ export type InstallResult = {
   installed: string[];
   /** Relative paths of files updated (were untouched by user). */
   updated: string[];
+  /** Relative paths of managed files whose content already matches the bundle (nothing written). */
+  unchanged: string[];
   /** Relative paths of files skipped because user modified them. */
   skipped: string[];
   /** Relative paths of files backed up before yolo overwrite. */
@@ -59,6 +61,7 @@ export type InstallResult = {
 const EMPTY_RESULT: InstallResult = {
   installed: [],
   updated: [],
+  unchanged: [],
   skipped: [],
   backed_up: [],
   removed_from_manifest: [],
@@ -86,6 +89,7 @@ const mergeResult = (
 ): InstallResult => ({
   installed: [...base.installed, ...(patch.installed ?? [])],
   updated: [...base.updated, ...(patch.updated ?? [])],
+  unchanged: [...base.unchanged, ...(patch.unchanged ?? [])],
   skipped: [...base.skipped, ...(patch.skipped ?? [])],
   backed_up: [...base.backed_up, ...(patch.backed_up ?? [])],
   removed_from_manifest: [
@@ -275,6 +279,10 @@ async function processOneFile(
     }
 
     if (decision.action === "update") {
+      // Untouched by the user and already identical to the bundle: nothing to write or report.
+      if (hashesMatch(await computeFileHash(sourcePath), await computeFileHash(destPath))) {
+        return { patch: { unchanged: [relativePath] }, entry: manifest?.files[relativePath] ?? null };
+      }
       log(options, `update: ${relativePath}`);
       await installFile(sourcePath, destPath, options);
       const sha256 = options.dryRun ? "" : await computeFileHash(destPath);

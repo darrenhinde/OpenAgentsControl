@@ -244,6 +244,11 @@ describe('openCodeFlavorCheck', () => {
     expect(r.message).toContain('--opencode v2');
   });
 
+  test('a 0.x host is reported by its real major, never as v1', () => {
+    expect(check('v2', true, 0).message).toContain('OpenCode 0 is on PATH');
+    expect(check('v2', false, 0).message).toContain('OpenCode 0 is installed');
+  });
+
   test('no host found is informational, not a failure', () => {
     expect(check('v2', true, null).status).toBe('info');
     expect(check('v1', true, null).status).toBe('info');

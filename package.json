@@ -24,6 +24,7 @@
     "built-ai-configs/registry/registry.json",
     "built-ai-configs/registry/registry.v1.json",
     "install.sh",
+    "update.sh",
     "env.example",
     "VERSION",
     "LICENSE",
