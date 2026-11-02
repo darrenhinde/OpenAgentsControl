@@ -126,7 +126,7 @@ export abstract class OpenCodeBaseAdapter extends BaseAdapter {
    * it, resolve `permission.task` keys and structured delegation examples into the target's id
    * space. Everything else is returned byte-for-byte.
    */
-  protected transform(parts: EmitParts, _parsed: Record<string, unknown>, options: FromCanonicalOptions): Transformed {
+  protected transform(parts: EmitParts, parsed: Record<string, unknown>, options: FromCanonicalOptions): Transformed {
     const { resolver, filePath } = options;
     let frontmatter = parts.frontmatter;
     let rest = parts.rest;
@@ -143,7 +143,10 @@ export abstract class OpenCodeBaseAdapter extends BaseAdapter {
         frontmatter = rewriteTaskKeys(frontmatter, (key) => resolver.idFor(this.idTarget, key));
         rest = rewriteBodyRefs(rest, this.idTarget, resolver);
       } catch (cause) {
-        if (cause instanceof AgentIdResolutionError) throw new OpenCodeEmitError(cause.message, filePath);
+        if (cause instanceof AgentIdResolutionError) throw new OpenCodeEmitError(
+            `agent "${String((parsed.oac as { id?: unknown } | undefined)?.id ?? parsed.name ?? "?")}" on target "${this.idTarget}": ${cause.message}`,
+            filePath,
+          );
         throw cause;
       }
     }

@@ -622,3 +622,88 @@ describe("root containment", () => {
     rmSync(victimDir, { recursive: true, force: true });
   });
 });
+
+// ============================================================================
+// Ledger carry-forward, per-target delegation, output-path collisions, opencode overrides
+// ============================================================================
+
+describe("ledger entries the pruner does not delete", () => {
+  const OUT = ".opencode/agent/alpha.md";
+
+  it("carries a kept (hand-edited) orphan forward so check() still reports it", async () => {
+    write(await plan({ root }), { root });
+    rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
+    writeFileSync(join(root, OUT), "hand-edited\n", "utf-8");
+
+    write(await plan({ root }), { root });
+
+    expect(readManifest(root).files[OUT]).toBeDefined();
+    expect(check(await plan({ root }), { root })).toContainEqual({ path: OUT, status: "orphan" });
+  });
+
+  it("carries an orphan left in place by --no-prune forward to the next build", async () => {
+    write(await plan({ root }), { root });
+    rmSync(join(root, "agent-library/agents/subagents/test/alpha.md"));
+
+    write(await plan({ root }), { root, prune: false });
+
+    expect(readManifest(root).files[OUT]).toBeDefined();
+    const later = write(await plan({ root }), { root });
+    expect(later.removed).toContain(OUT);
+    expect(existsSync(join(root, OUT))).toBe(false);
+  });
+});
+
+describe("per-target delegation", () => {
+  function delegator(delegate: string): string {
+    return canonicalAgent("boss", ["opencode"]).replace(
+      "permission:\n",
+      `permission:\n  task:\n    "${delegate}": allow\n`,
+    );
+  }
+
+  it("fails the v2 build when an agent delegates to one that ships only to opencode-v1", async () => {
+    put("agent-library/agents/subagents/test/v1only.md", canonicalAgent("v1only", ["opencode-v1"]));
+    put("agent-library/agents/subagents/test/boss.md", delegator("v1only"));
+
+    const failure = await plan({ root }).then(() => null, (error: Error) => error);
+
+    expect(failure).not.toBeNull();
+    expect(failure!.message).toContain("agent-library/agents/subagents/test/boss.md");
+    expect(failure!.message).toContain("boss");
+    expect(failure!.message).toContain("v1only");
+    expect(failure!.message).toContain("opencode");
+  });
+
+  it("still builds when the delegate ships to the same target", async () => {
+    put("agent-library/agents/subagents/test/boss.md", delegator("alpha"));
+    await expect(plan({ root })).resolves.toBeDefined();
+  });
+});
+
+describe("output path collisions", () => {
+  it("fails when two agents land on one output path, naming both sources", async () => {
+    const withName = (id: string) =>
+      canonicalAgent(id, ["claude-code"]).replace("      tools: [Read]", "      name: clash\n      tools: [Read]");
+    put("agent-library/agents/subagents/test/one.md", withName("one"));
+    put("agent-library/agents/subagents/test/two.md", withName("two"));
+
+    const failure = await plan({ root }).then(() => null, (error: Error) => error);
+
+    expect(failure).not.toBeNull();
+    expect(failure!.message).toContain("agent-library/agents/subagents/test/one.md");
+    expect(failure!.message).toContain("agent-library/agents/subagents/test/two.md");
+  });
+});
+
+describe("oac.overrides.opencode", () => {
+  it("is rejected, because no OpenCode adapter reads it", async () => {
+    const source = canonicalAgent("alpha", ["opencode"]).replace(
+      "  targets:\n",
+      "  overrides:\n    opencode:\n      model: x\n  targets:\n",
+    );
+    put("agent-library/agents/subagents/test/alpha.md", source);
+
+    await expect(plan({ root })).rejects.toThrow(/opencode/);
+  });
+});

@@ -118,7 +118,7 @@ export class AgentIdResolver {
     if (isGlob(ref)) return ref;
     const agent = this.resolve(ref);
     if (agent === undefined) {
-      throw new AgentIdResolutionError(`"${ref}" names no canonical agent (accepted: an oac.id or display name)`);
+      throw new AgentIdResolutionError(`"${ref}" names no canonical agent emitted for this target (accepted: an oac.id or display name of an agent that ships to it)`);
     }
     return target === "opencode" ? agent.id : agent.name;
   }
