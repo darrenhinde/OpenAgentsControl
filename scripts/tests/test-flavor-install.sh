@@ -62,8 +62,8 @@ assert_file    "$V/plugin/notify.ts"                    "v1 installs plugins"
 assert_file    "$V/skills/task-management/SKILL.md"     "v1 installs skills"
 assert_file    "$V/command/openagents/check-context-deps.md" "v1 installs commands"
 assert_no_file "$V/agent/openagent.md"                  "v1 installs no flat v2 agent"
-assert_no_file "$TEST_DIR/v1/hosts"                     "the built-ai-configs/ folder name never reaches a project"
-assert_no_file "$V/hosts"                               "the v1 build's built-ai-configs/opencode-v1 prefix is stripped on install"
+assert_no_file "$TEST_DIR/v1/built-ai-configs"          "the built-ai-configs/ folder name never reaches a project"
+assert_no_file "$V/built-ai-configs"                    "the v1 build's built-ai-configs/opencode-v1 prefix is stripped on install"
 assert_contains "$V/.oac-opencode" "v1"                 "v1 install records v1"
 assert_contains "$V/command/openagents/check-context-deps.md" "subagent_type" "v1 gets the v1 variant of the command"
 
@@ -160,6 +160,52 @@ assert_contains "$D/.oac-opencode" "v2" "install.sh writes the marker even when 
 echo v1 > "$D/.oac-opencode"
 install essential --install-dir="$D" > "$TEST_DIR/g7.log" 2>&1
 assert_contains "$D/.oac-opencode" "v1" "an install that wrote nothing does not flip the recorded flavor"
+
+# --- the other flavor over an existing install is refused ----------------------------------------
+echo -e "\n${BOLD}flavor switch${NC}"
+if install essential --opencode v2 --install-dir="$V" > "$TEST_DIR/sw.log" 2>&1; then
+    fail "install.sh --opencode v2 over a v1 install exits non-zero"
+else
+    pass "install.sh --opencode v2 over a v1 install exits non-zero"
+fi
+assert_contains "$TEST_DIR/sw.log" "oac update --opencode v2" "...and names the tool that migrates"
+assert_contains "$V/.oac-opencode" "v1"                       "...and leaves the marker on v1"
+assert_no_file  "$V/agent/openagent.md"                       "...and adds no flat v2 agent"
+install essential --opencode v1 --install-dir="$V" > "$TEST_DIR/sw2.log" 2>&1 \
+    && pass "a same-flavor re-run still works" || fail "a same-flavor re-run still works"
+
+# --- a partly failed install still records the flavor ----------------------------------------------
+PART="$TEST_DIR/part"
+mkdir -p "$PART/pkg/built-ai-configs/registry" "$PART/pkg/.opencode/agent"
+echo "ok" > "$PART/pkg/.opencode/agent/good.md"
+cat > "$PART/pkg/built-ai-configs/registry/registry.json" <<'JSON'
+{"version":"1.0.0","components":{"agents":[
+ {"id":"good","name":"good","type":"agent","path":".opencode/agent/good.md","description":"x","tags":[],"dependencies":[],"category":"core"},
+ {"id":"gone","name":"gone","type":"agent","path":".opencode/agent/gone.md","description":"x","tags":[],"dependencies":[],"category":"core"}
+],"subagents":[],"commands":[],"tools":[],"plugins":[],"contexts":[],"skills":[],"config":[]},
+"profiles":{"essential":{"name":"e","description":"e","components":["agent:good","agent:gone"]}}}
+JSON
+(cd "$REPO_ROOT" && OAC_RAW_URL="file://$PART/pkg" REGISTRY_URL="file://$PART/pkg/built-ai-configs/registry/registry.json" bash install.sh essential --install-dir="$PART/proj/.opencode") > "$PART/log" 2>&1
+assert_contains "$PART/log" "Failed" "one component failed"
+assert_contains "$PART/proj/.opencode/.oac-opencode" "v2" "...but the marker is written because a file was installed"
+
+echo -e "\n${BOLD}update.sh${NC} (config.json)"
+# a CLI-installed project: flavor only in .oac/config.json, no marker
+C="$TEST_DIR/cli/.opencode"
+install essential --opencode v1 --install-dir="$C" > "$TEST_DIR/c1.log" 2>&1
+rm -f "$C/.oac-opencode"
+mkdir -p "$TEST_DIR/cli/.oac"
+printf '{\n  "opencode": {\n    "target": "v1"\n  }\n}\n' > "$TEST_DIR/cli/.oac/config.json"
+(cd "$REPO_ROOT" && bash update.sh --install-dir "$C") > "$TEST_DIR/c2.log" 2>&1 \
+    && pass "update.sh reads the flavor from .oac/config.json" || fail "update.sh reads the flavor from .oac/config.json"
+if grep -q "predates" "$TEST_DIR/c2.log"; then fail "...and does not say the install predates v2 support"; else pass "...and does not say the install predates v2 support"; fi
+assert_contains "$C/.oac-opencode" "v1" "...and records the marker"
+# a stale marker loses to the config (the CLI migrated the project to v2)
+printf '{"opencode":{"target":"v2"}}' > "$TEST_DIR/cli/.oac/config.json"
+rm -rf "$C/agent/core" "$C/agent/subagents" "$C/tool" "$C/plugin"; mkdir -p "$C/agent"; echo x > "$C/agent/openagent.md"
+(cd "$REPO_ROOT" && bash update.sh --install-dir "$C" --opencode v2) > "$TEST_DIR/c3.log" 2>&1 \
+    && pass "config v2 beats a stale v1 marker: update.sh --opencode v2 is not refused" || fail "config v2 beats a stale v1 marker: update.sh --opencode v2 is not refused"
+assert_contains "$C/.oac-opencode" "v2" "...and the marker is corrected"
 
 # --- registry paths cannot escape the install dir ----------------------------------------------
 echo -e "\n${BOLD}path guard${NC}"
