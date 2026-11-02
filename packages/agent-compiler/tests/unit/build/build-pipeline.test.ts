@@ -29,6 +29,7 @@ import {
   serializeManifest,
   write,
 } from "../../../src/core/BuildPipeline.js";
+import { ReferenceResolver } from "../../../src/core/ReferenceResolver.js";
 import { repoPath } from "../../support/pending.js";
 
 const REPO = repoPath();
@@ -691,6 +692,19 @@ describe("claude-code delegation roster", () => {
     await expect(plan({ root })).rejects.toThrow(/boss.*claude-code.*ghost/s);
   });
 
+});
+
+describe("dead references in the planned tree", () => {
+  it("are found from the plan itself, before anything is written", async () => {
+    put("agent-library/agents/subagents/test/bad.md",
+      canonicalAgent("bad", ["opencode"]).replace("  targets:", "  dependencies:\n    - context:nope-nothing\n  targets:"));
+
+    const { files } = await plan({ root });
+    const pending = new Map(files.map((file) => [file.path, file.content]));
+    const dead = await new ReferenceResolver(root, undefined, pending).findDeadReferences();
+
+    expect(dead.map((d) => d.ref)).toContain("context:nope-nothing");
+  });
 });
 
 describe("output path collisions", () => {

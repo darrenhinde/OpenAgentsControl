@@ -14,7 +14,7 @@
 
 import { describe, test, expect } from 'bun:test';
 import { BUILD_TARGETS, lintBuild } from '@controlstack/agent-compiler';
-import { IN_PLACE_TARGETS, assertInPlace, selectTargets, strictExitCode } from '../commands/build.js';
+import { IN_PLACE_TARGETS, assertInPlace, selectTargets, strictExitCode, buildExitCode } from '../commands/build.js';
 
 // ── selectTargets ─────────────────────────────────────────────────────────────
 
@@ -59,6 +59,14 @@ describe('strictExitCode', () => {
     expect(strictExitCode(true, 0, 0, 0)).toBe(0);
     expect(strictExitCode(true, 0, 0, 1)).toBe(1);
     expect(strictExitCode(true, 1, 0, 0)).toBe(1);
+  });
+});
+
+describe('buildExitCode', () => {
+  test('a lint error fails a plain build; warnings only fail under --strict', () => {
+    expect(buildExitCode(false, 1, 0, 0, 1)).toBe(1);
+    expect(buildExitCode(false, 0, 9, 0, 0)).toBe(0);
+    expect(buildExitCode(true, 0, 9, 0, 0)).toBe(1);
   });
 });
 

@@ -115,14 +115,17 @@ const reportWarnings = (built: BuildPlan): void => {
 /**
  * Dead `type:id` references in the tree, reported with their source.
  *
- * Read against the registry ON DISK, so this describes the tree as it stands. The tree
+ * Read against the tree AS THIS BUILD WILL LEAVE IT (the planned registry and `.opencode/`
+ * files shadow what is on disk), so a bad reference is reported by the build that introduces
+ * it, not the next one. The tree
  * carries zero dead references (the four found 2026-07-15 were repaired 2026-07-17, gated in
  * `tests/unit/build/reference-resolution.test.ts`), so any reported here is new rot. Reported
  * rather than fatal by default so a broken ref cannot block an unrelated build; `--strict`
  * makes them fatal, and CI's test suite catches them regardless.
  */
-const reportDeadReferences = async (root: string): Promise<number> => {
-  const dead = await new ReferenceResolver(root).findDeadReferences()
+const reportDeadReferences = async (root: string, built: BuildPlan): Promise<number> => {
+  const pending = new Map(built.files.map((file) => [file.path, file.content]))
+  const dead = await new ReferenceResolver(root, undefined, pending).findDeadReferences()
   for (const resolution of dead) {
     warn(`${resolution.source}: ${resolution.ref} — ${resolution.reason ?? resolution.status}`)
   }
@@ -133,25 +136,33 @@ const reportDeadReferences = async (root: string): Promise<number> => {
  * Static lints over what this build would emit: host-validity lints
  * for OpenCode v1/v2 and the capability lint (L-001: an agent told to delegate without `Task`,
  * to run bash without `Bash`, a Claude description with no `<example>`, a leaked `.opencode/`
- * path). Reported always; fatal only under `--strict`, like degradation warnings, so a prompt
- * still being converged cannot block an unrelated build.
+ * path). Error-severity findings fail every build; warning-severity ones (and degradation
+ * warnings) fail only under `--strict`.
  */
-const reportLints = (built: BuildPlan): number => {
+const reportLints = (built: BuildPlan): { count: number; errors: number } => {
   let count = 0
+  let errors = 0
   for (const { target, findings } of lintBuild(built.files)) {
     for (const finding of findings) {
       const line = `${target}: ${finding.path} [${finding.rule}] ${finding.message}`
       if (finding.severity === 'warning') warn(line)
-      else error(line)
+      else {
+        error(line)
+        errors += 1
+      }
     }
     count += findings.length
   }
-  return count
+  return { count, errors }
 }
 
 /** `--strict` fails on any warning, dead reference or lint finding. Pure. */
 export const strictExitCode = (strict: boolean, ...counts: number[]): number =>
   strict && counts.some((count) => count > 0) ? 1 : 0
+
+/** The exit code of a build: a lint ERROR always fails; anything else fails only under `--strict`. Pure. */
+export const buildExitCode = (strict: boolean, lintErrors: number, ...counts: number[]): number =>
+  lintErrors > 0 ? 1 : strictExitCode(strict, ...counts)
 
 const reportDrift = (drift: readonly Drift[]): void => {
   for (const entry of drift) error(`${entry.status.padEnd(8)} ${entry.path}`)
@@ -168,9 +179,9 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
   const built = await planBuild({ root, targets })
   reportWarnings(built)
 
-  const deadCount = await reportDeadReferences(root)
+  const deadCount = await reportDeadReferences(root, built)
   const warningCount = built.warnings.length
-  const lintCount = reportLints(built)
+  const { count: lintCount, errors: lintErrors } = reportLints(built)
 
   bold('\n  oac build')
   info(`${built.agents.length} canonical agents -> ${built.files.length} files`)
@@ -186,7 +197,7 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
     summarize(warningCount, deadCount, lintCount, options.strict)
 
     if (options.check && drift.length > 0) return 1
-    return strictExitCode(options.strict, warningCount, deadCount, lintCount)
+    return buildExitCode(options.strict, lintErrors, warningCount, deadCount, lintCount)
   }
 
   const result = writePlan(built, { root, prune: options.prune })
@@ -202,7 +213,7 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
 
   summarize(warningCount, deadCount, lintCount, options.strict)
 
-  return strictExitCode(options.strict, warningCount, deadCount, lintCount)
+  return buildExitCode(options.strict, lintErrors, warningCount, deadCount, lintCount)
 }
 
 const summarize = (
@@ -230,14 +241,14 @@ const summarize = (
 export const registerBuildCommand = (program: Command): void => {
   program
     .command('build')
-    .description('Generate tool output from the canonical content/ source')
+    .description('Generate every target tree from the canonical agent-library/agents/ source; exits 1 on a build error or lint error (--strict also fails on warnings)')
     .option(
       '--target <tool...>',
       `build only these targets (${BUILD_TARGETS.join(', ')})`,
     )
     .option('--check', 'report drift and write nothing; exit 1 if the tree is stale', false)
     .option('--dry-run', 'preview the build and write nothing', false)
-    .option('--strict', 'exit 1 if there is any warning, dead reference or lint finding', false)
+    .option('--strict', 'also exit 1 on any degradation warning, dead reference or lint warning (lint errors always fail)', false)
     .option('--no-prune', 'keep generated files whose canonical source is gone')
     .option('--verbose', 'list every degradation warning', false)
     .option('--json', 'reserved for machine-readable output', false)

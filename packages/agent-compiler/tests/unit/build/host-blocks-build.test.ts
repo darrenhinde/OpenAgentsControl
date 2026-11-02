@@ -40,7 +40,8 @@ afterEach(() => {
 
 describe("oac build with oac:only host blocks", () => {
   it("emits each target's own section", async () => {
-    put(REL, HOST_BLOCK_SOURCE);
+    // `Ghost` is for the adapter tests; a full build also checks claude-code delegation, so name a real agent.
+    put(REL, HOST_BLOCK_SOURCE.replace("Ghost", "probe"));
     const built = await plan({ root, skipRegistry: true });
     const byTarget = new Map(built.files.map((file) => [file.target, file.content]));
 
