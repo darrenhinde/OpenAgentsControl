@@ -270,7 +270,7 @@ The eval framework automatically resolves old agent names:
 
 ## 🤝 Contributing Category Agents
 
-See [ADDING_CATEGORY_AGENT.md](../contributing/ADDING_CATEGORY_AGENT.md) for detailed instructions.
+See [agent-library/README.md](../../agent-library/README.md) for how to add an agent.
 
 ### Quick Start
 
@@ -336,9 +336,8 @@ You are a specialist in...
 
 ## 📚 Related Documentation
 
-- [Migration Guide](../guides/MIGRATION_V2.md) - Migrating from v1.x to v2.0
 - [Contributing Guide](../contributing/CONTRIBUTING.md) - General contribution guidelines
-- [Adding Category Agents](../contributing/ADDING_CATEGORY_AGENT.md) - Detailed agent creation guide
+- [Adding an agent](../../agent-library/README.md) - Agent creation guide
 - [Eval Framework](../../evals/framework/README.md) - Testing agents
 
 ---

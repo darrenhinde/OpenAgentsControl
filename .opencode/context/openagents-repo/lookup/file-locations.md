@@ -15,7 +15,7 @@
 | `built-ai-configs/claude-code/agents/<name>.md` | G. Claude Code agents |
 | `built-ai-configs/registry/registry.json`, `registry.v1.json` | G for agents/subagents/profiles; H for the other sections |
 | `built-ai-configs/README.md` | G. Agent x host matrix and degradation warnings |
-| `.opencode/agent/<id>.md` | G. Live mirror of the v2 output (this repo's own OpenCode). `eval-runner.md` is also here |
+| `.opencode/agent/<id>.md` | G. Live mirror of the v2 output (this repo's own OpenCode). |
 | `plugins/claude-code/agents/` | G. Live mirror of the Claude output |
 | `.oac/build-manifest.json` | G. Ledger of files the build owns |
 

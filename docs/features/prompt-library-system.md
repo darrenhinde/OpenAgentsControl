@@ -12,7 +12,7 @@ Status: ✅ Production Ready
 - [Main Prompts README](../../.opencode/prompts/README.md)
 - [OpenAgent Variants](../../.opencode/prompts/core/openagent/README.md)
 - [Eval Framework Guide](../../evals/EVAL_FRAMEWORK_GUIDE.md)
-- [Test Suite Validation](../../evals/TEST_SUITE_VALIDATION.md)
+- [Evals README](../../evals/README.md)
 
 ---
 
@@ -85,15 +85,9 @@ See the comprehensive documentation files:
    - Running tests
    - Understanding results
 
-4. **[Test Suite Validation](../../evals/TEST_SUITE_VALIDATION.md)**
+4. **[Evals README](../../evals/README.md)**
    - Creating test suites
-   - Validation system
-   - JSON Schema reference
-
-5. **[Validation Quick Reference](../../evals/VALIDATION_QUICK_REF.md)**
-   - Quick commands
-   - Common fixes
-   - Troubleshooting
+   - Validating suites: `pnpm --dir evals/framework run validate:suites:all`
 
 ---
 
@@ -128,7 +122,6 @@ See the comprehensive documentation files:
 
 **Test Suites:**
 - `evals/agents/openagent/config/*.json` - Suite definitions
-- `evals/agents/openagent/config/suite-schema.json` - JSON Schema
 
 **Framework:**
 - `evals/framework/src/sdk/prompt-manager.ts` - Prompt switching

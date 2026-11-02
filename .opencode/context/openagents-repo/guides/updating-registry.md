@@ -29,7 +29,7 @@ bun run scripts/registry/check-dependencies.ts
 ```
 
 Do not run `scripts/registry/auto-detect-components.sh --auto-add` for this: it appends by scanning `.opencode/`
-and, in this tree, proposes ~88 unrelated "new" contexts and repoints ids that collide across folders. The
+and, in this tree, proposes 85 unrelated "new" components (measured with `--dry-run`) and repoints ids that collide across folders. The
 `update-registry` workflow that wraps it is manual-dispatch only. Dry-run it only as a read-only report.
 
 ## Frontmatter of context files

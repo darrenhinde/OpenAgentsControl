@@ -334,8 +334,8 @@ Generated systems score 8+/10 on:
 - `.opencode/context/system-builder-templates/` - Reusable patterns
 
 ### Documentation
-- `.opencode/CONTEXT-SYSTEM-BUILDER.md` - Detailed documentation
-- `.opencode/SYSTEM-BUILDER-README.md` - This file
+- [guide.md](guide.md) - Detailed documentation
+- This file
 
 ---
 
@@ -467,7 +467,7 @@ Study generated orchestrators to understand integration patterns for your own ag
 
 ## Resources
 
-- **Detailed Documentation**: `.opencode/CONTEXT-SYSTEM-BUILDER.md`
+- **Detailed Documentation**: [guide.md](guide.md)
 - **Templates**: `.opencode/context/system-builder-templates/`
 - **System Builder Guide**: `.opencode/context/system-builder-templates/SYSTEM-BUILDER-GUIDE.md`
 

@@ -482,13 +482,12 @@ After generation, customize:
 - `.opencode/agent/command-creator.md` - Command creator
 
 ### Templates
-- `.opencode/context/system-builder-templates/README.md` - Template guide
+- `.opencode/context/system-builder-templates/navigation.md` - Template index
 - `.opencode/context/system-builder-templates/orchestrator-template.md` - Orchestrator pattern
 - `.opencode/context/system-builder-templates/subagent-template.md` - Subagent pattern
-- `.opencode/context/system-builder-templates/SYSTEM-BUILDER-GUIDE.md` - Complete usage guide
 
 ### Documentation
-- `.opencode/CONTEXT-SYSTEM-BUILDER.md` - This file
+- This file
 
 ## Next Steps
 
