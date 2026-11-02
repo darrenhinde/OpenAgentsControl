@@ -2,6 +2,7 @@ import { describe, test, expect } from 'bun:test';
 import {
   DEFAULT_FLAVOR,
   flavorOfConfig,
+  hostMismatch,
   isV1Source,
   parseFlavor,
   registryFileFor,
@@ -60,6 +61,19 @@ describe('flavorOfConfig', () => {
   });
 });
 
+describe('hostMismatch', () => {
+  test('v1 matches host 1 only; v2 matches host 2+; unknown never mismatches; 0.x matches neither', () => {
+    expect(hostMismatch('v1', 1)).toBe(false);
+    expect(hostMismatch('v1', 2)).toBe(true);
+    expect(hostMismatch('v1', 0)).toBe(true);
+    expect(hostMismatch('v2', 2)).toBe(false);
+    expect(hostMismatch('v2', 1)).toBe(true);
+    expect(hostMismatch('v2', 0)).toBe(true);
+    expect(hostMismatch('v1', null)).toBe(false);
+    expect(hostMismatch('v2', null)).toBe(false);
+  });
+});
+
 describe('transitionFlavor', () => {
   const base = { recorded: false, current: 'v2' as const };
 
@@ -79,9 +93,17 @@ describe('transitionFlavor', () => {
     expect(t.message).toContain('--opencode v2');
   });
 
-  test('a legacy install on a v2 or unknown host migrates to v2', () => {
+  test('a legacy install on a v2 host migrates to v2', () => {
     expect(transitionFlavor({ ...base, requested: undefined, hostMajor: 2 })).toMatchObject({ action: 'migrate', flavor: 'v2' });
-    expect(transitionFlavor({ ...base, requested: undefined, hostMajor: null })).toMatchObject({ action: 'migrate', flavor: 'v2' });
+  });
+
+  test('a legacy install is a v1 layout: an unknown or 0.x host refuses, with both escape hatches', () => {
+    for (const hostMajor of [null, 0]) {
+      const t = transitionFlavor({ ...base, requested: undefined, hostMajor });
+      expect(t.action).toBe('refuse');
+      expect(t.message).toContain('--opencode v1');
+      expect(t.message).toContain('--opencode v2');
+    }
   });
 
   test('a legacy install asked for v1 records v1 without moving files', () => {

@@ -321,6 +321,34 @@ record_flavor() {
     printf '%s\n' "$OPENCODE_FLAVOR" > "${INSTALL_DIR}/.oac-opencode"
 }
 
+FILES_WRITTEN=0
+
+# Write the marker when this run succeeded for the flavor, even if every file was skipped. A run
+# that installed nothing never flips an existing marker to a different flavor: the files on disk
+# are still the old flavor's.
+record_flavor_if_ok() {
+    local written=$1 failed=$2
+    [ "$failed" -eq 0 ] || return 0
+    local existing=""
+    [ -f "${INSTALL_DIR}/.oac-opencode" ] && existing=$(tr -d '[:space:]' < "${INSTALL_DIR}/.oac-opencode")
+    if [ -n "$existing" ] && [ "$existing" != "$OPENCODE_FLAVOR" ] && [ "$written" -eq 0 ]; then
+        print_warning "${INSTALL_DIR} is recorded as OpenCode ${existing}; nothing was installed, so the record is unchanged."
+        return 0
+    fi
+    record_flavor
+}
+
+# A registry path is only ever a relative path inside the repository. Same rule as the CLI's
+# isInstallablePath: no absolute paths (POSIX or drive-letter) and no ".." segment.
+is_safe_registry_path() {
+    local p="${1//\\//}"
+    [ -n "$p" ] || return 1
+    case "$p" in
+        /*|[A-Za-z]:*|..|../*|*/..|*/../*) return 1 ;;
+    esac
+    return 0
+}
+
 fetch_registry() {
     print_step "Fetching component registry..."
     
@@ -421,6 +449,7 @@ get_registry_key() {
 # We need to replace ".opencode" with the actual INSTALL_DIR
 get_install_path() {
     local registry_path=$1
+    is_safe_registry_path "$registry_path" || return 1
     # Strip the leading .opencode/ - or built-ai-configs/opencode-v1/, the repository folder of the v1 build,
     # whose files install to the same place - if present
     local relative_path="${registry_path#.opencode/}"
@@ -1111,7 +1140,7 @@ perform_installation() {
         
         if [ -n "$path" ] && [ "$path" != "null" ]; then
             local install_path
-            install_path=$(get_install_path "$path")
+            install_path=$(get_install_path "$path") || continue
             if [ -f "$install_path" ]; then
                 collisions+=("$install_path")
             fi
@@ -1173,6 +1202,7 @@ perform_installation() {
     local installed=0
     local skipped=0
     local failed=0
+    FILES_WRITTEN=0
     
     for comp in "${SELECTED_COMPONENTS[@]}"; do
         local type="${comp%%:*}"
@@ -1205,7 +1235,11 @@ perform_installation() {
                 [ -z "$file_path" ] && continue
                 
                 local dest
-                dest=$(get_install_path "$file_path")
+                if ! dest=$(get_install_path "$file_path"); then
+                    print_warning "Refusing unsafe registry path: $file_path"
+                    component_failed=$((component_failed + 1))
+                    continue
+                fi
                 
                 # Check if file exists and we're in skip mode
                 if [ -f "$dest" ] && [ "$install_strategy" = "skip" ]; then
@@ -1217,6 +1251,7 @@ perform_installation() {
                 mkdir -p "$(dirname "$dest")"
                 
                 if curl -fsSL "$url" -o "$dest"; then
+                    FILES_WRITTEN=$((FILES_WRITTEN + 1))
                     # Transform paths for global installation
                     if [[ "$INSTALL_DIR" != ".opencode" ]] && [[ "$INSTALL_DIR" != *"/.opencode" ]]; then
                         local expanded_path="${INSTALL_DIR/#\~/$HOME}"
@@ -1240,7 +1275,11 @@ perform_installation() {
         else
             # Single file component - original logic
             local dest
-            dest=$(get_install_path "$path")
+            if ! dest=$(get_install_path "$path"); then
+                print_error "Refusing unsafe registry path for ${type}:${id}: $path"
+                failed=$((failed + 1))
+                continue
+            fi
             
             # Check if file exists before we install (for proper messaging)
             local file_existed=false
@@ -1262,6 +1301,7 @@ perform_installation() {
             mkdir -p "$(dirname "$dest")"
             
             if curl -fsSL "$url" -o "$dest"; then
+                FILES_WRITTEN=$((FILES_WRITTEN + 1))
                 # Transform paths for global installation (any non-local path)
                 # Local paths: .opencode or */.opencode
                 if [[ "$INSTALL_DIR" != ".opencode" ]] && [[ "$INSTALL_DIR" != *"/.opencode" ]]; then
@@ -1301,8 +1341,8 @@ perform_installation() {
         fi
     fi
     
+    record_flavor_if_ok "$FILES_WRITTEN" "$failed"
     if [ "$installed" -gt 0 ]; then
-        record_flavor
         warn_legacy_agent_layout
     fi
 

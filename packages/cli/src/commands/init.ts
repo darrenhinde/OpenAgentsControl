@@ -6,7 +6,7 @@ import { isProjectRoot, installFiles, syncFiles, type InstallResult } from '../l
 import { getPackageRoot, listBundledFiles, classifyBundledFile } from '../lib/bundled.js';
 import { readManifest, writeManifest, type ManifestFile } from '../lib/manifest.js';
 import { readConfig, writeConfig, createDefaultConfig, withOpenCodeFlavor, type OacInstallationScope } from '../lib/config.js';
-import { parseFlavor, resolveInitFlavor, type OpenCodeFlavor } from '../lib/flavor.js';
+import { hostMismatch, parseFlavor, resolveInitFlavor, type OpenCodeFlavor } from '../lib/flavor.js';
 import { detectOpenCodeMajor } from '../lib/opencode-host.js';
 import { readProjectFlavor } from '../lib/project-flavor.js';
 import { detectIdes } from '../lib/ide-detect.js';
@@ -304,7 +304,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
     process.exit(1);
   }
   const project = await readProjectFlavor(projectRoot);
-  const hasInstall = (await readManifest(projectRoot).catch(() => null)) !== null;
+  // An install.sh install has a marker but no manifest; it is still an install.
+  const hasInstall = (await readManifest(projectRoot).catch(() => null)) !== null || project.source === 'marker';
   const decision = resolveInitFlavor({
     requested: requested ?? undefined,
     recorded: project.recorded,
@@ -319,7 +320,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
   const hostMajor = await detectOpenCodeMajor();
   if (flavor === 'v2' && hostMajor === 1) {
     warn('OpenCode v1 is installed, but OAC installs for OpenCode v2 by default. For v1, run: oac init --opencode v1');
-  } else if (flavor === 'v1' && hostMajor !== null && hostMajor >= 2) {
+  } else if (flavor === 'v1' && hostMismatch(flavor, hostMajor)) {
     warn(`Installing for OpenCode v1, but OpenCode ${hostMajor} is installed; v1 agents, tools and plugins do not load there.`);
   }
 

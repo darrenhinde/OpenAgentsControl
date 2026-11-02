@@ -5,7 +5,7 @@ import semver from 'semver';
 
 import { readCliVersion } from '../lib/version.js';
 import { readConfig } from '../lib/config.js';
-import { flavorOfConfig } from '../lib/flavor.js';
+import { readProjectFlavor } from '../lib/project-flavor.js';
 import { detectOpenCodeMajor } from '../lib/opencode-host.js';
 import { computeFileHash, hashesMatch } from '../lib/sha256.js';
 import { detectIdes } from '../lib/ide-detect.js';
@@ -83,8 +83,10 @@ const checkOacVersion = async (): Promise<CheckResult> => {
 
 /** Check: the OpenCode flavor this install was built for vs the OpenCode on PATH. */
 const checkOpenCodeFlavor = async (projectRoot: string): Promise<CheckResult> => {
-  const config = await readConfig(projectRoot).catch(() => null);
-  return openCodeFlavorCheck({ ...flavorOfConfig(config), hostMajor: await detectOpenCodeMajor() });
+  const { flavor, recorded } = await readProjectFlavor(projectRoot).catch(
+    (): { flavor: 'v2'; recorded: boolean } => ({ flavor: 'v2', recorded: false }),
+  );
+  return openCodeFlavorCheck({ flavor, recorded, hostMajor: await detectOpenCodeMajor() });
 };
 
 /** Check 2: Node runtime version >= 20.0.0. */

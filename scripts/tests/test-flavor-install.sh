@@ -121,6 +121,65 @@ assert_contains "$TEST_DIR/upd3.log" "--opencode v1" "...and says how to proceed
 (cd "$REPO_ROOT" && bash update.sh --install-dir "$V" --opencode v1) > "$TEST_DIR/upd4.log" 2>&1 \
     && pass "--opencode v1 updates an unrecorded v1 install" || fail "--opencode v1 updates an unrecorded v1 install"
 
+# --- markers: update.sh records the flavor; install.sh records it on an all-skipped re-run -----
+echo -e "\n${BOLD}flavor marker${NC}"
+
+# legacy v1 install (nested agents, no marker): --opencode v1 must leave a marker so a plain update works next
+G="$TEST_DIR/legacy-rec/.opencode"
+install essential --opencode v1 --install-dir="$G" > "$TEST_DIR/g1.log" 2>&1
+rm -f "$G/.oac-opencode"
+(cd "$REPO_ROOT" && bash update.sh --install-dir "$G" --opencode v1) > "$TEST_DIR/g2.log" 2>&1
+assert_contains "$G/.oac-opencode" "v1" "update.sh --opencode v1 records v1 on a legacy install"
+(cd "$REPO_ROOT" && bash update.sh --install-dir "$G") > "$TEST_DIR/g3.log" 2>&1 \
+    && pass "the next plain update is not refused" || fail "the next plain update is not refused"
+
+# --opencode v2 on a v1 install: refused clearly, non-zero, no success message, marker unchanged, files untouched
+echo "keep" > "$G/agent/core/openagent.md"
+if (cd "$REPO_ROOT" && bash update.sh --install-dir "$G" --opencode v2) > "$TEST_DIR/g4.log" 2>&1; then
+    fail "update.sh --opencode v2 on a v1 install exits non-zero"
+else
+    pass "update.sh --opencode v2 on a v1 install exits non-zero"
+fi
+if grep -q "Update complete" "$TEST_DIR/g4.log"; then fail "...and prints no success"; else pass "...and prints no success"; fi
+assert_contains "$TEST_DIR/g4.log" "oac update --opencode v2" "...and names the tool that migrates"
+assert_contains "$G/.oac-opencode" "v1" "...and leaves the marker on v1"
+assert_contains "$G/agent/core/openagent.md" "keep" "...and leaves the files alone"
+
+# update.sh on a fresh v2 install with no marker records v2
+rm -f "$D/.oac-opencode"
+(cd "$REPO_ROOT" && bash update.sh --install-dir "$D") > "$TEST_DIR/g5.log" 2>&1
+assert_contains "$D/.oac-opencode" "v2" "update.sh records v2 when it decides v2"
+
+# install.sh re-run where every file is skipped still writes the marker
+rm -f "$D/.oac-opencode"
+install essential --install-dir="$D" > "$TEST_DIR/g6.log" 2>&1
+assert_contains "$TEST_DIR/g6.log" "Skipped" "second install skipped everything"
+assert_contains "$D/.oac-opencode" "v2" "install.sh writes the marker even when every file was skipped"
+
+# ...but a run that wrote nothing does not flip a marker of the other flavor
+echo v1 > "$D/.oac-opencode"
+install essential --install-dir="$D" > "$TEST_DIR/g7.log" 2>&1
+assert_contains "$D/.oac-opencode" "v1" "an install that wrote nothing does not flip the recorded flavor"
+
+# --- registry paths cannot escape the install dir ----------------------------------------------
+echo -e "\n${BOLD}path guard${NC}"
+EVIL="$TEST_DIR/evil"
+mkdir -p "$EVIL/pkg/built-ai-configs/registry" "$EVIL/pkg/.opencode/agent"
+echo "payload" > "$EVIL/pkg/.opencode/agent/x.md"
+echo "payload" > "$EVIL/up.md"
+cat > "$EVIL/pkg/built-ai-configs/registry/registry.json" <<'JSON'
+{"version":"1.0.0","components":{"agents":[
+ {"id":"evil","name":"evil","type":"agent","path":"x/../../up.md","description":"x","tags":[],"dependencies":[],"category":"core"},
+ {"id":"abs","name":"abs","type":"agent","path":"/tmp/oac-escaped-abs.md","description":"x","tags":[],"dependencies":[],"category":"core"}
+],"subagents":[],"commands":[],"tools":[],"plugins":[],"contexts":[],"skills":[],"config":[]},
+"profiles":{"essential":{"name":"e","description":"e","components":["agent:evil","agent:abs"]}}}
+JSON
+rm -f /tmp/oac-escaped-abs.md
+(cd "$REPO_ROOT" && OAC_RAW_URL="file://$EVIL/pkg" REGISTRY_URL="file://$EVIL/pkg/built-ai-configs/registry/registry.json" bash install.sh essential --install-dir="$EVIL/proj/.opencode") > "$EVIL/log" 2>&1
+assert_no_file "$EVIL/proj/up.md" "a registry path with .. does not write outside the install dir"
+assert_no_file "/tmp/oac-escaped-abs.md" "an absolute registry path is not written"
+assert_contains "$EVIL/log" "unsafe registry path" "...and the refusal is reported"
+
 echo ""
 echo -e "${BOLD}Passed: $PASSED  Failed: $FAILED${NC}"
 [ "$FAILED" -eq 0 ]

@@ -3,10 +3,10 @@ import { updateFiles } from '../lib/installer.js';
 import { getPackageRoot, listBundledFiles } from '../lib/bundled.js';
 import { readManifest, writeManifest } from '../lib/manifest.js';
 import { readConfig, writeConfig, withOpenCodeFlavor, createDefaultConfig, type OacConfig } from '../lib/config.js';
-import { parseFlavor, transitionFlavor, type OpenCodeFlavor } from '../lib/flavor.js';
+import { hostMismatch, parseFlavor, transitionFlavor, type OpenCodeFlavor } from '../lib/flavor.js';
 import { mapTrackedFiles } from '../lib/flavor-map.js';
 import { detectOpenCodeMajor } from '../lib/opencode-host.js';
-import { readProjectFlavor } from '../lib/project-flavor.js';
+import { readFlavorMarker, readProjectFlavor } from '../lib/project-flavor.js';
 import { FULL_PROFILE_ID, getProfile, loadRegistry, resolveProfile, type Registry } from '../lib/registry.js';
 import { log, info, warn, error, success, dim, bold, verbose, setVerbose } from '../ui/logger.js';
 import { createSpinner, setDryRun } from '../ui/spinner.js';
@@ -76,6 +76,14 @@ export const resolveUpdateScope = (
 async function assertManifestExists(projectRoot: string): Promise<void> {
   const manifest = await readManifest(projectRoot);
   if (manifest === null) {
+    const marker = await readFlavorMarker(projectRoot);
+    if (marker !== null) {
+      error(
+        `This project was installed by install.sh (OpenCode ${marker}) and has no OAC manifest. ` +
+          `Run 'oac init' to adopt it (it keeps OpenCode ${marker}), or keep updating with update.sh.`,
+      );
+      process.exit(1);
+    }
     error('No manifest found. Run \'oac init\' first.');
     process.exit(1);
   }
@@ -257,7 +265,7 @@ async function handleUpdate(opts: UpdateOptions): Promise<void> {
     pruneStale: transition.action === 'migrate' || transition.action === 'switch',
     record: transition.action !== 'keep' || !project.recorded,
   };
-  if (hostMajor !== null && ((plan.flavor === 'v1') !== (hostMajor === 1))) {
+  if (hostMismatch(plan.flavor, hostMajor)) {
     warn(`Updating for OpenCode ${plan.flavor}, but OpenCode ${hostMajor} is on PATH. \`oac doctor\` explains the mismatch.`);
   }
 

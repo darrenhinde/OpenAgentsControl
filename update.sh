@@ -62,6 +62,9 @@ CUSTOM_INSTALL_DIR=""
 # install into the same .opencode/ paths as everything else.
 OPENCODE_FLAVOR=""
 
+UPDATED_COUNT=0
+FAILED_COUNT=0
+
 # Track backup files for cleanup on exit
 BACKUP_FILES=()
 
@@ -209,27 +212,55 @@ resolve_install_dir() {
 # Settle OPENCODE_FLAVOR to v1 or v2. An explicit --opencode wins; otherwise the marker written
 # by install.sh; otherwise v2. An install that predates the marker and still has nested agents
 # is the v1 layout: it is left alone and the user is pointed at the tool that migrates safely.
+#
+# This script never converts one layout into the other: it only refreshes files that already
+# exist, so asking for the other flavor than the install has is refused (it would 404 on every
+# file or overwrite v1 files with v2 content). `oac update --opencode vN` does the migration.
 resolve_flavor() {
     local install_dir="$1"
-    local requested
+    local requested recorded=""
     requested=$(printf '%s' "$OPENCODE_FLAVOR" | tr '[:upper:]' '[:lower:]')
     case "$requested" in
-        v1|1) OPENCODE_FLAVOR="v1"; return 0 ;;
-        v2|2) OPENCODE_FLAVOR="v2"; return 0 ;;
+        v1|1) requested="v1" ;;
+        v2|2) requested="v2" ;;
         "") ;;
         *) print_error "Unknown OpenCode version '${OPENCODE_FLAVOR}'. Use v1 or v2."; exit 1 ;;
     esac
 
     if [ -f "$install_dir/.oac-opencode" ]; then
-        requested=$(tr -d '[:space:]' < "$install_dir/.oac-opencode")
-        if [ "$requested" = "v1" ] || [ "$requested" = "v2" ]; then
-            OPENCODE_FLAVOR="$requested"
-            return 0
+        recorded=$(tr -d '[:space:]' < "$install_dir/.oac-opencode")
+        if [ "$recorded" != "v1" ] && [ "$recorded" != "v2" ]; then
+            recorded=""
         fi
     fi
 
+    local nested=false flat=false
+    { [ -d "$install_dir/agent/core" ] || [ -d "$install_dir/agent/subagents" ]; } && nested=true
+    [ -f "$install_dir/agent/openagent.md" ] && flat=true
+
+    if [ -n "$requested" ]; then
+        local actual="$recorded"
+        if [ -z "$actual" ]; then
+            if [ "$nested" = true ]; then actual="v1"
+            elif [ "$flat" = true ]; then actual="v2"
+            fi
+        fi
+        if [ -n "$actual" ] && [ "$actual" != "$requested" ]; then
+            print_error "This install is the OpenCode ${actual} layout; update.sh cannot convert it to ${requested}."
+            print_error "Migrate it with: oac update --opencode ${requested}   (or reinstall with install.sh --opencode ${requested})"
+            exit 1
+        fi
+        OPENCODE_FLAVOR="$requested"
+        return 0
+    fi
+
+    if [ -n "$recorded" ]; then
+        OPENCODE_FLAVOR="$recorded"
+        return 0
+    fi
+
     OPENCODE_FLAVOR="v2"
-    if [ -d "$install_dir/agent/core" ] || [ -d "$install_dir/agent/subagents" ]; then
+    if [ "$nested" = true ]; then
         print_warning "This install predates OpenCode v2 support (nested agents, no recorded version)."
         print_warning "Updating as v1 would need --opencode v1; v2 files are flat. Run 'oac update' to migrate it safely."
         print_error "Not updating an install of unknown OpenCode version. Re-run with --opencode v1 to stay on v1."
@@ -237,17 +268,32 @@ resolve_flavor() {
     fi
 }
 
+# Record the flavor this update was run for, so the next plain update is not refused again.
+record_flavor() {
+    printf '%s\n' "$OPENCODE_FLAVOR" > "$1/.oac-opencode"
+}
+
 #############################################################################
 # Update Logic
 #############################################################################
+
+# Same rule as install.sh and the CLI's isInstallablePath: relative, with no ".." segment.
+is_safe_relative_path() {
+    local p="${1//\\//}"
+    [ -n "$p" ] || return 1
+    case "$p" in
+        /*|[A-Za-z]:*|..|../*|*/..|*/../*) return 1 ;;
+    esac
+    return 0
+}
 
 update_component() {
     local path="$1"
     local install_dir="$2"
     local relative_path="${path#"$install_dir"/}"
 
-    # Guard: reject paths that escaped the install dir
-    if [[ "$relative_path" == /* ]] || [[ "$relative_path" == *..* ]]; then
+    # Guard: reject paths that escaped the install dir (absolute, or any ".." segment)
+    if ! is_safe_relative_path "$relative_path"; then
         print_warning "Skipping suspicious path: $path"
         return 1
     fi
@@ -317,6 +363,8 @@ update_all_components() {
     done < <(find "$install_dir" -name "*.sh" -type f -not -path "*/node_modules/*" -print0)
 
     print_info "Updated: $updated file(s), failed: $failed file(s)"
+    UPDATED_COUNT=$updated
+    FAILED_COUNT=$failed
 }
 
 #############################################################################
@@ -406,7 +454,19 @@ main() {
 
     update_all_components "$install_dir"
 
-    print_success "Update complete!"
+    # Nothing could be refreshed: this is a failure, not an update (never report success).
+    if [ "$UPDATED_COUNT" -eq 0 ] && [ "$FAILED_COUNT" -gt 0 ]; then
+        print_error "Update failed: none of the ${FAILED_COUNT} file(s) could be updated; the install is unchanged."
+        exit 1
+    fi
+
+    record_flavor "$install_dir"
+
+    if [ "$FAILED_COUNT" -gt 0 ]; then
+        print_warning "Update finished, but ${FAILED_COUNT} file(s) were left as they were (not in this version, or unreachable)."
+    else
+        print_success "Update complete!"
+    fi
 }
 
 main "$@"
