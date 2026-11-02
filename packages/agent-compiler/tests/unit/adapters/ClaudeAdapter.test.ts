@@ -563,6 +563,41 @@ describe("ClaudeAdapter", () => {
       expect(warnings[0]).toMatch(/'skill' has no Claude Code tool/);
     });
 
+    it("warns per granted tool whose scoped rules are dropped, naming agent, tool, count and rules", async () => {
+      // The widening this guards: Edit is granted by the override, but the canonical edit
+      // block denies secrets. Claude Code gets plain `Edit`, so the denies vanish -- and
+      // nothing used to say so.
+      const { warnings } = await adapter.fromCanonical(
+        canonical(
+          `  edit:\n    "*": "allow"\n    "**/*.env*": "deny"\n    "**/*.key": "deny"\n` +
+            `  bash:\n    "*": "deny"\n    "npx vitest *": "allow"\n    "rm -rf *": "ask"\n` +
+            `  read:\n    "*": "allow"\n`,
+          "",
+          override(`      tools: [Read, Edit, Bash]\n`)
+        )
+      );
+
+      const scoped = warnings.filter((w) => /scoped rule/.test(w));
+
+      expect(scoped).toHaveLength(2);
+      const edit = scoped.find((w) => w.includes("'Edit'"))!;
+      expect(edit).toContain("probe-agent");
+      expect(edit).toContain("3 scoped rule(s)");
+      expect(edit).toContain("deny **/*.env*");
+      expect(edit).toContain("deny **/*.key");
+      const bash = scoped.find((w) => w.includes("'Bash'"))!;
+      expect(bash).toContain("ask rm -rf *");
+      expect(scoped.some((w) => w.includes("'Read'"))).toBe(false);
+    });
+
+    it("does not warn about scoped rules for a tool that is not granted", async () => {
+      const { warnings } = await adapter.fromCanonical(
+        canonical(`  bash:\n    "*": "deny"\n    "git log*": "allow"\n`)
+      );
+
+      expect(warnings.some((w) => /scoped rule/.test(w))).toBe(false);
+    });
+
     it("warns that temperature and maxSteps cannot be carried", async () => {
       const { warnings } = await adapter.fromCanonical(
         canonical(`  read:\n    "*": "allow"\n`, "temperature: 0.1\nmaxSteps: 10\n")

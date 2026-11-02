@@ -350,6 +350,12 @@ export class ClaudeAdapter extends BaseAdapter {
     }
 
     if (input.override?.tools) {
+      if (input.permission) {
+        warnings.push(
+          ...droppedScopeWarnings(input.agentId, input.permission, input.override.tools)
+        );
+      }
+
       return this.applyOverride(input.override.tools, input.agentId);
     }
 
@@ -752,6 +758,41 @@ function unmappableCapabilityWarnings(permissions: GranularPermission): string[]
         `${entry.rules.length} rule(s) are dropped because Claude Code exposes no tool this ` +
         `capability maps to. Claude Code will not enforce them.`
     );
+}
+
+/**
+ * Warn for each GRANTED Claude tool whose canonical rules were scoped, and so are dropped.
+ *
+ * `tools:` is on/off, so granting `Edit` or `Bash` hands Claude Code the tool unscoped: deny
+ * globs (`**\/*.env*`), bash allowlists and `ask` rules do not travel. That is more permissive
+ * than the OpenCode build of the same agent, and must be said out loud. A lone `"*"` rule is
+ * a plain allow/deny and loses nothing, so it is skipped. Ungranted tools are in
+ * `disallowedTools`, which is stricter, not looser, so they are not reported.
+ */
+function droppedScopeWarnings(
+  agentId: string,
+  permissions: GranularPermission,
+  granted: readonly string[]
+): string[] {
+  const grant = new Set(granted);
+
+  return CLAUDE_TOOL_BINDINGS.filter((binding) => grant.has(binding.tool)).flatMap((binding) => {
+    const rules = rulesFor(permissions, binding.capability);
+
+    if (rules.length === 0 || (rules.length === 1 && rules[0]?.pattern === "*")) {
+      return [];
+    }
+
+    const MAX_SHOWN = 6;
+    const shown = rules.slice(0, MAX_SHOWN).map((rule) => `${rule.action} ${rule.pattern}`);
+    const more = rules.length > MAX_SHOWN ? `, +${rules.length - MAX_SHOWN} more` : "";
+
+    return [
+      `⚠️  Agent '${agentId}': Claude Code tool '${binding.tool}' is granted unscoped: ` +
+        `${rules.length} scoped rule(s) [${shown.join(", ")}${more}] are dropped because ` +
+        `Claude Code's tools: list is on/off. Claude Code will not enforce them.`,
+    ];
+  });
 }
 
 /**
