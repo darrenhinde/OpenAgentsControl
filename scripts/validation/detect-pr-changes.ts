@@ -12,7 +12,7 @@ export type ChangeFlags = {
    * the canonical source, the build that reads it, and the committed output itself.
    *
    * Separate from `has-packages` on purpose. An agent-library-only edit must run the drift gate but
-   * has no reason to run the cli/compatibility-layer test suites, and a PR that hand-edits
+   * has no reason to run the cli/agent-compiler test suites, and a PR that hand-edits
    * `.opencode/agent/**` alone touches no `packages/**` path at all — folding this into
    * `has-packages` would either skip the gate on exactly the change it exists to catch, or
    * run every package suite on every prose tweak.

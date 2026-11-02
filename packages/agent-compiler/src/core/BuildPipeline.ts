@@ -69,7 +69,8 @@ import {
 import { ClaudeAdapter } from "../adapters/ClaudeAdapter.js";
 import type { RegistryTarget } from "./RegistryTargets.js";
 import { BUILD_TARGETS, emitsTo, type BuildTarget } from "./TargetPolicy.js";
-import { AgentIdResolver } from "./AgentIdResolver.js";
+import { AgentIdResolutionError, AgentIdResolver, isGlob } from "./AgentIdResolver.js";
+import { rewriteBodyRefs } from "./DelegationRewriter.js";
 import { HostBlocksError } from "./HostBlocks.js";
 import { OpenCodeAdapter } from "../adapters/OpenCodeAdapter.js";
 import { OPENCODE_AGENT_ROOT } from "../adapters/opencode/surgery.js";
@@ -376,6 +377,8 @@ async function emitAgent(
     });
   });
 
+  assertClaudeDelegatesResolve(agent, emission.content, resolver, sourcePath);
+
   return {
     path: emission.path,
     content: emission.content,
@@ -386,6 +389,42 @@ async function emitAgent(
 }
 
 /**
+ * A Claude Code agent that delegates must delegate to agents that ship to Claude Code. The
+ * OpenCode adapters get this for free (their `permission.task` keys and body calls go through
+ * the target resolver); Claude's adapter takes no resolver, so the same three delegation
+ * signals are checked here against the claude-code roster: `subagent:<id>` dependencies,
+ * `permission.task` keys, and structured calls in the emitted body.
+ */
+function assertClaudeDelegatesResolve(
+  agent: CanonicalAgentFile,
+  emitted: string,
+  resolver: AgentIdResolver,
+  sourcePath: string,
+): void {
+  const refs = [
+    ...agent.oac.dependencies.filter((dep) => dep.type === "subagent").map((dep) => dep.id),
+    ...taskKeys(agent.frontmatter.permission),
+  ].filter((ref) => !isGlob(ref));
+
+  try {
+    for (const ref of refs) resolver.idFor("opencode", ref);
+    rewriteBodyRefs(emitted, "opencode", resolver);
+  } catch (cause) {
+    if (!(cause instanceof AgentIdResolutionError)) throw cause;
+    throw new Error(
+      `${sourcePath}: agent "${agent.oac.id}" on target "claude-code": ${cause.message}`,
+      { cause },
+    );
+  }
+}
+
+/** The `permission.task` keys of a canonical permission block, if it has any. */
+function taskKeys(permission: unknown): string[] {
+  const task = (permission as { task?: unknown } | undefined)?.task;
+  return typeof task === "object" && task !== null ? Object.keys(task) : [];
+}
+
+/**
  * The resolver for one target: its roster is only the agents that emit there, so a delegation
  * to an agent that does not ship to `target` cannot resolve and fails the build.
  */
@@ -393,13 +432,16 @@ function resolverFor(agents: readonly CanonicalAgentFile[], target: BuildTarget)
   return AgentIdResolver.fromCanonical(agents.filter((candidate) => emitsTo(candidate, target)));
 }
 
-/** Two agents landing on one output path would silently overwrite each other. */
+/**
+ * Two agents landing on one output path would silently overwrite each other. Keyed on the
+ * lower-cased path: `Helper.md` and `helper.md` are one file on a case-insensitive filesystem.
+ */
 function assertUniqueOutputPaths(files: readonly BuildFile[], agents: readonly CanonicalAgentFile[]): void {
   const sourceOf = new Map(agents.map((agent) => [agent.oac.id, `${DEFAULTS.contentRoot}/${agent.relativePath}`]));
   const owners = new Map<string, BuildFile>();
   for (const file of files) {
     if (file.agentId === undefined) continue;
-    const other = owners.get(file.path);
+    const other = owners.get(file.path.toLowerCase());
     if (other !== undefined) {
       throw new Error(
         `output path collision: "${file.path}" is produced by both ${sourceOf.get(other.agentId!)} ` +
@@ -407,7 +449,7 @@ function assertUniqueOutputPaths(files: readonly BuildFile[], agents: readonly C
           `(agent "${file.agentId}", target ${file.target}). Give one a distinct name.`,
       );
     }
-    owners.set(file.path, file);
+    owners.set(file.path.toLowerCase(), file);
   }
 }
 

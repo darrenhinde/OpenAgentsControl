@@ -25,7 +25,7 @@
 #
 set -euo pipefail
 
-# `oac build` resolves content/ against the CWD — from anywhere else it exits 1 with ENOENT.
+# `oac build` resolves agent-library/ against the CWD — from anywhere else it exits 1 with ENOENT.
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 

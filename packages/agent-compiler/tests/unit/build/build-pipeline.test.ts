@@ -29,6 +29,7 @@ import {
   serializeManifest,
   write,
 } from "../../../src/core/BuildPipeline.js";
+import { ReferenceResolver } from "../../../src/core/ReferenceResolver.js";
 import { repoPath } from "../../support/pending.js";
 
 const REPO = repoPath();
@@ -681,7 +682,41 @@ describe("per-target delegation", () => {
   });
 });
 
+describe("claude-code delegation roster", () => {
+  it("fails a claude-code agent that delegates to an agent excluded from claude-code", async () => {
+    put("agent-library/agents/subagents/test/boss.md",
+      canonicalAgent("boss", ["claude-code"]).replace("  targets:", "  dependencies:\n    - subagent:ghost\n  targets:"));
+    put("agent-library/agents/subagents/test/ghost.md",
+      canonicalAgent("ghost", ["opencode"]));
+
+    await expect(plan({ root })).rejects.toThrow(/boss.*claude-code.*ghost/s);
+  });
+
+});
+
+describe("dead references in the planned tree", () => {
+  it("are found from the plan itself, before anything is written", async () => {
+    put("agent-library/agents/subagents/test/bad.md",
+      canonicalAgent("bad", ["opencode"]).replace("  targets:", "  dependencies:\n    - context:nope-nothing\n  targets:"));
+
+    const { files } = await plan({ root });
+    const pending = new Map(files.map((file) => [file.path, file.content]));
+    const dead = await new ReferenceResolver(root, undefined, pending).findDeadReferences();
+
+    expect(dead.map((d) => d.ref)).toContain("context:nope-nothing");
+  });
+});
+
 describe("output path collisions", () => {
+  it("treats names differing only in case as a collision (case-insensitive filesystems)", async () => {
+    const named = (id: string, name: string) =>
+      canonicalAgent(id, ["claude-code"]).replace("      tools: [Read]", `      name: ${name}\n      tools: [Read]`);
+    put("agent-library/agents/subagents/test/one.md", named("one", "Helper"));
+    put("agent-library/agents/subagents/test/two.md", named("two", "helper"));
+
+    await expect(plan({ root })).rejects.toThrow(/output path collision/);
+  });
+
   it("fails when two agents land on one output path, naming both sources", async () => {
     const withName = (id: string) =>
       canonicalAgent(id, ["claude-code"]).replace("      tools: [Read]", "      name: clash\n      tools: [Read]");

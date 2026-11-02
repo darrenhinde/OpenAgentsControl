@@ -184,7 +184,15 @@ export class ReferenceResolver {
    * @param root - Repository root. Everything is resolved relative to this, so the resolver
    *               is testable against a fixture tree rather than a hardcoded path.
    */
-  constructor(root: string, registryFile = "built-ai-configs/registry/registry.json") {
+  constructor(
+    root: string,
+    registryFile = "built-ai-configs/registry/registry.json",
+    /**
+     * Repo-relative path -> content a build is about to write. These shadow the same paths on
+     * disk, so the resolver can describe the tree AS IT WILL BE after the write.
+     */
+    private readonly pending: ReadonlyMap<string, string> = new Map()
+  ) {
     this.root = root;
     this.registryFile = registryFile;
   }
@@ -193,7 +201,7 @@ export class ReferenceResolver {
   registry(): Registry {
     if (this.registryCache === undefined) {
       this.registryCache = JSON.parse(
-        readFileSync(join(this.root, this.registryFile), "utf-8")
+        this.pending.get(this.registryFile) ?? readFileSync(join(this.root, this.registryFile), "utf-8")
       ) as Registry;
     }
     return this.registryCache;
@@ -316,12 +324,20 @@ export class ReferenceResolver {
    * `validate-registry.sh` never looks here either — 3 of the 4 known dead refs live here.
    */
   frontmatterReferences(dir = ".opencode"): Reference[] {
-    return listFiles(join(this.root, dir)).flatMap((file) => {
-      const source = toPosixRelative(this.root, file);
+    // On-disk files, with pending content shadowing them and pending-only files added.
+    const sources = new Map<string, () => string>();
+    for (const file of listFiles(join(this.root, dir))) {
+      sources.set(toPosixRelative(this.root, file), () => readFileSync(file, "utf-8"));
+    }
+    for (const [path, content] of this.pending) {
+      if (path.startsWith(`${dir}/`) && path.endsWith(".md")) sources.set(path, () => content);
+    }
+
+    return [...sources.keys()].sort(compare).flatMap((source) => {
       let data: Record<string, unknown>;
 
       try {
-        ({ data } = matter(readFileSync(file, "utf-8")));
+        ({ data } = matter(sources.get(source)!()));
       } catch {
         // Unparseable frontmatter is a schema defect, owned by the schema suite. Skipping it
         // keeps this collector about reference rot only.
