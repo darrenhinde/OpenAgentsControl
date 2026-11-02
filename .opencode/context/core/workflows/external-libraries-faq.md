@@ -162,4 +162,4 @@ Not listed? ExternalScout can still fetch from official docs.
 
 - `external-libraries-workflow.md` - Core workflow
 - `external-libraries-scenarios.md` - Common scenarios
-- `.opencode/agent/subagents/core/externalscout.md` - ExternalScout agent
+- `.opencode/agent/externalscout.md` (OpenCode v2; v1 nests it under `agent/subagents/core/`) - ExternalScout agent

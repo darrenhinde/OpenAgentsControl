@@ -100,11 +100,11 @@ cd evals/framework && npm run eval:sdk -- --agent=core/opencoder --pattern="**/s
 ### 4. **Stage Files Intelligently**
 **Auto-stage based on change type:**
 - If modifying evals framework → stage `evals/framework/`
-- If modifying core agents → stage `.opencode/agent/core/`
-- If modifying content agents → stage `.opencode/agent/content/`
-- If modifying data agents → stage `.opencode/agent/data/`
-- If modifying meta agents → stage `.opencode/agent/meta/`
-- If modifying subagents → stage `.opencode/agent/subagents/`
+- If modifying core agents → stage `.opencode/agent/` (v1 installs: `agent/core/`)
+- If modifying content agents → stage `.opencode/agent/` (v1 installs: `agent/content/`)
+- If modifying data agents → stage `.opencode/agent/` (v1 installs: `agent/data/`)
+- If modifying meta agents → stage `.opencode/agent/` (v1 installs: `agent/meta/`)
+- If modifying subagents → stage `.opencode/agent/` (v1 installs: `agent/subagents/`)
 - If modifying commands → stage `.opencode/command/`
 - If modifying context → stage `.opencode/context/`
 - If modifying scripts → stage `scripts/`

@@ -318,5 +318,4 @@ After completing a session:
 - **Session Template**: `.tmp/sessions/{YYYY-MM-DD}-{task-slug}/`
 - **Task Template**: `.tmp/tasks/{task-slug}/`
 - **Related**:
-  - guides/compatibility-layer-workflow.md (example session)
   - standards/code-quality.md (what to follow)
