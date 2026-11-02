@@ -55,10 +55,12 @@ export async function loadCompiledClaudeAgents(
   for (const [path, entry] of Object.entries(ledger.files ?? {})) {
     if (entry.target !== 'claude-code' || !entry.agentId || !path.startsWith(`${COMPILED_CLAUDE_DIR}/`)) continue
     try {
-      compiled.set(normalizeId(entry.agentId), {
-        fileName: basename(path),
-        content: await readFile(join(packageRoot, path), 'utf-8'),
-      })
+      const file = { fileName: basename(path), content: await readFile(join(packageRoot, path), 'utf-8') }
+      compiled.set(normalizeId(entry.agentId), file)
+      // The compiled file can be named differently from the agent id (tester -> test-engineer.md), and a v1
+      // install names the agent by its display name (TestEngineer): key by the file name too so both match.
+      const byFile = normalizeId(basename(path, '.md'))
+      if (!compiled.has(byFile)) compiled.set(byFile, file)
     } catch {
       // Listed but not shipped: that agent falls back to conversion.
     }
@@ -209,8 +211,8 @@ async function resolveTargets(
       .map((d) => d.type)
 
     if (present.length === 0) {
-      warn('No supported IDEs detected. Create a .claude/ directory or CLAUDE.md first.')
-      info('Tip: Run `oac apply claude` to generate CLAUDE.md regardless.')
+      warn('No supported IDEs detected. Create a .claude/ directory first.')
+      info('Tip: Run `oac apply claude` to write .claude/agents/ regardless.')
     } else {
       info(`Detected IDEs: ${present.map(getIdeDisplayName).join(', ')}`)
     }

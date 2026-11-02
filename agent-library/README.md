@@ -83,7 +83,8 @@ enforce OpenCode's per-glob `permission:` rules, so you state the tool list by h
 - The source **directory** decides the OpenCode v1 folder: `agent-library/agents/subagents/utils/x.md` becomes
   `built-ai-configs/opencode-v1/agent/subagents/utils/<file name>.md`. `oac.category` does not move it
   (verified: category `subagents/code` in the `utils/` directory still built into `.../subagents/utils/`).
-- v2 and Claude Code name their file after `oac.id`; v1 keeps the **source file name**. Name the file after the id and the three agree.
+- v2 names its file after `oac.id`; Claude Code uses `oac.overrides.claude-code.name` (default: the id); v1 keeps the **source file name**. Name the source file after the id and don't override the Claude name, and the three agree (an agent like `tester` deliberately differs: `tester.md` on v2, `test-engineer.md` on v1 and Claude).
+- Write `permission.task` as a block mapping, one key per line. A flow-style `task: { "*": deny, x: allow }` fails the build ("permission.task is a flow-style mapping"), because the delegation ids in its keys are rewritten per host. Other permission keys may use either style.
 
 Declaring `opencode` also builds the v1 copy. Declaring only `opencode-v1` makes the agent v1-only.
 

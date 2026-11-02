@@ -161,7 +161,7 @@ oac update            # CLI installs (skips files you have modified; --yolo to o
 ```
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash   # shell installs
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash   # shell installs (overwrites files you edited, no backup; `oac update` protects edits)
 ```
 
 > Use `--install-dir PATH` with the shell updater if you installed to a custom location (e.g. `~/.config/opencode`).
