@@ -170,4 +170,4 @@ Use the full test suite (71 tests) for:
 - 🔬 Edge case coverage
 - 🔬 Regression testing
 
-See `evals/agents/openagent/CORE_TESTS.md` for detailed documentation.
+See [evals/CORE_TEST_SUITE.md](../evals/CORE_TEST_SUITE.md) for the core suite.

@@ -18,12 +18,16 @@ make check-canonical-drift
 bash scripts/registry/validate-registry.sh
 ```
 
-Add the agent id to a system profile in `agent-library/profiles/system/<profile>.json` (`agents` list) or
-users cannot install it. Then rebuild; `profiles.<id>.components` in the registries is generated from it.
+Add the agent id to a system profile in `agent-library/profiles/system/<profile>.json` (`agents` list; subagents
+go in the same list) or users cannot install it. Order matters today: build first so the id is registered, then add it to
+the profile, then build again (a profile that lists an unregistered id fails the build). `profiles.<id>.components` in the
+registries is generated from it.
+<!-- TODO-after-code: (2) adding a new agent and listing it in a system profile will work in ONE build; replace the order sentence above. -->
 
 Directories under `agent-library/agents/`: `core/`, `content/`, `data/`, `meta/`,
-`subagents/{code,core,development,planning,system-builder,test,utils}/`. The directory decides the
-OpenCode v1 output path; `oac.category` is metadata.
+`subagents/{code,core,development,planning,system-builder,test,utils}/`. The source directory decides the
+OpenCode v1 output folder; `oac.category` is metadata and moves nothing (verified by building). v2 and Claude Code
+name the output file after `oac.id`; v1 keeps the source file name.
 
 ## File shape
 
@@ -132,6 +136,7 @@ After deleting an agent, the next `make build-canonical` removes its generated f
 - [ ] `make build-canonical` clean; `make check-canonical-drift` passes
 - [ ] In a system profile; `bash scripts/registry/validate-registry.sh` passes
 - [ ] Output committed with the source
+- [ ] `make check-core` passes
 
 ## Related
 

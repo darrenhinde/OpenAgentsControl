@@ -44,9 +44,9 @@ When changing an agent, edit its canonical file, then run `make build-canonical`
 - Shipping is OPT-OUT: omit `oac.targets` to ship to every build target, and opt out per host with `oac.exclude`; declare `targets` explicitly only for exceptions (see `standards/agent-frontmatter.md`). Put target-only settings in `oac.overrides`.
 - Do not merge metadata from a second source.
 
-## Eval runner exception
+## Eval runner
 
-`.opencode/agent/eval-runner.md` is an intentionally registry-carried evaluation harness. It is not canonical agent content and is not a replacement for `oac:` metadata. Its exception does not restore the retired metadata sidecar or a sidecar-merge workflow.
+`eval-runner` is a normal canonical agent: `agent-library/agents/subagents/test/eval-runner.md`, with its own `oac:` block, built like every other agent. There is no exception and no metadata sidecar.
 
 ## Related
 

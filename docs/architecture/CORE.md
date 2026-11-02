@@ -58,7 +58,7 @@ lint findings should be zero.
 
 ## Adding to the core
 
-- New agent: one file in `agent-library/agents/**`, then `make build-canonical`.
+- New agent: one file in `agent-library/agents/**`, then `make build-canonical`; steps in [agent-library/README.md](../../agent-library/README.md#the-workflow).
 - New host: one adapter in `packages/agent-compiler/src/adapters/` and one entry in the target
   tables in `core/`. Anything the host cannot express must produce a degradation warning.
 - Never hand-edit a generated path from the table above. Hand-maintained v1 assets are edited in place.

@@ -322,7 +322,6 @@ bun run scripts/registry/check-dependencies.ts --verbose
 
 ## Related Documentation
 
-- [Registry Structure](REGISTRY_STRUCTURE.md) - How built-ai-configs/registry/registry.json is organized
-- [Adding Components](../guides/ADDING_COMPONENTS.md) - Step-by-step guide
+- [Contributing: Registry](../contributing/CONTRIBUTING.md#registry) - How components are registered
 - [ContextScout Fix](CONTEXTSCOUT_FIX.md) - Example of fixing missing dependencies
 - [Registry Fixes Summary](REGISTRY_FIXES_SUMMARY.md) - Previous fixes made
