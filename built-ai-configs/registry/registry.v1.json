@@ -1283,22 +1283,16 @@
         "category": "standard"
       },
       {
-        "id": "agents",
-        "name": "Agents",
+        "id": "canonical-build",
+        "name": "Canonical Build",
         "type": "context",
-        "path": ".opencode/context/openagents-repo/core-concepts/agents.md",
-        "description": "Brief description of what this agent does",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "categories",
-        "name": "Categories",
-        "type": "context",
-        "path": ".opencode/context/openagents-repo/core-concepts/categories.md",
-        "description": "Core Concept: Category System",
-        "tags": [],
+        "path": ".opencode/context/openagents-repo/core-concepts/canonical-build.md",
+        "description": "How agents are authored once in agent-library and built for every AI tool",
+        "tags": [
+          "build",
+          "canonical",
+          "agents"
+        ],
         "dependencies": [],
         "category": "standard"
       },
@@ -1518,16 +1512,6 @@
         "type": "context",
         "path": ".opencode/context/openagents-repo/guides/subagent-invocation.md",
         "description": "Guide: Subagent Invocation",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "profile-validation",
-        "name": "Profile Validation",
-        "type": "context",
-        "path": ".opencode/context/openagents-repo/guides/profile-validation.md",
-        "description": "Guide: Profile Validation",
         "tags": [],
         "dependencies": [],
         "category": "standard"
@@ -1981,20 +1965,6 @@
         "category": "standard"
       },
       {
-        "id": "context-bundle-template",
-        "name": "Context Bundle Template",
-        "type": "context",
-        "path": ".opencode/context/openagents-repo/blueprints/context-bundle-template.md",
-        "description": "Template for creating context bundles when delegating tasks to subagents",
-        "tags": [
-          "template",
-          "delegation",
-          "context"
-        ],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
         "id": "task-commands",
         "name": "Task Commands",
         "type": "context",
@@ -2416,7 +2386,7 @@
         ],
         "dependencies": [
           "context:external-libraries-workflow",
-          "context:adding-agent-basics",
+          "context:authoring-agents",
           "context:adding-skill-basics"
         ],
         "category": "standard"
@@ -2773,19 +2743,6 @@
         "category": "navigation"
       },
       {
-        "id": "openagents-repo-blueprints-navigation",
-        "name": "Navigation: OPENAGENTS REPO BLUEPRINTS",
-        "type": "context",
-        "path": ".opencode/context/openagents-repo/blueprints/navigation.md",
-        "description": "Navigation guide for openagents repo blueprints",
-        "tags": [
-          "navigation",
-          "guide"
-        ],
-        "dependencies": [],
-        "category": "navigation"
-      },
-      {
         "id": "openagents-repo-plugins-navigation",
         "name": "Navigation: OPENAGENTS REPO PLUGINS",
         "type": "context",
@@ -3075,15 +3032,29 @@
         "category": "standard"
       },
       {
-        "id": "adding-agent-basics",
-        "name": "Adding Agent - Basics",
+        "id": "authoring-agents",
+        "name": "Authoring Agents",
         "type": "context",
-        "path": ".opencode/context/openagents-repo/guides/adding-agent-basics.md",
-        "description": "Basic guide for adding new agents",
+        "path": ".opencode/context/openagents-repo/guides/authoring-agents.md",
+        "description": "Author flow, oac block fields, overrides and common build errors",
         "tags": [
           "guides",
           "agents",
-          "basics"
+          "authoring"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "compiler-development",
+        "name": "Compiler Development",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/compiler-development.md",
+        "description": "Changing the compiler or CLI, adding a host, tests and make check-core",
+        "tags": [
+          "guides",
+          "compiler",
+          "build"
         ],
         "dependencies": [],
         "category": "standard"
