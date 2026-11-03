@@ -14,7 +14,7 @@ The Repository Manager is a meta agent specifically designed for managing develo
 
 ### What's New in v2.0
 
-- ✅ **Lazy Context Loading** - Uses `contextscout` for dynamic context discovery
+- ✅ **Lazy Context Loading** - Uses `context-scout` for dynamic context discovery
 - ✅ **Smart Delegation** - Session files for complex tasks, inline context for simple
 - ✅ **Predictable Workflow** - Same 6-stage process every time
 - ✅ **No Hardcoded Paths** - Adapts to any repo structure
@@ -31,14 +31,14 @@ While `openagent` is a universal agent for any project, `repo-manager` is specia
 ## Key Features
 
 ### 1. **Lazy Context Loading**
-- Uses `contextscout` subagent for dynamic discovery
+- Uses `context-scout` subagent for dynamic discovery
 - Loads context **just-in-time** (after approval, before execution)
 - No hardcoded paths - adapts to repo changes
 - Only loads what's needed for the specific task
 
 ### 2. **Smart Delegation Strategy**
 - **Complex tasks** (4+ files, >60min) → Session file + task-manager
-- **Simple specialists** (tester, reviewer) → Inline context
+- **Simple specialists** (test-engineer, code-reviewer) → Inline context
 - **Direct execution** (1-3 files) → No delegation
 
 ### 3. **Session-Based Coordination**
@@ -54,7 +54,7 @@ While `openagent` is a universal agent for any project, `repo-manager` is specia
 
 ### 5. **Automatic Documentation Updates**
 - Identifies documentation affected by changes
-- Updates docs automatically or delegates to documentation subagent
+- Updates docs automatically or delegates to doc-writer subagent
 - Keeps README files, guides, and context files current
 
 ### 6. **Validation Integration**
@@ -105,7 +105,7 @@ Every task follows the same predictable workflow:
 ┌─────────────────────────────────────────────────────────────┐
 │ STAGE 3: LOAD CONTEXT (Lazy Loading)                        │
 │ - Load quick-start.md (always)                              │
-│ - Delegate to contextscout for discovery               │
+│ - Delegate to context-scout for discovery               │
 │ - Load discovered context files                             │
 │ - Extract key requirements                                  │
 └─────────────────────────────────────────────────────────────┘
@@ -137,7 +137,7 @@ Every task follows the same predictable workflow:
 
 ## Lazy Context Loading (Stage 3)
 
-Instead of hardcoding context file paths, repo-manager uses **contextscout** for dynamic discovery:
+Instead of hardcoding context file paths, repo-manager uses **context-scout** for dynamic discovery:
 
 ### How It Works
 
@@ -146,7 +146,7 @@ Instead of hardcoding context file paths, repo-manager uses **contextscout** for
    Read: .opencode/context/openagents-repo/quick-start.md
    ```
 
-2. **Delegate to contextscout** for discovery
+2. **Delegate to context-scout** for discovery
    ```javascript
     task(
       subagent_type="ContextScout",
@@ -189,7 +189,7 @@ Repo-manager uses three delegation strategies based on task complexity:
 
 **When**: 4+ files, >60min, complex dependencies, task breakdown needed
 
-**Subagents**: task-manager, documentation
+**Subagents**: task-manager, doc-writer
 
 **Process**:
 1. Create session directory: `.tmp/sessions/{timestamp}-{task-slug}/`
@@ -215,9 +215,9 @@ task(
 
 ### Strategy 2: Inline Context Delegation (Simple Specialists)
 
-**When**: Simple delegation to specialists (tester, reviewer, coder-agent)
+**When**: Simple delegation to specialists (test-engineer, code-reviewer, coder-agent)
 
-**Subagents**: tester, reviewer, coder-agent, build-agent
+**Subagents**: test-engineer, code-reviewer, coder-agent, build-agent
 
 **Process**:
 1. No session file needed
@@ -261,16 +261,16 @@ task(
 | Subagent | Purpose | Context Strategy |
 |----------|---------|------------------|
 | **task-manager** | Break down complex features into atomic subtasks | Session file |
-| **contextscout** | Find and retrieve relevant context files | None (discovery) |
-| **documentation** | Generate/update comprehensive documentation | Session file |
+| **context-scout** | Find and retrieve relevant context files | None (discovery) |
+| **doc-writer** | Generate/update comprehensive documentation | Session file |
 
 ### Code Subagents (Implementation & Quality)
 
 | Subagent | Purpose | Context Strategy |
 |----------|---------|------------------|
 | **coder-agent** | Execute simple coding subtasks | Inline |
-| **tester** | Write tests following TDD | Inline |
-| **reviewer** | Code review, security, quality checks | Inline |
+| **test-engineer** | Write tests following TDD | Inline |
+| **code-reviewer** | Code review, security, quality checks | Inline |
 | **build-agent** | Type checking, build validation | Inline |
 
 ---
@@ -341,7 +341,7 @@ Status: in_progress
 2. **Plan**: Present plan to create 4 files, request approval
 3. **LoadContext**:
    - Load quick-start.md
-   - Delegate to contextscout: "Find context for agent-creation"
+   - Delegate to context-scout: "Find context for agent-creation"
    - Load discovered files: agents.md, adding-agent.md, code.md
    - Extract: frontmatter format, category structure, naming conventions
 4. **Execute**: Direct execution (4 files, straightforward)
@@ -365,7 +365,7 @@ Status: in_progress
 2. **Plan**: Present plan to delegate to task-manager, request approval
 3. **LoadContext**:
    - Load quick-start.md
-   - Delegate to contextscout: "Find context for eval framework development"
+   - Delegate to context-scout: "Find context for eval framework development"
    - Load discovered files: evals.md, code.md, tests.md, patterns.md
    - Extract: modular patterns, test requirements, eval structure
 4. **Execute**: Session delegation
@@ -375,10 +375,10 @@ Status: in_progress
    - Implement subtasks (delegate to coder-agent or execute directly)
 5. **Validate**:
    - Run tests
-   - Delegate to tester for validation
-   - Delegate to reviewer for quality check
+   - Delegate to test-engineer for validation
+   - Delegate to code-reviewer for quality check
 6. **Complete**:
-   - Delegate to documentation for docs update
+   - Delegate to doc-writer for docs update
    - Summarize changes
    - Cleanup session files
 
@@ -390,13 +390,13 @@ Status: in_progress
 
 | Scenario | Context Loading | Session File? | Delegation |
 |----------|----------------|---------------|------------|
-| Simple agent creation | Lazy (contextscout) | ❌ No | None (direct) |
-| Complex feature (4+ files) | Lazy (contextscout) | ✅ Yes | task-manager |
-| Write tests | Lazy (contextscout) | ❌ No | tester (inline) |
-| Code review | Lazy (contextscout) | ❌ No | reviewer (inline) |
-| Simple implementation | Lazy (contextscout) | ❌ No | coder-agent (inline) |
-| Comprehensive docs | Lazy (contextscout) | ✅ Yes | documentation |
-| Find context files | None (discovery agent) | ❌ No | contextscout |
+| Simple agent creation | Lazy (context-scout) | ❌ No | None (direct) |
+| Complex feature (4+ files) | Lazy (context-scout) | ✅ Yes | task-manager |
+| Write tests | Lazy (context-scout) | ❌ No | test-engineer (inline) |
+| Code review | Lazy (context-scout) | ❌ No | code-reviewer (inline) |
+| Simple implementation | Lazy (context-scout) | ❌ No | coder-agent (inline) |
+| Comprehensive docs | Lazy (context-scout) | ✅ Yes | doc-writer |
+| Find context files | None (discovery agent) | ❌ No | context-scout |
 
 ---
 
@@ -411,7 +411,7 @@ Status: in_progress
 
 ### Context Awareness
 - Load quick-start.md for every task
-- Use contextscout for dynamic discovery
+- Use context-scout for dynamic discovery
 - Apply standards from core/standards/
 - Follow workflows from core/workflows/
 - Reference context files (don't duplicate content)
@@ -435,7 +435,7 @@ Status: in_progress
 ## Critical Rules
 
 1. **Approval Gate**: Request approval before ANY execution (bash, write, edit, task)
-2. **Context First**: Load repo context BEFORE executing (lazy, via contextscout)
+2. **Context First**: Load repo context BEFORE executing (lazy, via context-scout)
 3. **Stop on Failure**: STOP on test fail/errors - NEVER auto-fix
 4. **Report First**: On fail: REPORT→PROPOSE FIX→REQUEST APPROVAL→FIX
 5. **Confirm Cleanup**: Confirm before deleting session files
@@ -469,7 +469,7 @@ npm run eval:sdk -- --agent=meta/repo-manager --pattern="smoke-test.yaml"
 
 | Aspect | v1.0 | v2.0 |
 |--------|------|------|
-| **Context Loading** | Upfront (hardcoded paths) | Lazy (contextscout) |
+| **Context Loading** | Upfront (hardcoded paths) | Lazy (context-scout) |
 | **Session Files** | Always creates bundles | Only for complex tasks |
 | **Context Passing** | Always via files | Smart (inline vs session) |
 | **Workflow Stages** | 8 stages | 6 stages |
@@ -481,12 +481,12 @@ npm run eval:sdk -- --agent=meta/repo-manager --pattern="smoke-test.yaml"
 
 ## Principles
 
-1. **Lazy Loading**: Fetch context when needed via contextscout, not before
+1. **Lazy Loading**: Fetch context when needed via context-scout, not before
 2. **Smart Delegation**: Session files for complex, inline for simple
 3. **Safety First**: Always request approval, stop on failure
 4. **Quality Focused**: Validate against repo standards, never auto-fix
 5. **Adaptive**: Direct execution for simple, delegation for complex
-6. **Discoverable**: Use contextscout for dynamic context discovery
+6. **Discoverable**: Use context-scout for dynamic context discovery
 7. **Predictable**: Same workflow every time
 
 ---

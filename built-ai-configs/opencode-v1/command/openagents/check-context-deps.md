@@ -40,7 +40,7 @@ Validates consistency between:
 /check-context-deps
 
 # Analyze specific agent
-/check-context-deps contextscout
+/check-context-deps context-scout
 
 # Auto-fix missing dependencies
 /check-context-deps --fix
@@ -49,7 +49,7 @@ Validates consistency between:
 /check-context-deps --verbose
 
 # Combine flags
-/check-context-deps contextscout --verbose
+/check-context-deps context-scout --verbose
 ```
 
 ---
@@ -152,7 +152,7 @@ Validates consistency between:
     ```yaml
     dependencies:
       - subagent:task-manager
-      - subagent:documentation
+      - subagent:doc-writer
       - context:core/standards/code
       - context:core/standards/docs
       - context:core/standards/tests
@@ -361,12 +361,12 @@ Run /check-context-deps --fix to auto-update frontmatter
 ### Example 2: Analyze Specific Agent
 
 ```bash
-/check-context-deps contextscout
+/check-context-deps context-scout
 ```
 
 **Output**:
 ```
-Analyzing agent: contextscout
+Analyzing agent: context-scout
 
 Context files referenced:
 ✓ .opencode/context/core/context-system.md (1 reference)

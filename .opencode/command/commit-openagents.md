@@ -104,7 +104,7 @@ cd evals/framework && npm run eval:sdk -- --agent=core/opencoder --pattern="**/s
 - If modifying content agents → stage `.opencode/agent/` (v1 installs: `agent/content/`)
 - If modifying data agents → stage `.opencode/agent/` (v1 installs: `agent/data/`)
 - If modifying meta agents → stage `.opencode/agent/` (v1 installs: `agent/meta/`)
-- If modifying subagents → stage `.opencode/agent/` (v1 installs: `agent/subagents/`)
+- If modifying subagents → stage `.opencode/agent/` (v1 installs: `agent/<category>/`)
 - If modifying commands → stage `.opencode/command/`
 - If modifying context → stage `.opencode/context/`
 - If modifying scripts → stage `scripts/`
@@ -139,15 +139,14 @@ cd evals/framework && npm run eval:sdk -- --agent=core/opencoder --pattern="**/s
 
 **Scopes for this repo:**
 - `evals` - Evaluation framework changes
-- `agents/core` - Core agents (openagent, opencoder)
-- `agents/meta` - Meta agents (system-builder, repo-manager)
-- `agents/content` - Content category agents (copywriter, technical-writer)
+- `agents/core` - Core agents and subagents (openagent, opencoder, task-manager, doc-writer, context-scout, external-scout, context-manager, context-retriever, batch-executor, stage-orchestrator)
+- `agents/code` - Code subagents (coder-agent, test-engineer, code-reviewer, build-agent)
+- `agents/planning` - Planning subagents (adr-manager, architecture-analyzer, contract-manager, prioritization-engine, story-mapper)
+- `agents/system-builder` - System builder subagents (domain-analyzer, agent-generator, context-organizer, workflow-designer, command-creator)
+- `agents/dev` - Development specialists (frontend-specialist, devops-specialist, eval-runner, simple-responder)
+- `agents/content` - Content agents (copywriter, technical-writer, image-specialist)
 - `agents/data` - Data category agents (data-analyst)
-- `subagents/core` - Core subagents (task-manager, documentation, contextscout, externalscout)
-- `subagents/code` - Code subagents (coder-agent, tester, reviewer, build-agent)
-- `subagents/development` - Development specialist subagents (frontend-specialist, devops-specialist)
-- `subagents/system-builder` - System builder subagents (domain-analyzer, agent-generator, context-organizer, workflow-designer, command-creator)
-- `subagents/utils` - Utility subagents (image-specialist)
+- `agents/meta` - Meta agents (system-builder, repo-manager)
 - `commands` - Slash command changes
 - `context` - Context file changes
 - `scripts` - Build/test script changes
@@ -159,13 +158,13 @@ cd evals/framework && npm run eval:sdk -- --agent=core/opencoder --pattern="**/s
 ```
 feat(evals): add parallel test execution support
 fix(agents/core): correct delegation logic in openagent
-fix(subagents/development): update frontend-specialist validation rules
+fix(agents/dev): update frontend-specialist validation rules
 feat(agents/content): add new copywriter capabilities
 feat(agents/meta): enhance system-builder with new templates
 refactor(evals): split test-runner into modular components
 test(evals): add smoke tests for openagent
-feat(subagents/code): add build validation to build-agent
-feat(subagents/system-builder): improve domain-analyzer pattern detection
+feat(agents/code): add build validation to build-agent
+feat(agents/system-builder): improve domain-analyzer pattern detection
 docs(readme): update installation instructions
 chore(deps): upgrade evaluation framework dependencies
 feat(registry): add new agent categories
@@ -530,7 +529,7 @@ git push origin main
 
 A successful commit should:
 - ✅ Follow conventional commit format (NO EMOJIS)
-- ✅ Have appropriate scope with category path (e.g., agents/core, subagents/code)
+- ✅ Have appropriate scope with category path (e.g., agents/core, agents/code)
 - ✅ Be atomic (single purpose)
 - ✅ Have clear, concise message
 - ✅ Not include sensitive information

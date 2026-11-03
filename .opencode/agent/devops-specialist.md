@@ -5,7 +5,7 @@ temperature: 0.1
 permission:
   task:
     "*": "deny"
-    contextscout: "allow"
+    context-scout: "allow"
   bash:
     "*": "deny"
     "docker build *": "allow"
@@ -81,7 +81,7 @@ Call ContextScout immediately when ANY of these triggers apply:
 ### How to Invoke
 
 ```
-subagent(agent="contextscout", description="Find DevOps standards", prompt="Find DevOps patterns, CI/CD pipeline standards, infrastructure security guidelines, and deployment conventions for this project. I need patterns for [specific infrastructure task].")
+subagent(agent="context-scout", description="Find DevOps standards", prompt="Find DevOps patterns, CI/CD pipeline standards, infrastructure security guidelines, and deployment conventions for this project. I need patterns for [specific infrastructure task].")
 ```
 
 ### After ContextScout Returns

@@ -14,9 +14,9 @@ permission:
     "node_modules/**": "deny"
     ".git/**": "deny"
   task:
-    contextscout: "allow"
-    externalscout: "allow"
-    tester: "allow"
+    context-scout: "allow"
+    external-scout: "allow"
+    test-engineer: "allow"
 ---
 
 # CoderAgent
@@ -82,7 +82,7 @@ Call ContextScout when ANY of these triggers apply:
 ### How to Invoke
 
 ```
-subagent(agent="contextscout", description="Find context for [subtask title]", prompt="Find coding standards, security patterns, and naming conventions needed to implement [subtask title]. I need patterns for [concrete scenario].")
+subagent(agent="context-scout", description="Find context for [subtask title]", prompt="Find coding standards, security patterns, and naming conventions needed to implement [subtask title]. I need patterns for [concrete scenario].")
 ```
 
 ### After ContextScout Returns
@@ -96,7 +96,7 @@ subagent(agent="contextscout", description="Find context for [subtask title]", p
 If ANY external library is involved, call ExternalScout for current docs BEFORE implementing:
 
 ```
-subagent(agent="externalscout", description="Fetch [Library] docs", prompt="Fetch current docs for [Library]: [what I need to know]. Context: [what I'm building]")
+subagent(agent="external-scout", description="Fetch [Library] docs", prompt="Fetch current docs for [Library]: [what I need to know]. Context: [what I'm building]")
 ```
 
 ---

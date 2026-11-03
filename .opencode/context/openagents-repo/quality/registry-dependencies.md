@@ -11,7 +11,7 @@ A component lists what it needs as `type:id` strings; every one must be a regist
 Contexts, commands, skills and tools declare theirs in their own registry entry.
 
 ```json
-"dependencies": ["context:mvi", "subagent:contextscout"]
+"dependencies": ["context:mvi", "subagent:context-scout"]
 ```
 
 ## Checks

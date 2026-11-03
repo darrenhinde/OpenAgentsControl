@@ -76,7 +76,7 @@ OpenAgent is a **universal coordinator** - it handles general tasks directly:
 
 **Delegate to opencoder when**: Complex multi-file coding, architecture analysis, deep refactoring, pattern implementation
 
-**Delegate to specialists when**: Testing needed (@tester), review needed (@reviewer), complex task breakdown (@task-manager), comprehensive documentation (@documentation)
+**Delegate to specialists when**: Testing needed (@test-engineer), review needed (@code-reviewer), complex task breakdown (@task-manager), comprehensive documentation (@doc-writer)
 
 This means OpenAgent is your go-to coordinator for general tasks and questions. For deep coding work, use **opencoder**.
 
@@ -767,7 +767,7 @@ graph TD
 
 ---
 
-#### Delegate to @documentation when:
+#### Delegate to @doc-writer when:
 - ✅ Creating **comprehensive docs** (API docs, guides, tutorials)
 - ✅ **Multi-page** documentation
 - ✅ Requires **codebase analysis/research**
@@ -796,8 +796,8 @@ graph TD
 - ✅ Code subagents are **available** in current profile
 
 **Examples**:
-- "Review this code for security issues" → @code/reviewer
-- "Write tests for this module" → @code/tester
+- "Review this code for security issues" → @code-reviewer
+- "Write tests for this module" → @test-engineer
 - "Run build and fix errors" → @code/build-agent
 
 ---
@@ -968,7 +968,7 @@ Step 3: "Implement the login component"
 Let OpenAgent delegate to specialists:
 - **Complex features** → Let task-manager break them down
 - **Documentation** → Let documentation agent create comprehensive docs
-- **Code review** → Let reviewer agent check for issues
+- **Code review** → Let code-reviewer agent check for issues
 
 **Tip**: You can explicitly request a specialist: "Use the documentation agent to create API docs"
 
@@ -1075,9 +1075,9 @@ OpenAgent works great with other agents in your profile:
 **Example workflow**:
 1. OpenAgent plans the feature
 2. @coder-agent implements it
-3. @tester writes tests
-4. @reviewer checks quality
-5. @documentation documents it
+3. @test-engineer writes tests
+4. @code-reviewer checks quality
+5. @doc-writer documents it
 
 All coordinated by OpenAgent with preserved context!
 

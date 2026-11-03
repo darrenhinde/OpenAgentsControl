@@ -460,7 +460,7 @@ task(
 
 ## Related Context
 
-- **Frontend Specialist Agent** → `../../../agent/subagents/development/frontend-specialist.md`
+- **Frontend Specialist Agent** → `../../../agent/dev/frontend-specialist.md`
 - **Design Systems** → `../../ui/web/design-systems.md`
 - **UI Styling Standards** → `../../ui/web/ui-styling-standards.md`
 - **Animation Patterns** → `../../ui/web/animation-patterns.md`

@@ -14,8 +14,8 @@ permission:
     ".git/**": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
-    externalscout: "allow"
+    context-scout: "allow"
+    external-scout: "allow"
   skill:
     "*": "deny"
 ---
@@ -97,7 +97,7 @@ Call ContextScout immediately when ANY of these triggers apply:
 ### How to Invoke
 
 ```
-subagent(agent="contextscout", description="Find API contract standards", prompt="Find API design patterns, bounded context definitions, security requirements, and contract versioning conventions. I need to understand existing API standards before defining contracts for [service/feature].")
+subagent(agent="context-scout", description="Find API contract standards", prompt="Find API design patterns, bounded context definitions, security requirements, and contract versioning conventions. I need to understand existing API standards before defining contracts for [service/feature].")
 ```
 
 ### After ContextScout Returns

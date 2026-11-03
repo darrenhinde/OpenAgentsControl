@@ -45,7 +45,7 @@
       },
       {
         "id": "eval-runner",
-        "name": "eval-runner",
+        "name": "EvalRunner",
         "type": "agent",
         "path": ".opencode/agent/eval-runner.md",
         "version": "1.0.0",
@@ -55,7 +55,7 @@
           "evals"
         ],
         "dependencies": [],
-        "category": "subagents/test"
+        "category": "dev"
       },
       {
         "id": "openagent",
@@ -72,9 +72,9 @@
         "dependencies": [
           "subagent:task-manager",
           "subagent:batch-executor",
-          "subagent:documentation",
-          "subagent:contextscout",
-          "subagent:externalscout",
+          "subagent:doc-writer",
+          "subagent:context-scout",
+          "subagent:external-scout",
           "context:standards-code",
           "context:standards-docs",
           "context:standards-tests",
@@ -97,15 +97,15 @@
           "implementation"
         ],
         "dependencies": [
-          "subagent:documentation",
+          "subagent:doc-writer",
           "subagent:task-manager",
           "subagent:batch-executor",
           "subagent:coder-agent",
-          "subagent:tester",
-          "subagent:reviewer",
+          "subagent:test-engineer",
+          "subagent:code-reviewer",
           "subagent:build-agent",
-          "subagent:contextscout",
-          "subagent:externalscout",
+          "subagent:context-scout",
+          "subagent:external-scout",
           "context:standards-code",
           "context:task-delegation-basics",
           "context:component-planning",
@@ -127,11 +127,11 @@
         ],
         "dependencies": [
           "subagent:task-manager",
-          "subagent:contextscout",
-          "subagent:documentation",
+          "subagent:context-scout",
+          "subagent:doc-writer",
           "subagent:coder-agent",
-          "subagent:tester",
-          "subagent:reviewer",
+          "subagent:test-engineer",
+          "subagent:code-reviewer",
           "subagent:build-agent"
         ],
         "category": "meta"
@@ -189,7 +189,7 @@
           "decisions"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
+        "category": "planning"
       },
       {
         "id": "agent-generator",
@@ -204,7 +204,7 @@
           "scaffolding"
         ],
         "dependencies": [],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       },
       {
         "id": "architecture-analyzer",
@@ -219,7 +219,7 @@
           "ddd"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
+        "category": "planning"
       },
       {
         "id": "batch-executor",
@@ -237,7 +237,7 @@
           "subagent:coder-agent",
           "subagent:task-manager"
         ],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
         "id": "build-agent",
@@ -252,7 +252,28 @@
           "type-checking"
         ],
         "dependencies": [],
-        "category": "subagents/code"
+        "category": "code"
+      },
+      {
+        "id": "code-reviewer",
+        "name": "CodeReviewer",
+        "type": "subagent",
+        "path": ".opencode/agent/code-reviewer.md",
+        "version": "1.0.0",
+        "description": "Code review, security, and quality assurance agent",
+        "tags": [
+          "review",
+          "security",
+          "quality"
+        ],
+        "dependencies": [
+          "context:standards-code",
+          "context:review-ref"
+        ],
+        "category": "code",
+        "aliases": [
+          "reviewer"
+        ]
       },
       {
         "id": "coder-agent",
@@ -268,7 +289,7 @@
         "dependencies": [
           "context:standards-code"
         ],
-        "category": "subagents/code"
+        "category": "code"
       },
       {
         "id": "command-creator",
@@ -283,7 +304,7 @@
           "scaffolding"
         ],
         "dependencies": [],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       },
       {
         "id": "context-manager",
@@ -298,7 +319,7 @@
           "organization"
         ],
         "dependencies": [],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
         "id": "context-organizer",
@@ -315,11 +336,11 @@
         "dependencies": [
           "context:core/context-system/*"
         ],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       },
       {
         "id": "context-retriever",
-        "name": "Context Retriever",
+        "name": "ContextRetriever",
         "type": "subagent",
         "path": ".opencode/agent/context-retriever.md",
         "version": "1.0.0",
@@ -330,13 +351,13 @@
           "search"
         ],
         "dependencies": [],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
-        "id": "contextscout",
+        "id": "context-scout",
         "name": "ContextScout",
         "type": "subagent",
-        "path": ".opencode/agent/contextscout.md",
+        "path": ".opencode/agent/context-scout.md",
         "version": "1.0.0",
         "description": "Discovers and recommends context files from .opencode/context/ ranked by priority. Suggests ExternalScout when a framework/library is mentioned but not found internally.",
         "tags": [
@@ -351,11 +372,14 @@
           "context:mvi",
           "context:structure",
           "context:workflows",
-          "subagent:externalscout",
+          "subagent:external-scout",
           "context:root-navigation",
           "context:context-paths-config"
         ],
-        "category": "subagents/core"
+        "category": "core",
+        "aliases": [
+          "contextscout"
+        ]
       },
       {
         "id": "contract-manager",
@@ -370,7 +394,7 @@
           "openapi"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
+        "category": "planning"
       },
       {
         "id": "devops-specialist",
@@ -385,13 +409,13 @@
           "infrastructure"
         ],
         "dependencies": [],
-        "category": "subagents/development"
+        "category": "dev"
       },
       {
-        "id": "documentation",
+        "id": "doc-writer",
         "name": "DocWriter",
         "type": "subagent",
-        "path": ".opencode/agent/documentation.md",
+        "path": ".opencode/agent/doc-writer.md",
         "version": "1.0.0",
         "description": "Documentation authoring agent",
         "tags": [
@@ -401,7 +425,10 @@
         "dependencies": [
           "context:standards-docs"
         ],
-        "category": "subagents/core"
+        "category": "core",
+        "aliases": [
+          "documentation"
+        ]
       },
       {
         "id": "domain-analyzer",
@@ -416,13 +443,13 @@
           "architecture"
         ],
         "dependencies": [],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       },
       {
-        "id": "externalscout",
+        "id": "external-scout",
         "name": "ExternalScout",
         "type": "subagent",
-        "path": ".opencode/agent/externalscout.md",
+        "path": ".opencode/agent/external-scout.md",
         "version": "1.0.0",
         "description": "Fetches live, version-specific documentation for external libraries and frameworks using Context7 and other sources. Filters, sorts, and returns relevant documentation.",
         "tags": [
@@ -434,7 +461,10 @@
           "skill:context7",
           "context:context-system"
         ],
-        "category": "subagents/core"
+        "category": "core",
+        "aliases": [
+          "externalscout"
+        ]
       },
       {
         "id": "frontend-specialist",
@@ -451,7 +481,7 @@
         "dependencies": [
           "context:standards-code"
         ],
-        "category": "subagents/development"
+        "category": "dev"
       },
       {
         "id": "prioritization-engine",
@@ -466,29 +496,11 @@
           "planning"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
-      },
-      {
-        "id": "reviewer",
-        "name": "CodeReviewer",
-        "type": "subagent",
-        "path": ".opencode/agent/reviewer.md",
-        "version": "1.0.0",
-        "description": "Code review, security, and quality assurance agent",
-        "tags": [
-          "review",
-          "security",
-          "quality"
-        ],
-        "dependencies": [
-          "context:standards-code",
-          "context:review-ref"
-        ],
-        "category": "subagents/code"
+        "category": "planning"
       },
       {
         "id": "simple-responder",
-        "name": "Simple Responder",
+        "name": "SimpleResponder",
         "type": "subagent",
         "path": ".opencode/agent/simple-responder.md",
         "version": "1.0.0",
@@ -498,7 +510,7 @@
           "evaluation"
         ],
         "dependencies": [],
-        "category": "subagents/test"
+        "category": "dev"
       },
       {
         "id": "stage-orchestrator",
@@ -513,7 +525,7 @@
           "stages"
         ],
         "dependencies": [],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
         "id": "story-mapper",
@@ -528,7 +540,7 @@
           "planning"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
+        "category": "planning"
       },
       {
         "id": "task-manager",
@@ -545,13 +557,13 @@
         "dependencies": [
           "context:task-delegation-basics"
         ],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
-        "id": "tester",
+        "id": "test-engineer",
         "name": "TestEngineer",
         "type": "subagent",
-        "path": ".opencode/agent/tester.md",
+        "path": ".opencode/agent/test-engineer.md",
         "version": "1.0.0",
         "description": "Test authoring and TDD agent",
         "tags": [
@@ -562,7 +574,10 @@
         "dependencies": [
           "context:standards-tests"
         ],
-        "category": "subagents/code"
+        "category": "code",
+        "aliases": [
+          "tester"
+        ]
       },
       {
         "id": "workflow-designer",
@@ -577,7 +592,7 @@
           "architecture"
         ],
         "dependencies": [],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       }
     ],
     "commands": [
@@ -622,7 +637,7 @@
         ],
         "dependencies": [
           "subagent:context-organizer",
-          "subagent:contextscout"
+          "subagent:context-scout"
         ],
         "category": "essential"
       },
@@ -893,8 +908,8 @@
           "lazy-loading"
         ],
         "dependencies": [
-          "subagent:contextscout",
-          "subagent:externalscout"
+          "subagent:context-scout",
+          "subagent:external-scout"
         ],
         "category": "essential",
         "files": [
@@ -3298,18 +3313,18 @@
         "skill:task-management",
         "subagent:agent-generator",
         "subagent:build-agent",
+        "subagent:code-reviewer",
         "subagent:coder-agent",
         "subagent:command-creator",
         "subagent:context-organizer",
         "subagent:context-retriever",
-        "subagent:contextscout",
+        "subagent:context-scout",
         "subagent:devops-specialist",
-        "subagent:documentation",
+        "subagent:doc-writer",
         "subagent:domain-analyzer",
         "subagent:frontend-specialist",
-        "subagent:reviewer",
         "subagent:task-manager",
-        "subagent:tester",
+        "subagent:test-engineer",
         "subagent:workflow-designer"
       ],
       "additionalPaths": [
@@ -3337,8 +3352,8 @@
         "context:project-intelligence/*",
         "context:quick-start",
         "skill:task-management",
-        "subagent:contextscout",
-        "subagent:documentation",
+        "subagent:context-scout",
+        "subagent:doc-writer",
         "subagent:task-manager"
       ]
     },
@@ -3376,14 +3391,14 @@
         "context:ui/*",
         "skill:task-management",
         "subagent:build-agent",
+        "subagent:code-reviewer",
         "subagent:coder-agent",
-        "subagent:contextscout",
+        "subagent:context-scout",
         "subagent:devops-specialist",
-        "subagent:documentation",
+        "subagent:doc-writer",
         "subagent:frontend-specialist",
-        "subagent:reviewer",
         "subagent:task-manager",
-        "subagent:tester"
+        "subagent:test-engineer"
       ]
     },
     "essential": {
@@ -3410,8 +3425,8 @@
         "context:task-delegation-basics",
         "context:workflows-review",
         "skill:task-management",
-        "subagent:contextscout",
-        "subagent:documentation",
+        "subagent:context-scout",
+        "subagent:doc-writer",
         "subagent:task-manager"
       ]
     },
@@ -3454,14 +3469,14 @@
         "context:ui/*",
         "skill:task-management",
         "subagent:build-agent",
+        "subagent:code-reviewer",
         "subagent:coder-agent",
-        "subagent:contextscout",
+        "subagent:context-scout",
         "subagent:devops-specialist",
-        "subagent:documentation",
+        "subagent:doc-writer",
         "subagent:frontend-specialist",
-        "subagent:reviewer",
         "subagent:task-manager",
-        "subagent:tester"
+        "subagent:test-engineer"
       ]
     }
   },

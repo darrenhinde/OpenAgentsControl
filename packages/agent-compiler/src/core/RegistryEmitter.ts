@@ -11,7 +11,7 @@
  * entry that drifts from its own file drifts forever. That is exactly what happened —
  * `built-ai-configs/registry/registry.json` carries names, descriptions, tags and dependency lists that no file on disk
  * agrees with any more, and `subagent:batch-executor` is missing outright despite shipping in
- * `.opencode/agent/subagents/core/batch-executor.md` and being depended on by both
+ * `.opencode/agent/core/batch-executor.md` and being depended on by both
  * `openagent` and `opencoder`.
  *
  * This emitter inverts that: the canonical file is the input, the registry entry is OUTPUT.

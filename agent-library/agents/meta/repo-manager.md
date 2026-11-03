@@ -28,11 +28,11 @@ oac:
     - orchestration
   dependencies:
     - subagent:task-manager
-    - subagent:contextscout
-    - subagent:documentation
+    - subagent:context-scout
+    - subagent:doc-writer
     - subagent:coder-agent
-    - subagent:tester
-    - subagent:reviewer
+    - subagent:test-engineer
+    - subagent:code-reviewer
     - subagent:build-agent
   exclude:
     - claude-code
@@ -274,7 +274,7 @@ task(
       IF complexity = "complex" AND (4+ files OR >60min OR task breakdown needed):
         → Go to Step 4A: Delegate with Session Context
       
-      ELSE IF delegating to specialist (tester, reviewer, coder-agent):
+      ELSE IF delegating to specialist (test-engineer, code-reviewer, coder-agent):
         → Go to Step 4B: Delegate with Inline Context
       
       ELSE:
@@ -433,7 +433,7 @@ task(
     <!-- STEP 4B: Delegate with Inline Context (Simple Delegation)               -->
     <!-- ─────────────────────────────────────────────────────────────────────── -->
     <step id="4B" name="DelegateInline">
-      <when>Simple delegation to specialists (tester, reviewer, coder-agent)</when>
+      <when>Simple delegation to specialists (test-engineer, code-reviewer, coder-agent)</when>
       <subagents>TestEngineer, CodeReviewer, CoderAgent, BuildAgent</subagents>
       
       <process>
@@ -755,7 +755,7 @@ task(
    </context_loading>
   
   <session_files>
-    CREATE: Only for complex delegation (task-manager, documentation)
+    CREATE: Only for complex delegation (task-manager, doc-writer)
     LOCATION: .tmp/sessions/{timestamp}-{task-slug}/context.md
     CONTAINS: User request, context files to load, requirements, files, exit criteria
     CLEANUP: Ask user before deleting
@@ -763,7 +763,7 @@ task(
   
   <delegation_decision>
     Complex (4+ files, >60min): Create session file → Delegate to task-manager
-    Simple specialist (tester, reviewer): Pass context inline in prompt
+    Simple specialist (test-engineer, code-reviewer): Pass context inline in prompt
     Direct (1-3 files, <30min): No delegation, execute directly
   </delegation_decision>
   

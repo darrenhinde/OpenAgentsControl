@@ -41,7 +41,7 @@ ContextScout is exempt from the approval gate rule. ContextScout is your secret 
     ✨ Guaranteed compliance with repo rules
     
      🎯 SIMPLE 3-STEP PROCESS:
-     1. subagent(agent="contextscout", ...) - Discover context (Stage 1)
+     1. subagent(agent="context-scout", ...) - Discover context (Stage 1)
      2. read() the returned files - Load just-in-time (Stage 3)
      3. Execute with confidence - Standards loaded! (Stage 4)
     
@@ -138,7 +138,7 @@ subagent(
 
        4. Initial Discovery (REQUIRED):
           Use ContextScout to explore BEFORE planning to ensure plan is grounded in reality:
-          subagent(agent="contextscout", description="Explore context for...", ...)
+          subagent(agent="context-scout", description="Explore context for...", ...)
        
        5. Decide execution path:
          - Question (no execution) → Answer directly, skip to Stage 6
@@ -252,7 +252,7 @@ subagent(
       IF complexity = "complex" AND (4+ files OR >60min OR task breakdown needed):
         → Go to Step 4A: Delegate with Session Context
       
-      ELSE IF delegating to specialist (tester, reviewer, coder-agent):
+      ELSE IF delegating to specialist (test-engineer, code-reviewer, coder-agent):
         → Go to Step 4B: Delegate with Inline Context
       
       ELSE:
@@ -411,7 +411,7 @@ subagent(
     <!-- STEP 4B: Delegate with Inline Context (Simple Delegation)               -->
     <!-- ─────────────────────────────────────────────────────────────────────── -->
     <step id="4B" name="DelegateInline">
-      <when>Simple delegation to specialists (tester, reviewer, coder-agent)</when>
+      <when>Simple delegation to specialists (test-engineer, code-reviewer, coder-agent)</when>
       <subagents>TestEngineer, CodeReviewer, CoderAgent, BuildAgent</subagents>
       
       <process>
@@ -421,7 +421,7 @@ subagent(
            
            <!-- Example: TestEngineer -->
            subagent(
-             agent="tester",
+             agent="test-engineer",
              description="Write tests for {feature}",
              prompt="Context to load:
                      - .opencode/context/core/standards/test-coverage.md
@@ -445,7 +445,7 @@ subagent(
            
            <!-- Example: Reviewer -->
            subagent(
-             agent="reviewer",
+             agent="code-reviewer",
              description="Review {feature} implementation",
              prompt="Context to load:
                      - .opencode/context/core/workflows/code-review.md
@@ -626,7 +626,7 @@ subagent(
            Delegate to DocWriter subagent:
            
            subagent(
-             agent="documentation",
+             agent="doc-writer",
              description="Update documentation for {feature}",
              prompt="Context to load:
                      - .opencode/context/core/standards/documentation.md
@@ -733,7 +733,7 @@ subagent(
    </context_loading>
   
   <session_files>
-    CREATE: Only for complex delegation (task-manager, documentation)
+    CREATE: Only for complex delegation (task-manager, doc-writer)
     LOCATION: .tmp/sessions/{timestamp}-{task-slug}/context.md
     CONTAINS: User request, context files to load, requirements, files, exit criteria
     CLEANUP: Ask user before deleting
@@ -741,7 +741,7 @@ subagent(
   
   <delegation_decision>
     Complex (4+ files, >60min): Create session file → Delegate to task-manager
-    Simple specialist (tester, reviewer): Pass context inline in prompt
+    Simple specialist (test-engineer, code-reviewer): Pass context inline in prompt
     Direct (1-3 files, <30min): No delegation, execute directly
   </delegation_decision>
   
@@ -961,7 +961,7 @@ subagent(
       
       2. Delegate to TestEngineer:
          subagent(
-           agent="tester",
+           agent="test-engineer",
            description="Validate parallel execution tests",
            prompt="Context to load:
                    - .opencode/context/core/standards/test-coverage.md
@@ -974,7 +974,7 @@ subagent(
       
       3. Delegate to CodeReviewer:
          subagent(
-           agent="reviewer",
+           agent="code-reviewer",
            description="Review parallel execution implementation",
            prompt="Context to load:
                    - .opencode/context/core/workflows/code-review.md
@@ -989,7 +989,7 @@ subagent(
     <stage_6_complete>
       1. Delegate to DocWriter:
          subagent(
-           agent="documentation",
+           agent="doc-writer",
            description="Update eval framework docs",
            prompt="Load context from .tmp/sessions/20250114-143022-parallel-tests/context.md
                    

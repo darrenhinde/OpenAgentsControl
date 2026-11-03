@@ -40,7 +40,7 @@ permission:                         # OpenCode rules, ordered, LAST MATCH WINS
 oac:
   id: my-agent                      # kebab-case, unique across the corpus
   name: MyAgent
-  category: subagents/code
+  category: code
   type: subagent                    # agent | subagent
   exclude: [claude-code]            # see "Shipping"
 ---

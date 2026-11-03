@@ -11,7 +11,7 @@ mode: subagent
 oac:
   id: my-agent
   name: MyAgent
-  category: subagents/core
+  category: core
   type: subagent
   version: "1.0.0"
   author: opencode

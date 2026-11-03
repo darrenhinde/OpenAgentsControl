@@ -655,7 +655,7 @@ task(
   <routing>
     /context operations automatically route to specialized subagents:
     - harvest/extract/organize/update/error/create → context-organizer
-    - map/validate → contextscout
+    - map/validate → context-scout
   </routing>
   
   <when_not_to_use>

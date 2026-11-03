@@ -113,7 +113,12 @@ describe("the real corpus", () => {
     const ids = agents.map((a) => r.idFor("opencode", a.oac.id));
     expect(new Set(names).size).toBe(agents.length);
     expect(ids).toEqual(agents.map((a) => a.oac.id));
-    expect(r.idFor("opencode", "TestEngineer")).toBe("tester");
-    expect(r.idFor("opencode-v1", "tester")).toBe("TestEngineer");
+    expect(r.idFor("opencode", "TestEngineer")).toBe("test-engineer");
+    expect(r.idFor("opencode-v1", "test-engineer")).toBe("TestEngineer");
+    // the old ids still resolve, as deprecated aliases
+    expect(r.idFor("opencode", "tester")).toBe("test-engineer");
+    expect(r.idFor("opencode", "contextscout")).toBe("context-scout");
+    expect(r.idFor("opencode-v1", "documentation")).toBe("DocWriter");
+    expect(r.aliasUses.map((u) => u.alias)).toEqual(["tester", "contextscout", "documentation"]);
   });
 });

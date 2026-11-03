@@ -4,8 +4,8 @@
   "components": [
     "agent:openagent",
     "subagent:task-manager",
-    "subagent:contextscout",
-    "subagent:documentation",
+    "subagent:context-scout",
+    "subagent:doc-writer",
     "skill:task-management",
     "command:context",
     "command:clean",

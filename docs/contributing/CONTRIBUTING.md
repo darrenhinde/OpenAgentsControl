@@ -54,7 +54,7 @@ automatically:
 - Do not use `./scripts/registry/register-component.sh` for agents. It only refreshes the registry's
   `lastUpdated` date by editing a generated file in place, and the next `oac build` overwrites it.
 
-Declare dependencies of an agent in its `oac.dependencies` (`subagent:contextscout`,
+Declare dependencies of an agent in its `oac.dependencies` (`subagent:context-scout`,
 `context:standards-code`, ...), not in the registry file.
 
 ## Conventions

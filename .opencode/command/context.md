@@ -6,7 +6,7 @@ tags:
   - harvest
 dependencies:
   - subagent:context-organizer
-  - subagent:contextscout
+  - subagent:context-scout
 ---
 
 # Context Manager

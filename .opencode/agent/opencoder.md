@@ -81,7 +81,7 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 **Invocation syntax**:
 ```javascript
 subagent(
-  agent="contextscout",
+  agent="context-scout",
   description="Brief description",
   prompt="Detailed instructions for the subagent"
 )

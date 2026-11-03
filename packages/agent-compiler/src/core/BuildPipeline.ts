@@ -114,6 +114,8 @@ export interface BuildFile {
   target: BuildTarget | "registry" | "registry-v1" | typeof HOSTS_README_TARGET;
   /** `oac.id` of the source agent, or `undefined` for whole-tree artefacts. */
   agentId?: string;
+  /** The source agent's `oac.aliases`, when it has any. Recorded in the ledger. */
+  agentAliases?: readonly string[];
   /** Semantics the target could not carry. Never fatal on their own. */
   warnings: BuildWarning[];
 }
@@ -366,6 +368,7 @@ async function emitAgent(
       content,
       target,
       agentId: agent.oac.id,
+      ...aliasesOf(agent),
       warnings: warnings.map((reason) => ({ source: sourcePath, reason })),
     };
   }
@@ -390,8 +393,14 @@ async function emitAgent(
     content: emission.content,
     target,
     agentId: agent.oac.id,
+    ...aliasesOf(agent),
     warnings: emission.warnings.map((reason) => ({ source: sourcePath, reason })),
   };
+}
+
+/** `{ agentAliases }` for an agent that declares `oac.aliases`, else nothing (keeps ledgers unchanged). */
+function aliasesOf(agent: CanonicalAgentFile): { agentAliases?: readonly string[] } {
+  return agent.oac.aliases.length > 0 ? { agentAliases: agent.oac.aliases } : {};
 }
 
 /**
@@ -600,9 +609,8 @@ export async function build(options: BuildOptions): Promise<Map<string, string>>
 /**
  * Emit one agent, named by `oac.id`, for one target.
  *
- * Identity is `oac.id` and never a filename: `agent-library/agents/subagents/code/test-engineer.md`
- * declares `id: tester`, and `tester` is what `built-ai-configs/registry/registry.json`, the profiles and the context
- * docs all reference. Resolving by path here would mint an id nothing refers to.
+ * Identity is `oac.id` and never a filename: the registry, the profiles and the context docs all
+ * reference the id. Resolving by path here would mint an id nothing refers to.
  *
  * @throws when no agent declares `id`, or when that agent does not declare `target`.
  */
@@ -654,6 +662,7 @@ function manifestFor(files: readonly BuildFile[], outputRoots: OutputRoots): Bui
       target: file.target,
       root: rebase(rootOf(file), file.target, outputRoots),
       ...(file.agentId === undefined ? {} : { agentId: file.agentId }),
+      ...(file.agentAliases === undefined ? {} : { aliases: [...file.agentAliases] }),
     };
   }
   return { version: 1, files: entries };

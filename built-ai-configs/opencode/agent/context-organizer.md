@@ -5,7 +5,7 @@ temperature: 0.1
 permission:
   task:
     "*": "deny"
-    contextscout: "allow"
+    context-scout: "allow"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
@@ -69,7 +69,7 @@ Call ContextScout immediately when ANY of these triggers apply:
 ### How to Invoke
 
 ```
-subagent(agent="contextscout", description="Find context system standards", prompt="Find context system standards including MVI format, structure requirements, frontmatter conventions, codebase reference patterns, and function-based folder organization rules. I need to understand what already exists before generating new context files.")
+subagent(agent="context-scout", description="Find context system standards", prompt="Find context system standards including MVI format, structure requirements, frontmatter conventions, codebase reference patterns, and function-based folder organization rules. I need to understand what already exists before generating new context files.")
 ```
 
 ### After ContextScout Returns

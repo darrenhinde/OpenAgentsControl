@@ -110,7 +110,7 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 **Invocation syntax**:
 ```javascript
 subagent(
-  agent="contextscout",
+  agent="context-scout",
   description="Brief description",
   prompt="Detailed instructions for the subagent"
 )
@@ -172,7 +172,7 @@ subagent(
      Use ContextScout to discover relevant context files, patterns, and standards BEFORE planning.
      
      subagent(
-       agent="contextscout",
+       agent="context-scout",
        description="Find context for {task-type}",
        prompt="Search for context files related to: {task description}..."
      )
@@ -200,7 +200,7 @@ subagent(
        
        3. Fetch current documentation for EACH external package:
           subagent(
-            agent="externalscout",
+            agent="external-scout",
             description="Fetch [Library] docs for [topic]",
             prompt="Fetch current documentation for [Library]: [specific question]
             
@@ -502,7 +502,7 @@ subagent(
          Use INLINE context (no session file) to minimize overhead:
          
          subagent(
-           agent="tester",  // or CodeReviewer, DocWriter, BuildAgent
+           agent="test-engineer",  // or CodeReviewer, DocWriter, BuildAgent
            description="Brief description of task",
            prompt="Context to load:
                    - .opencode/context/core/standards/test-coverage.md
@@ -527,7 +527,7 @@ subagent(
        <examples>
          <!-- Example 1: Write Tests -->
          subagent(
-           agent="tester",
+           agent="test-engineer",
            description="Write tests for auth module",
            prompt="Context to load:
                    - .opencode/context/core/standards/test-coverage.md
@@ -553,7 +553,7 @@ subagent(
          
          <!-- Example 2: Code Review -->
          subagent(
-           agent="reviewer",
+           agent="code-reviewer",
            description="Review parallel execution implementation",
            prompt="Context to load:
                    - .opencode/context/core/workflows/code-review.md
@@ -579,7 +579,7 @@ subagent(
          
          <!-- Example 3: Generate Documentation -->
          subagent(
-           agent="documentation",
+           agent="doc-writer",
            description="Document parallel execution feature",
            prompt="Context to load:
                    - .opencode/context/core/standards/documentation.md
@@ -654,7 +654,7 @@ subagent(
   <routing>
     /context operations automatically route to specialized subagents:
     - harvest/extract/organize/update/error/create → context-organizer
-    - map/validate → contextscout
+    - map/validate → context-scout
   </routing>
   
   <when_not_to_use>

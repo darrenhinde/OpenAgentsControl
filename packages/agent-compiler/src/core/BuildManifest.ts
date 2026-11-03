@@ -48,6 +48,8 @@ export interface ManifestEntry {
   root: string;
   /** The canonical `oac.id` of the agent this file was built from (agent outputs only). */
   agentId?: string;
+  /** The agent's `oac.aliases` (former ids), when it has any. Additive; consumers may ignore it. */
+  aliases?: string[];
 }
 
 /** The build's ledger of what it wrote. Deterministic: sorted keys, no timestamps. */

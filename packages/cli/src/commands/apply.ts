@@ -46,7 +46,7 @@ export async function loadCompiledClaudeAgents(
   packageRoot: string
 ): Promise<Map<string, { fileName: string; content: string }>> {
   const compiled = new Map<string, { fileName: string; content: string }>()
-  let ledger: { files?: Record<string, { target?: string; agentId?: string }> }
+  let ledger: { files?: Record<string, { target?: string; agentId?: string; aliases?: string[] }> }
   try {
     ledger = JSON.parse(await readFile(join(packageRoot, BUILD_LEDGER), 'utf-8'))
   } catch {
@@ -57,10 +57,12 @@ export async function loadCompiledClaudeAgents(
     try {
       const file = { fileName: basename(path), content: await readFile(join(packageRoot, path), 'utf-8') }
       compiled.set(normalizeId(entry.agentId), file)
-      // The compiled file can be named differently from the agent id (tester -> test-engineer.md), and a v1
-      // install names the agent by its display name (TestEngineer): key by the file name too so both match.
-      const byFile = normalizeId(basename(path, '.md'))
-      if (!compiled.has(byFile)) compiled.set(byFile, file)
+      // A v1 install names the agent by its display name (TestEngineer), which normalises to the
+      // file name (test-engineer.md): key by the file name too. An install from before a rename
+      // names the agent by a former id (tester): key by each recorded alias.
+      for (const key of [basename(path, '.md'), ...(entry.aliases ?? [])]) {
+        if (!compiled.has(normalizeId(key))) compiled.set(normalizeId(key), file)
+      }
     } catch {
       // Listed but not shipped: that agent falls back to conversion.
     }

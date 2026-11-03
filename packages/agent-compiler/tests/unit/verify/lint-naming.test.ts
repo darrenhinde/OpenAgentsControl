@@ -3,6 +3,7 @@ import {
   lintNaming,
   derivedDisplayName,
   ROLE_SUFFIXES,
+  LEGACY_AGENT_SUFFIX_IDS,
   type NamingSubject,
 } from "../../../src/verify/lint/naming.js";
 import { CanonicalAgentLoader } from "../../../src/core/AgentLoader.js";
@@ -97,8 +98,35 @@ describe("lintNaming", () => {
     });
   });
 
-  it("runs over the real library without throwing (report-only)", async () => {
+  it("pins the real library: 34 agents, no naming warnings, four known role-suffix notes", async () => {
     const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
-    expect(Array.isArray(lintNaming(agents))).toBe(true);
+    expect(agents).toHaveLength(34);
+
+    const findings = lintNaming(agents);
+    const counts: Record<string, number> = {};
+    for (const f of findings) counts[`${f.level}:${f.rule}`] = (counts[`${f.level}:${f.rule}`] ?? 0) + 1;
+
+    // Any new warning is a regression. The info notes are the legacy `-agent` ids and two
+    // single-word roles outside the vocabulary; extend ROLE_SUFFIXES or rename, then update this pin.
+    expect(counts).toEqual({ "info:role-suffix": 4 });
+    expect(findings.map((f) => f.id).sort()).toEqual(["build-agent", "coder-agent", "data-analyst", "system-builder"]);
+  });
+
+  it("finds the legacy exceptions only through the allow-list, not by accident", async () => {
+    const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
+    const legacy = agents.filter((a) => a.oac.id.endsWith("-agent")).map((a) => a.oac.id).sort();
+    expect(legacy).toEqual([...LEGACY_AGENT_SUFFIX_IDS].sort());
+  });
+
+  it("keeps every renamed agent reachable by its old id", async () => {
+    const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
+    const aliases = Object.fromEntries(agents.filter((a) => a.oac.aliases.length > 0).map((a) => [a.oac.id, a.oac.aliases]));
+    expect(aliases).toEqual({
+      "code-reviewer": ["reviewer"],
+      "context-scout": ["contextscout"],
+      "doc-writer": ["documentation"],
+      "external-scout": ["externalscout"],
+      "test-engineer": ["tester"],
+    });
   });
 });

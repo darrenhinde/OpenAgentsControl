@@ -71,9 +71,8 @@ export {
  * Loads canonical agent files — OpenCode frontmatter plus the `oac:` block — from a
  * configurable content root (`agent-library/agents/**` by default).
  *
- * Identity comes from `oac.id`, never the filename: `subagents/code/test-engineer.md`
- * declares `id: tester`, and `tester` is what the registry, profiles and context docs
- * reference.
+ * Identity comes from `oac.id`, never the filename: the registry, profiles and context docs
+ * reference the id.
  *
  * @example
  * ```typescript

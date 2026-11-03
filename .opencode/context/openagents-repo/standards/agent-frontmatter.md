@@ -15,7 +15,7 @@ permission:
 oac:
   id: tester
   name: TestEngineer
-  category: subagents/code
+  category: code
   type: subagent
   version: "1.0.0"
   author: opencode

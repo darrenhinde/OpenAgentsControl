@@ -77,7 +77,7 @@ permission:
   write:
     "**/*": "deny"
   task:
-    contextscout: "allow"
+    context-scout: "allow"
     "*": "deny"
 ```
 
@@ -116,7 +116,7 @@ permission:
     "**/*.pyc": "deny"
     ".git/**": "deny"
   task:
-    contextscout: "allow"
+    context-scout: "allow"
     "*": "deny"
 ```
 
@@ -165,7 +165,7 @@ permission:
   edit:
     "**/*.env*": "deny"
   task:
-    contextscout: "allow"
+    context-scout: "allow"
     "*": "deny"
 ```
 
@@ -220,8 +220,8 @@ permission:
 ```yaml
 permission:
   task:
-    contextscout: "allow"
-    externalscout: "allow"
+    context-scout: "allow"
+    external-scout: "allow"
     "*": "deny"
 ```
 
@@ -239,7 +239,7 @@ permission:
 ```yaml
 permission:
   task:
-    contextscout: "allow"      # Always allow context discovery
+    context-scout: "allow"      # Always allow context discovery
     "coder-agent": "ask"        # Ask before code generation
     "build-agent": "ask"        # Ask before builds
     "*": "deny"
@@ -273,7 +273,7 @@ permission:
   write:
     "**/*": "deny"
   task:
-    contextscout: "allow"
+    context-scout: "allow"
     "*": "deny"
 ---
 ```
@@ -310,7 +310,7 @@ permission:
     "**/*.key": "deny"
     "**/*.secret": "deny"
   task:
-    contextscout: "allow"
+    context-scout: "allow"
     "*": "deny"
 ---
 ```

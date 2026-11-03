@@ -90,7 +90,7 @@ const RECOVERED_BY_GENERATION = [
  * sidecar entry declared them, so generating from the canonical tree used to DROP them.
  *
  * That was a real regression, not a cleanup: `install.sh` resolves these transitively
- * (`resolve_dependencies`, install.sh:420), so installing `subagent:externalscout` pulls in
+ * (`resolve_dependencies`, install.sh:420), so installing `subagent:external-scout` pulls in
  * `skill:context7` and would have stopped doing so. They were hand-authored straight into
  * `built-ai-configs/registry/registry.json` and never made it into any file, which is precisely the drift this refactor
  * exists to end.
@@ -103,18 +103,18 @@ const RECOVERED_BY_GENERATION = [
  * here — see `tests/unit/build/reference-resolution.test.ts`.
  */
 const REGISTRY_ONLY_DEPENDENCIES: Readonly<Record<string, readonly string[]>> = {
-  contextscout: [
+  "context-scout": [
     "command:check-context-deps",
     "context:registry-dependencies",
     "context:context-system",
     "context:mvi",
     "context:structure",
     "context:workflows",
-    "subagent:externalscout",
+    "subagent:external-scout",
     "context:root-navigation",
     "context:context-paths-config",
   ],
-  externalscout: ["skill:context7", "context:context-system"],
+  "external-scout": ["skill:context7", "context:context-system"],
   "context-organizer": ["context:core/context-system/*"],
 };
 
@@ -513,7 +513,8 @@ describe("generation from the canonical tree", () => {
       for (const entry of entries(document, category)) {
         if (entry.id === "eval-runner") continue; // carried through, keeps its own shape
 
-        expect(Object.keys(entry), `${entry.id} field order`).toEqual([
+        // `aliases` is additive and trails `category`; only renamed agents carry it.
+        expect(Object.keys(entry).filter((key) => key !== "aliases"), `${entry.id} field order`).toEqual([
           "id",
           "name",
           "type",
@@ -524,6 +525,7 @@ describe("generation from the canonical tree", () => {
           "dependencies",
           "category",
         ]);
+        if ("aliases" in entry) expect(Object.keys(entry).at(-1)).toBe("aliases");
       }
     }
   });
@@ -670,7 +672,7 @@ describe("the v1 registry", () => {
     const document = await v1().emit();
     const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
     const subagents = byId(document, "subagents");
-    expect(subagents.get("image-specialist")?.path).toBe("built-ai-configs/opencode-v1/agent/subagents/utils/image-specialist.md");
+    expect(subagents.get("image-specialist")?.path).toBe("built-ai-configs/opencode-v1/agent/content/image-specialist.md");
     expect(byId(document, "agents").get("openagent")?.path).toBe("built-ai-configs/opencode-v1/agent/core/openagent.md");
     const registered = new Set([...byId(document, "agents").keys(), ...subagents.keys()]);
     expect(agents.map((a) => a.oac.id).filter((id) => !registered.has(id))).toEqual([]);

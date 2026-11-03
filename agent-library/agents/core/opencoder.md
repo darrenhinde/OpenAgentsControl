@@ -33,15 +33,15 @@ oac:
     - coding
     - implementation
   dependencies:
-    - subagent:documentation
+    - subagent:doc-writer
     - subagent:task-manager
     - subagent:batch-executor
     - subagent:coder-agent
-    - subagent:tester
-    - subagent:reviewer
+    - subagent:test-engineer
+    - subagent:code-reviewer
     - subagent:build-agent
-    - subagent:contextscout
-    - subagent:externalscout
+    - subagent:context-scout
+    - subagent:external-scout
     - context:standards-code
     - context:task-delegation-basics
     - context:component-planning

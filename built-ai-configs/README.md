@@ -51,7 +51,7 @@ Built agents: `built-ai-configs/opencode/agent/`.
 
 Built agents: `built-ai-configs/opencode-v1/agent/`.
 
-- Nested by category: `agent/<category>/<id>.md` (e.g. `agent/subagents/code/coder-agent.md`).
+- Nested by category: `agent/<category>/<id>.md` (e.g. `agent/code/coder-agent.md`).
 - Frontmatter keeps a display `name:` alongside `description`, `mode`, `temperature` and `permission:`.
 - Generated from the same canonical source as v2: every agent that ships to `opencode` (declared, or the omitted-`targets:` default) is also built here, plus agents that declare only `opencode-v1` (v1-only, e.g. one that depends on a v1-only tool).
 - Only the agent files listed in the matrix below are build output. The other folders (`command/`, `plugin/`, `plugins/`, `skills/`, `tool/`) and the other files under `agent/` (such as `0-category.json`) are hand-maintained v1-only assets; `oac build` never writes or prunes them.
@@ -74,40 +74,40 @@ target that host. Warnings counts the degradation warnings across all hosts.
 
 | Agent (`oac.id`) | Source (under `agent-library/agents/`) | `opencode` | `opencode-v1` | `claude-code` | Warnings |
 | --- | --- | --- | --- | --- | ---: |
-| `adr-manager` | `subagents/planning/adr-manager.md` | `adr-manager.md` | `subagents/planning/adr-manager.md` | — | 0 |
-| `agent-generator` | `subagents/system-builder/agent-generator.md` | `agent-generator.md` | `subagents/system-builder/agent-generator.md` | — | 0 |
-| `architecture-analyzer` | `subagents/planning/architecture-analyzer.md` | `architecture-analyzer.md` | `subagents/planning/architecture-analyzer.md` | — | 0 |
-| `batch-executor` | `subagents/core/batch-executor.md` | `batch-executor.md` | `subagents/core/batch-executor.md` | — | 0 |
-| `build-agent` | `subagents/code/build-agent.md` | `build-agent.md` | `subagents/code/build-agent.md` | — | 0 |
-| `coder-agent` | `subagents/code/coder-agent.md` | `coder-agent.md` | `subagents/code/coder-agent.md` | `coder-agent.md` | 2 |
-| `command-creator` | `subagents/system-builder/command-creator.md` | `command-creator.md` | `subagents/system-builder/command-creator.md` | — | 0 |
-| `context-manager` | `subagents/core/context-manager.md` | `context-manager.md` | `subagents/core/context-manager.md` | `context-manager.md` | 3 |
-| `context-organizer` | `subagents/system-builder/context-organizer.md` | `context-organizer.md` | `subagents/system-builder/context-organizer.md` | — | 0 |
-| `context-retriever` | `subagents/core/context-retriever.md` | `context-retriever.md` | `subagents/core/context-retriever.md` | — | 0 |
-| `contextscout` | `subagents/core/contextscout.md` | `contextscout.md` | `subagents/core/contextscout.md` | `context-scout.md` | 0 |
-| `contract-manager` | `subagents/planning/contract-manager.md` | `contract-manager.md` | `subagents/planning/contract-manager.md` | — | 0 |
+| `adr-manager` | `planning/adr-manager.md` | `adr-manager.md` | `planning/adr-manager.md` | — | 0 |
+| `agent-generator` | `system-builder/agent-generator.md` | `agent-generator.md` | `system-builder/agent-generator.md` | — | 0 |
+| `architecture-analyzer` | `planning/architecture-analyzer.md` | `architecture-analyzer.md` | `planning/architecture-analyzer.md` | — | 0 |
+| `batch-executor` | `core/batch-executor.md` | `batch-executor.md` | `core/batch-executor.md` | — | 0 |
+| `build-agent` | `code/build-agent.md` | `build-agent.md` | `code/build-agent.md` | — | 0 |
+| `code-reviewer` | `code/code-reviewer.md` | `code-reviewer.md` | `code/code-reviewer.md` | `code-reviewer.md` | 1 |
+| `coder-agent` | `code/coder-agent.md` | `coder-agent.md` | `code/coder-agent.md` | `coder-agent.md` | 2 |
+| `command-creator` | `system-builder/command-creator.md` | `command-creator.md` | `system-builder/command-creator.md` | — | 0 |
+| `context-manager` | `core/context-manager.md` | `context-manager.md` | `core/context-manager.md` | `context-manager.md` | 3 |
+| `context-organizer` | `system-builder/context-organizer.md` | `context-organizer.md` | `system-builder/context-organizer.md` | — | 0 |
+| `context-retriever` | `core/context-retriever.md` | `context-retriever.md` | `core/context-retriever.md` | — | 0 |
+| `context-scout` | `core/context-scout.md` | `context-scout.md` | `core/context-scout.md` | `context-scout.md` | 0 |
+| `contract-manager` | `planning/contract-manager.md` | `contract-manager.md` | `planning/contract-manager.md` | — | 0 |
 | `copywriter` | `content/copywriter.md` | `copywriter.md` | `content/copywriter.md` | — | 0 |
 | `data-analyst` | `data/data-analyst.md` | `data-analyst.md` | `data/data-analyst.md` | — | 0 |
-| `devops-specialist` | `subagents/development/devops-specialist.md` | `devops-specialist.md` | `subagents/development/devops-specialist.md` | — | 0 |
-| `documentation` | `subagents/core/documentation.md` | `documentation.md` | `subagents/core/documentation.md` | — | 0 |
-| `domain-analyzer` | `subagents/system-builder/domain-analyzer.md` | `domain-analyzer.md` | `subagents/system-builder/domain-analyzer.md` | — | 0 |
-| `eval-runner` | `subagents/test/eval-runner.md` | `eval-runner.md` | `subagents/test/eval-runner.md` | — | 0 |
-| `externalscout` | `subagents/core/externalscout.md` | `externalscout.md` | `subagents/core/externalscout.md` | `external-scout.md` | 3 |
-| `frontend-specialist` | `subagents/development/frontend-specialist.md` | `frontend-specialist.md` | `subagents/development/frontend-specialist.md` | — | 0 |
-| `image-specialist` | `subagents/utils/image-specialist.md` | — | `subagents/utils/image-specialist.md` | — | 0 |
+| `devops-specialist` | `dev/devops-specialist.md` | `devops-specialist.md` | `dev/devops-specialist.md` | — | 0 |
+| `doc-writer` | `core/doc-writer.md` | `doc-writer.md` | `core/doc-writer.md` | — | 0 |
+| `domain-analyzer` | `system-builder/domain-analyzer.md` | `domain-analyzer.md` | `system-builder/domain-analyzer.md` | — | 0 |
+| `eval-runner` | `dev/eval-runner.md` | `eval-runner.md` | `dev/eval-runner.md` | — | 0 |
+| `external-scout` | `core/external-scout.md` | `external-scout.md` | `core/external-scout.md` | `external-scout.md` | 3 |
+| `frontend-specialist` | `dev/frontend-specialist.md` | `frontend-specialist.md` | `dev/frontend-specialist.md` | — | 0 |
+| `image-specialist` | `content/image-specialist.md` | — | `content/image-specialist.md` | — | 0 |
 | `openagent` | `core/openagent.md` | `openagent.md` | `core/openagent.md` | — | 0 |
 | `opencoder` | `core/opencoder.md` | `opencoder.md` | `core/opencoder.md` | — | 0 |
-| `prioritization-engine` | `subagents/planning/prioritization-engine.md` | `prioritization-engine.md` | `subagents/planning/prioritization-engine.md` | — | 0 |
+| `prioritization-engine` | `planning/prioritization-engine.md` | `prioritization-engine.md` | `planning/prioritization-engine.md` | — | 0 |
 | `repo-manager` | `meta/repo-manager.md` | `repo-manager.md` | `meta/repo-manager.md` | — | 0 |
-| `reviewer` | `subagents/code/reviewer.md` | `reviewer.md` | `subagents/code/reviewer.md` | `code-reviewer.md` | 1 |
-| `simple-responder` | `subagents/test/simple-responder.md` | `simple-responder.md` | `subagents/test/simple-responder.md` | — | 0 |
-| `stage-orchestrator` | `subagents/core/stage-orchestrator.md` | `stage-orchestrator.md` | `subagents/core/stage-orchestrator.md` | — | 0 |
-| `story-mapper` | `subagents/planning/story-mapper.md` | `story-mapper.md` | `subagents/planning/story-mapper.md` | — | 0 |
+| `simple-responder` | `dev/simple-responder.md` | `simple-responder.md` | `dev/simple-responder.md` | — | 0 |
+| `stage-orchestrator` | `core/stage-orchestrator.md` | `stage-orchestrator.md` | `core/stage-orchestrator.md` | — | 0 |
+| `story-mapper` | `planning/story-mapper.md` | `story-mapper.md` | `planning/story-mapper.md` | — | 0 |
 | `system-builder` | `meta/system-builder.md` | `system-builder.md` | `meta/system-builder.md` | — | 0 |
-| `task-manager` | `subagents/core/task-manager.md` | `task-manager.md` | `subagents/core/task-manager.md` | `task-manager.md` | 2 |
+| `task-manager` | `core/task-manager.md` | `task-manager.md` | `core/task-manager.md` | `task-manager.md` | 2 |
 | `technical-writer` | `content/technical-writer.md` | `technical-writer.md` | `content/technical-writer.md` | — | 0 |
-| `tester` | `subagents/code/test-engineer.md` | `tester.md` | `subagents/code/test-engineer.md` | `test-engineer.md` | 3 |
-| `workflow-designer` | `subagents/system-builder/workflow-designer.md` | `workflow-designer.md` | `subagents/system-builder/workflow-designer.md` | — | 0 |
+| `test-engineer` | `code/test-engineer.md` | `test-engineer.md` | `code/test-engineer.md` | `test-engineer.md` | 3 |
+| `workflow-designer` | `system-builder/workflow-designer.md` | `workflow-designer.md` | `system-builder/workflow-designer.md` | — | 0 |
 
 ## Degradation warnings
 
@@ -125,6 +125,8 @@ None: every agent carries over completely.
 
 ### `claude-code`
 
+- **`code-reviewer`** → `built-ai-configs/claude-code/agents/code-reviewer.md`
+  - Feature 'temperature' (0.1) is not supported by Claude Code
 - **`coder-agent`** → `built-ai-configs/claude-code/agents/coder-agent.md`
   - Agent 'coder-agent': Claude Code tool 'Edit' is granted unscoped: 5 scoped rule(s) [deny **/*.env*, deny **/*.key, deny **/*.secret, deny node_modules/**, deny .git/**] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0) is not supported by Claude Code
@@ -132,16 +134,14 @@ None: every agent carries over completely.
   - Agent 'context-manager': Claude Code tool 'Write' is granted unscoped: 5 scoped rule(s) [allow .opencode/context/**/*.md, allow .opencode/context/**/*.json, deny **/*.env*, deny **/*.key, deny **/*.secret] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Agent 'context-manager': Claude Code tool 'Bash' is granted unscoped: 5 scoped rule(s) [deny *, allow find .opencode/context*, allow ls -la .opencode/context*, allow mkdir -p .opencode/context*, allow mv .opencode/context*] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
-- **`externalscout`** → `built-ai-configs/claude-code/agents/external-scout.md`
+- **`external-scout`** → `built-ai-configs/claude-code/agents/external-scout.md`
   - Permission 'skill' has no Claude Code tool: 2 rule(s) are dropped because Claude Code exposes no tool this capability maps to. Claude Code will not enforce them.
-  - Agent 'externalscout': Claude Code tool 'Read' is granted unscoped: 3 scoped rule(s) [deny **/*, allow .opencode/skills/context7/**, allow .tmp/external-context/**] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
-  - Feature 'temperature' (0.1) is not supported by Claude Code
-- **`reviewer`** → `built-ai-configs/claude-code/agents/code-reviewer.md`
+  - Agent 'external-scout': Claude Code tool 'Read' is granted unscoped: 3 scoped rule(s) [deny **/*, allow .opencode/skills/context7/**, allow .tmp/external-context/**] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
 - **`task-manager`** → `built-ai-configs/claude-code/agents/task-manager.md`
   - Permission 'skill' has no Claude Code tool: 2 rule(s) are dropped because Claude Code exposes no tool this capability maps to. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
-- **`tester`** → `built-ai-configs/claude-code/agents/test-engineer.md`
-  - Agent 'tester': Claude Code tool 'Edit' is granted unscoped: 3 scoped rule(s) [deny **/*.env*, deny **/*.key, deny **/*.secret] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
-  - Agent 'tester': Claude Code tool 'Bash' is granted unscoped: 13 scoped rule(s) [deny *, allow npx vitest *, allow npx jest *, allow pytest *, allow npm test *, allow npm run test *, +7 more] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+- **`test-engineer`** → `built-ai-configs/claude-code/agents/test-engineer.md`
+  - Agent 'test-engineer': Claude Code tool 'Edit' is granted unscoped: 3 scoped rule(s) [deny **/*.env*, deny **/*.key, deny **/*.secret] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'test-engineer': Claude Code tool 'Bash' is granted unscoped: 13 scoped rule(s) [deny *, allow npx vitest *, allow npx jest *, allow pytest *, allow npm test *, allow npm run test *, +7 more] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code

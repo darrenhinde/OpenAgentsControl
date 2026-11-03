@@ -6,11 +6,12 @@
  * and shows up as an additive `aliases` field on the registry entry. Colliding aliases fail.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { plan } from "../../../src/core/BuildPipeline.js";
 import { AgentIdResolver, AgentIdResolutionError } from "../../../src/core/AgentIdResolver.js";
+import { repoPath } from "../../support/pending.js";
 
 let root: string;
 
@@ -141,5 +142,30 @@ describe("AgentIdResolver aliases", () => {
     expect(() => AgentIdResolver.from([{ ...roster[0]!, aliases: ["code-reviewer"] }])).toThrow(AgentIdResolutionError);
     expect(() => AgentIdResolver.from([{ ...roster[0]!, aliases: ["context-scout"] }, roster[1]!])).toThrow(/collides/);
     expect(() => AgentIdResolver.from([roster[0]!, { ...roster[1]!, aliases: ["reviewer"] }])).toThrow(/declared by both/);
+  });
+});
+
+describe("the real library", () => {
+  it("builds with no deprecated alias use: every reference was moved to the current id", async () => {
+    expect((await plan({ root: repoPath() })).deprecations).toEqual([]);
+  });
+
+  it("registers the old ids as aliases on the renamed entries (install.sh matches on .aliases)", async () => {
+    const built = await plan({ root: repoPath() });
+    for (const path of ["built-ai-configs/registry/registry.json", "built-ai-configs/registry/registry.v1.json"]) {
+      const registry = JSON.parse(built.files.find((f) => f.path === path)!.content);
+      const byId = new Map<string, { aliases?: string[] }>(
+        [...registry.components.subagents, ...registry.components.agents].map((e: { id: string; aliases?: string[] }) => [e.id, e]),
+      );
+      expect(byId.get("test-engineer")!.aliases).toEqual(["tester"]);
+      expect(byId.get("code-reviewer")!.aliases).toEqual(["reviewer"]);
+      expect(byId.has("tester")).toBe(false);
+    }
+  });
+
+  it("records aliases in the build ledger (the drift gate keeps the committed ledger fresh)", () => {
+    const ledger = JSON.parse(readFileSync(repoPath(".oac/build-manifest.json"), "utf-8"));
+    expect(ledger.files["plugins/claude-code/agents/test-engineer.md"].aliases).toEqual(["tester"]);
+    expect(ledger.files["plugins/claude-code/agents/coder-agent.md"].aliases).toBeUndefined();
   });
 });

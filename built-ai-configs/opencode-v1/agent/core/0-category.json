@@ -6,9 +6,9 @@
     "openagent": {
       "description": "Universal task coordinator",
       "commonSubagents": [
-        "subagents/core/task-manager",
-        "subagents/core/documentation",
-        "subagents/code/*"
+        "core/task-manager",
+        "core/doc-writer",
+        "code/*"
       ],
       "commonTools": [
         "gemini",
@@ -23,10 +23,10 @@
     "opencoder": {
       "description": "Development specialist",
       "commonSubagents": [
-        "subagents/code/coder-agent",
-        "subagents/code/tester",
-        "subagents/code/reviewer",
-        "subagents/code/build-agent"
+        "code/coder-agent",
+        "code/test-engineer",
+        "code/code-reviewer",
+        "code/build-agent"
       ],
       "commonTools": [
         "env"

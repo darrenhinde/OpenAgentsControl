@@ -5,8 +5,8 @@ temperature: 0.2
 permission:
   task:
     "*": "deny"
-    contextscout: "allow"
-    externalscout: "allow"
+    context-scout: "allow"
+    external-scout: "allow"
   write:
     "**/*.env*": "deny"
     "**/*.key": "deny"
@@ -75,7 +75,7 @@ Call ContextScout immediately when ANY of these triggers apply:
 ### How to Invoke
 
 ```
-subagent(agent="contextscout", description="Find frontend design standards", prompt="Find frontend design system standards, UI component patterns, accessibility guidelines, and responsive breakpoint conventions for this project.")
+subagent(agent="context-scout", description="Find frontend design standards", prompt="Find frontend design system standards, UI component patterns, accessibility guidelines, and responsive breakpoint conventions for this project.")
 ```
 
 ### After ContextScout Returns

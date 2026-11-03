@@ -3,20 +3,20 @@
   "agents": [
     "build-agent",
     "coder-agent",
-    "contextscout",
+    "context-scout",
     "copywriter",
     "data-analyst",
     "devops-specialist",
-    "documentation",
+    "doc-writer",
     "eval-runner",
     "frontend-specialist",
     "image-specialist",
     "openagent",
     "opencoder",
-    "reviewer",
+    "code-reviewer",
     "task-manager",
     "technical-writer",
-    "tester"
+    "test-engineer"
   ],
   "contextProfiles": [
     "core",

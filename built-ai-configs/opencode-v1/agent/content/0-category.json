@@ -6,7 +6,7 @@
     "copywriter": {
       "description": "Expert in persuasive writing and marketing copy",
       "commonSubagents": [
-        "subagents/core/documentation"
+        "core/doc-writer"
       ],
       "commonTools": [],
       "commonContext": [
@@ -16,7 +16,7 @@
     "technical-writer": {
       "description": "Expert in documentation and technical communication",
       "commonSubagents": [
-        "subagents/core/documentation"
+        "core/doc-writer"
       ],
       "commonTools": [],
       "commonContext": [

@@ -15,8 +15,8 @@ permission:
     ".git/**": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
-    externalscout: "allow"
+    context-scout: "allow"
+    external-scout: "allow"
   skill:
     "*": "deny"
 ---
@@ -94,7 +94,7 @@ Output: contexts.json and module-briefs/
 
 ```javascript
 subagent(
-  agent="contextscout",
+  agent="context-scout",
   description="Find DDD and architecture context",
   prompt="Find context files for Domain-Driven Design patterns, bounded context identification, aggregate design, and module boundary definition. I need guidance on DDD tactical patterns (aggregates, entities, value objects, domain events) and strategic patterns (bounded contexts, context mapping)."
 )
@@ -742,6 +742,6 @@ Suggested Approach:
 
 ## Related
 
-- `.opencode/agent/subagents/core/task-manager.md` - Uses contexts.json for task planning
+- `.opencode/agent/core/task-manager.md` - Uses contexts.json for task planning
 - `.opencode/context/core/task-management/standards/enhanced-task-schema.md` - Schema for bounded_context, module fields
 - DDD pattern guides (discovered via ContextScout)

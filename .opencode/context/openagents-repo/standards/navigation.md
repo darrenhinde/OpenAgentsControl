@@ -25,7 +25,7 @@ Do not edit generated `built-ai-configs/**`, its mirrors `.opencode/agent/**` an
 ```yaml
 oac:
   id: my-agent
-  category: subagents/core
+  category: core
   type: subagent
   exclude: [claude-code]
 ```

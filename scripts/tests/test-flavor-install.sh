@@ -56,7 +56,7 @@ V="$TEST_DIR/v1/.opencode"
 install full --opencode v1 --install-dir="$V" > "$TEST_DIR/v1.log" 2>&1
 assert_file    "$V/agent/core/openagent.md"             "--opencode v1 installs nested agents"
 assert_contains "$V/agent/core/openagent.md" "^name: OpenAgent" "v1 agent keeps its name: line"
-assert_file    "$V/agent/subagents/utils/image-specialist.md" "v1 installs the v1-only agent"
+assert_file    "$V/agent/content/image-specialist.md" "v1 installs the v1-only agent"
 assert_file    "$V/tool/gemini/index.ts"                "v1 installs tools"
 assert_file    "$V/plugin/notify.ts"                    "v1 installs plugins"
 assert_file    "$V/skills/task-management/SKILL.md"     "v1 installs skills"
@@ -202,7 +202,7 @@ if grep -q "predates" "$TEST_DIR/c2.log"; then fail "...and does not say the ins
 assert_contains "$C/.oac-opencode" "v1" "...and records the marker"
 # a stale marker loses to the config (the CLI migrated the project to v2)
 printf '{"opencode":{"target":"v2"}}' > "$TEST_DIR/cli/.oac/config.json"
-rm -rf "$C/agent/core" "$C/agent/subagents" "$C/tool" "$C/plugin"; mkdir -p "$C/agent"; echo x > "$C/agent/openagent.md"
+rm -rf "$C"/agent/{core,code,planning,dev,content,data,meta,system-builder,subagents} "$C/tool" "$C/plugin"; mkdir -p "$C/agent"; echo x > "$C/agent/openagent.md"
 (cd "$REPO_ROOT" && bash update.sh --install-dir "$C" --opencode v2) > "$TEST_DIR/c3.log" 2>&1 \
     && pass "config v2 beats a stale v1 marker: update.sh --opencode v2 is not refused" || fail "config v2 beats a stale v1 marker: update.sh --opencode v2 is not refused"
 assert_contains "$C/.oac-opencode" "v2" "...and the marker is corrected"

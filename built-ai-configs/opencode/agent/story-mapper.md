@@ -13,8 +13,8 @@ permission:
     ".git/**": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
-    externalscout: "allow"
+    context-scout: "allow"
+    external-scout: "allow"
   skill:
     "*": "deny"
 ---
@@ -92,7 +92,7 @@ WHY THIS MATTERS:
         4. If context is insufficient, call ContextScout via task tool:
            ```javascript
            subagent(
-             agent="contextscout",
+             agent="context-scout",
              description="Find user journey mapping context",
              prompt="Discover context files for user personas, domain models, and architecture patterns. Return relevant file paths and summaries."
            )

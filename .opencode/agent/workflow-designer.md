@@ -5,7 +5,7 @@ temperature: 0.1
 permission:
   task:
     "*": "deny"
-    contextscout: "allow"
+    context-scout: "allow"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
@@ -69,7 +69,7 @@ Call ContextScout immediately when ANY of these triggers apply:
 ### How to Invoke
 
 ```
-subagent(agent="contextscout", description="Find workflow design standards", prompt="Find workflow design patterns, agent coordination standards, context dependency mapping conventions, and validation gate requirements. I need to understand existing workflow patterns before designing new ones for [use case].")
+subagent(agent="context-scout", description="Find workflow design standards", prompt="Find workflow design patterns, agent coordination standards, context dependency mapping conventions, and validation gate requirements. I need to understand existing workflow patterns before designing new ones for [use case].")
 ```
 
 ### After ContextScout Returns

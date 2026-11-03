@@ -13,7 +13,7 @@ mode: subagent
 oac:
   id: my-agent
   name: MyAgent
-  category: subagents/code
+  category: code
   type: subagent
   version: "1.0.0"
   author: opencode
@@ -46,7 +46,7 @@ When changing an agent, edit its canonical file, then run `make build-canonical`
 
 ## Eval runner
 
-`eval-runner` is a normal canonical agent: `agent-library/agents/subagents/test/eval-runner.md`, with its own `oac:` block, built like every other agent. There is no exception and no metadata sidecar.
+`eval-runner` is a normal canonical agent: `agent-library/agents/dev/eval-runner.md`, with its own `oac:` block, built like every other agent. There is no exception and no metadata sidecar.
 
 ## Related
 

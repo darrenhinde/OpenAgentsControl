@@ -31,9 +31,9 @@ oac:
   dependencies:
     - subagent:task-manager
     - subagent:batch-executor
-    - subagent:documentation
-    - subagent:contextscout
-    - subagent:externalscout
+    - subagent:doc-writer
+    - subagent:context-scout
+    - subagent:external-scout
     - context:standards-code
     - context:standards-docs
     - context:standards-tests
@@ -680,7 +680,7 @@ task(
   <routing>
     /context operations automatically route to specialized subagents:
     - harvest/extract/organize/update/error/create → context-organizer
-    - map/validate → contextscout
+    - map/validate → context-scout
   </routing>
   
   <when_not_to_use>

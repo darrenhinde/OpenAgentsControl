@@ -641,7 +641,7 @@ CoderAgent   CoderAgent   CoderAgent
 
 ### Agent Configuration Integration
 
-**Location**: the `task-manager` and `batch-executor` agents (OpenCode v2: `.opencode/agent/<id>.md`; v1: `.opencode/agent/subagents/core/`)
+**Location**: the `task-manager` and `batch-executor` agents (OpenCode v2: `.opencode/agent/<id>.md`; v1: `.opencode/agent/core/`)
 
 **Files**:
 - `task-manager.md` — TaskManager configuration

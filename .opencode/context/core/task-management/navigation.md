@@ -60,7 +60,7 @@ core/task-management/
 
 - **Active tasks** → `.tmp/tasks/{feature}/` (at project root)
 - **Completed tasks** → `.tmp/tasks/completed/{feature}/`
-- **TaskManager agent** → `.opencode/agent/task-manager.md` (OpenCode v2; v1 nests it under `agent/subagents/core/`)
-- **Planning agents** → `.opencode/agent/<id>.md` on OpenCode v2 (v1: `agent/subagents/planning/`) (ArchitectureAnalyzer, StoryMapper, PrioritizationEngine, ContractManager, ADRManager)
+- **TaskManager agent** → `.opencode/agent/task-manager.md` (OpenCode v2; v1 nests it under `agent/core/`)
+- **Planning agents** → `.opencode/agent/<id>.md` on OpenCode v2 (v1: `agent/planning/`) (ArchitectureAnalyzer, StoryMapper, PrioritizationEngine, ContractManager, ADRManager)
 - **Multi-stage workflow** → `../workflows/multi-stage-orchestration.md`
 - **Core navigation** → `../navigation.md`

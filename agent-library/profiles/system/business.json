@@ -1,10 +1,10 @@
 {
   "id": "business",
   "agents": [
-    "contextscout",
+    "context-scout",
     "copywriter",
     "data-analyst",
-    "documentation",
+    "doc-writer",
     "image-specialist",
     "openagent",
     "task-manager",

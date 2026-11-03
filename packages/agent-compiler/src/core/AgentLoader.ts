@@ -409,10 +409,9 @@ function listMarkdownFiles(dir: string): string[] {
  *
  * Separate from {@link AgentLoader} on purpose: `AgentLoader` preserves the legacy shape and
  * derives its identity from the filename. Canonical files carry their own identity in `oac.id`,
- * and the two do not always agree — `agent-library/agents/subagents/code/test-engineer.md` declares
- * `id: tester`, which is what `built-ai-configs/registry/registry.json`, the profiles and the context docs all reference.
- * Resolving by filename here would silently mint a `test-engineer` that nothing refers to, so
- * this class never infers identity from a path.
+ * and the two may disagree (the naming lint flags it, but a renamed agent briefly can). Resolving by
+ * filename here would silently mint an id that nothing refers to, so this class never infers
+ * identity from a path.
  */
 export class CanonicalAgentLoader {
   private readonly contentRoot: string;
@@ -476,7 +475,7 @@ export class CanonicalAgentLoader {
    *
    * Results are sorted by `oac.id`, so the order is a property of the CONTENT rather than of
    * the filesystem — the same reason `listMarkdownFiles` sorts. Duplicate ids are an error:
-   * two agents claiming one id makes "install `subagent:tester`" ambiguous, and last-write-wins
+   * two agents claiming one id makes "install `subagent:test-engineer`" ambiguous, and last-write-wins
    * would resolve it silently and differently depending on enumeration order.
    *
    * @param root - Content root override. Defaults to the constructor's.

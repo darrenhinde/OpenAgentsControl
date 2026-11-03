@@ -133,9 +133,9 @@ Use when:
     .opencode/agent/core/opencoder.md
     
   Subagents (3):
-    .opencode/agent/subagents/reviewer.md
-    .opencode/agent/subagents/tester.md
-    .opencode/agent/subagents/coder-agent.md
+    .opencode/agent/code-reviewer.md
+    .opencode/agent/test-engineer.md
+    .opencode/agent/coder-agent.md
     
   Commands (2):
     .opencode/command/test.md

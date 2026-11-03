@@ -83,8 +83,8 @@ describe('oac init', () => {
     // agents: nested, v1 names
     const openagent = await readFile(join(dir, '.opencode/agent/core/openagent.md'), 'utf8');
     expect(openagent).toMatch(/^name: OpenAgent$/m);
-    expect(await exists(dir, '.opencode/agent/subagents/core/contextscout.md')).toBe(true);
-    expect(await exists(dir, '.opencode/agent/subagents/utils/image-specialist.md')).toBe(true);
+    expect(await exists(dir, '.opencode/agent/core/context-scout.md')).toBe(true);
+    expect(await exists(dir, '.opencode/agent/content/image-specialist.md')).toBe(true);
     expect(await exists(dir, '.opencode/agent/openagent.md')).toBe(false);
     // everything else v1 needs
     expect(await exists(dir, '.opencode/tool/gemini/index.ts')).toBe(true);
@@ -131,11 +131,19 @@ describe('oac init', () => {
 });
 
 describe('oac add and update honour the recorded flavor', () => {
+  test('a renamed agent still installs by its old id, through the registry alias', async () => {
+    const v2 = await newProject();
+    oac(v2, ['init']);
+    expect(oac(v2, ['add', 'subagent:tester']).code).toBe(0);
+    expect(await exists(v2, '.opencode/agent/test-engineer.md')).toBe(true);
+    expect(await exists(v2, '.opencode/agent/tester.md')).toBe(false);
+  });
+
   test('add resolves against the v1 registry in a v1 project, and the v2 one otherwise', async () => {
     const v1 = await newProject();
     oac(v1, ['init', '--opencode', 'v1'], '1.19.3');
     expect(oac(v1, ['add', 'subagent:image-specialist'], '1.19.3').code).toBe(0);
-    expect(await exists(v1, '.opencode/agent/subagents/utils/image-specialist.md')).toBe(true);
+    expect(await exists(v1, '.opencode/agent/content/image-specialist.md')).toBe(true);
 
     const v2 = await newProject();
     oac(v2, ['init']);
@@ -163,7 +171,7 @@ describe('oac add and update honour the recorded flavor', () => {
     expect(r.code).toBe(0);
     expect(await exists(dir, '.opencode/agent/openagent.md')).toBe(true);
     expect(await exists(dir, '.opencode/agent/core')).toBe(false);
-    expect(await exists(dir, '.opencode/agent/subagents')).toBe(false);
+    expect(await exists(dir, '.opencode/agent/code')).toBe(false);
     expect(await exists(dir, '.opencode/tool/gemini')).toBe(false);
     expect((await config(dir)).opencode).toEqual({ target: 'v2' });
     expect(lintV2Agents(await agentTexts(dir))).toEqual([]);
@@ -180,10 +188,10 @@ describe('oac add and update honour the recorded flavor', () => {
     // v1 -> v2: files install.sh placed that the CLI's profile (and so the manifest) does not know.
     const v1 = await newProject();
     oac(v1, ['init', '--opencode', 'v1', '--profile', 'essential'], '1.19.3');
-    await copy(v1, 'built-ai-configs/opencode-v1/agent/subagents/code/coder-agent.md', '.opencode/agent/subagents/code/coder-agent.md');
-    await copy(v1, 'built-ai-configs/opencode-v1/agent/subagents/core/batch-executor.md', '.opencode/agent/subagents/core/batch-executor.md', true);
+    await copy(v1, 'built-ai-configs/opencode-v1/agent/code/coder-agent.md', '.opencode/agent/code/coder-agent.md');
+    await copy(v1, 'built-ai-configs/opencode-v1/agent/core/batch-executor.md', '.opencode/agent/core/batch-executor.md', true);
     expect(oac(v1, ['update', '--opencode', 'v2'], '2.0.30').code).toBe(0);
-    expect(await exists(v1, '.opencode/agent/subagents')).toBe(false);
+    expect(await exists(v1, '.opencode/agent/code')).toBe(false);
     expect((await walk(join(v1, '.oac/backups'))).filter((f) => f.endsWith('batch-executor.md')).length).toBe(1);
 
     // v2 -> v1: a flat v2 agent left behind.

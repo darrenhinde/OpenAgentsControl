@@ -255,7 +255,7 @@ describe("OpenCodeV1Adapter permissions", () => {
     // `true` for CoderAgent's deny-all-then-allowlist. If that mapper ever reaches this build
     // path, this test is what catches it.
     const { content } = await adapter().fromCanonical(
-      readFileSync(repoPath("agent-library/agents/subagents/code/coder-agent.md"), "utf-8")
+      readFileSync(repoPath("agent-library/agents/code/coder-agent.md"), "utf-8")
     );
 
     const permission = frontmatterOf(content)["permission"] as Record<string, unknown>;
@@ -269,7 +269,7 @@ describe("OpenCodeV1Adapter permissions", () => {
     // §1.2.7's closed vocabulary but IS a real OpenCode permission key (config.ts:575), so a
     // parser built to that enum would drop this block and silently grant every skill.
     const { content } = await adapter().fromCanonical(
-      readFileSync(repoPath("agent-library/agents/subagents/core/externalscout.md"), "utf-8")
+      readFileSync(repoPath("agent-library/agents/core/external-scout.md"), "utf-8")
     );
 
     const permission = frontmatterOf(content)["permission"] as Record<
@@ -349,11 +349,11 @@ describe("OpenCodeV1Adapter round-trip", () => {
   });
 
   it("derives the output path from the file, not from oac.category + oac.id", () => {
-    // `agent-library/agents/subagents/code/test-engineer.md` declares `id: tester`. Composing the
-    // path from the id would emit `subagents/code/tester.md` and orphan the `test-engineer.md`
+    // A file whose name differs from its id (say `code/test-engineer.md` declaring `id: tester`).
+    // Composing the path from the id would emit `code/tester.md` and orphan the `test-engineer.md`
     // OpenCode actually loads.
-    expect(adapter().outputPath("subagents/code/test-engineer.md", "tester")).toBe(
-      "built-ai-configs/opencode-v1/agent/subagents/code/test-engineer.md"
+    expect(adapter().outputPath("code/test-engineer.md", "tester")).toBe(
+      "built-ai-configs/opencode-v1/agent/code/test-engineer.md"
     );
   });
 });

@@ -20,7 +20,7 @@ permission:
     "**/*": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
+    context-scout: "allow"
 ---
 
 # BuildAgent
@@ -79,7 +79,7 @@ Call ContextScout immediately when ANY of these triggers apply:
 ### How to Invoke
 
 ```
-subagent(agent="contextscout", description="Find build standards", prompt="Find build validation guidelines, type-checking requirements, and build command conventions for this project. I need to know what build tools and configurations are expected.")
+subagent(agent="context-scout", description="Find build standards", prompt="Find build validation guidelines, type-checking requirements, and build command conventions for this project. I need to know what build tools and configurations are expected.")
 ```
 
 ### After ContextScout Returns

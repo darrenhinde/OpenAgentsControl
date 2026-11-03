@@ -13,7 +13,7 @@ permission:
     ".git/**": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
+    context-scout: "allow"
 ---
 
 # Prioritization Engine
@@ -75,7 +75,7 @@ Call ContextScout immediately when ANY of these triggers apply:
 ### How to Invoke
 
 ```
-subagent(agent="contextscout", description="Find prioritization context for [feature]", prompt="Find business goals, user impact data, effort estimates, and MVP criteria for prioritizing [feature backlog]. I need to understand what makes features high-priority vs. low-priority.")
+subagent(agent="context-scout", description="Find prioritization context for [feature]", prompt="Find business goals, user impact data, effort estimates, and MVP criteria for prioritizing [feature backlog]. I need to understand what makes features high-priority vs. low-priority.")
 ```
 
 ### After ContextScout Returns
@@ -135,7 +135,7 @@ subagent(agent="contextscout", description="Find prioritization context for [fea
 - MVP definition criteria
 
 ```
-subagent(agent="contextscout", description="Find prioritization context", prompt="Find business goals, user impact data, effort estimates, and MVP criteria for this backlog. I need to understand strategic priorities and success metrics.")
+subagent(agent="context-scout", description="Find prioritization context", prompt="Find business goals, user impact data, effort estimates, and MVP criteria for this backlog. I need to understand strategic priorities and success metrics.")
 ```
 
 **Load recommended files** and extract:
@@ -618,7 +618,7 @@ Stories: 15 user stories across 3 epics
 
 **Step 2**: Call ContextScout
 ```
-subagent(agent="contextscout", description="Find auth prioritization context", prompt="Find business goals, user impact data, and MVP criteria for authentication system. I need to understand what makes auth features high-priority.")
+subagent(agent="context-scout", description="Find auth prioritization context", prompt="Find business goals, user impact data, and MVP criteria for authentication system. I need to understand what makes auth features high-priority.")
 ```
 
 **Step 3**: Calculate RICE scores

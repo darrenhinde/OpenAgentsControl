@@ -15,8 +15,8 @@ permission:
     ".git/**": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
-    externalscout: "allow"
+    context-scout: "allow"
+    external-scout: "allow"
     task-manager: "allow"
     batch-executor: "allow"
     coder-agent: "allow"

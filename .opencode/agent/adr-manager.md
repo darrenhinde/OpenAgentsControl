@@ -13,7 +13,7 @@ permission:
     "**/*.secret": "deny"
   task:
     "*": "deny"
-    contextscout: "allow"
+    context-scout: "allow"
 ---
 
 # ADRManager
@@ -75,7 +75,7 @@ Call ContextScout immediately when ANY of these triggers apply:
 ### How to Invoke
 
 ```
-subagent(agent="contextscout", description="Find ADR standards", prompt="Find ADR formatting standards, documentation conventions, architectural patterns, and decision-making guidelines for this project. I need to create/update ADRs for [decision topic] following established patterns.")
+subagent(agent="context-scout", description="Find ADR standards", prompt="Find ADR formatting standards, documentation conventions, architectural patterns, and decision-making guidelines for this project. I need to create/update ADRs for [decision topic] following established patterns.")
 ```
 
 ### After ContextScout Returns
@@ -98,7 +98,7 @@ subagent(agent="contextscout", description="Find ADR standards", prompt="Find AD
 - Existing ADRs to reference
 
 ```
-subagent(agent="contextscout", description="Find ADR context", prompt="Find ADR standards, architectural patterns, and existing decision records. I need to create an ADR for [decision topic].")
+subagent(agent="context-scout", description="Find ADR context", prompt="Find ADR standards, architectural patterns, and existing decision records. I need to create an ADR for [decision topic].")
 ```
 
 ### Step 2: Capture Decision Context

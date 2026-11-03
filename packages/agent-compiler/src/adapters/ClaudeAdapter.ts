@@ -154,8 +154,8 @@ export class ClaudeAdapter extends BaseAdapter {
    * Where a Claude Code component name lands in the plugin tree.
    *
    * Takes the emitted NAME, not `oac.id` — Claude Code requires an agent's `name` to match its
-   * filename, and the two genuinely differ from canonical ids (`reviewer` → `code-reviewer`,
-   * `tester` → `test-engineer`). {@link fromCanonical} resolves the name from
+   * filename, and the two can differ from the canonical id (a per-host name override).
+   * {@link fromCanonical} resolves the name from
    * `oac.overrides.claude-code.name`, falling back to the id.
    */
   agentPath(name: string): string {

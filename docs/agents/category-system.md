@@ -15,7 +15,7 @@ The category-based agent system organizes agents into logical categories, making
 **Three-Tier Hierarchy**:
 1. **Core Agents** - Primary agents users interact with (orchestrator, coder)
 2. **Category Agents** - Domain-specific specialists (frontend, copywriter, etc.)
-3. **Subagents** - Delegated specialists called by core/category agents (tester, reviewer, etc.)
+3. **Subagents** - Delegated specialists called by core/category agents (test-engineer, code-reviewer, etc.)
 
 ---
 
@@ -383,7 +383,7 @@ npm run eval:sdk -- --agent=product/product-manager
 From a category agent:
 
 ```javascript
-// Delegate test creation to tester subagent
+// Delegate test creation to test-engineer subagent
 task(
   subagent_type="TestEngineer",
   description="Create tests",

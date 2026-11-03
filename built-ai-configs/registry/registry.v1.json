@@ -45,9 +45,9 @@
       },
       {
         "id": "eval-runner",
-        "name": "eval-runner",
+        "name": "EvalRunner",
         "type": "agent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/test/eval-runner.md",
+        "path": "built-ai-configs/opencode-v1/agent/dev/eval-runner.md",
         "version": "1.0.0",
         "description": "Test harness for evaluation framework - DO NOT USE DIRECTLY",
         "tags": [
@@ -55,7 +55,7 @@
           "evals"
         ],
         "dependencies": [],
-        "category": "subagents/test"
+        "category": "dev"
       },
       {
         "id": "openagent",
@@ -72,9 +72,9 @@
         "dependencies": [
           "subagent:task-manager",
           "subagent:batch-executor",
-          "subagent:documentation",
-          "subagent:contextscout",
-          "subagent:externalscout",
+          "subagent:doc-writer",
+          "subagent:context-scout",
+          "subagent:external-scout",
           "context:standards-code",
           "context:standards-docs",
           "context:standards-tests",
@@ -97,15 +97,15 @@
           "implementation"
         ],
         "dependencies": [
-          "subagent:documentation",
+          "subagent:doc-writer",
           "subagent:task-manager",
           "subagent:batch-executor",
           "subagent:coder-agent",
-          "subagent:tester",
-          "subagent:reviewer",
+          "subagent:test-engineer",
+          "subagent:code-reviewer",
           "subagent:build-agent",
-          "subagent:contextscout",
-          "subagent:externalscout",
+          "subagent:context-scout",
+          "subagent:external-scout",
           "context:standards-code",
           "context:task-delegation-basics",
           "context:component-planning",
@@ -127,11 +127,11 @@
         ],
         "dependencies": [
           "subagent:task-manager",
-          "subagent:contextscout",
-          "subagent:documentation",
+          "subagent:context-scout",
+          "subagent:doc-writer",
           "subagent:coder-agent",
-          "subagent:tester",
-          "subagent:reviewer",
+          "subagent:test-engineer",
+          "subagent:code-reviewer",
           "subagent:build-agent"
         ],
         "category": "meta"
@@ -180,7 +180,7 @@
         "id": "adr-manager",
         "name": "ADRManager",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/planning/adr-manager.md",
+        "path": "built-ai-configs/opencode-v1/agent/planning/adr-manager.md",
         "version": "1.0.0",
         "description": "Architecture Decision Record specialist capturing decisions, context, alternatives, and consequences in lightweight ADR format",
         "tags": [
@@ -189,13 +189,13 @@
           "decisions"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
+        "category": "planning"
       },
       {
         "id": "agent-generator",
         "name": "AgentGenerator",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/system-builder/agent-generator.md",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/agent-generator.md",
         "version": "1.0.0",
         "description": "Generates XML-optimized agent files (orchestrator and subagents) following research-backed patterns",
         "tags": [
@@ -204,13 +204,13 @@
           "scaffolding"
         ],
         "dependencies": [],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       },
       {
         "id": "architecture-analyzer",
         "name": "ArchitectureAnalyzer",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/planning/architecture-analyzer.md",
+        "path": "built-ai-configs/opencode-v1/agent/planning/architecture-analyzer.md",
         "version": "1.0.0",
         "description": "DDD-driven architecture analyzer identifying bounded contexts, module boundaries, and domain relationships for multi-stage orchestration",
         "tags": [
@@ -219,13 +219,13 @@
           "ddd"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
+        "category": "planning"
       },
       {
         "id": "batch-executor",
         "name": "BatchExecutor",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/core/batch-executor.md",
+        "path": "built-ai-configs/opencode-v1/agent/core/batch-executor.md",
         "version": "1.0.0",
         "description": "Execute multiple tasks in parallel batches, managing simultaneous CoderAgent delegations and tracking batch completion",
         "tags": [
@@ -237,13 +237,13 @@
           "subagent:coder-agent",
           "subagent:task-manager"
         ],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
         "id": "build-agent",
         "name": "BuildAgent",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/code/build-agent.md",
+        "path": "built-ai-configs/opencode-v1/agent/code/build-agent.md",
         "version": "1.0.0",
         "description": "Type check and build validation agent",
         "tags": [
@@ -252,13 +252,34 @@
           "type-checking"
         ],
         "dependencies": [],
-        "category": "subagents/code"
+        "category": "code"
+      },
+      {
+        "id": "code-reviewer",
+        "name": "CodeReviewer",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/code/code-reviewer.md",
+        "version": "1.0.0",
+        "description": "Code review, security, and quality assurance agent",
+        "tags": [
+          "review",
+          "security",
+          "quality"
+        ],
+        "dependencies": [
+          "context:standards-code",
+          "context:review-ref"
+        ],
+        "category": "code",
+        "aliases": [
+          "reviewer"
+        ]
       },
       {
         "id": "coder-agent",
         "name": "CoderAgent",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/code/coder-agent.md",
+        "path": "built-ai-configs/opencode-v1/agent/code/coder-agent.md",
         "version": "1.0.0",
         "description": "Executes coding subtasks in sequence, ensuring completion as specified",
         "tags": [
@@ -268,13 +289,13 @@
         "dependencies": [
           "context:standards-code"
         ],
-        "category": "subagents/code"
+        "category": "code"
       },
       {
         "id": "command-creator",
         "name": "CommandCreator",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/system-builder/command-creator.md",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/command-creator.md",
         "version": "1.0.0",
         "description": "Creates custom slash commands that route to appropriate agents with clear syntax and examples",
         "tags": [
@@ -283,13 +304,13 @@
           "scaffolding"
         ],
         "dependencies": [],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       },
       {
         "id": "context-manager",
         "name": "ContextManager",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/core/context-manager.md",
+        "path": "built-ai-configs/opencode-v1/agent/core/context-manager.md",
         "version": "1.0.0",
         "description": "Context organization and lifecycle management specialist - discovers, catalogs, validates, and maintains project context structure with dependency tracking",
         "tags": [
@@ -298,13 +319,13 @@
           "organization"
         ],
         "dependencies": [],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
         "id": "context-organizer",
         "name": "ContextOrganizer",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/system-builder/context-organizer.md",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/context-organizer.md",
         "version": "1.0.0",
         "description": "Organizes and generates context files (domain, processes, standards, templates) for optimal knowledge management",
         "tags": [
@@ -315,13 +336,13 @@
         "dependencies": [
           "context:core/context-system/*"
         ],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       },
       {
         "id": "context-retriever",
-        "name": "Context Retriever",
+        "name": "ContextRetriever",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/core/context-retriever.md",
+        "path": "built-ai-configs/opencode-v1/agent/core/context-retriever.md",
         "version": "1.0.0",
         "description": "Generic context search and retrieval specialist for finding relevant context files, standards, and guides in any repository",
         "tags": [
@@ -330,13 +351,13 @@
           "search"
         ],
         "dependencies": [],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
-        "id": "contextscout",
+        "id": "context-scout",
         "name": "ContextScout",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/core/contextscout.md",
+        "path": "built-ai-configs/opencode-v1/agent/core/context-scout.md",
         "version": "1.0.0",
         "description": "Discovers and recommends context files from .opencode/context/ ranked by priority. Suggests ExternalScout when a framework/library is mentioned but not found internally.",
         "tags": [
@@ -351,17 +372,20 @@
           "context:mvi",
           "context:structure",
           "context:workflows",
-          "subagent:externalscout",
+          "subagent:external-scout",
           "context:root-navigation",
           "context:context-paths-config"
         ],
-        "category": "subagents/core"
+        "category": "core",
+        "aliases": [
+          "contextscout"
+        ]
       },
       {
         "id": "contract-manager",
         "name": "ContractManager",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/planning/contract-manager.md",
+        "path": "built-ai-configs/opencode-v1/agent/planning/contract-manager.md",
         "version": "1.0.0",
         "description": "API contract management specialist enabling parallel development through contract-first design with OpenAPI/Swagger support",
         "tags": [
@@ -370,13 +394,13 @@
           "openapi"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
+        "category": "planning"
       },
       {
         "id": "devops-specialist",
         "name": "OpenDevopsSpecialist",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/development/devops-specialist.md",
+        "path": "built-ai-configs/opencode-v1/agent/dev/devops-specialist.md",
         "version": "1.0.0",
         "description": "DevOps specialist subagent - CI/CD, infrastructure as code, deployment automation",
         "tags": [
@@ -385,13 +409,13 @@
           "infrastructure"
         ],
         "dependencies": [],
-        "category": "subagents/development"
+        "category": "dev"
       },
       {
-        "id": "documentation",
+        "id": "doc-writer",
         "name": "DocWriter",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/core/documentation.md",
+        "path": "built-ai-configs/opencode-v1/agent/core/doc-writer.md",
         "version": "1.0.0",
         "description": "Documentation authoring agent",
         "tags": [
@@ -401,13 +425,16 @@
         "dependencies": [
           "context:standards-docs"
         ],
-        "category": "subagents/core"
+        "category": "core",
+        "aliases": [
+          "documentation"
+        ]
       },
       {
         "id": "domain-analyzer",
         "name": "DomainAnalyzer",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/system-builder/domain-analyzer.md",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/domain-analyzer.md",
         "version": "1.0.0",
         "description": "Analyzes user domains to identify core concepts, recommended agents, and context structure",
         "tags": [
@@ -416,13 +443,13 @@
           "architecture"
         ],
         "dependencies": [],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       },
       {
-        "id": "externalscout",
+        "id": "external-scout",
         "name": "ExternalScout",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/core/externalscout.md",
+        "path": "built-ai-configs/opencode-v1/agent/core/external-scout.md",
         "version": "1.0.0",
         "description": "Fetches live, version-specific documentation for external libraries and frameworks using Context7 and other sources. Filters, sorts, and returns relevant documentation.",
         "tags": [
@@ -434,13 +461,16 @@
           "skill:context7",
           "context:context-system"
         ],
-        "category": "subagents/core"
+        "category": "core",
+        "aliases": [
+          "externalscout"
+        ]
       },
       {
         "id": "frontend-specialist",
         "name": "OpenFrontendSpecialist",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/development/frontend-specialist.md",
+        "path": "built-ai-configs/opencode-v1/agent/dev/frontend-specialist.md",
         "version": "1.0.0",
         "description": "Frontend UI design specialist - subagent for design systems, themes, animations",
         "tags": [
@@ -451,13 +481,13 @@
         "dependencies": [
           "context:standards-code"
         ],
-        "category": "subagents/development"
+        "category": "dev"
       },
       {
         "id": "image-specialist",
-        "name": "Image Specialist",
+        "name": "ImageSpecialist",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/utils/image-specialist.md",
+        "path": "built-ai-configs/opencode-v1/agent/content/image-specialist.md",
         "version": "1.0.0",
         "description": "Specialized agent for image editing and analysis using Gemini AI tools",
         "tags": [
@@ -468,13 +498,13 @@
         "dependencies": [
           "tool:gemini"
         ],
-        "category": "subagents/utils"
+        "category": "content"
       },
       {
         "id": "prioritization-engine",
         "name": "PrioritizationEngine",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/planning/prioritization-engine.md",
+        "path": "built-ai-configs/opencode-v1/agent/planning/prioritization-engine.md",
         "version": "1.0.0",
         "description": "Scores and prioritizes backlog items using RICE/WSJF frameworks with MVP/post-MVP release slicing",
         "tags": [
@@ -483,31 +513,13 @@
           "planning"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
-      },
-      {
-        "id": "reviewer",
-        "name": "CodeReviewer",
-        "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/code/reviewer.md",
-        "version": "1.0.0",
-        "description": "Code review, security, and quality assurance agent",
-        "tags": [
-          "review",
-          "security",
-          "quality"
-        ],
-        "dependencies": [
-          "context:standards-code",
-          "context:review-ref"
-        ],
-        "category": "subagents/code"
+        "category": "planning"
       },
       {
         "id": "simple-responder",
-        "name": "Simple Responder",
+        "name": "SimpleResponder",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/test/simple-responder.md",
+        "path": "built-ai-configs/opencode-v1/agent/dev/simple-responder.md",
         "version": "1.0.0",
         "description": "Test agent that responds with 'AWESOME TESTING' - for eval framework testing",
         "tags": [
@@ -515,13 +527,13 @@
           "evaluation"
         ],
         "dependencies": [],
-        "category": "subagents/test"
+        "category": "dev"
       },
       {
         "id": "stage-orchestrator",
         "name": "StageOrchestrator",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/core/stage-orchestrator.md",
+        "path": "built-ai-configs/opencode-v1/agent/core/stage-orchestrator.md",
         "version": "1.0.0",
         "description": "Multi-stage workflow orchestrator managing stage transitions, gating rules, validation, and rollback for complex feature development",
         "tags": [
@@ -530,13 +542,13 @@
           "stages"
         ],
         "dependencies": [],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
         "id": "story-mapper",
         "name": "StoryMapper",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/planning/story-mapper.md",
+        "path": "built-ai-configs/opencode-v1/agent/planning/story-mapper.md",
         "version": "1.0.0",
         "description": "User journey mapping specialist transforming user needs into epics, stories, and vertical slices with bounded context alignment",
         "tags": [
@@ -545,13 +557,13 @@
           "planning"
         ],
         "dependencies": [],
-        "category": "subagents/planning"
+        "category": "planning"
       },
       {
         "id": "task-manager",
         "name": "TaskManager",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/core/task-manager.md",
+        "path": "built-ai-configs/opencode-v1/agent/core/task-manager.md",
         "version": "2.0.0",
         "description": "JSON-driven task breakdown specialist transforming complex features into atomic, verifiable subtasks with dependency tracking and CLI integration",
         "tags": [
@@ -562,13 +574,13 @@
         "dependencies": [
           "context:task-delegation-basics"
         ],
-        "category": "subagents/core"
+        "category": "core"
       },
       {
-        "id": "tester",
+        "id": "test-engineer",
         "name": "TestEngineer",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/code/test-engineer.md",
+        "path": "built-ai-configs/opencode-v1/agent/code/test-engineer.md",
         "version": "1.0.0",
         "description": "Test authoring and TDD agent",
         "tags": [
@@ -579,13 +591,16 @@
         "dependencies": [
           "context:standards-tests"
         ],
-        "category": "subagents/code"
+        "category": "code",
+        "aliases": [
+          "tester"
+        ]
       },
       {
         "id": "workflow-designer",
         "name": "WorkflowDesigner",
         "type": "subagent",
-        "path": "built-ai-configs/opencode-v1/agent/subagents/system-builder/workflow-designer.md",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/workflow-designer.md",
         "version": "1.0.0",
         "description": "Designs complete workflow definitions with context dependencies and success criteria",
         "tags": [
@@ -594,7 +609,7 @@
           "architecture"
         ],
         "dependencies": [],
-        "category": "subagents/system-builder"
+        "category": "system-builder"
       }
     ],
     "commands": [
@@ -639,7 +654,7 @@
         ],
         "dependencies": [
           "subagent:context-organizer",
-          "subagent:contextscout"
+          "subagent:context-scout"
         ],
         "category": "essential"
       },
@@ -955,8 +970,8 @@
           "lazy-loading"
         ],
         "dependencies": [
-          "subagent:contextscout",
-          "subagent:externalscout"
+          "subagent:context-scout",
+          "subagent:external-scout"
         ],
         "category": "essential",
         "files": [
@@ -3361,19 +3376,19 @@
         "skill:task-management",
         "subagent:agent-generator",
         "subagent:build-agent",
+        "subagent:code-reviewer",
         "subagent:coder-agent",
         "subagent:command-creator",
         "subagent:context-organizer",
         "subagent:context-retriever",
-        "subagent:contextscout",
+        "subagent:context-scout",
         "subagent:devops-specialist",
-        "subagent:documentation",
+        "subagent:doc-writer",
         "subagent:domain-analyzer",
         "subagent:frontend-specialist",
         "subagent:image-specialist",
-        "subagent:reviewer",
         "subagent:task-manager",
-        "subagent:tester",
+        "subagent:test-engineer",
         "subagent:workflow-designer",
         "tool:env",
         "tool:gemini"
@@ -3404,8 +3419,8 @@
         "context:quick-start",
         "plugin:notify",
         "skill:task-management",
-        "subagent:contextscout",
-        "subagent:documentation",
+        "subagent:context-scout",
+        "subagent:doc-writer",
         "subagent:image-specialist",
         "subagent:task-manager",
         "tool:env",
@@ -3446,14 +3461,14 @@
         "context:ui/*",
         "skill:task-management",
         "subagent:build-agent",
+        "subagent:code-reviewer",
         "subagent:coder-agent",
-        "subagent:contextscout",
+        "subagent:context-scout",
         "subagent:devops-specialist",
-        "subagent:documentation",
+        "subagent:doc-writer",
         "subagent:frontend-specialist",
-        "subagent:reviewer",
         "subagent:task-manager",
-        "subagent:tester",
+        "subagent:test-engineer",
         "tool:env"
       ]
     },
@@ -3481,8 +3496,8 @@
         "context:task-delegation-basics",
         "context:workflows-review",
         "skill:task-management",
-        "subagent:contextscout",
-        "subagent:documentation",
+        "subagent:context-scout",
+        "subagent:doc-writer",
         "subagent:task-manager",
         "tool:env"
       ]
@@ -3527,15 +3542,15 @@
         "plugin:notify",
         "skill:task-management",
         "subagent:build-agent",
+        "subagent:code-reviewer",
         "subagent:coder-agent",
-        "subagent:contextscout",
+        "subagent:context-scout",
         "subagent:devops-specialist",
-        "subagent:documentation",
+        "subagent:doc-writer",
         "subagent:frontend-specialist",
         "subagent:image-specialist",
-        "subagent:reviewer",
         "subagent:task-manager",
-        "subagent:tester",
+        "subagent:test-engineer",
         "tool:env",
         "tool:gemini"
       ]

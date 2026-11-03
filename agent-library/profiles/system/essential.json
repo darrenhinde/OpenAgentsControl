@@ -1,8 +1,8 @@
 {
   "id": "essential",
   "agents": [
-    "contextscout",
-    "documentation",
+    "context-scout",
+    "doc-writer",
     "openagent",
     "task-manager"
   ],

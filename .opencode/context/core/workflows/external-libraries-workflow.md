@@ -135,4 +135,4 @@ STEP 1: ContextScout → Search internal context
 
 - `external-libraries-scenarios.md` - Common scenarios and examples
 - `external-libraries-faq.md` - Troubleshooting FAQ
-- `.opencode/agent/externalscout.md` (OpenCode v2; v1 nests it under `agent/subagents/core/`) - ExternalScout agent
+- `.opencode/agent/external-scout.md` (OpenCode v2; v1 nests it under `agent/core/`) - ExternalScout agent
