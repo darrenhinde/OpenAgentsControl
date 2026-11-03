@@ -22,10 +22,12 @@ Add the agent id to a system profile in `agent-library/profiles/system/<profile>
 go in the same list) or users cannot install it. A new agent and its profile entry build together in one `make build-canonical`. `profiles.<id>.components` in the
 registries is generated from it.
 
-Directories under `agent-library/agents/`: `core/`, `content/`, `data/`, `meta/`,
-`subagents/{code,core,development,planning,system-builder,test,utils}/`. The source directory decides the
-OpenCode v1 output folder; `oac.category` is metadata and moves nothing (verified by building). v2 and Claude Code
-name the output file after `oac.id`; v1 keeps the source file name.
+The folder is the category, one level, no nesting: `agent-library/agents/<category>/<id>.md`, and `oac.category`
+equals the folder. Categories: `core`, `code`, `planning`, `content`, `data`, `meta`, `system-builder`, `dev`.
+There is no `subagents/` folder: primary vs subagent is the `type` field (`agent` or `subagent`), which is independent
+of category (`core/` holds both `openagent` and `context-scout`). The source directory decides the OpenCode v1
+output folder. v2 and Claude Code name the output file after `oac.id`; v1 keeps the source file name, so name the
+file after the id. Rules: `docs/architecture/NAMING.md`; the full contributor table is `agent-library/README.md`.
 
 ## File shape
 
@@ -40,7 +42,7 @@ permission:                         # OpenCode rules, ordered, LAST MATCH WINS
 oac:
   id: my-agent                      # kebab-case, unique across the corpus
   name: MyAgent
-  category: code
+  category: code                    # equals the folder: agents/code/my-agent.md
   type: subagent                    # agent | subagent
   exclude: [claude-code]            # see "Shipping"
 ---
@@ -57,7 +59,7 @@ Body = the system prompt on every host.
 |---|---|---|
 | `id` | yes | `^[a-z0-9]+(-[a-z0-9]+)*$`; duplicate ids fail the build |
 | `name` | yes | display name; v1 uses it as the registered agent name |
-| `category` | yes | `<root>` or `<root>/<segment>`; roots: core, development, content, data, product, learning, meta, specialist, subagents, testing |
+| `category` | yes | one of core, code, planning, content, data, meta, system-builder, dev; equals the folder under `agents/`. `subagents[/x]`, `testing` and `development` still build but are deprecated and lint-warned |
 | `type` | yes | `agent` or `subagent` |
 | `version` | no | SemVer, default `1.0.0` |
 | `author` | no | default `opencode` |
@@ -114,7 +116,7 @@ Reproduced with a scratch agent; `oac build` exits 1 on each.
 | `No oac: block ... must declare an oac: block` | add the block |
 | `description: Required` / `mode: Required` / `mode: Invalid enum value` | fix the OpenCode frontmatter |
 | `oac.id: id must be kebab-case` | lowercase words joined by `-` |
-| `oac.category: category must be "<root>" or ...` | use a root from the table |
+| `oac.category: category must be one of ...` | use a category from the table; it is also the folder name |
 | `oac: Unrecognized key(s) in object: 'x'` | remove the key; only the fields above exist |
 | `oac.targets.0: Invalid enum value ... received 'cursor'` | targets are opencode, opencode-v1, claude-code |
 | `override declared for target "claude-code", which is not in the effective targets` | remove the override or the `exclude` entry |

@@ -247,15 +247,21 @@ export const openCodeFlavorCheck = (input: {
  * Installed files that a renamed or moved agent replaced. OpenCode loads every file under
  * `agent/`, so each one is a duplicate definition. Pure.
  */
-export const supersededCheck = (found: readonly SupersededFile[], hasManifest: boolean): CheckResult => {
+export const supersededCheck = (
+  found: readonly SupersededFile[],
+  hasManifest: boolean,
+  /** Destination paths of the replacements that are actually installed (default: all). */
+  replacementInstalled: (f: SupersededFile) => boolean = () => true,
+): CheckResult => {
   const name = 'Superseded files';
   if (found.length === 0) return { name, status: 'ok', message: 'No renamed or moved agents left behind' };
-  const fix = hasManifest ? "run 'oac update'" : "run 'oac init' (it adopts this install)";
+  // Detection never depends on a manifest (shell installs have none); only the advice does.
+  const fix = hasManifest ? "run 'oac update'" : "run 'oac init' to adopt this install, then 'oac update'";
   return {
     name,
     status: 'warn',
-    message: `${found.length} installed file${found.length !== 1 ? 's' : ''} replaced by renamed or moved agents — ${fix} to remove them (edited copies are backed up first)`,
-    detail: found.map((f) => `${f.oldPath} -> ${f.newPath}`),
+    message: `${found.length} installed file${found.length !== 1 ? 's' : ''} use an old agent name — ${fix} to move to the new one (edited copies are backed up first)`,
+    detail: found.map((f) => `${f.oldPath} -> ${f.newPath}${replacementInstalled(f) ? '' : ' (new name not installed yet)'}`),
   };
 };
 

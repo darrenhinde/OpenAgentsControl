@@ -1566,7 +1566,7 @@
       "assetId": "openagents-repo/guides/adding-skill-implementation.md"
     },
     ".opencode/context/openagents-repo/guides/authoring-agents.md": {
-      "sha256": "d6c376e1a9fb4687442c7e009e208c8c127c9e79174cb8875746d0e4798d3a84",
+      "sha256": "63a24325f5dcc52cc7c583c5ed2ac661974fc93a4c09ecd8940eadcda15865cc",
       "target": "opencode",
       "root": ".opencode/context",
       "assetKind": "context",
@@ -3625,12 +3625,12 @@
       "assetId": "task-management"
     },
     "built-ai-configs/registry/registry.json": {
-      "sha256": "f69e444a5fb8bc017cf4e6ffc776ad3437c33969676765923886d7bd23c2076d",
+      "sha256": "563a88b0cbec66e30c2a9c1e5ba652b6a684d93f6beb7a26e58a5a4fe1cb78b0",
       "target": "registry",
       "root": "built-ai-configs/registry/registry.json"
     },
     "built-ai-configs/registry/registry.v1.json": {
-      "sha256": "ad1a9d6b61941525b2353571bf49de149ffee11152174289ab0a8a66f4277ee9",
+      "sha256": "03f6e63679808d0e95e1fff411adb40cd0ae66ab50fb665dbdf8698448800b5d",
       "target": "registry-v1",
       "root": "built-ai-configs/registry/registry.v1.json"
     },

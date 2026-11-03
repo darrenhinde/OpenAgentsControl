@@ -210,8 +210,11 @@ describe("determinism", () => {
   it("emits the hand-maintained retired list as a top-level key, and nothing else carries it", async () => {
     const document = await new RegistryEmitter(repoPath()).emit();
     const retired = document.retired as Array<{ path: string; sha256: string[] }>;
-    expect(retired).toHaveLength(12);
-    expect(retired.every((entry) => entry.path.startsWith(".opencode/command/openagents/new-agents/"))).toBe(true);
+    // The 12 agent-creation templates and the 23 contributor docs of the original release, at least.
+    expect(retired.length).toBeGreaterThanOrEqual(35);
+    expect(retired.filter((entry) => entry.path.startsWith(".opencode/command/openagents/new-agents/"))).toHaveLength(12);
+    expect(retired.filter((entry) => entry.path.startsWith(".opencode/context/openagents-repo/"))).toHaveLength(23);
+    expect(retired.every((entry) => entry.path.startsWith(".opencode/command/") || entry.path.startsWith(".opencode/context/openagents-repo/"))).toBe(true);
     expect(retired.every((entry) => entry.sha256.length > 0)).toBe(true);
     // ordering is part of the content: it comes last, after profiles
     expect(Object.keys(document).at(-1)).toBe("retired");

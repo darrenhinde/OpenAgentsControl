@@ -183,6 +183,19 @@ describe('upgrade across a rename (OpenCode v2, flat agents)', () => {
     expect(after.out).toContain('HEALTHY');
   });
 
+  test('oac doctor warns about old-name agents with no manifest, even before the new name is installed', async () => {
+    const { newRoot } = await setup();
+    const project = await newProject();
+    await mkdir(join(project, '.opencode/agent'), { recursive: true });
+    await writeFile(join(project, '.opencode/agent/tester.md'), agentText('Test authoring agent'));
+    expect(await exists(project, '.oac/manifest.json')).toBe(false);
+    const run = oac(project, newRoot, ['doctor'], '2.0.30');
+    expect(run.out).toContain('Superseded files');
+    expect(run.out).not.toContain('No renamed or moved agents left behind');
+    expect(run.out).toContain('.opencode/agent/tester.md -> .opencode/agent/test-engineer.md (new name not installed yet)');
+    expect(run.out).toContain("run 'oac init' to adopt this install");
+  });
+
   test('oac init over an install.sh install (no manifest) retires the old copy too', async () => {
     const { newRoot } = await setup();
     const project = await newProject();

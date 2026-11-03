@@ -452,10 +452,10 @@ retired_rows() {
     jq -r '(.retired // [])[]? | select(.path != null) | [.path, ((.sha256 // []) | join(","))] | @tsv' "$1" 2>/dev/null | tr -d '\r'
 }
 
-# A retired file may only sit under <install dir>/{agent,command,skills}/ ($1 = install-relative path).
+# A retired file may only sit under <install dir>/{agent,command,skills,context/openagents-repo}/ ($1 = install-relative path).
 retired_rel_ok() {
     case "$1" in
-        agent/?*|command/?*|skills/?*) ;;
+        agent/?*|command/?*|skills/?*|context/openagents-repo/?*) ;;
         *) return 1 ;;
     esac
     case "$1" in
@@ -475,7 +475,7 @@ retire_retired_files_from() {
     while IFS=$'\t' read -r path sums; do
         [ -n "$path" ] || continue
         rel=$($mapper "$path") || { print_warning "Refusing unsafe registry path: $path"; continue; }
-        retired_rel_ok "$rel" || { print_warning "Ignoring retired path outside agent/, command/ and skills/: $path"; continue; }
+        retired_rel_ok "$rel" || { print_warning "Ignoring retired path outside agent/, command/, skills/ and context/openagents-repo/: $path"; continue; }
         dest="${install_dir}/${rel}"
         [ -e "$dest" ] || [ -L "$dest" ] || continue
         root="${rel%%/*}"
@@ -1605,7 +1605,12 @@ perform_installation() {
     fi
 
     echo ""
-    print_success "Installation complete!"
+    if [ "$failed" -gt 0 ]; then
+        # The exit status stays 0: callers (and scripts/tests) rely on it, so say it loudly instead.
+        print_warning "Installation completed with ${failed} failure(s): ${failed} component(s) could not be installed (see the errors above). Re-run install.sh to retry them."
+    else
+        print_success "Installation complete!"
+    fi
     echo -e "  OpenCode:  ${OPENCODE_FLAVOR}"
     echo -e "  Installed: ${GREEN}${installed}${NC}"
     [ $skipped -gt 0 ] && echo -e "  Skipped: ${CYAN}${skipped}${NC}"

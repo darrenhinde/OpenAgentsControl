@@ -379,6 +379,8 @@ cat > "$RT/pkg/built-ai-configs/registry/registry.json" <<JSON
  {"path":"$NA/edited.md","sha256":["$H_README"]},
  {"path":".opencode/skills/old-skill/SKILL.md","sha256":["$H_SKILL"]},
  {"path":".opencode/context/index.md","sha256":["$H_INDEX"]},
+ {"path":".opencode/context/openagents-repo/guides/old.md","sha256":["$H_INDEX"]},
+ {"path":".opencode/context/project/mine.md","sha256":["$H_INDEX"]},
  {"path":".opencode/command/../context/navigation.md","sha256":["$H_INDEX"]},
  {"path":".opencode\\\\command\\\\x.md","sha256":["$H_INDEX"]},
  {"path":".opencode/command/linkdir/victim.md","sha256":["$H_VICTIM"]},
@@ -397,6 +399,9 @@ retired_project() {
     echo "mine" > "$1/.opencode/skills/old-skill/mine.md"
     cp "$RT/seed/index.md" "$1/.opencode/context/index.md"
     cp "$RT/seed/index.md" "$1/.opencode/context/navigation.md"
+    mkdir -p "$1/.opencode/context/openagents-repo/guides" "$1/.opencode/context/project"
+    cp "$RT/seed/index.md" "$1/.opencode/context/openagents-repo/guides/old.md"
+    cp "$RT/seed/index.md" "$1/.opencode/context/project/mine.md"
     cp "$RT/seed/victim.md" "$1-outside/victim.md"
     ln -s "$1-outside" "$1/.opencode/command/linkdir"
     ln -s "$1-outside/victim.md" "$1/.opencode/skills/linked.md"
@@ -411,6 +416,8 @@ assert_retired_ok() {
     assert_file    "$1/$NA/create-agent.md"                   "$2: a real command in the same folder stays"
     assert_file    "$1/.opencode/context/index.md"            "$2: a retired path outside agent/command/skills is ignored"
     assert_file    "$1/.opencode/context/navigation.md"       "$2: a retired path with .. is ignored"
+    assert_no_file "$1/.opencode/context/openagents-repo/guides/old.md" "$2: a pristine retired OAC contributor doc is removed"
+    assert_file    "$1/.opencode/context/project/mine.md"     "$2: a retired path in a user-owned context slot is ignored"
     assert_file    "$1-outside/victim.md"                     "$2: a symlinked directory cannot reach a file outside the install"
     assert_file    "$1/.opencode/skills/linked.md"            "$2: a symlinked file is not removed"
     assert_file    "$1/.opencode/agent/new.md"                "$2: the rest of the install still happens"

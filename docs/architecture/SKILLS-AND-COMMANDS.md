@@ -28,8 +28,10 @@ rejects `Open Agents` or `open_agents`), because it becomes part of a command na
 every host. Today there are two groups, `openagents` and `prompt-engineering`, plus the grandfathered
 `openagents/new-agents` (two folders deep, two commands). The loader accepts at most two levels;
 the `command-group-depth` lint reports anything beyond one except that grandfathered group, which is
-listed in `LEGACY_COMMAND_GROUPS` and should go the next time those two commands move. Claude Code
-commands are flat (a group would namespace them as `/group:name`).
+listed in `LEGACY_COMMAND_GROUPS` and should go the next time those two commands move. The Claude
+adapter keeps the group: a grouped command that ships to `claude-code` is written to
+`commands/<group>/<id>.md`, which Claude Code namespaces as `/<group>:<id>`. All six Claude commands
+that ship today are ungrouped, so they are flat (`/debug`, `/oac-status`).
 
 Everything under `commands/` must be a command. Templates and READMEs that sat next to commands
 (`command/openagents/new-agents/{README.md,templates/}`) are documentation and moved to
@@ -122,11 +124,11 @@ one name, no duplicates, nothing for a loader to find twice. We keep writing the
 
 ### Which skills go where
 
-- The 11 skills in `plugins/claude-code/skills/` and the 6 commands in `plugins/claude-code/commands/`
+- The 12 skills in `plugins/claude-code/skills/` and the 6 commands in `plugins/claude-code/commands/`
   are Claude-plugin specific (they call the Skill tool, fork into plugin agents with `context: fork` /
   `agent:`, and point at plugin paths): `targets: [claude-code]`.
 - The OpenCode skills (`context-manager`, `context7`, `smart-router-skill`, `task-management`,
-  `project-orchestration`) and the 17 OpenCode commands: `targets: [opencode, opencode-v1]`.
+  `project-orchestration`) and the OpenCode commands (17 today, those whose `targets` are `[opencode, opencode-v1]`).
 - **Profile placement.** Only `task-management` is listed in any system profile
   (`agent-library/profiles/system/*.json`, `skills`). The other OpenCode skills (`context-manager`,
   `context7`, `smart-router-skill`, `project-orchestration`) are registered but in no profile, so
@@ -223,7 +225,8 @@ edited over time has several); compute them from git history, never from the wor
 
 Add an entry when you delete a shipped file that no component replaces. Installers act on it with the
 same containment as superseded agent files, widened from `agent/*.md` to any file under
-`.opencode/agent/`, `.opencode/command/` or `.opencode/skills/`:
+`.opencode/agent/`, `.opencode/command/`, `.opencode/skills/` or `.opencode/context/openagents-repo/` (the
+contributor docs OAC owns; the rest of `.opencode/context/` holds user-owned slots and is never retirable):
 
 - the path must be normalised: no `..`, no backslash, no `//` or `./`; anything else is ignored whatever
   the registry says;

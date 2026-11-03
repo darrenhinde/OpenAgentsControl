@@ -36,13 +36,15 @@ const isFile = (absolute: string): Promise<boolean> =>
 export const AGENT_DIR = '.opencode/agent';
 export const COMMAND_DIR = '.opencode/command';
 export const SKILLS_DIR = '.opencode/skills';
+/** Contributor docs OAC owns. The rest of `.opencode/context/` holds user-owned slots and is never retirable. */
+export const OWNED_CONTEXT_DIR = '.opencode/context/openagents-repo';
 
 /** The folders a RETIRED file may sit in (any extension). Superseded agent files stay agent-only. */
-export const RETIRABLE_DIRS: readonly string[] = [AGENT_DIR, COMMAND_DIR, SKILLS_DIR];
+export const RETIRABLE_DIRS: readonly string[] = [AGENT_DIR, COMMAND_DIR, SKILLS_DIR, OWNED_CONTEXT_DIR];
 
 /**
  * The retirable folder `destPath` sits in, or null: a normalised path (no `..`, no backslash)
- * strictly under `.opencode/agent/`, `.opencode/command/` or `.opencode/skills/`. Pure.
+ * strictly under `.opencode/agent/`, `.opencode/command/`, `.opencode/skills/` or `.opencode/context/openagents-repo/`. Pure.
  */
 export const retirableRoot = (destPath: string): string | null =>
   !destPath.includes('\\') &&
@@ -106,12 +108,14 @@ export const findSuperseded = async (
   registry: Registry,
   planned: ReadonlySet<string> = new Set(),
   only?: (component: RegistryComponent) => boolean,
+  /** Report an old-name file even when its replacement is not installed (what `oac doctor` wants). */
+  anyState = false,
 ): Promise<SupersededFile[]> => {
   const found: SupersededFile[] = [];
   for (const entry of supersededIndex(registry).values()) {
     if (only !== undefined && !only(entry.component)) continue;
     if (!(await isFile(path.join(projectRoot, entry.oldPath)))) continue;
-    if (!planned.has(entry.newPath) && !(await isFile(path.join(projectRoot, entry.newPath)))) continue;
+    if (!anyState && !planned.has(entry.newPath) && !(await isFile(path.join(projectRoot, entry.newPath)))) continue;
     found.push(entry);
   }
   return found.sort((a, b) => a.oldPath.localeCompare(b.oldPath));

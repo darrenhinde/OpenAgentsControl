@@ -247,7 +247,12 @@ const checkSuperseded = async (projectRoot: string): Promise<CheckResult> => {
   if (registry === null) return { name: 'Superseded files', status: 'info', message: 'skipped — bundled registry unavailable' };
   const read = await safeReadManifest(projectRoot);
   const hasManifest = read.ok && read.manifest !== null;
-  return supersededCheck(await findSuperseded(projectRoot, registry), hasManifest);
+  const found = await findSuperseded(projectRoot, registry, new Set(), undefined, true)
+  const installedNew = new Set<string>()
+  for (const entry of found) {
+    if (await stat(join(projectRoot, entry.newPath)).then((s) => s.isFile()).catch(() => false)) installedNew.add(entry.newPath)
+  }
+  return supersededCheck(found, hasManifest, (f) => installedNew.has(f.newPath));
 };
 
 /** Check: files an earlier release shipped that no release ships now (some load as junk commands). */

@@ -43,6 +43,7 @@
     "access": "public"
   },
   "scripts": {
+    "prepublishOnly": "pnpm --dir packages/agent-compiler run build && pnpm --dir packages/cli run build",
     "test:local": "pnpm --dir evals/v2 exec tsx src/cli.ts",
     "test": "pnpm run test:all",
     "test:all": "pnpm --dir evals/framework run eval:sdk",

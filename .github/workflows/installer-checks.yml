@@ -7,12 +7,19 @@ on:
       - 'install.sh'
       - 'update.sh'
       - 'built-ai-configs/registry/registry.json'
+      - 'built-ai-configs/registry/registry.v1.json'
+      - 'built-ai-configs/opencode-v1/**'
+      - 'agent-library/**'
       - 'scripts/tests/test-*.sh'
   push:
     branches: [main]
     paths:
       - 'install.sh'
       - 'update.sh'
+      - 'built-ai-configs/registry/registry.json'
+      - 'built-ai-configs/registry/registry.v1.json'
+      - 'built-ai-configs/opencode-v1/**'
+      - 'agent-library/**'
   workflow_dispatch:
 
 permissions:

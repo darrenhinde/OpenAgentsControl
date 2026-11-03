@@ -19,8 +19,12 @@ import { z } from "zod";
 
 export const RETIRED_FILE = "agent-library/retired.json";
 
-/** The only folders a retired file may sit in (project-relative). Mirrors the installers' check. */
-export const RETIRABLE_ROOTS: readonly string[] = [".opencode/agent/", ".opencode/command/", ".opencode/skills/"];
+/**
+ * The only folders a retired file may sit in (project-relative). Mirrors the installers' check.
+ * Context is limited to `openagents-repo/`, the contributor docs OAC owns: the rest of
+ * `.opencode/context/` holds user-owned slots (`project/`, `project-intelligence/`) and stays out of reach.
+ */
+export const RETIRABLE_ROOTS: readonly string[] = [".opencode/agent/", ".opencode/command/", ".opencode/skills/", ".opencode/context/openagents-repo/"];
 
 export const RetiredEntrySchema = z
   .object({

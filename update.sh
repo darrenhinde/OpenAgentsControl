@@ -456,10 +456,10 @@ file_sha256() {
     fi
 }
 
-# A retired file may only sit under <install dir>/{agent,command,skills}/ ($1 = install-relative path).
+# A retired file may only sit under <install dir>/{agent,command,skills,context/openagents-repo}/ ($1 = install-relative path).
 retired_rel_ok() {
     case "$1" in
-        agent/?*|command/?*|skills/?*) ;;
+        agent/?*|command/?*|skills/?*|context/openagents-repo/?*) ;;
         *) return 1 ;;
     esac
     case "$1" in
@@ -479,7 +479,7 @@ retire_retired_files() {
         [ -n "$path" ] || continue
         rel=$(registry_relative_path "$path")
         is_safe_relative_path "$rel" || { print_warning "Skipping suspicious registry path: $path"; continue; }
-        retired_rel_ok "$rel" || { print_warning "Ignoring retired path outside agent/, command/ and skills/: $path"; continue; }
+        retired_rel_ok "$rel" || { print_warning "Ignoring retired path outside agent/, command/, skills/ and context/openagents-repo/: $path"; continue; }
         dest="${install_dir}/${rel}"
         [ -e "$dest" ] || [ -L "$dest" ] || continue
         root="${rel%%/*}"

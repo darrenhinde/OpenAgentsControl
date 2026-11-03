@@ -4,6 +4,7 @@
  */
 import { describe, expect, test } from 'bun:test';
 import { execFile as execFileCallback } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { listBundledFiles } from '../lib/bundled.js';
@@ -70,5 +71,15 @@ describe('published package profile contents', () => {
 
     // Assert
     expect(missing).toEqual(['env.example']);
+  });
+
+  test('npm publish rebuilds the compiler and the CLI first, so a clean tree cannot ship without dist', () => {
+    const pkg = JSON.parse(readFileSync(`${PACKAGE_ROOT}package.json`, 'utf8')) as { files: string[]; scripts: Record<string, string> };
+    expect(pkg.files).toContain('packages/cli/dist/');
+    const script = pkg.scripts['prepublishOnly'] ?? '';
+    expect(script).toContain('packages/agent-compiler run build');
+    expect(script).toContain('packages/cli run build');
+    // the compiler first: the CLI bundles it
+    expect(script.indexOf('agent-compiler')).toBeLessThan(script.indexOf('packages/cli'));
   });
 });

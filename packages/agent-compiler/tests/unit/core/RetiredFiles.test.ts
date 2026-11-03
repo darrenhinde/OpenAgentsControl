@@ -29,8 +29,15 @@ describe("retired.json", () => {
     expect(loadRetired(root, []).map((e) => e.path)).toEqual([".opencode/agent/a.md", ".opencode/command/g/a.md", ".opencode/skills/x/a.md"]);
   });
 
+  it("accepts the OAC-owned contributor docs under context/openagents-repo/", () => {
+    expect(isRetirablePath(".opencode/context/openagents-repo/guides/creating-subagents.md")).toBe(true);
+  });
+
   it.each([
     ".opencode/context/index.md",
+    ".opencode/context/project/x.md",
+    ".opencode/context/project-intelligence/x.md",
+    ".opencode/context/openagents-repo/",
     ".opencode/tool/x.ts",
     ".opencode/command/../context/x.md",
     ".opencode/command/./x.md",
