@@ -140,6 +140,12 @@ export interface ProfileOmissions {
   kinds?: readonly ("tools" | "plugins")[];
   /** Agent ids the target does not ship (e.g. a v1-only agent on v2). */
   agents?: ReadonlySet<string>;
+  /**
+   * Maps an authored agent id to its canonical id (a deprecated `oac.aliases` entry to the
+   * current id). Applied before `agents` filtering and resolution; the caller records the
+   * deprecation.
+   */
+  canonicalAgent?: (id: string) => string;
 }
 
 export class ProfileLoader {
@@ -312,7 +318,9 @@ export class ProfileLoader {
     const loaded = await this.loadProfile(SYSTEM_PROFILES_DIR, id, SystemProfileSchema, "system profile");
     const system = {
       ...loaded,
-      agents: loaded.agents.filter((agent) => !omit.agents?.has(agent)),
+      agents: loaded.agents
+        .map((agent) => omit.canonicalAgent?.(agent) ?? agent)
+        .filter((agent) => !omit.agents?.has(agent)),
       ...(omit.kinds?.includes("tools") ? { tools: [] } : {}),
       ...(omit.kinds?.includes("plugins") ? { plugins: [] } : {}),
     };

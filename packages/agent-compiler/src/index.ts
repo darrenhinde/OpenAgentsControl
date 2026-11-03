@@ -322,7 +322,7 @@ export const VERSION = "0.1.0";
 
 // Delegation id resolution — one alias table, v1 and v2 id spaces.
 export { AgentIdResolver, AgentIdResolutionError, normalizeAlias, isGlob } from "./core/AgentIdResolver.js";
-export type { IdTarget, ResolverAgent } from "./core/AgentIdResolver.js";
+export type { IdTarget, ResolverAgent, AliasUse } from "./core/AgentIdResolver.js";
 export { rewriteBodyRefs, rewriteTaskKeys } from "./core/DelegationRewriter.js";
 
 // Host blocks — `<!-- oac:only <target> -->` sections of a canonical body, resolved per target.
@@ -341,7 +341,7 @@ export {
   OPENCODE_PATH_ALLOWLIST,
 } from "./verify/lint/capability.js";
 export type { ClaudeLintOptions, OpenCodeFlavor } from "./verify/lint/capability.js";
-export { lintNaming, ROLE_SUFFIXES } from "./verify/lint/naming.js";
+export { lintNaming, derivedDisplayName, ROLE_SUFFIXES, KNOWN_COMPOUNDS, LEGACY_AGENT_SUFFIX_IDS, BRAND_IDS } from "./verify/lint/naming.js";
 export type { NamingFinding, NamingLevel, NamingSubject } from "./verify/lint/naming.js";
 export { lintBuild } from "./verify/lint/run.js";
 export type { LintableFile, TargetLintResult } from "./verify/lint/run.js";

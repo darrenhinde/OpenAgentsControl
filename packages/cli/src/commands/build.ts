@@ -158,16 +158,26 @@ const reportLints = (built: BuildPlan): { count: number; errors: number } => {
 }
 
 /**
- * Naming lint (docs/architecture/NAMING.md) over the canonical source. REPORT-ONLY: its own
- * section, never counted in the summary, `--strict` or the exit code, until the existing
- * agents are renamed and the rule is promoted. Returns the number of `warn`-level findings.
+ * References that still name an agent by a deprecated `oac.aliases` entry. They resolve, so the
+ * build works, but each is printed (not just under --verbose) and counted, so `--strict` fails
+ * until the author switches to the current id.
+ */
+const reportDeprecations = (built: BuildPlan): number => {
+  for (const { source, reason } of built.deprecations) warn(`${source}: ${reason}`)
+  return built.deprecations.length
+}
+
+/**
+ * Naming lint (docs/architecture/NAMING.md) over the canonical source. REPORT-ONLY: printed
+ * under its own heading AFTER the summary, never counted in the summary, `--strict` or the exit
+ * code, until the rule is promoted. Returns the number of `warn`-level findings.
  */
 const reportNaming = (built: BuildPlan): number => {
   const findings = lintNaming(built.agents)
   const warns = findings.filter((f) => f.level === 'warn')
   if (findings.length === 0) return 0
   log('')
-  dim('  naming (report-only):')
+  dim('  naming lint (report-only; not counted above, never changes the exit code):')
   for (const f of findings) {
     dim(`    naming: ${f.path} [${f.rule}] ${f.message}${f.level === 'info' ? ' (info)' : ''}`)
   }
@@ -201,7 +211,7 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
   const deadCount = await reportDeadReferences(root, built)
   const warningCount = built.warnings.length
   const { count: lintCount, errors: lintErrors } = reportLints(built)
-  reportNaming(built)
+  const deprecationCount = reportDeprecations(built)
 
   bold('\n  oac build')
   info(`${built.agents.length} canonical agents -> ${built.files.length} files`)
@@ -214,10 +224,12 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
     if (drift.length === 0) info('no drift — generated trees match the canonical source')
     else reportDrift(drift)
 
-    summarize(warningCount, deadCount, lintCount, options.strict)
+    summarize(warningCount, deadCount, lintCount, deprecationCount, options.strict)
 
+    // Naming is report-only: printed after the summary, never an input to an exit code.
+    reportNaming(built)
     if (options.check && drift.length > 0) return 1
-    return buildExitCode(options.strict, lintErrors, warningCount, deadCount, lintCount)
+    return buildExitCode(options.strict, lintErrors, warningCount, deadCount, lintCount, deprecationCount)
   }
 
   const result = writePlan(built, { root, prune: options.prune })
@@ -231,25 +243,27 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
       `${result.removed.length} removed`,
   )
 
-  summarize(warningCount, deadCount, lintCount, options.strict)
+  summarize(warningCount, deadCount, lintCount, deprecationCount, options.strict)
+  reportNaming(built)
 
-  return buildExitCode(options.strict, lintErrors, warningCount, deadCount, lintCount)
+  return buildExitCode(options.strict, lintErrors, warningCount, deadCount, lintCount, deprecationCount)
 }
 
 const summarize = (
   warningCount: number,
   deadCount: number,
   lintCount: number,
+  deprecationCount: number,
   strict = false,
 ): void => {
   log('')
-  if (warningCount === 0 && deadCount === 0 && lintCount === 0) {
+  if (warningCount === 0 && deadCount === 0 && lintCount === 0 && deprecationCount === 0) {
     success('0 warnings')
     return
   }
   warn(
     `${warningCount} degradation warning(s), ${deadCount} dead reference(s), ` +
-      `${lintCount} lint finding(s)`,
+      `${lintCount} lint finding(s), ${deprecationCount} deprecated alias use(s)`,
   )
   if (strict) {
     dim('    Strict mode: exiting 1 (use --verbose to list every warning).')

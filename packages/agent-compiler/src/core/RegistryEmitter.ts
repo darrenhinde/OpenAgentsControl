@@ -82,6 +82,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { CanonicalAgentLoader, type CanonicalAgentFile } from "./AgentLoader.js";
+import { AgentIdResolver } from "./AgentIdResolver.js";
 import { generatedPaths } from "./BuildManifest.js";
 import { ProfileLoader, type SystemProfileResolution } from "./ProfileLoader.js";
 import { ReferenceResolver } from "./ReferenceResolver.js";
@@ -267,7 +268,12 @@ export function entryForAgent(agent: CanonicalAgentFile, agentInstallRoot: strin
 }
 
 /** As {@link entryForAgent}, for an explicit shipped path (the v1 registry nests by category). */
-export function entryForAgentAt(agent: CanonicalAgentFile, path: string): RegistryEntry {
+export function entryForAgentAt(
+  agent: CanonicalAgentFile,
+  path: string,
+  /** Maps a dependency id to its canonical id (deprecated alias -> current id). */
+  canonicalDependency: (type: string, id: string) => string = (_type, id) => id,
+): RegistryEntry {
   return {
     id: agent.oac.id,
     name: agent.oac.name,
@@ -276,8 +282,11 @@ export function entryForAgentAt(agent: CanonicalAgentFile, path: string): Regist
     version: agent.oac.version,
     description: agent.frontmatter.description,
     tags: agent.oac.tags,
-    dependencies: agent.oac.dependencies.map(({ type, id }) => `${type}:${id}`),
+    dependencies: agent.oac.dependencies.map(({ type, id }) => `${type}:${canonicalDependency(type, id)}`),
     category: agent.oac.category,
+    // Additive: install.sh and the CLI already match a component by `.aliases`, so an old id
+    // keeps installing. Omitted when empty so unaffected entries stay byte-identical.
+    ...(agent.oac.aliases.length > 0 ? { aliases: [...agent.oac.aliases] } : {}),
   };
 }
 
@@ -293,6 +302,12 @@ export class RegistryEmitter {
   private readonly target: RegistryTarget;
   private readonly spec: RegistryTargetSpec;
   private readonly injectedGeneratedPaths?: ReadonlySet<string>;
+
+  /**
+   * Deprecated-alias uses found while emitting (a dependency or profile entry naming an agent by
+   * a former id). Reset by each {@link emit}; the entry is already rewritten to the current id.
+   */
+  deprecations: Array<{ source: string; reason: string }> = [];
 
   /**
    * @param root    - Repository root. Everything resolves relative to this, so the emitter is
@@ -342,6 +357,7 @@ export class RegistryEmitter {
     const base = this.base();
     const agents = await new CanonicalAgentLoader(resolve(this.root, this.contentRoot))
       .loadFromDirectory();
+    this.deprecations = [];
 
     const generated = this.generatedByCategory(agents);
     const ours = this.previouslyGenerated();
@@ -398,20 +414,38 @@ export class RegistryEmitter {
   /** Canonical agents grouped into the `components` arrays they belong in, sorted by id. */
   private generatedByCategory(agents: readonly CanonicalAgentFile[]): Map<string, RegistryEntry[]> {
     const byCategory = new Map<string, RegistryEntry[]>();
+    const resolver = AgentIdResolver.fromCanonical(agents);
 
     for (const agent of agents) {
+      const source = `${this.contentRoot}/${agent.relativePath}`;
       if (!emitsTo(agent, this.target)) continue;
       const category = CATEGORY_FOR_TYPE[agent.oac.type];
       if (category === undefined) continue;
 
       const entries = byCategory.get(category) ?? [];
-      entries.push(entryForAgentAt(agent, this.spec.agentPath(agent, this.agentInstallRoot)));
+      entries.push(
+        entryForAgentAt(agent, this.spec.agentPath(agent, this.agentInstallRoot), (type, id) =>
+          type === "subagent" || type === "agent" ? this.canonicalAgentId(resolver, id, source) : id,
+        ),
+      );
       byCategory.set(category, entries);
     }
 
     for (const entries of byCategory.values()) entries.sort((a, b) => compare(a.id, b.id));
 
     return byCategory;
+  }
+
+  /** `id` unless it is a deprecated alias, in which case the current id (recording the use). */
+  private canonicalAgentId(resolver: AgentIdResolver, id: string, source: string): string {
+    const before = resolver.aliasUses.length;
+    const agent = resolver.resolve(id);
+    if (agent === undefined || resolver.aliasUses.length === before) return id;
+    const reason = `deprecated alias "${id}" -> use "${agent.id}"`;
+    if (!this.deprecations.some((d) => d.source === source && d.reason === reason)) {
+      this.deprecations.push({ source, reason });
+    }
+    return agent.id;
   }
 
   /** Generate profile component lists when canonical profile content is available. */
@@ -429,10 +463,13 @@ export class RegistryEmitter {
 
     const baseProfiles = isRecord(base.profiles) ? base.profiles : {};
     const loader = new ProfileLoader(this.root, new ReferenceResolver(this.root, this.registryFile, pending));
-    const omit = {
+    const aliasResolver = AgentIdResolver.fromCanonical(agents);
+    const omitFor = (profileId: string) => ({
       kinds: this.spec.unavailableProfileKinds,
       agents: new Set(agents.filter((agent) => !emitsTo(agent, this.target)).map((agent) => agent.oac.id)),
-    };
+      canonicalAgent: (agentId: string) =>
+        this.canonicalAgentId(aliasResolver, agentId, `${SYSTEM_PROFILES_ROOT}/${profileId}.json`),
+    });
     const agentTypes = new Map(agents.map((agent) => [agent.oac.id, agent.oac.type]));
     const ids = readdirSync(resolve(this.root, SYSTEM_PROFILES_ROOT), { withFileTypes: true })
       .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
@@ -441,7 +478,7 @@ export class RegistryEmitter {
 
     const profiles = await Promise.all(
       ids.map(async (id) => {
-        const resolved = await loader.resolveSystemProfile(id, omit);
+        const resolved = await loader.resolveSystemProfile(id, omitFor(id));
         const baseProfile = baseProfiles[id];
         return [id, this.profile(baseProfile, resolved, agentTypes, planned)] as const;
       })

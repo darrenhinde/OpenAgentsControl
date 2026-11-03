@@ -5,7 +5,7 @@ format each tool needs: Claude Code, OpenCode v2 (default) and OpenCode v1.
 
 ```
 agent-library/
-  agents/<dir>/<file>.md           one canonical file per agent (nesting: agents/subagents/utils/x.md)
+  agents/<category>/<id>.md        one canonical file per agent; the folder is the category (no nesting)
   profiles/system/*.json           install tiers (essential, developer, business, advanced, full)
   profiles/context/*.json          named sets of context files that tiers subscribe to
 ```
@@ -24,7 +24,7 @@ gets: [built-ai-configs/README.md](../built-ai-configs/README.md) (generated).
 OpenCode frontmatter on top (`description`, `mode`, `permission`, ...), plus one `oac:` block.
 
 The worked example below is a real, building agent. To try it, save it as
-`agent-library/agents/subagents/utils/changelog-writer.md` and follow [the workflow](#the-workflow).
+`agent-library/agents/content/changelog-writer.md` and follow [the workflow](#the-workflow).
 
 ```markdown
 ---
@@ -37,7 +37,7 @@ permission:
 oac:
   id: changelog-writer            # kebab-case, unique across the library
   name: ChangelogWriter
-  category: subagents/utils
+  category: content
   type: subagent
   overrides:
     claude-code:
@@ -68,9 +68,10 @@ Source of truth: `OacBlockFieldsSchema` in `packages/agent-compiler/src/types.ts
 | --- | --- | --- |
 | `id` | yes | Kebab-case, unique. v2 and Claude Code name the output file `<id>.md`, and it is the Claude agent name (unless overridden). v1 keeps the source file name instead. |
 | `name` | yes | Display name. v1 uses it as the agent id; v2 ignores it. |
-| `category` | yes | `<root>` or `<root>/<segment>`. Roots: core, development, content, data, product, learning, meta, specialist, subagents, testing. Metadata only: it does not choose any output folder (the source directory does, see below). |
+| `category` | yes | One of core, code, planning, content, data, meta, system-builder, dev, and it equals the folder under `agents/` (no nesting). `subagents[/x]`, `testing` and `development` still build but are deprecated and lint-warned. |
 | `type` | yes | `agent` or `subagent`. |
 | `version`, `author`, `tags` | no | Metadata (defaults `1.0.0`, `opencode`, none). |
+| `aliases` | no | Former ids of a renamed agent. Old references keep resolving to `id` with a build-time deprecation warning; the registry entry carries them as `aliases`. See [NAMING.md](../docs/architecture/NAMING.md). |
 | `dependencies` | no | `<type>:<id>` strings; type is subagent, context, command, skill or tool. Feeds the registry. |
 | `targets` | no | Omit it: the agent ships to every host. List hosts only for exceptions (`opencode`, `opencode-v1`, `claude-code`). |
 | `exclude` | no | Hosts to skip, e.g. `[claude-code]`. A filter on `targets`. |
@@ -81,10 +82,9 @@ enforce OpenCode's per-glob `permission:` rules, so you state the tool list by h
 
 ### Where the output goes
 
-- The source **directory** decides the OpenCode v1 folder: `agent-library/agents/subagents/utils/x.md` becomes
-  `built-ai-configs/opencode-v1/agent/subagents/utils/<file name>.md`. `oac.category` does not move it
-  (verified: category `subagents/code` in the `utils/` directory still built into `.../subagents/utils/`).
-- v2 names its file after `oac.id`; Claude Code uses `oac.overrides.claude-code.name` (default: the id); v1 keeps the **source file name**. Name the source file after the id and don't override the Claude name, and the three agree (an agent like `tester` deliberately differs: `tester.md` on v2, `test-engineer.md` on v1 and Claude).
+- The source **directory** decides the OpenCode v1 folder: `agent-library/agents/content/x.md` becomes
+  `built-ai-configs/opencode-v1/agent/content/<file name>.md`. The directory is the category, so the two agree.
+- v2 names its file after `oac.id`; Claude Code uses `oac.overrides.claude-code.name` (default: the id); v1 keeps the **source file name**. Name the source file after the id and don't override the Claude name, and the three agree (the naming lint flags any agent where they differ).
 - Write `permission.task` as a block mapping, one key per line. A flow-style `task: { "*": deny, x: allow }` fails the build ("permission.task is a flow-style mapping"), because the delegation ids in its keys are rewritten per host. Other permission keys may use either style.
 
 Declaring `opencode` also builds the v1 copy. Declaring only `opencode-v1` makes the agent v1-only.
@@ -116,7 +116,7 @@ What the example above produced (built in a scratch copy of this repo):
 | Host | File written |
 | --- | --- |
 | OpenCode v2 | `built-ai-configs/opencode/agent/changelog-writer.md` (no `oac:` block, no `name:`), mirrored to `.opencode/agent/changelog-writer.md` |
-| OpenCode v1 | `built-ai-configs/opencode-v1/agent/subagents/utils/changelog-writer.md` (keeps `name: ChangelogWriter`) |
+| OpenCode v1 | `built-ai-configs/opencode-v1/agent/content/changelog-writer.md` (keeps `name: ChangelogWriter`) |
 | Claude Code | `built-ai-configs/claude-code/agents/changelog-writer.md` (your `description` and `tools`, plus a generated `disallowedTools`), mirrored to `plugins/claude-code/agents/changelog-writer.md` |
 
 Also updated: `built-ai-configs/registry/registry.json` and `registry.v1.json`, `built-ai-configs/README.md`
@@ -127,7 +127,7 @@ and `.oac/build-manifest.json`. Deleting the source file and rebuilding removes 
 A new agent is built and registered, but `oac init` / `install.sh` only install it if a system
 profile lists it. Profiles are `agent-library/profiles/system/<tier>.json` (essential, developer,
 business, advanced, full); a subagent goes in the same `agents` list as a primary agent (for example
-`developer.json` lists `contextscout` and `coder-agent` next to `openagent`).
+`developer.json` lists `context-scout` and `coder-agent` next to `openagent`).
 
 Save the file, add its `id` to `agents` in `agent-library/profiles/system/<tier>.json`, and run
 `make build-canonical` once. The build resolves profiles against the registry it is about to write, so a new
@@ -171,8 +171,10 @@ Messages are from real runs of `oac build`.
 | `overrides claude-code tools with "Reed", which Claude Code has no such tool for. Valid tools: ...` | Use one of the listed names. |
 | `[description-no-example] description has no <example> block; Claude Code selects a subagent from its description examples` | Required for every agent that ships to Claude Code, and it fails the build (exit 1) even though the files are written. Add `oac.overrides.claude-code.description` with at least one `<example>` block, as in the example above. Verified: an agent with only `tools:` fails; adding the `description` fixes it. |
 | `oac.id: id must be kebab-case` | Lowercase words joined by single hyphens. |
-| `Duplicate oac.id "reviewer"` | Ids are unique across the library; rename one. |
-| `oac.category: category must be "<root>" or "<root>/<segment>" where root is one of: ...` | Use a listed root, at most one sub-segment. |
+| `Duplicate oac.id "code-reviewer"` | Ids are unique across the library; rename one. |
+| `oac.category: category must be one of: core, code, ...` | Use a listed category; it is also the folder name. |
+| `deprecated alias "x" -> use "y"` (build output, not an error) | A reference still uses a former id. Switch it to the current id; under `--strict` this fails. |
+| `alias "x" of "y" collides ...` / `alias "x" is declared by both ...` | An `oac.aliases` entry equals a real id or another agent's alias. Remove or fix it. |
 | `oac.type: Required` / `Invalid enum value. Expected 'agent' \| 'subagent'` | Set `type: agent` or `type: subagent`. |
 | `oac: Unrecognized key(s) in object: 'colour'` | The `oac:` block is strict; remove or fix the key. |
 | `oac.overrides.opencode is not supported` | Only `claude-code` takes overrides. Use `permission:` or `oac:only` for OpenCode. |

@@ -131,6 +131,7 @@ describe("OacBlockSchema", () => {
       });
 
       expect(result).toEqual({
+        aliases: [],
         id: "contextscout",
         name: "ContextScout",
         category: "subagents/core",
@@ -383,15 +384,21 @@ describe("OacBlockSchema", () => {
 });
 
 describe("OacCategorySchema", () => {
-  it("accepts the corpus categories, including the subagents/* paths", () => {
-    for (const category of ["core", "meta", "content", "data", "testing", "subagents/core"]) {
-      expect(OacCategorySchema.safeParse(category).success).toBe(true);
+  it("accepts the target categories", () => {
+    for (const category of ["core", "code", "planning", "content", "data", "meta", "system-builder", "dev"]) {
+      expect(OacCategorySchema.safeParse(category).success, category).toBe(true);
     }
   });
 
-  it("rejects deep paths and bad segments", () => {
-    for (const category of ["subagents/core/extra", "subagents/Core", "/core", "core/"]) {
-      expect(OacCategorySchema.safeParse(category).success).toBe(false);
+  it("still accepts the deprecated categories (the naming lint warns on them)", () => {
+    for (const category of ["subagents", "subagents/core", "testing", "development"]) {
+      expect(OacCategorySchema.safeParse(category).success, category).toBe(true);
+    }
+  });
+
+  it("rejects nesting, unknown roots and bad segments", () => {
+    for (const category of ["core/extra", "code/utils", "subagents/core/extra", "subagents/Core", "/core", "core/", "product"]) {
+      expect(OacCategorySchema.safeParse(category).success, category).toBe(false);
     }
   });
 });

@@ -134,6 +134,12 @@ export interface BuildPlan {
   /** Canonical agents loaded, sorted by `oac.id`. */
   agents: CanonicalAgentFile[];
   /**
+   * References that name an agent by a deprecated `oac.aliases` entry (permission.task keys,
+   * structured body calls, dependencies, profiles). Each still resolves; the author should switch
+   * to the current id. Deduplicated across targets; not part of {@link warnings}.
+   */
+  deprecations: BuildWarning[];
+  /**
    * The targets this plan is AUTHORITATIVE for: the selected build targets plus the registry
    * files built alongside them. {@link write} prunes, and {@link check} reports orphans, only
    * for ledger entries whose target is listed here; every other target's ledger entries are
@@ -483,13 +489,22 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
 
   const resolvers = new Map<BuildTarget, AgentIdResolver>();
   const files: BuildFile[] = [];
+  const deprecations = new Map<string, BuildWarning>();
+  const deprecate = (source: string, reason: string): void => {
+    deprecations.set(`${source}\u0000${reason}`, { source, reason });
+  };
 
   // Agents outer, targets inner, both in a content-determined order. Iterating `oac.targets`
   // instead would make output order depend on the order an author happened to list them in.
   for (const agent of agents) {
     for (const target of targets) {
       if (!resolvers.has(target)) resolvers.set(target, resolverFor(agents, target));
-      const file = await emitAgent(agent, target, resolvers.get(target)!);
+      const resolver = resolvers.get(target)!;
+      const usedBefore = resolver.aliasUses.length;
+      const file = await emitAgent(agent, target, resolver);
+      for (const use of resolver.aliasUses.slice(usedBefore)) {
+        deprecate(`${DEFAULTS.contentRoot}/${agent.relativePath}`, `deprecated alias "${use.alias}" -> use "${use.id}"`);
+      }
       if (file !== null) files.push(...place(file));
     }
   }
@@ -505,7 +520,9 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
       registries.push({ target: "registry-v1", registryTarget: "opencode-v1", path: "built-ai-configs/registry/registry.v1.json" });
     }
     for (const { target, registryTarget, path } of registries) {
-      const registry = await new RegistryEmitter(root, { target: registryTarget }).emit();
+      const emitter = new RegistryEmitter(root, { target: registryTarget });
+      const registry = await emitter.emit();
+      for (const { source, reason } of emitter.deprecations) deprecate(source, reason);
       // Validate the complete emitted document, not only canonical agent entries: contexts and
       // other non-owned categories are carried through and remain installable by `type:id`.
       assertUniqueRegistryIdentities(registry);
@@ -529,6 +546,7 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   return {
     files,
     agents,
+    deprecations: [...deprecations.values()],
     warnings: files.flatMap((file) => file.warnings),
     owns: ownedTargets(targets, options.skipRegistry === true),
   };

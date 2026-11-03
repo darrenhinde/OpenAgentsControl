@@ -14,7 +14,10 @@
 
 import { describe, test, expect } from 'bun:test';
 import { BUILD_TARGETS, lintBuild } from '@controlstack/agent-compiler';
-import { IN_PLACE_TARGETS, assertInPlace, selectTargets, strictExitCode, buildExitCode } from '../commands/build.js';
+import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { IN_PLACE_TARGETS, assertInPlace, selectTargets, strictExitCode, buildExitCode, runBuild } from '../commands/build.js';
 
 // ── selectTargets ─────────────────────────────────────────────────────────────
 
@@ -87,3 +90,45 @@ describe('build lints', () => {
     ]);
   });
 });
+
+describe('naming lint is report-only', () => {
+  // A scratch root with just what a dry-run plan reads. Adding an agent that breaks four naming
+  // rules must not change the exit code, even under --strict.
+  const repo = resolve(import.meta.dir, '../../../..')
+  const exitCodeWith = async (extraAgent: string | undefined, strict: boolean): Promise<{ code: number; out: string }> => {
+    const root = mkdtempSync(join(tmpdir(), 'oac-naming-'))
+    const lines: string[] = []
+    const realLog = console.log
+    try {
+      for (const dir of ['agent-library', 'built-ai-configs', '.oac', '.opencode', 'plugins']) {
+        mkdirSync(join(root, dir), { recursive: true })
+        cpSync(join(repo, dir), join(root, dir), { recursive: true, filter: (src) => !src.includes('node_modules') })
+      }
+      if (extraAgent !== undefined) {
+        writeFileSync(join(root, 'agent-library/agents/core/BadName.md'), extraAgent)
+      }
+      console.log = (...args: unknown[]): void => { lines.push(args.join(' ')) }
+      const code = await runBuild({ target: undefined, check: false, dryRun: true, strict, prune: true, verbose: false, json: false } as never, root)
+      return { code, out: lines.join('\n') }
+    } finally {
+      console.log = realLog
+      rmSync(root, { recursive: true, force: true })
+    }
+  }
+
+  test('a naming violation prints under its own heading, after the summary, and leaves the exit code alone', async () => {
+    const bad = [
+      '---', 'name: bad name', 'description: Badly named.', 'mode: subagent', 'oac:', '  id: bad-thing', '  name: bad name',
+      '  category: subagents/nowhere', '  type: subagent', '  targets: [opencode]', '---', '', 'Body.', '',
+    ].join('\n')
+    const clean = await exitCodeWith(undefined, false)
+    const dirty = await exitCodeWith(bad, false)
+    expect(clean.code).toBe(0)
+    expect(dirty.code).toBe(0)
+    // --strict fails on the tree's baseline degradation warnings either way; naming adds nothing.
+    expect((await exitCodeWith(bad, true)).code).toBe((await exitCodeWith(undefined, true)).code)
+    expect(dirty.out).toContain('BadName.md [filename-is-id]')
+    expect(dirty.out.indexOf('naming lint (report-only')).toBeGreaterThan(dirty.out.lastIndexOf('oac build'))
+    expect(clean.out).not.toContain('BadName')
+  }, 60_000)
+})

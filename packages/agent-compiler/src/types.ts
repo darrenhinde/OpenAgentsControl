@@ -223,7 +223,8 @@ export const DependencyReferenceSchema = z.object({
 export const AgentModeSchema = z.enum(["primary", "subagent", "all"]);
 
 /**
- * Agent categories for organizational purposes.
+ * Agent categories of the LEGACY `OpenAgent` metadata shape (`metadata.category`). Not the
+ * canonical `oac.category`: that is {@link OAC_CATEGORIES}.
  */
 export const AgentCategorySchema = z.enum([
   "core",
@@ -351,36 +352,51 @@ export const OacVersionSchema = z
   .string()
   .regex(/^\d+\.\d+\.\d+$/, "version must be SemVer (MAJOR.MINOR.PATCH)");
 
-const CATEGORY_ROOTS: readonly string[] = [
-  ...AgentCategorySchema.options,
-  // Present in the real corpus but absent from AgentCategorySchema:
-  "subagents", // 20 entries: subagents/{code,core,development,system-builder,test,utils}
-  "testing", // 1 entry: eval-runner
+/**
+ * The agent categories (docs/architecture/NAMING.md rule 5). One level, no nesting: the folder
+ * under `agent-library/agents/` is the category, so `agents/code/code-reviewer.md` has
+ * `category: code`. Primary vs subagent is the `type` field, not a folder.
+ */
+export const OAC_CATEGORIES: readonly string[] = [
+  "core",
+  "code",
+  "planning",
+  "content",
+  "data",
+  "meta",
+  "system-builder",
+  "dev",
 ];
+
+/**
+ * Categories from the pre-rename layout. Still ACCEPTED so a mid-migration tree builds, but the
+ * naming lint warns (`category-deprecated`) and says what to use instead. `subagents` also
+ * accepts its old one-segment suffix (`subagents/code`).
+ */
+export const DEPRECATED_CATEGORIES: Readonly<Record<string, string>> = {
+  subagents: "the category of the agent's job (code, core, planning, ...); `type: subagent` marks subagents",
+  testing: "dev",
+  development: "dev",
+};
 
 const CATEGORY_SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /**
- * Organizational category. Mirrors the agent's directory under `.opencode/agent/`:
- * a closed root vocabulary, optionally followed by one `/`-joined sub-segment.
- *
- * ⚠️ Deliberately a superset of {@link AgentCategorySchema}, which cannot express categories
- * the corpus uses (`subagents/core`, `subagents/code`, …, `testing`). The ratified
- * "the schema must accept its own corpus" rule (02-canonical-schema.md v3) wins over the
- * brief's "reuses AgentCategorySchema". The root stays closed so typos are still caught.
+ * Organizational category: one of {@link OAC_CATEGORIES}, or (deprecated, lint-warned) a
+ * {@link DEPRECATED_CATEGORIES} root, where `subagents` may carry one `/segment`.
  */
 export const OacCategorySchema = z.string().refine(
   (value) => {
     const segments = value.split("/");
-    if (segments.length > 2) return false;
     const [root = "", sub] = segments;
-    if (!CATEGORY_ROOTS.includes(root)) return false;
-    return sub === undefined || CATEGORY_SEGMENT.test(sub);
+    if (segments.length === 1) return OAC_CATEGORIES.includes(root) || root in DEPRECATED_CATEGORIES;
+    if (segments.length === 2) return root === "subagents" && sub !== undefined && CATEGORY_SEGMENT.test(sub);
+    return false;
   },
   {
     message:
-      `category must be "<root>" or "<root>/<segment>" where root is one of: ` +
-      CATEGORY_ROOTS.join(", "),
+      `category must be one of: ${OAC_CATEGORIES.join(", ")} ` +
+      `(deprecated, accepted with a lint warning: ${Object.keys(DEPRECATED_CATEGORIES).join(", ")})`,
   }
 );
 
@@ -550,6 +566,13 @@ export const OacBlockFieldsSchema = z
     author: z.string().min(1).default("opencode"),
     tags: z.array(z.string()).default([]),
     dependencies: z.array(DependencyRefInputSchema).default([]),
+    /**
+     * Former ids of this agent. Each resolves to `id` in every delegation reference
+     * (`permission.task` keys, structured body calls, dependencies, profiles) with a build-time
+     * deprecation warning, and is emitted as `aliases` on the registry entry. An alias may not
+     * equal a real id or another agent's alias.
+     */
+    aliases: z.array(OacIdSchema).default([]),
     targets: BuildTargetsSchema,
     exclude: BuildExcludesSchema,
     overrides: TargetOverridesSchema.default({}),
