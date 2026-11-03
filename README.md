@@ -29,7 +29,7 @@
 
 ---
 
-> **Built on [OpenCode](https://opencode.ai)** - An open-source AI coding framework. OAC extends OpenCode with specialized agents, context management, and team workflows.
+> **One source, three tools.** OAC's agents, skills, commands and context are written once in [`agent-library/`](agent-library/README.md) and built for **Claude Code**, **OpenCode v2** (the default) and **OpenCode v1**. [OpenCode](https://opencode.ai) is the open-source AI coding framework OAC extends with specialized agents, context management, and team workflows. Using OAC: the install commands [below](#-quick-start). Working on OAC: [agent-library/README.md](agent-library/README.md) and the [documentation map](docs/README.md).
 
 ---
 

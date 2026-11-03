@@ -10,7 +10,6 @@
     ".opencode/agent/",
     ".opencode/command/",
     ".opencode/context/",
-    ".opencode/profiles/",
     ".opencode/prompts/",
     ".opencode/scripts/",
     ".opencode/skills/",

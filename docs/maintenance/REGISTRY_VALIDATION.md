@@ -109,13 +109,13 @@ on:
   push:
     paths:
       - 'built-ai-configs/registry/registry.json'
-      - '.opencode/profiles/**'
+      - 'agent-library/profiles/**'
       - '.opencode/config/**'
       - 'scripts/registry/**'
   pull_request:
     paths:
       - 'built-ai-configs/registry/registry.json'
-      - '.opencode/profiles/**'
+      - 'agent-library/profiles/**'
       - '.opencode/config/**'
       - 'scripts/registry/**'
 
@@ -231,8 +231,7 @@ bun run scripts/registry/check-dependencies.ts
    - Appropriate category (essential, standard, advanced)
 
 2. **Add to profiles:**
-   - Update `.opencode/profiles/<name>/profile.json`
-   - Also check if profiles section exists in built-ai-configs/registry/registry.json
+   - Add the id to `agent-library/profiles/system/<name>.json` and rebuild (the registry's profiles section is generated)
 
 3. **Add dependencies:**
    - If component references other components, add to `dependencies` array
@@ -253,8 +252,7 @@ bun run scripts/registry/check-dependencies.ts
    - Update or remove dependencies
 
 3. **Update profiles:**
-   - Remove from all profile.json files
-   - Check both `.opencode/profiles/` and built-ai-configs/registry/registry.json profiles section
+   - Remove it from `agent-library/profiles/**` and rebuild (the registry's profiles section is generated)
 
 4. **Run validation:**
    ```bash

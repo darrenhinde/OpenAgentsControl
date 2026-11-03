@@ -228,6 +228,10 @@ profile lists it. Profiles are `agent-library/profiles/system/<tier>.json` (esse
 business, advanced, full); a subagent goes in the same `agents` list as a primary agent (for example
 `developer.json` lists `context-scout` and `coder-agent` next to `openagent`).
 
+`agent-library/profiles/**` is the only place profiles are written. The `profiles` section of
+`built-ai-configs/registry/registry.json` (what `install.sh` reads) is generated from it. The old hand-kept
+`.opencode/profiles/*/profile.json` files drifted from it, nothing installed them, and they were removed.
+
 Save the file, add its `id` to `agents` in `agent-library/profiles/system/<tier>.json`, and run
 `make build-canonical` once. The build resolves profiles against the registry it is about to write, so a new
 agent and its profile entry go through in one build. A profile that names an id that does not exist still

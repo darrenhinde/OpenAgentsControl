@@ -18,7 +18,6 @@ scripts/
 ├── external-context/      # manage-external-context.sh
 ├── check-context-logs/    # Context logging utilities
 ├── hooks/                 # pre-commit
-├── auto-detect-components.sh, validate-registry.sh   # older top-level copies; use the ones in registry/
 └── README.md
 ```
 

@@ -181,6 +181,15 @@ Implemented 2026-11-03 (step 4 of the canonical refactor); maintainer to confirm
 - **Rules out:** hand-editing `.opencode/context/**`; a registry `contexts` entry written by hand; moving or renaming an installed context file before the installers can retire it.
 - **Revisit when:** installers learn to retire or supersede context files (then the re-taxonomy becomes a safe change), or the Claude marketplace is shown not to dereference the `plugins/claude-code/context` symlink (then the plugin needs a real generated copy).
 
+## D-023 Final tidy: one profile source, one copy of each registry script
+
+Implemented 2026-11-03 (step 5 of the canonical refactor); maintainer to confirm.
+
+- **Decision:** removed `.opencode/profiles/*/profile.json` (5 files). `install.sh`, `update.sh`, the CLI and CI never read them; only `check-dependencies.ts` loaded them, and it then overwrote every one with the registry's `profiles` entry of the same name, so its result is unchanged. `ProfileLoader` (agent-compiler) lost its file-based half (`ProfileSchema`, `load`, `loadAll`, `drift`); `list` and `resolveClosure` now read the registry's generated `profiles`. `.opencode/profiles/` left the npm `files` list. Removed the older top-level `scripts/auto-detect-components.sh` and `scripts/validate-registry.sh`; every caller (Makefile, CI, `package.json`, docs) already used `scripts/registry/`. Added the repo map and root-file table to `CORE.md`, a first-screen README that states the one-source model, and a report-only `scripts/validation/check-doc-links.sh`.
+- **Why:** two profile lists that had drifted apart (and a loader validating their union) let a reader believe the wrong one was authoritative; the registry copy, generated from `agent-library/profiles/**`, is the one an install uses.
+- **Rules out:** hand-writing profile lists anywhere but `agent-library/profiles/**`.
+- **Revisit when:** an external consumer is found that read `.opencode/profiles/` from the npm package (none in this repo).
+
 ---
 
 ## Open decisions

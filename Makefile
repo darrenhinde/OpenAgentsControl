@@ -190,6 +190,8 @@ check-core: check-canonical-drift ## Full core health check: drift gate, compile
 	@bun test scripts/validation
 	@echo "🧪 Installer flavor tests (bash)..."
 	@/bin/bash scripts/tests/test-flavor-install.sh
+	@echo "🔗 Documentation links (report only)..."
+	@bash scripts/validation/check-doc-links.sh
 	@echo "✅ Core is healthy"
 
 build-evals: ## Build the evaluation framework

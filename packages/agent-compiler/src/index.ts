@@ -211,14 +211,9 @@ export type {
  * Loads install profiles and computes their transitive closures — what "install this
  * profile" actually means.
  */
-export { ProfileLoader, ProfileLoadError, ProfileSchema } from "./core/ProfileLoader.js";
+export { ProfileLoader, ProfileLoadError } from "./core/ProfileLoader.js";
 
-export type {
-  ClosureResult,
-  LoadedProfile,
-  Profile,
-  ProfileDrift,
-} from "./core/ProfileLoader.js";
+export type { ClosureResult } from "./core/ProfileLoader.js";
 
 // ============================================================================
 // ADAPTERS - Base Class
