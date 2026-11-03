@@ -14,6 +14,8 @@ export interface LintableFile {
   target: string;
   /** Set on a live-path mirror of another file; mirrors are not linted twice. */
   mirrorOf?: string;
+  /** Set on a file built from a skill or command; those are checked by `assets.ts`, not as agents. */
+  assetKind?: string;
 }
 
 export interface TargetLintResult {
@@ -45,7 +47,7 @@ const LINTS: Readonly<Record<string, (files: LintFile[]) => LintFinding[]>> = {
 export function lintBuild(files: readonly LintableFile[]): TargetLintResult[] {
   const byTarget = new Map<string, LintFile[]>();
   for (const file of files) {
-    if (LINTS[file.target] === undefined || file.mirrorOf !== undefined) continue;
+    if (LINTS[file.target] === undefined || file.mirrorOf !== undefined || file.assetKind !== undefined) continue;
     byTarget.set(file.target, [...(byTarget.get(file.target) ?? []), { path: file.path, text: file.content }]);
   }
   return [...byTarget].map(([target, group]) => ({ target, findings: LINTS[target]!(group) }));

@@ -209,7 +209,7 @@ export const ContextReferenceSchema = z.object({
  * References external dependencies like subagents, contexts, commands, skills, or tools.
  */
 export const DependencyReferenceSchema = z.object({
-  type: z.enum(["subagent", "context", "command", "skill", "tool"]),
+  type: z.enum(["subagent", "agent", "context", "command", "skill", "tool"]),
   id: z.string(),
 });
 
@@ -594,66 +594,142 @@ export const OacBlockFieldsSchema = z
   .strict();
 
 /**
+ * The cross-field checks every `oac:` block shares (agents, skills, commands): the effective
+ * shipping set is `targets minus exclude`, an `exclude` must narrow something, the set may not
+ * be empty, and an override may only name a host in the set.
+ */
+function refineTargets(
+  oac: {
+    targets: Array<z.infer<typeof BuildTargetSchema>>;
+    exclude: Array<z.infer<typeof BuildTargetSchema>>;
+    overrides: object;
+  },
+  ctx: z.RefinementCtx,
+): void {
+  // The effective shipping set: the declared targets (defaulted to the full roster when
+  // omitted) minus every exclusion. One derivation here is what all cross-field checks
+  // read, so the schema, TargetPolicy and the build can never disagree on it.
+  const effective = oac.targets.filter(
+    (target) => !oac.exclude.includes(target)
+  );
+
+  // An exclude naming a host the declared targets already omit is dead config — it
+  // narrows nothing, it only pretends to. (Not an ambiguity: `exclude` is a filter on
+  // `targets`, so this is simply a no-op entry the author should delete.)
+  for (const target of oac.exclude) {
+    if (!oac.targets.includes(target)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["exclude"],
+        message:
+          `exclude names "${target}", which is not in targets ` +
+          `[${oac.targets.join(", ")}] — it narrows nothing; drop the entry`,
+      });
+    }
+  }
+
+  // An effective set of zero is the same dead weight `targets: []` is rejected for: the
+  // component would emit nowhere while looking configured. Whatever the author meant —
+  // retire the component, or fix the targets/exclude lists.
+  if (effective.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["exclude"],
+      message:
+        `targets [${oac.targets.join(", ")}] minus exclude ` +
+        `[${oac.exclude.join(", ")}] leaves nothing to emit to — retire the component ` +
+        `or fix the lists`,
+    });
+  }
+
+  // An override for a target this component does not effectively emit to is dead config:
+  // it looks like it is doing something and never runs. Almost always a half-finished edit
+  // to `targets` or `exclude`.
+  for (const target of Object.keys(oac.overrides)) {
+    if (!effective.includes(target as z.infer<typeof BuildTargetSchema>)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["overrides", target],
+        message:
+          `override declared for target "${target}", which is not in the effective targets ` +
+          `[${effective.join(", ")}] (targets ${JSON.stringify(oac.targets)}` +
+          (oac.exclude.length > 0 ? ` minus exclude ${JSON.stringify(oac.exclude)}` : "") +
+          `) — it would never be applied`,
+      });
+    }
+  }
+}
+
+/**
  * The `oac:` block as parsed. {@link OacBlockFieldsSchema} plus the cross-field checks.
  *
  * This is a `ZodEffects`, so it has no `.shape`; reach for {@link OacBlockFieldsSchema} when
  * you need the field list itself.
  */
-export const OacBlockSchema = OacBlockFieldsSchema
-  .superRefine((oac, ctx) => {
-    // The effective shipping set: the declared targets (defaulted to the full roster when
-    // omitted) minus every exclusion. One derivation here is what all cross-field checks
-    // read, so the schema, TargetPolicy and the build can never disagree on it.
-    const effective = oac.targets.filter(
-      (target) => !oac.exclude.includes(target)
-    );
+export const OacBlockSchema = OacBlockFieldsSchema.superRefine(refineTargets);
 
-    // An exclude naming a host the declared targets already omit is dead config — it
-    // narrows nothing, it only pretends to. (Not an ambiguity: `exclude` is a filter on
-    // `targets`, so this is simply a no-op entry the author should delete.)
-    for (const target of oac.exclude) {
-      if (!oac.targets.includes(target)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["exclude"],
-          message:
-            `exclude names "${target}", which is not in targets ` +
-            `[${oac.targets.join(", ")}] — it narrows nothing; drop the entry`,
-        });
-      }
-    }
+// ============================================================================
+// Canonical Skill and Command `oac:` Block
+// ============================================================================
 
-    // An effective set of zero is the same dead weight `targets: []` is rejected for: the
-    // component would emit nowhere while looking configured. Whatever the author meant —
-    // retire the component, or fix the targets/exclude lists.
-    if (effective.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["exclude"],
-        message:
-          `targets [${oac.targets.join(", ")}] minus exclude ` +
-          `[${oac.exclude.join(", ")}] leaves nothing to emit to — retire the component ` +
-          `or fix the lists`,
-      });
-    }
+/**
+ * The install tiers a registry entry for a skill or command may carry as its `category`
+ * (the keys of the registry's own `categories` table). NOT a folder axis: unlike an agent's
+ * category, a skill's or command's folder does not have to match it.
+ */
+export const REGISTRY_TIERS: readonly string[] = ["essential", "standard", "extended", "specialized", "meta"];
 
-    // An override for a target this component does not effectively emit to is dead config:
-    // it looks like it is doing something and never runs. Almost always a half-finished edit
-    // to `targets` or `exclude`.
-    for (const target of Object.keys(oac.overrides)) {
-      if (!effective.includes(target as z.infer<typeof BuildTargetSchema>)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["overrides", target],
-          message:
-            `override declared for target "${target}", which is not in the effective targets ` +
-            `[${effective.join(", ")}] (targets ${JSON.stringify(oac.targets)}` +
-            (oac.exclude.length > 0 ? ` minus exclude ${JSON.stringify(oac.exclude)}` : "") +
-            `) — it would never be applied`,
-        });
-      }
-    }
-  });
+/**
+ * What one host may override about a skill or command. Narrower than an agent's: only the
+ * two fields every host reads. Applying either re-serialises that host's frontmatter (a file
+ * with no override keeps its authored bytes).
+ */
+export const AssetTargetOverrideSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
+  })
+  .strict();
+
+export const AssetTargetOverridesSchema = z
+  .object({
+    opencode: z.never({ message: "oac.overrides.opencode is not supported: the OpenCode emitters do not read overrides (only claude-code does)" }).optional(),
+    "claude-code": AssetTargetOverrideSchema.optional(),
+  })
+  .strict();
+
+/**
+ * The `oac:` block of a canonical skill (`agent-library/skills/<id>/SKILL.md`) or command
+ * (`agent-library/commands/[<group>/]<id>.md`). The kind is implied by where the file lives,
+ * so there is no `type`. Strict: an unknown key is an error.
+ *
+ * Reuses the agent block's building blocks: id rule, `targets` / `exclude` with the same
+ * opt-out default, dependency reference forms, and the same cross-field checks.
+ */
+export const OacAssetBlockFieldsSchema = z
+  .object({
+    id: OacIdSchema,
+    name: z.string().min(1),
+    /** Registry description. Defaults to the file's frontmatter `description`. */
+    description: z.string().min(1).optional(),
+    /** Registry install tier (see {@link REGISTRY_TIERS}). */
+    category: z.string().refine((value) => REGISTRY_TIERS.includes(value), {
+      message: `category must be one of: ${REGISTRY_TIERS.join(", ")}`,
+    }).optional(),
+    tags: z.array(z.string()).default([]),
+    dependencies: z.array(DependencyRefInputSchema).default([]),
+    /** Former ids; emitted as registry `aliases`, which installers match on. */
+    aliases: z.array(OacIdSchema).default([]),
+    targets: BuildTargetsSchema,
+    exclude: BuildExcludesSchema,
+    overrides: AssetTargetOverridesSchema.default({}),
+  })
+  .strict();
+
+export const OacAssetBlockSchema = OacAssetBlockFieldsSchema.superRefine(refineTargets);
+
+export type OacAssetBlock = z.infer<typeof OacAssetBlockSchema>;
+export type OacAssetBlockInput = z.input<typeof OacAssetBlockSchema>;
 
 // ============================================================================
 // Canonical Agent Schema

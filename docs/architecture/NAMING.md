@@ -53,7 +53,12 @@ Code: `packages/agent-compiler/src/verify/lint/naming.ts`.
    match (your own agent that reuses an old id, even one OAC tracked) is left with a warning. **Moving or renaming an agent: add the old id to `aliases`; if it
    keeps its id but changes folder, add the old path to `previousPaths`.**
 7. **Skills and commands** follow the same id rules (a skill is a noun or verb-first phrase, a
-   command is a verb) but are not linted: they are not canonical source types today. (Planned.)
+   command is a verb) and are canonical source types: `agent-library/skills/<id>/SKILL.md` and
+   `agent-library/commands/[<group>/]<id>.md`. The id equals the folder (skill) or file name
+   (command) and is enforced by the loader; the soft rules are in
+   [SKILLS-AND-COMMANDS.md](SKILLS-AND-COMMANDS.md#lints) (`id-type-suffix`, `id-compound-word`,
+   `command-group-depth`), report-only like the agent rules. A command's group folder is part of its
+   name on OpenCode, so it is not renamed casually.
 
 | Good | Bad | Rule |
 | --- | --- | --- |
@@ -101,4 +106,7 @@ agent-library/
   profiles/                     install tiers and context sets
 ```
 
-Planned, not present: `skills/<id>/SKILL.md`, `commands/<id>.md`, `context/` (shared context docs).
+  skills/<id>/SKILL.md          + supporting files; flat, no category
+  commands/[<group>/]<id>.md    at most one group folder (the folder is part of the command name)
+
+Planned, not present: `context/` (shared context docs).

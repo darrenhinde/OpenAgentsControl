@@ -88,6 +88,7 @@ import { ProfileLoader, type SystemProfileResolution } from "./ProfileLoader.js"
 import { ReferenceResolver } from "./ReferenceResolver.js";
 import { REGISTRY_TARGETS, type RegistryTarget, type RegistryTargetSpec } from "./RegistryTargets.js";
 import { emitsTo } from "./TargetPolicy.js";
+import { loadCanonicalAssets, type CanonicalAssetFile } from "./AssetLoader.js";
 
 // ============================================================================
 // TYPES
@@ -171,8 +172,14 @@ const CATEGORY_FOR_TYPE: Readonly<Record<string, string>> = {
   subagent: "subagents",
 };
 
-/** The `components` categories the emitter generates from canonical agents. */
-const GENERATED_CATEGORIES: ReadonlySet<string> = new Set(Object.values(CATEGORY_FOR_TYPE));
+/** The `components` categories generated from canonical agents. */
+const AGENT_CATEGORIES: ReadonlySet<string> = new Set(Object.values(CATEGORY_FOR_TYPE));
+
+/** The `components` category each canonical asset kind lives under. */
+const CATEGORY_FOR_ASSET: Readonly<Record<CanonicalAssetFile["kind"], string>> = {
+  skill: "skills",
+  command: "commands",
+};
 
 /** Locale-independent ordering. `localeCompare` is locale-dependent — never use it here. */
 function compare(a: string, b: string): number {
@@ -303,6 +310,38 @@ export function entryForAgentAt(
   };
 }
 
+/**
+ * Build the registry entry for one canonical skill or command.
+ *
+ * Same field order as the entries the registry carried by hand (`id,name,type,path,description,
+ * tags,dependencies,category[,files]`), so installers and the CLI see the shape they always did.
+ * `files` lists every file a skill ships (the installers download exactly those), the main file
+ * first. A command is a single file and has none.
+ */
+export function entryForAsset(
+  asset: CanonicalAssetFile,
+  installRoot: string,
+  canonicalDependency: (type: string, id: string) => string = (_type, id) => id,
+): RegistryEntry {
+  const isSkill = asset.kind === "skill";
+  const path = isSkill ? `${installRoot}/${asset.oac.id}/SKILL.md` : `${installRoot}/${asset.relativePath}`;
+  const files = isSkill
+    ? [path, ...asset.supporting.map((file) => `${installRoot}/${asset.oac.id}/${file.relativePath}`)]
+    : undefined;
+  return {
+    id: asset.oac.id,
+    name: asset.oac.name,
+    type: asset.kind,
+    path,
+    description: asset.oac.description ?? asset.description ?? "",
+    tags: asset.oac.tags,
+    dependencies: asset.oac.dependencies.map(({ type, id }) => `${type}:${canonicalDependency(type, id)}`),
+    ...(asset.oac.category === undefined ? {} : { category: asset.oac.category }),
+    ...(files === undefined ? {} : { files }),
+    ...(asset.oac.aliases.length > 0 ? { aliases: [...asset.oac.aliases] } : {}),
+  };
+}
+
 // ============================================================================
 // EMITTER
 // ============================================================================
@@ -372,11 +411,19 @@ export class RegistryEmitter {
       .loadFromDirectory();
     this.deprecations = [];
 
-    const generated = this.generatedByCategory(agents);
+    const assets = loadCanonicalAssets(this.root);
+    const generated = this.generatedByCategory(agents, assets);
     const ours = this.previouslyGenerated();
     const components: Record<string, RegistryEntry[]> = {};
     // Canonical agents this target does not ship: never carried over from the base either.
     const notShipped = new Set(agents.filter((agent) => !emitsTo(agent, this.target)).map((agent) => agent.oac.id));
+    // Same for skills and commands: a canonical asset this target does not ship never survives as a carried entry.
+    const assetNotShipped = new Map<string, Set<string>>();
+    for (const asset of [...assets.skills, ...assets.commands]) {
+      if (emitsTo(asset, this.target)) continue;
+      const category = CATEGORY_FOR_ASSET[asset.kind];
+      assetNotShipped.set(category, new Set([...(assetNotShipped.get(category) ?? []), asset.oac.id, ...asset.oac.aliases]));
+    }
 
     // Iterate the BASE's keys, not the generated ones: an entry type the canonical tree does
     // not own yet must survive untouched, and its position must not move.
@@ -386,11 +433,13 @@ export class RegistryEmitter {
         continue;
       }
       const existing = (base.components[category] ?? []).filter(
-        (entry) => !(GENERATED_CATEGORIES.has(category) && notShipped.has(entry.id)),
+        (entry) =>
+          !(AGENT_CATEGORIES.has(category) && notShipped.has(entry.id)) &&
+          !(assetNotShipped.get(category)?.has(entry.id) ?? false),
       );
       const owned = generated.get(category);
       components[category] = owned === undefined
-        ? this.carried(category, existing)
+        ? this.carried(category, existing, ours)
         : merge(owned, existing, ours);
     }
 
@@ -414,7 +463,9 @@ export class RegistryEmitter {
   }
 
   /** Preserve non-owned entries except explicit retirement decisions. */
-  private carried(category: string, entries: readonly RegistryEntry[]): RegistryEntry[] {
+  private carried(category: string, entries: readonly RegistryEntry[], ours: ReadonlySet<string>): RegistryEntry[] {
+    // The last canonical skill or command going away must withdraw the entries the build wrote.
+    if (category === "skills" || category === "commands") return entries.filter((entry) => !wasGeneratedByUs(entry, ours));
     if (category !== "config") return [...entries];
     return entries.filter((entry) => !RETIRED_CONFIG_IDS.has(entry.id));
   }
@@ -425,7 +476,10 @@ export class RegistryEmitter {
   }
 
   /** Canonical agents grouped into the `components` arrays they belong in, sorted by id. */
-  private generatedByCategory(agents: readonly CanonicalAgentFile[]): Map<string, RegistryEntry[]> {
+  private generatedByCategory(
+    agents: readonly CanonicalAgentFile[],
+    assets: { skills: readonly CanonicalAssetFile[]; commands: readonly CanonicalAssetFile[] },
+  ): Map<string, RegistryEntry[]> {
     const byCategory = new Map<string, RegistryEntry[]>();
     const resolver = AgentIdResolver.fromCanonical(agents);
 
@@ -445,6 +499,19 @@ export class RegistryEmitter {
       byCategory.set(category, entries);
     }
 
+    for (const asset of [...assets.skills, ...assets.commands]) {
+      const category = CATEGORY_FOR_ASSET[asset.kind];
+      const entries = byCategory.get(category) ?? [];
+      byCategory.set(category, entries);
+      if (!emitsTo(asset, this.target)) continue;
+      const source = `${asset.kind === "skill" ? "agent-library/skills" : "agent-library/commands"}/${asset.relativePath}`;
+      const root = asset.kind === "skill" ? this.spec.skillRoot : this.spec.commandRoot;
+      entries.push(
+        entryForAsset(asset, root, (type, id) =>
+          type === "subagent" || type === "agent" ? this.canonicalAgentId(resolver, id, source) : id,
+        ),
+      );
+    }
     for (const entries of byCategory.values()) entries.sort((a, b) => compare(a.id, b.id));
 
     return byCategory;

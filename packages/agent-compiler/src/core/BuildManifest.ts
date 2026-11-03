@@ -50,6 +50,9 @@ export interface ManifestEntry {
   agentId?: string;
   /** The agent's `oac.aliases` (former ids), when it has any. Additive; consumers may ignore it. */
   aliases?: string[];
+  /** For a file built from a canonical skill or command: its kind and `oac.id`. */
+  assetKind?: "skill" | "command";
+  assetId?: string;
 }
 
 /** The build's ledger of what it wrote. Deterministic: sorted keys, no timestamps. */

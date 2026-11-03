@@ -215,7 +215,7 @@
       "agentId": "workflow-designer"
     },
     "built-ai-configs/README.md": {
-      "sha256": "16cf903e97f886361c4a0b0457b4f4c402d420e115ee7d2866617659ed6ac317",
+      "sha256": "8eec5ade1264976468f4d56d3e557c98587c169ba676d5a71fb4efcaffd3376f",
       "target": "hosts-readme",
       "root": "built-ai-configs/README.md"
     },

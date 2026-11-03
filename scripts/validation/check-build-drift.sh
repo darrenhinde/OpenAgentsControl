@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# The drift gate: regenerate the committed trees from agent-library/agents/**, then fail if the
+# The drift gate: regenerate the committed trees from agent-library/** (agents, skills, commands), then fail if the
 # build changed anything. This is the structural guarantee the canonical refactor rests on —
 # generated trees stay COMMITTED, so a hand-edit to one must turn CI red rather than merely
 # being discouraged.
@@ -36,7 +36,9 @@ cd "$ROOT"
 # mirror is drift too. The Claude agents are build output like the rest (D-017): their
 # frontmatter comes from oac.overrides.claude-code and their body from <!-- oac:only --> host
 # blocks in agent-library/agents/**. See the docblock in packages/cli/src/commands/build.ts.
-GENERATED=(built-ai-configs .opencode/agent plugins/claude-code/agents built-ai-configs/registry/registry.json built-ai-configs/registry/registry.v1.json .oac/build-manifest.json)
+# Skills and commands are mirrored the same way: .opencode/skills and .opencode/command copy the
+# OpenCode v2 build, plugins/claude-code/skills and plugins/claude-code/commands copy the Claude one.
+GENERATED=(built-ai-configs .opencode/agent .opencode/skills .opencode/command plugins/claude-code/agents plugins/claude-code/skills plugins/claude-code/commands built-ai-configs/registry/registry.json built-ai-configs/registry/registry.v1.json .oac/build-manifest.json)
 
 if [ ! -f packages/cli/dist/index.js ]; then
   echo "error: packages/cli/dist/index.js is missing — build the CLI first:" >&2
@@ -53,7 +55,7 @@ after="$(snapshot)"
 
 if [ "$before" = "$after" ]; then
   echo ""
-  echo "✅ No drift — the generated trees match agent-library/agents/**."
+  echo "✅ No drift — the generated trees match agent-library/**."
   exit 0
 fi
 
@@ -61,15 +63,15 @@ cat >&2 <<'EOF'
 
 ❌ The generated trees drift from the canonical source.
 
-Files under built-ai-configs/, .opencode/agent/, plugins/claude-code/agents/, built-ai-configs/registry/registry.json,
-built-ai-configs/registry/registry.v1.json and .oac/build-manifest.json are BUILD OUTPUT (.opencode/agent/ and
-plugins/claude-code/agents/ are mirrors of built-ai-configs/opencode/agent/ and built-ai-configs/claude-code/agents/).
-They are committed, but they are not hand-edited: `oac build` regenerates them from
-agent-library/agents/**, and this gate fails when the committed bytes disagree with what the
-build produces.
+Files under built-ai-configs/, .opencode/{agent,skills,command}/, plugins/claude-code/{agents,skills,commands}/,
+built-ai-configs/registry/registry.json, built-ai-configs/registry/registry.v1.json and .oac/build-manifest.json are
+BUILD OUTPUT (the .opencode/ and plugins/claude-code/ folders are byte-identical mirrors of
+built-ai-configs/opencode/ and built-ai-configs/claude-code/). They are committed, but they are not hand-edited:
+`oac build` regenerates them from agent-library/{agents,skills,commands}/**, and this gate fails when the
+committed bytes disagree with what the build produces.
 
 To fix:
-  1. Make your change in agent-library/agents/** (the canonical source), not in the output.
+  1. Make your change in agent-library/ (the canonical source), not in the output.
   2. Run:  make build-canonical
   3. Commit the regenerated files along with your source change.
 

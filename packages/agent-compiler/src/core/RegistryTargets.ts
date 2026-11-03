@@ -17,6 +17,9 @@ export interface RegistryTargetSpec {
   file: string;
   /** Default root agents are installed from, repo-relative. */
   defaultAgentRoot: string;
+  /** Where skills / commands are installed from, repo-relative (their registry `path` and `files` are rooted here). */
+  skillRoot: string;
+  commandRoot: string;
   /** The path of one agent's shipped file under `root`. */
   agentPath(agent: CanonicalAgentFile, root: string): string;
   /**
@@ -36,6 +39,8 @@ export const REGISTRY_TARGETS: Readonly<Record<RegistryTarget, RegistryTargetSpe
   opencode: {
     file: "built-ai-configs/registry/registry.json",
     defaultAgentRoot: ".opencode/agent",
+    skillRoot: ".opencode/skills",
+    commandRoot: ".opencode/command",
     // Flat: v2 derives the agent id from the file name.
     agentPath: (agent, root) => `${root}/${agent.oac.id}.md`,
     // Flat: an old file name is the only way a v2 agent ever moved.
@@ -47,6 +52,8 @@ export const REGISTRY_TARGETS: Readonly<Record<RegistryTarget, RegistryTargetSpe
   "opencode-v1": {
     file: "built-ai-configs/registry/registry.v1.json",
     defaultAgentRoot: "built-ai-configs/opencode-v1/agent",
+    skillRoot: "built-ai-configs/opencode-v1/skills",
+    commandRoot: "built-ai-configs/opencode-v1/command",
     agentPath: (agent, root) => `${root}/${agent.relativePath}`,
     supersededPaths: (agent, root) => {
       const folder = agent.relativePath.includes("/") ? agent.relativePath.slice(0, agent.relativePath.lastIndexOf("/") + 1) : "";

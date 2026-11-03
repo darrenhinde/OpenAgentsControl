@@ -144,7 +144,7 @@ describe("built-ai-configs/README.md contents", () => {
   });
 
   it("is a pure function of its input", () => {
-    const input = { files: [], agents: [], hosts: BUILD_TARGETS, layout: TARGET_LAYOUT };
+    const input = { files: [], agents: [], skills: [], commands: [], hosts: BUILD_TARGETS, layout: TARGET_LAYOUT };
     expect(renderHostsReadme(input)).toBe(renderHostsReadme(input));
   });
 

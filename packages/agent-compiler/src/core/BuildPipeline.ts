@@ -44,12 +44,14 @@
 
 import { createHash } from "node:crypto";
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
   rmSync,
   rmdirSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -76,6 +78,8 @@ import { OpenCodeAdapter } from "../adapters/OpenCodeAdapter.js";
 import { OPENCODE_AGENT_ROOT } from "../adapters/opencode/surgery.js";
 import { OpenCodeV1Adapter, OPENCODE_V1_AGENT_ROOT } from "../adapters/v1/OpenCodeV1Adapter.js";
 import { HOSTS_README_PATH, HOSTS_README_TARGET, renderHostsReadme } from "./HostsReadme.js";
+import { emitAsset } from "./AssetEmitter.js";
+import { loadCanonicalAssets, type AssetKind, type CanonicalAssetFile } from "./AssetLoader.js";
 
 // ============================================================================
 // TYPES
@@ -112,8 +116,13 @@ export interface BuildFile {
    * `"hosts-readme"` for the generated `built-ai-configs/README.md` index.
    */
   target: BuildTarget | "registry" | "registry-v1" | typeof HOSTS_README_TARGET;
-  /** `oac.id` of the source agent, or `undefined` for whole-tree artefacts. */
+  /** `oac.id` of the source agent, or `undefined` for whole-tree artefacts and for skills/commands. */
   agentId?: string;
+  /** Set on a file built from a canonical skill or command: which kind, and its `oac.id`. */
+  assetKind?: AssetKind;
+  assetId?: string;
+  /** The file is executable (a skill's `router.sh`); the build sets the mode bit and the drift check compares it. */
+  executable?: boolean;
   /** The source agent's `oac.aliases`, when it has any. Recorded in the ledger. */
   agentAliases?: readonly string[];
   /** Semantics the target could not carry. Never fatal on their own. */
@@ -135,6 +144,9 @@ export interface BuildPlan {
   warnings: BuildWarning[];
   /** Canonical agents loaded, sorted by `oac.id`. */
   agents: CanonicalAgentFile[];
+  /** Canonical skills and commands loaded, each sorted by `oac.id`. */
+  skills: CanonicalAssetFile[];
+  commands: CanonicalAssetFile[];
   /**
    * References that name an agent by a deprecated `oac.aliases` entry (permission.task keys,
    * structured body calls, dependencies, profiles). Each still resolves; the author should switch
@@ -218,9 +230,18 @@ const DEFAULTS = {
 export const HOSTS_ROOT = "built-ai-configs";
 
 /** Where one target's files go. */
+export interface AssetLayout {
+  /** The primary output root for this kind (the target's folder under {@link HOSTS_ROOT}). */
+  root: string;
+  /** Live paths that receive byte-identical copies of everything under {@link root}. */
+  mirrors: readonly string[];
+}
+
 export interface TargetLayout {
   /** The root the adapter's emitted paths are under (what `outputPath` / `emission.path` return). */
   emitted: string;
+  /** Where this target's skills and commands go (generated from `agent-library/skills|commands`). */
+  assets: Readonly<Record<AssetKind, AssetLayout>>;
   /** The primary output root: the target's folder under {@link HOSTS_ROOT}. */
   root: string;
   /**
@@ -230,6 +251,8 @@ export interface TargetLayout {
    */
   mirrors: readonly string[];
 }
+
+const NO_ASSETS: TargetLayout["assets"] = { skill: { root: "", mirrors: [] }, command: { root: "", mirrors: [] } };
 
 /**
  * The roots each target is permitted to write, and therefore the only roots pruning may ever
@@ -242,25 +265,42 @@ export const TARGET_LAYOUT: Readonly<Record<BuildFile["target"], TargetLayout>> 
     emitted: OPENCODE_AGENT_ROOT,
     root: `${HOSTS_ROOT}/opencode/agent`,
     mirrors: [OPENCODE_AGENT_ROOT],
+    assets: {
+      skill: { root: `${HOSTS_ROOT}/opencode/skills`, mirrors: [".opencode/skills"] },
+      command: { root: `${HOSTS_ROOT}/opencode/command`, mirrors: [".opencode/command"] },
+    },
   },
   // The v1 build has no live mirror: it is display-only here, and installs read it from its
   // built-ai-configs/ folder (built-ai-configs/registry/registry.v1.json).
-  "opencode-v1": { emitted: OPENCODE_V1_AGENT_ROOT, root: OPENCODE_V1_AGENT_ROOT, mirrors: [] },
+  "opencode-v1": {
+    emitted: OPENCODE_V1_AGENT_ROOT,
+    root: OPENCODE_V1_AGENT_ROOT,
+    mirrors: [],
+    assets: {
+      skill: { root: `${HOSTS_ROOT}/opencode-v1/skills`, mirrors: [] },
+      command: { root: `${HOSTS_ROOT}/opencode-v1/command`, mirrors: [] },
+    },
+  },
   "claude-code": {
     emitted: "plugins/claude-code/agents",
     root: `${HOSTS_ROOT}/claude-code/agents`,
     mirrors: ["plugins/claude-code/agents"],
+    assets: {
+      skill: { root: `${HOSTS_ROOT}/claude-code/skills`, mirrors: ["plugins/claude-code/skills"] },
+      command: { root: `${HOSTS_ROOT}/claude-code/commands`, mirrors: ["plugins/claude-code/commands"] },
+    },
   },
-  registry: { emitted: "built-ai-configs/registry/registry.json", root: "built-ai-configs/registry/registry.json", mirrors: [] },
-  "registry-v1": { emitted: "built-ai-configs/registry/registry.v1.json", root: "built-ai-configs/registry/registry.v1.json", mirrors: [] },
+  registry: { emitted: "built-ai-configs/registry/registry.json", root: "built-ai-configs/registry/registry.json", mirrors: [], assets: NO_ASSETS },
+  "registry-v1": { emitted: "built-ai-configs/registry/registry.v1.json", root: "built-ai-configs/registry/registry.v1.json", mirrors: [], assets: NO_ASSETS },
   // The generated index of built-ai-configs/ (core/HostsReadme.ts). Only a full build owns it.
-  [HOSTS_README_TARGET]: { emitted: HOSTS_README_PATH, root: HOSTS_README_PATH, mirrors: [] },
+  [HOSTS_README_TARGET]: { emitted: HOSTS_README_PATH, root: HOSTS_README_PATH, mirrors: [], assets: NO_ASSETS },
 };
 
 /** Every root a target may write: its primary root, then its mirrors. */
 function targetRoots(target: BuildFile["target"]): readonly string[] {
   const layout = TARGET_LAYOUT[target];
-  return [layout.root, ...layout.mirrors];
+  const assets = Object.values(layout.assets).filter((asset) => asset.root !== "");
+  return [layout.root, ...layout.mirrors, ...assets.flatMap((asset) => [asset.root, ...asset.mirrors])];
 }
 
 /** Re-root `path` from `from` to `to`. `path` must sit under `from`. */
@@ -276,8 +316,11 @@ function reroot(path: string, from: string, to: string): string {
 /** The root a file was written under: the mirror root it copies into, or its target's primary root. */
 function rootOf(file: BuildFile): string {
   const layout = TARGET_LAYOUT[file.target];
-  if (file.mirrorOf === undefined) return layout.root;
-  return layout.mirrors.find((mirror) => isUnder(file.path, mirror)) ?? layout.root;
+  const own = file.assetKind === undefined
+    ? { root: layout.root, mirrors: layout.mirrors }
+    : layout.assets[file.assetKind];
+  if (file.mirrorOf === undefined) return own.root;
+  return own.mirrors.find((mirror) => isUnder(file.path, mirror)) ?? own.root;
 }
 
 /**
@@ -285,6 +328,7 @@ function rootOf(file: BuildFile): string {
  * byte-identical mirror per live root. Pure.
  */
 function place(file: BuildFile): BuildFile[] {
+  if (file.assetKind !== undefined) return placeAsset(file);
   const layout = TARGET_LAYOUT[file.target];
   const primary = { ...file, path: reroot(file.path, layout.emitted, layout.root) };
   const mirrors = layout.mirrors.map((mirror) => ({
@@ -295,6 +339,18 @@ function place(file: BuildFile): BuildFile[] {
     warnings: [],
   }));
   return [primary, ...mirrors];
+}
+
+/** As {@link place}, for a skill or command file: `path` is already under the kind's primary root. */
+function placeAsset(file: BuildFile): BuildFile[] {
+  const { root, mirrors } = TARGET_LAYOUT[file.target].assets[file.assetKind!];
+  const mirrored = mirrors.map((mirror) => ({
+    ...file,
+    path: reroot(file.path, root, mirror),
+    mirrorOf: file.path,
+    warnings: [],
+  }));
+  return [file, ...mirrored];
 }
 
 /** Locale-independent ordering. `localeCompare` is locale-dependent — never use it here. */
@@ -469,18 +525,41 @@ function resolverFor(agents: readonly CanonicalAgentFile[], target: BuildTarget)
 function assertUniqueOutputPaths(files: readonly BuildFile[], agents: readonly CanonicalAgentFile[]): void {
   const sourceOf = new Map(agents.map((agent) => [agent.oac.id, `${DEFAULTS.contentRoot}/${agent.relativePath}`]));
   const owners = new Map<string, BuildFile>();
+  const label = (file: BuildFile): string =>
+    file.assetKind === undefined
+      ? `${sourceOf.get(file.agentId!)} (agent "${file.agentId}", target ${file.target})`
+      : `${file.assetKind} "${file.assetId}" (target ${file.target})`;
   for (const file of files) {
-    if (file.agentId === undefined) continue;
+    if (file.agentId === undefined && file.assetKind === undefined) continue;
     const other = owners.get(file.path.toLowerCase());
     if (other !== undefined) {
       throw new Error(
-        `output path collision: "${file.path}" is produced by both ${sourceOf.get(other.agentId!)} ` +
-          `(agent "${other.agentId}", target ${other.target}) and ${sourceOf.get(file.agentId)} ` +
-          `(agent "${file.agentId}", target ${file.target}). Give one a distinct name.`,
+        `output path collision: "${file.path}" is produced by both ${label(other)} and ${label(file)}. ` +
+          "Give one a distinct name.",
       );
     }
     owners.set(file.path.toLowerCase(), file);
   }
+}
+
+/**
+ * Emit one skill or command for one host: every file it ships there, each placed with its mirrors.
+ * An asset that does not ship to `target` (same rule as agents) produces nothing.
+ */
+function emitAssetFiles(asset: CanonicalAssetFile, target: BuildTarget, resolver: AgentIdResolver): BuildFile[] {
+  if (!emitsTo(asset, target)) return [];
+  const { root } = TARGET_LAYOUT[target].assets[asset.kind];
+  return emitAsset(asset, target, resolver).flatMap((output) =>
+    place({
+      path: `${root}/${output.relativePath}`,
+      content: output.content,
+      target,
+      assetKind: asset.kind,
+      assetId: asset.oac.id,
+      ...(output.executable ? { executable: true } : {}),
+      warnings: [],
+    }),
+  );
 }
 
 /**
@@ -496,6 +575,7 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   const agents = await new CanonicalAgentLoader(join(root, DEFAULTS.contentRoot))
     .loadFromDirectory();
 
+  const { skills, commands } = loadCanonicalAssets(root);
   const resolvers = new Map<BuildTarget, AgentIdResolver>();
   const files: BuildFile[] = [];
   const deprecations = new Map<string, BuildWarning>();
@@ -515,6 +595,13 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
         deprecate(`${DEFAULTS.contentRoot}/${agent.relativePath}`, `deprecated alias "${use.alias}" -> use "${use.id}"`);
       }
       if (file !== null) files.push(...place(file));
+    }
+  }
+
+  for (const asset of [...skills, ...commands]) {
+    for (const target of targets) {
+      if (!resolvers.has(target)) resolvers.set(target, resolverFor(agents, target));
+      files.push(...emitAssetFiles(asset, target, resolvers.get(target)!));
     }
   }
 
@@ -544,7 +631,7 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   if (coversAllHosts(targets)) {
     files.push({
       path: HOSTS_README_PATH,
-      content: renderHostsReadme({ files, agents, hosts: BUILD_TARGETS, layout: TARGET_LAYOUT }),
+      content: renderHostsReadme({ files, agents, skills, commands, hosts: BUILD_TARGETS, layout: TARGET_LAYOUT }),
       target: HOSTS_README_TARGET,
       warnings: [],
     });
@@ -555,6 +642,8 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   return {
     files,
     agents,
+    skills,
+    commands,
     deprecations: [...deprecations.values()],
     warnings: files.flatMap((file) => file.warnings),
     owns: ownedTargets(targets, options.skipRegistry === true),
@@ -663,6 +752,7 @@ function manifestFor(files: readonly BuildFile[], outputRoots: OutputRoots): Bui
       root: rebase(rootOf(file), file.target, outputRoots),
       ...(file.agentId === undefined ? {} : { agentId: file.agentId }),
       ...(file.agentAliases === undefined ? {} : { aliases: [...file.agentAliases] }),
+      ...(file.assetKind === undefined ? {} : { assetKind: file.assetKind, assetId: file.assetId }),
     };
   }
   return { version: 1, files: entries };
@@ -786,12 +876,18 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
     const exists = existsSync(absolute);
 
     if (exists && readFileSync(absolute, "utf-8") === file.content) {
-      result.unchanged.push(path);
+      if (file.executable === true && !isExecutableOnDisk(absolute)) {
+        chmodSync(absolute, 0o755);
+        result.changed.push(path);
+      } else {
+        result.unchanged.push(path);
+      }
       continue;
     }
 
     mkdirSync(dirname(absolute), { recursive: true });
     writeFileSync(absolute, file.content, "utf-8");
+    if (file.executable === true) chmodSync(absolute, 0o755);
     result.changed.push(path);
   }
 
@@ -872,6 +968,8 @@ export function check(plan: BuildPlan, options: WriteOptions): Drift[] {
     if (!existsSync(absolute)) drift.push({ path, status: "missing" });
     else if (readFileSync(absolute, "utf-8") !== file.content) {
       drift.push({ path, status: "modified" });
+    } else if (file.executable === true && !isExecutableOnDisk(absolute)) {
+      drift.push({ path, status: "modified" });
     }
   }
 
@@ -884,6 +982,10 @@ export function check(plan: BuildPlan, options: WriteOptions): Drift[] {
   }
 
   return drift.sort((a, b) => compare(a.path, b.path));
+}
+
+function isExecutableOnDisk(absolute: string): boolean {
+  return (statSync(absolute).mode & 0o111) !== 0;
 }
 
 /** Repo-relative path of a file, POSIX-separated. Exported for the CLI's reporting. */

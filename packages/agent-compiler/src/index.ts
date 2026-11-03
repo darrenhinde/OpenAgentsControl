@@ -342,5 +342,22 @@ export {
 export type { ClaudeLintOptions, OpenCodeFlavor } from "./verify/lint/capability.js";
 export { lintNaming, derivedDisplayName, ROLE_SUFFIXES, KNOWN_COMPOUNDS, LEGACY_AGENT_SUFFIX_IDS, BRAND_IDS } from "./verify/lint/naming.js";
 export type { NamingFinding, NamingLevel, NamingSubject } from "./verify/lint/naming.js";
+export {
+  lintAssetNaming,
+  lintAssetReferences,
+  LEGACY_ASSET_SUFFIX_IDS,
+  LEGACY_COMMAND_GROUPS,
+} from "./verify/lint/assets.js";
+export type { AssetNamingFinding } from "./verify/lint/assets.js";
+export {
+  loadCanonicalAssets,
+  loadCanonicalSkills,
+  loadCanonicalCommands,
+  AssetLoadError,
+  SKILLS_ROOT,
+  COMMANDS_ROOT,
+} from "./core/AssetLoader.js";
+export type { CanonicalAssetFile, AssetKind, LoadedAssets } from "./core/AssetLoader.js";
+export { emitAsset, emitAssetMain } from "./core/AssetEmitter.js";
 export { lintBuild } from "./verify/lint/run.js";
 export type { LintableFile, TargetLintResult } from "./verify/lint/run.js";

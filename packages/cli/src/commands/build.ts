@@ -51,6 +51,8 @@ import { type Command } from 'commander'
 import {
   BUILD_TARGETS,
   check as checkPlan,
+  lintAssetNaming,
+  lintAssetReferences,
   lintBuild,
   lintNaming,
   plan as planBuild,
@@ -143,6 +145,11 @@ const reportDeadReferences = async (root: string, built: BuildPlan): Promise<num
 const reportLints = (built: BuildPlan): { count: number; errors: number } => {
   let count = 0
   let errors = 0
+  const assetFindings = lintAssetReferences(built)
+  for (const finding of assetFindings) {
+    warn(`assets: ${finding.path} [${finding.rule}] ${finding.message}`)
+  }
+  count += assetFindings.length
   for (const { target, findings } of lintBuild(built.files)) {
     for (const finding of findings) {
       const line = `${target}: ${finding.path} [${finding.rule}] ${finding.message}`
@@ -173,7 +180,10 @@ const reportDeprecations = (built: BuildPlan): number => {
  * code, until the rule is promoted. Returns the number of `warn`-level findings.
  */
 const reportNaming = (built: BuildPlan): number => {
-  const findings = lintNaming(built.agents)
+  const findings = [
+    ...lintNaming(built.agents),
+    ...lintAssetNaming([...built.skills, ...built.commands]),
+  ]
   const warns = findings.filter((f) => f.level === 'warn')
   if (findings.length === 0) return 0
   log('')
@@ -214,7 +224,7 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
   const deprecationCount = reportDeprecations(built)
 
   bold('\n  oac build')
-  info(`${built.agents.length} canonical agents -> ${built.files.length} files`)
+  info(`${built.agents.length} canonical agents, ${built.skills.length} skills, ${built.commands.length} commands -> ${built.files.length} files`)
 
   // --check and --dry-run share the plan above; neither writes. A check that re-derived the
   // build would eventually disagree with the build, and CI would trust the wrong one.
