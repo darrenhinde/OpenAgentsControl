@@ -24,7 +24,11 @@ const walk = (dir: string): string[] =>
       );
 const posix = (p: string): string => relative(repoPath(), p).split(sep).join("/");
 
-/** Hand-authored files whose delegation examples differ by target: v1 variant -> v2 file. */
+/**
+ * Sources whose delegation examples differ by target. Both are generated now (one canonical file in
+ * agent-library, authored in the v1 form, rewritten for v2 by the build); this keeps checking that
+ * the two committed outputs still relate by the rewrite.
+ */
 const VARIANTS: Array<[v1: string, v2: string]> = [
   ["built-ai-configs/opencode-v1/command/openagents/check-context-deps.md", ".opencode/command/openagents/check-context-deps.md"],
   ["built-ai-configs/opencode-v1/skills/task-management/SKILL.md", ".opencode/skills/task-management/SKILL.md"],
@@ -57,8 +61,8 @@ describe(".opencode/ is a v2 tree", () => {
     }
   });
 
-  it("has no hand-authored command/skill/skill file still speaking v1 delegation", () => {
-    const offenders = [".opencode/command", ".opencode/skill", ".opencode/skills"]
+  it("has no command or skill file still speaking v1 delegation", () => {
+    const offenders = [".opencode/command", ".opencode/skills"]
       .flatMap((d) => walk(repoPath(d)))
       .filter((f) => f.endsWith(".md"))
       .filter((f) => /subagent_type|(?<![\w.$])task\(/.test(readFileSync(f, "utf-8")))

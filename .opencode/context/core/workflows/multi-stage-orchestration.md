@@ -612,7 +612,7 @@ CoderAgent   CoderAgent   CoderAgent
 - `task.json` — Feature metadata
 - `subtask_NN.json` — Individual task definitions
 
-**CLI**: `.opencode/skill/task-management/scripts/task-cli.ts`
+**CLI**: `.opencode/skills/task-management/scripts/task-cli.ts`
 
 **Commands**:
 - `status [feature]` — Check task status

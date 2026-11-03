@@ -31,8 +31,8 @@ export interface AssetNamingFinding {
   message: string;
 }
 
-/** Skill ids that keep a `-skill` suffix for now (legacy; renaming moves an installed folder). */
-export const LEGACY_ASSET_SUFFIX_IDS: readonly string[] = ["smart-router-skill"];
+/** Ids that keep a `-skill` / `-command` suffix for now (legacy; renaming moves an installed file). */
+export const LEGACY_ASSET_SUFFIX_IDS: readonly string[] = ["smart-router-skill", "test-new-command"];
 
 /** Command group folders deeper than one level that predate the rule. Revisit when they move. */
 export const LEGACY_COMMAND_GROUPS: readonly string[] = ["openagents/new-agents"];

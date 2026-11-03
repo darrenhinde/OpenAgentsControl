@@ -66,27 +66,15 @@ main().catch(console.error)
 
 ---
 
-## Register in Registry (Optional)
+## Registry (generated)
 
-### Add to Components
-
-```json
-{
-  "skills": [
-    {
-      "id": "{skill-name}",
-      "name": "Skill Name",
-      "type": "skill",
-      "path": ".opencode/skills/{skill-name}/SKILL.md",
-      "description": "Brief description",
-      "tags": ["tag1", "tag2"],
-      "dependencies": []
-    }
-  ]
-}
-```
+The registry entry (`components.skills` in `registry.json` and `registry.v1.json`) is generated from the
+skill's `oac:` block, with every file of the skill folder in `files`. Do not hand-edit it. After editing
+`agent-library/skills/{skill-name}/`, run `make build-canonical` and commit the generated files.
 
 ### Add to Profiles
+
+Profiles are `agent-library/profiles/system/<tier>.json` (a `skills` list); the registry copy is generated.
 
 ```json
 {
@@ -151,8 +139,8 @@ npx ts-node .opencode/skills/{skill-name}/scripts/skill-cli.ts help
 
 ## Checklist
 
-- [ ] `.opencode/skills/{skill-name}/SKILL.md` created
-- [ ] `.opencode/skills/{skill-name}/router.sh` created (if CLI-based)
+- [ ] `.opencode/skills/{skill-name}/SKILL.md` generated from `agent-library/skills/{skill-name}/SKILL.md` (created there)
+- [ ] `agent-library/skills/{skill-name}/router.sh` created (if CLI-based) and `make build-canonical` run
 - [ ] Router script is executable (`chmod +x`)
 - [ ] Registry updated (if needed)
 - [ ] Profile updated (if needed)

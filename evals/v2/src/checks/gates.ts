@@ -39,7 +39,6 @@ const subagentKeysExist: CheckDef = {
     const prompts = [
       ...agents,
       ...listFiles(ctx.repo, ".opencode/command", md),
-      ...listFiles(ctx.repo, ".opencode/skill", md),
       ...listFiles(ctx.repo, ".opencode/skills", md),
     ];
     const r = lintSubagentKeys(agents, prompts);

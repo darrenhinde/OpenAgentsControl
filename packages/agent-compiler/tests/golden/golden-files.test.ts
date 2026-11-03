@@ -237,7 +237,7 @@ describe("claude-code adapter against the live corpus", () => {
     }>("src/core/BuildPipeline.ts", ["plan"], OWED_BY, "the claude-code target emits in place");
 
     const built = await plan({ root: repoPath(), targets: ["claude-code"], skipRegistry: true });
-    const all = built.files.filter((file) => file.target === "claude-code");
+    const all = built.files.filter((file) => file.target === "claude-code" && file.assetKind === undefined);
     // The primary output is built-ai-configs/claude-code/agents; plugins/claude-code/agents is its mirror.
     const primary = all.filter((file) => file.mirrorOf === undefined);
     const emitted = all.filter((file) => file.mirrorOf !== undefined);

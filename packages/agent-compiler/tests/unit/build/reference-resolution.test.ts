@@ -110,15 +110,15 @@ describe("dead references in this tree", () => {
 // ============================================================================
 
 describe("validate-registry.sh blind spots", () => {
-  it("cannot see frontmatter drift: add-context.md's file and registry entry must agree by hand", () => {
+  it("cannot see source drift: add-context's canonical file and registry entry must agree", () => {
     const registry = loadRegistry();
     const entry = registry.components.commands?.find((c) => c.id === "add-context");
     const onDisk = frontmatterReferences().filter((r) =>
-      r.source.endsWith("command/add-context.md")
+      r.source.endsWith("commands/add-context.md")
     );
 
-    // Nothing enforces this agreement but this test: the validator reads only the registry
-    // side, so if the shipped frontmatter drifts again it is the ONLY thing that goes red.
+    // The registry entry is generated from the canonical file's oac.dependencies, so they cannot
+    // drift any more; the validator still reads only the registry side, and this pins the agreement.
     expect(entry?.dependencies).toEqual([
       "subagent:context-organizer",
       "context:mvi",

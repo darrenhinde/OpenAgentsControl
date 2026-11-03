@@ -106,6 +106,32 @@ export function removeOacBlock(lines: readonly string[]): string[] | null {
   return [...lines.slice(0, start), ...lines.slice(end)];
 }
 
+/** The `oac:` line and its indented body, as lines (so they can be parsed on their own). */
+function extractOacBlock(lines: readonly string[]): string[] | null {
+  const start = lines.findIndex((line) => /^oac:\s*$/.test(line));
+  if (start === -1) return null;
+  let end = start + 1;
+  while (end < lines.length && (/^[ \t]/.test(lines[end]!) || lines[end]!.trim() === "")) end += 1;
+  return lines.slice(start, end);
+}
+
+/** Top-level fields of the host's own frontmatter: YAML when valid, else `key: value` lines. */
+function parseHostFields(lines: readonly string[]): Record<string, unknown> {
+  try {
+    const parsed = yaml.load(lines.join("\n"));
+    if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) return parsed as Record<string, unknown>;
+    return {};
+  } catch {
+    const out: Record<string, unknown> = {};
+    for (const line of lines) {
+      const match = /^([A-Za-z_][\w-]*):[ \t]*(.*)$/.exec(line);
+      if (match === null) continue;
+      out[match[1]!] = match[2]!.replace(/^(["'])(.*)\1$/, "$2");
+    }
+    return out;
+  }
+}
+
 function isExecutable(path: string): boolean {
   return (statSync(path).mode & 0o111) !== 0;
 }
@@ -137,23 +163,28 @@ function loadFile(
     throw new AssetLoadError(`${filePath} has CRLF line endings; canonical sources use LF.`, filePath);
   }
 
-  let parsed: unknown;
-  try {
-    parsed = yaml.load(parts.lines.join("\n"));
-  } catch (cause) {
-    throw new AssetLoadError(`Failed to parse frontmatter in ${filePath}`, filePath, cause);
-  }
-  if (parsed === null || typeof parsed !== "object" || !("oac" in parsed)) {
+  // Only the `oac:` block is held to YAML. The rest of the frontmatter belongs to the host, and
+  // Claude Code reads it leniently (`argument-hint: [--force] [--dry-run]` is not valid YAML), so
+  // it is parsed when it can be and scanned line by line when it cannot.
+  const block = extractOacBlock(parts.lines);
+  if (block === null) {
     throw new AssetLoadError(
       `No \`oac:\` block in ${filePath}. A canonical ${kind} must declare one carrying at least { id, name }.`,
       filePath,
     );
   }
-  const { oac: rawOac, ...fields } = parsed as Record<string, unknown>;
+  let rawOac: unknown;
+  try {
+    rawOac = (yaml.load(block.join("\n")) as { oac?: unknown } | null)?.oac;
+  } catch (cause) {
+    throw new AssetLoadError(`Failed to parse the oac block in ${filePath}`, filePath, cause);
+  }
+  const remaining = removeOacBlock(parts.lines) ?? parts.lines;
+  const fields = parseHostFields(remaining);
 
   let oac: OacAssetBlock;
   try {
-    oac = OacAssetBlockSchema.parse(rawOac);
+    oac = OacAssetBlockSchema.parse(rawOac ?? {});
   } catch (cause) {
     if (cause instanceof ZodError) {
       throw new AssetLoadError(
@@ -191,7 +222,7 @@ function loadFile(
     filePath,
     relativePath,
     oac,
-    frontmatter: removeOacBlock(parts.lines) ?? parts.lines,
+    frontmatter: remaining,
     body: parts.body,
     bodyLineOffset: parts.offset,
     description,

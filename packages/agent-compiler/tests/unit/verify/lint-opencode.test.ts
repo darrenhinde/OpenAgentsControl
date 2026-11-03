@@ -122,7 +122,7 @@ describe("lintV2Agents", () => {
 describe("the planned trees", () => {
   it("v1 and v2 output of the real corpus pass their lints", async () => {
     const { files } = await plan({ root: repoPath(), skipRegistry: true });
-    const text = (target: string): LintFile[] => files.filter((x) => x.target === target && x.mirrorOf === undefined).map((x) => ({ path: x.path, text: x.content }));
+    const text = (target: string): LintFile[] => files.filter((x) => x.target === target && x.mirrorOf === undefined && x.assetKind === undefined).map((x) => ({ path: x.path, text: x.content }));
     expect(lintV1Agents(text("opencode-v1"))).toEqual([]);
     expect(lintV2Agents(text("opencode"))).toEqual([]);
     // Counts come from the corpus (an agent that targets only opencode-v1 is v1-only), so adding an

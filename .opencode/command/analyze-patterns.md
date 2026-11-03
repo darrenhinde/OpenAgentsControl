@@ -1,10 +1,5 @@
 ---
-id: analyze-patterns
-name: analyze-patterns
 description: "Analyze codebase for patterns and similar implementations"
-type: command
-category: analysis
-version: 1.0.0
 ---
 
 # Command: analyze-patterns

@@ -1407,7 +1407,7 @@ task(
 **CLI Validation**:
 ```bash
 npx ts-node --compiler-options '{"module":"commonjs"}' \
-  .opencode/skill/task-management/scripts/task-cli.ts \
+  .opencode/skills/task-management/scripts/task-cli.ts \
   validate order-management-mvp
 
 # Output:
@@ -1780,7 +1780,7 @@ security:
 ```bash
 # Identify parallel batches
 npx ts-node --compiler-options '{"module":"commonjs"}' \
-  .opencode/skill/task-management/scripts/task-cli.ts \
+  .opencode/skills/task-management/scripts/task-cli.ts \
   parallel order-management-mvp
 
 # Output:
@@ -1811,7 +1811,7 @@ npx ts-node --compiler-options '{"module":"commonjs"}' \
    - ✅ All acceptance criteria met
 5. Marks task complete:
    ```bash
-   bash .opencode/skill/task-management/router.sh complete \
+   bash .opencode/skills/task-management/router.sh complete \
      order-management-mvp 01 "Project structure and dependencies configured"
    ```
 
@@ -1906,7 +1906,7 @@ npx ts-node --compiler-options '{"module":"commonjs"}' \
 **Final Status**:
 ```bash
 npx ts-node --compiler-options '{"module":"commonjs"}' \
-  .opencode/skill/task-management/scripts/task-cli.ts \
+  .opencode/skills/task-management/scripts/task-cli.ts \
   status order-management-mvp
 
 # Output:
@@ -2233,21 +2233,21 @@ See: `.opencode/docs/workflows/full-project-workflow.md` (Stage 5)
 ```bash
 # Stage 4: Task Breakdown
 npx ts-node --compiler-options '{"module":"commonjs"}' \
-  .opencode/skill/task-management/scripts/task-cli.ts \
+  .opencode/skills/task-management/scripts/task-cli.ts \
   validate order-management-mvp
 
 # Stage 6: Parallel Execution
 npx ts-node --compiler-options '{"module":"commonjs"}' \
-  .opencode/skill/task-management/scripts/task-cli.ts \
+  .opencode/skills/task-management/scripts/task-cli.ts \
   parallel order-management-mvp
 
 # Stage 6: Mark Task Complete (per task)
-bash .opencode/skill/task-management/router.sh complete \
+bash .opencode/skills/task-management/router.sh complete \
   order-management-mvp 01 "Project structure and dependencies configured"
 
 # Stage 6: Check Status
 npx ts-node --compiler-options '{"module":"commonjs"}' \
-  .opencode/skill/task-management/scripts/task-cli.ts \
+  .opencode/skills/task-management/scripts/task-cli.ts \
   status order-management-mvp
 
 # Stage 7: Run Tests

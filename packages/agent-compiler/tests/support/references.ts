@@ -193,7 +193,13 @@ export function profileReferences(registry: Registry): Reference[] {
  * `validate-registry.sh` never looks here either — this is where 3 of the 4 dead refs live.
  */
 export function frontmatterReferences(): Reference[] {
-  return listFiles(repoPath(".opencode"), ".md").flatMap((file) => {
+  const files = [
+    ...listFiles(repoPath(".opencode"), ".md"),
+    // Skills and commands author their dependencies in the canonical `oac:` block.
+    ...listFiles(repoPath("agent-library/skills"), ".md").filter((file) => file.endsWith("SKILL.md")),
+    ...listFiles(repoPath("agent-library/commands"), ".md"),
+  ];
+  return files.flatMap((file) => {
     const source = relative(repoPath(), file);
     let data: Record<string, unknown>;
 
@@ -205,7 +211,8 @@ export function frontmatterReferences(): Reference[] {
       return [];
     }
 
-    const dependencies = data.dependencies;
+    const oac = typeof data.oac === "object" && data.oac !== null ? (data.oac as Record<string, unknown>) : {};
+    const dependencies = Array.isArray(oac.dependencies) ? oac.dependencies : data.dependencies;
     if (!Array.isArray(dependencies)) return [];
 
     return dependencies

@@ -57,7 +57,7 @@ const HOST_INFO: Readonly<Record<BuildTarget, HostInfo>> = {
       "Nested by category: `agent/<category>/<id>.md` (e.g. `agent/code/coder-agent.md`).",
       "Frontmatter keeps a display `name:` alongside `description`, `mode`, `temperature` and `permission:`.",
       "Generated from the same canonical source as v2: every agent that ships to `opencode` (declared, or the omitted-`targets:` default) is also built here, plus agents that declare only `opencode-v1` (v1-only, e.g. one that depends on a v1-only tool).",
-      "Only the agent files listed in the matrix below are build output. The other folders (`command/`, `plugin/`, `plugins/`, `skills/`, `tool/`) and the other files under `agent/` (such as `0-category.json`) are hand-maintained v1-only assets; `oac build` never writes or prunes them.",
+      "The agent, skill and command files listed in the tables below are build output. The other folders (`plugin/`, `plugins/`, `tool/`) and the other files under `agent/` (such as `0-category.json`) are hand-maintained v1-only assets; `oac build` never writes or prunes them.",
     ],
     readBy: "installers asked for OpenCode v1, which copy the paths `built-ai-configs/registry/registry.v1.json` lists (no live mirror)",
   },

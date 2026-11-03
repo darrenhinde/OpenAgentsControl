@@ -9,11 +9,13 @@
 ## Directory Structure
 
 ```bash
-mkdir -p .opencode/skills/task-management/scripts
+mkdir -p agent-library/skills/task-management/scripts
 ```
 
+The source lives in `agent-library/skills/`; `make build-canonical` writes `.opencode/skills/task-management/` (and the v1 copy and registry entry).
+
 ```
-.opencode/skills/task-management/
+agent-library/skills/task-management/
 ├── SKILL.md
 ├── router.sh
 └── scripts/

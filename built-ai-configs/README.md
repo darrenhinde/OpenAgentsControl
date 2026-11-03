@@ -57,7 +57,7 @@ Built agents: `built-ai-configs/opencode-v1/agent/`. Built skills and commands: 
 - Nested by category: `agent/<category>/<id>.md` (e.g. `agent/code/coder-agent.md`).
 - Frontmatter keeps a display `name:` alongside `description`, `mode`, `temperature` and `permission:`.
 - Generated from the same canonical source as v2: every agent that ships to `opencode` (declared, or the omitted-`targets:` default) is also built here, plus agents that declare only `opencode-v1` (v1-only, e.g. one that depends on a v1-only tool).
-- Only the agent files listed in the matrix below are build output. The other folders (`command/`, `plugin/`, `plugins/`, `skills/`, `tool/`) and the other files under `agent/` (such as `0-category.json`) are hand-maintained v1-only assets; `oac build` never writes or prunes them.
+- The agent, skill and command files listed in the tables below are build output. The other folders (`plugin/`, `plugins/`, `tool/`) and the other files under `agent/` (such as `0-category.json`) are hand-maintained v1-only assets; `oac build` never writes or prunes them.
 - Read by installers asked for OpenCode v1, which copy the paths `built-ai-configs/registry/registry.v1.json` lists (no live mirror).
 
 ### `claude-code` — Claude Code
@@ -119,7 +119,46 @@ A skill's supporting files (scripts, config) sit next to its `SKILL.md`.
 
 | Kind | Id | Source (under `agent-library/`) | `opencode` | `opencode-v1` | `claude-code` |
 | --- | --- | --- | --- | --- | --- |
-| _none yet_ |  |  |  |  |  |
+| skill | `code-execution` | `skills/code-execution/SKILL.md` | — | — | `code-execution/SKILL.md` |
+| skill | `code-review` | `skills/code-review/SKILL.md` | — | — | `code-review/SKILL.md` |
+| skill | `context-discovery` | `skills/context-discovery/SKILL.md` | — | — | `context-discovery/SKILL.md` |
+| skill | `context-manager` | `skills/context-manager/SKILL.md` | `context-manager/SKILL.md` | `context-manager/SKILL.md` | — |
+| skill | `context-setup` | `skills/context-setup/SKILL.md` | — | — | `context-setup/SKILL.md` |
+| skill | `context7` | `skills/context7/SKILL.md` | `context7/SKILL.md` | `context7/SKILL.md` | — |
+| skill | `debugger` | `skills/debugger/SKILL.md` | — | — | `debugger/SKILL.md` |
+| skill | `external-research` | `skills/external-research/SKILL.md` | — | — | `external-research/SKILL.md` |
+| skill | `oac-approach` | `skills/oac-approach/SKILL.md` | — | — | `oac-approach/SKILL.md` |
+| skill | `parallel-execution` | `skills/parallel-execution/SKILL.md` | — | — | `parallel-execution/SKILL.md` |
+| skill | `project-orchestration` | `skills/project-orchestration/SKILL.md` | `project-orchestration/SKILL.md` | `project-orchestration/SKILL.md` | — |
+| skill | `smart-router-skill` | `skills/smart-router-skill/SKILL.md` | `smart-router-skill/SKILL.md` | `smart-router-skill/SKILL.md` | — |
+| skill | `task-breakdown` | `skills/task-breakdown/SKILL.md` | — | — | `task-breakdown/SKILL.md` |
+| skill | `task-management` | `skills/task-management/SKILL.md` | `task-management/SKILL.md` | `task-management/SKILL.md` | — |
+| skill | `test-generation` | `skills/test-generation/SKILL.md` | — | — | `test-generation/SKILL.md` |
+| skill | `using-oac` | `skills/using-oac/SKILL.md` | — | — | `using-oac/SKILL.md` |
+| skill | `verification-before-completion` | `skills/verification-before-completion/SKILL.md` | — | — | `verification-before-completion/SKILL.md` |
+| command | `add-context` | `commands/add-context.md` | `add-context.md` | `add-context.md` | — |
+| command | `analyze-patterns` | `commands/analyze-patterns.md` | `analyze-patterns.md` | `analyze-patterns.md` | — |
+| command | `brainstorm` | `commands/brainstorm.md` | — | — | `brainstorm.md` |
+| command | `build-context-system` | `commands/build-context-system.md` | `build-context-system.md` | `build-context-system.md` | — |
+| command | `check-context-deps` | `commands/openagents/check-context-deps.md` | `openagents/check-context-deps.md` | `openagents/check-context-deps.md` | — |
+| command | `clean` | `commands/clean.md` | `clean.md` | `clean.md` | — |
+| command | `commit` | `commands/commit.md` | `commit.md` | `commit.md` | — |
+| command | `commit-openagents` | `commands/commit-openagents.md` | `commit-openagents.md` | `commit-openagents.md` | — |
+| command | `context` | `commands/context.md` | `context.md` | `context.md` | — |
+| command | `create-agent` | `commands/openagents/new-agents/create-agent.md` | `openagents/new-agents/create-agent.md` | `openagents/new-agents/create-agent.md` | — |
+| command | `create-tests` | `commands/openagents/new-agents/create-tests.md` | `openagents/new-agents/create-tests.md` | `openagents/new-agents/create-tests.md` | — |
+| command | `debug` | `commands/debug.md` | — | — | `debug.md` |
+| command | `install-context` | `commands/install-context.md` | — | — | `install-context.md` |
+| command | `oac-cleanup` | `commands/oac-cleanup.md` | — | — | `oac-cleanup.md` |
+| command | `oac-help` | `commands/oac-help.md` | — | — | `oac-help.md` |
+| command | `oac-status` | `commands/oac-status.md` | — | — | `oac-status.md` |
+| command | `optimize` | `commands/optimize.md` | `optimize.md` | `optimize.md` | — |
+| command | `prompt-enhancer` | `commands/prompt-engineering/prompt-enhancer.md` | `prompt-engineering/prompt-enhancer.md` | `prompt-engineering/prompt-enhancer.md` | — |
+| command | `prompt-optimizer` | `commands/prompt-engineering/prompt-optimizer.md` | `prompt-engineering/prompt-optimizer.md` | `prompt-engineering/prompt-optimizer.md` | — |
+| command | `test` | `commands/test.md` | `test.md` | `test.md` | — |
+| command | `test-new-command` | `commands/test-new-command.md` | `test-new-command.md` | `test-new-command.md` | — |
+| command | `validate-repo` | `commands/validate-repo.md` | `validate-repo.md` | `validate-repo.md` | — |
+| command | `worktrees` | `commands/worktrees.md` | `worktrees.md` | `worktrees.md` | — |
 
 ## Degradation warnings
 

@@ -1,16 +1,6 @@
 ---
 name: task-management
 description: Task management CLI for tracking and managing feature subtasks with status, dependencies, and validation
-version: 1.0.0
-author: opencode
-type: skill
-category: development
-tags:
-  - tasks
-  - management
-  - tracking
-  - dependencies
-  - cli
 ---
 
 # Task Management Skill

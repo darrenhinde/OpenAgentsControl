@@ -164,11 +164,24 @@ describe('classifyChangedPaths', () => {
         'content-old/agents/x.md',
         'nested/agent-library/agents/x.md',
         'contents/x.md',
-        '.opencode/command/add-context.md',
+        '.opencode/commands/add-context.md',
         'registry.json.bak',
         'Makefile.old',
       ]),
     ).toEqual(NO_CHANGES)
+  })
+
+  test('routes skill and command sources, outputs and mirrors to the drift gate', () => {
+    for (const path of [
+      'agent-library/skills/context7/SKILL.md',
+      'agent-library/commands/openagents/check-context-deps.md',
+      '.opencode/skills/context7/SKILL.md',
+      '.opencode/command/commit.md',
+      'plugins/claude-code/skills/debugger/SKILL.md',
+      'plugins/claude-code/commands/debug.md',
+    ]) {
+      expect(classifyChangedPaths([path])['has-canonical'], path).toBe(true)
+    }
   })
 
   test('detects mixed changes', () => {
@@ -379,6 +392,10 @@ describe('Canonical drift gate contract', () => {
     for (const path of [
       "- 'agent-library/**'",
       "- '.opencode/agent/**'",
+      "- '.opencode/skills/**'",
+      "- '.opencode/command/**'",
+      "- 'plugins/claude-code/skills/**'",
+      "- 'plugins/claude-code/commands/**'",
       "- '.oac/**'",
       "- 'built-ai-configs/registry/registry.json'",
       "- 'Makefile'",

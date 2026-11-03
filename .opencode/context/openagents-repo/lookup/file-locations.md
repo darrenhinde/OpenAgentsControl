@@ -9,14 +9,17 @@
 | Path | |
 |---|---|
 | `agent-library/agents/**` | H. Canonical agent sources (frontmatter + `oac:` block) |
+| `agent-library/skills/<id>/SKILL.md` (+ scripts, config), `agent-library/commands/[<group>/]<id>.md` | H. Canonical skill and command sources (`oac:` block; spec in `docs/architecture/SKILLS-AND-COMMANDS.md`) |
 | `agent-library/profiles/system/*.json`, `profiles/context/*.json` | H. Installable tiers and context bundles |
 | `built-ai-configs/opencode/agent/<id>.md` | G. OpenCode v2 agents |
-| `built-ai-configs/opencode-v1/agent/<category>/<file>.md` | G. OpenCode v1 agents; `command/`, `plugin/`, `plugins/`, `skills/`, `tool/` there are H (v1-only) |
-| `built-ai-configs/claude-code/agents/<name>.md` | G. Claude Code agents |
-| `built-ai-configs/registry/registry.json`, `registry.v1.json` | G for agents/subagents/profiles; H for the other sections |
+| `built-ai-configs/opencode/{skills,command}/**` | G. OpenCode v2 skills and commands |
+| `built-ai-configs/opencode-v1/agent/<category>/<file>.md`, `.../{skills,command}/**` | G. OpenCode v1 agents, skills and commands; `plugin/`, `plugins/`, `tool/` there are H (v1-only) |
+| `built-ai-configs/claude-code/{agents,skills,commands}/**` | G. Claude Code agents, skills and commands |
+| `built-ai-configs/registry/registry.json`, `registry.v1.json` | G for agents/subagents/skills/commands/profiles; H for the other sections |
 | `built-ai-configs/README.md` | G. Agent x host matrix and degradation warnings |
 | `.opencode/agent/<id>.md` | G. Live mirror of the v2 output (this repo's own OpenCode). |
-| `plugins/claude-code/agents/` | G. Live mirror of the Claude output |
+| `.opencode/skills/`, `.opencode/command/` | G. Live mirrors of the v2 skills and commands |
+| `plugins/claude-code/{agents,skills,commands}/` | G. Live mirrors of the Claude output |
 | `.oac/build-manifest.json` | G. Ledger of files the build owns |
 
 ## Compiler and CLI
@@ -36,8 +39,7 @@
 | Path | |
 |---|---|
 | `.opencode/context/**` | context library (this folder: `openagents-repo/`) |
-| `.opencode/command/**`, `.opencode/skills/**`, `.opencode/skill/**` | slash commands and skills |
-| `plugins/claude-code/{commands,skills,hooks,context,scripts}` | Claude Code plugin pieces other than agents |
+| `plugins/claude-code/{hooks,context,scripts}` | Claude Code plugin pieces other than agents, skills and commands |
 | `.claude-plugin/marketplace.json` | publishes `./plugins/claude-code` |
 | `evals/framework`, `evals/agents/**`, `evals/v2` | eval harnesses and suites |
 | `docs/` | documentation (`docs/architecture/CORE.md` is the entry point) |

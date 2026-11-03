@@ -12,7 +12,7 @@ This document shows a complete orchestrator workflow using the lightweight conte
 ### Step 1: Initialize Context Index
 
 ```typescript
-import { createContextIndex } from './.opencode/skill/task-management/scripts/context-index';
+import { createContextIndex } from './.opencode/skills/project-orchestration/scripts/context-index';
 
 // Create lightweight index with initial context
 const result = createContextIndex('auth-system', {
@@ -58,7 +58,7 @@ const result = createContextIndex('auth-system', {
 ### Step 2: Get Context for ArchitectureAnalyzer
 
 ```typescript
-import { getContextForAgent } from './.opencode/skill/task-management/scripts/context-index';
+import { getContextForAgent } from './.opencode/skills/project-orchestration/scripts/context-index';
 
 const archContext = getContextForAgent('auth-system', 'ArchitectureAnalyzer');
 
@@ -113,7 +113,7 @@ task(
 ### Step 4: ArchitectureAnalyzer Completes → Update Index
 
 ```typescript
-import { addAgentOutput } from './.opencode/skill/task-management/scripts/context-index';
+import { addAgentOutput } from './.opencode/skills/project-orchestration/scripts/context-index';
 
 // Read ArchitectureAnalyzer output
 const archOutput = JSON.parse(
@@ -557,7 +557,7 @@ import {
   createContextIndex, 
   addAgentOutput, 
   getContextForAgent 
-} from './.opencode/skill/task-management/scripts/context-index';
+} from './.opencode/skills/project-orchestration/scripts/context-index';
 
 // 1. Initialize
 createContextIndex(feature, { contextFiles, referenceFiles });

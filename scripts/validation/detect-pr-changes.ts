@@ -49,7 +49,11 @@ export function classifyChangedPaths(paths: readonly string[]): ChangeFlags {
       // built-ai-configs/ holds every target's primary output; the other two trees are its live mirrors.
       path.startsWith('built-ai-configs/') ||
       path.startsWith('.opencode/agent/') ||
+      path.startsWith('.opencode/skills/') ||
+      path.startsWith('.opencode/command/') ||
       path.startsWith('plugins/claude-code/agents/') ||
+      path.startsWith('plugins/claude-code/skills/') ||
+      path.startsWith('plugins/claude-code/commands/') ||
       path.startsWith('.oac/') ||
       // The gate's own machinery.
       path === 'Makefile' ||

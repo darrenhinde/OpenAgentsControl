@@ -1,11 +1,14 @@
 # agent-library
 
-The one place agents are written. One markdown file per agent; `oac build` turns it into the
-format each tool needs: Claude Code, OpenCode v2 (default) and OpenCode v1.
+The one place agents, skills and commands are written. One markdown file per agent or command, one
+folder per skill; `oac build` turns each into the format every tool needs: Claude Code, OpenCode v2
+(default) and OpenCode v1.
 
 ```
 agent-library/
   agents/<category>/<id>.md        one canonical file per agent; the folder is the category (no nesting)
+  skills/<id>/SKILL.md             one folder per skill, plus scripts/config/docs it ships (flat, no category)
+  commands/[<group>/]<id>.md       one file per command; at most one group folder (it is part of the command's name)
   profiles/system/*.json           install tiers (essential, developer, business, advanced, full)
   profiles/context/*.json          named sets of context files that tiers subscribe to
 ```
@@ -122,6 +125,82 @@ What the example above produced (built in a scratch copy of this repo):
 Also updated: `built-ai-configs/registry/registry.json` and `registry.v1.json`, `built-ai-configs/README.md`
 and `.oac/build-manifest.json`. Deleting the source file and rebuilding removes all its outputs.
 
+## Skills and commands
+
+Skills and commands work like agents: write the host-native file, add an `oac:` block to its
+frontmatter, run the build. The build cuts the block out and leaves everything else as you wrote
+it, so a file written for one host comes out byte for byte. The full spec is
+[SKILLS-AND-COMMANDS.md](../docs/architecture/SKILLS-AND-COMMANDS.md).
+
+Worked example (both build as written; save the files, run `make build-canonical`):
+
+`agent-library/skills/changelog-style/SKILL.md`
+
+```markdown
+---
+name: changelog-style              # a skill's name must equal its id (and its folder name)
+description: Use when writing a changelog entry; gives the project's entry format.
+oac:
+  id: changelog-style              # kebab-case; equals the folder name
+  name: Changelog Style            # registry name
+  category: standard               # registry install tier; optional
+  tags: [changelog, writing]
+  dependencies:
+    - subagent:context-scout       # agent:, subagent:, skill:, command:, context:, tool:
+  targets: [opencode, opencode-v1] # omit to ship to every host
+---
+
+# Changelog style
+
+Run `bash .opencode/skills/changelog-style/format.sh <file>` to check an entry.
+
+<!-- oac:only opencode,opencode-v1 -->
+Ask ContextScout for the project's entry format first.
+<!-- /oac:only -->
+```
+
+Next to it, `agent-library/skills/changelog-style/format.sh` (any supporting file; keep it
+executable with `chmod +x`, the build preserves the bit). The registry lists every file of a skill
+in `files`, which is what the installers download.
+
+`agent-library/commands/changelog.md`
+
+```markdown
+---
+description: Draft a changelog entry for the staged changes
+oac:
+  id: changelog                    # equals the file name
+  name: Changelog
+  targets: [opencode, opencode-v1]
+---
+
+Draft a changelog entry for the staged changes.
+```
+
+A command in a group folder, `agent-library/commands/openagents/check.md`, installs as
+`/openagents/check` on OpenCode. The folder is part of the name, so pick it once.
+
+What the build wrote for the skill:
+
+| Host | Files written |
+| --- | --- |
+| OpenCode v2 | `built-ai-configs/opencode/skills/changelog-style/`, mirrored to `.opencode/skills/changelog-style/` |
+| OpenCode v1 | `built-ai-configs/opencode-v1/skills/changelog-style/` |
+| Claude Code | nothing: `targets` omits `claude-code` |
+
+Commands go to `.../command/` the same way (Claude Code: `built-ai-configs/claude-code/commands/`,
+mirrored to `plugins/claude-code/commands/`). The registries (`registry.json` and `registry.v1.json`)
+gain a `skills` and a `commands` entry with `files` for the skill. Skills and commands that ship only to
+Claude Code (`targets: [claude-code]`, the plugin's workflow skills) are not in either registry.
+
+`oac:` fields for a skill or command (`OacAssetBlockFieldsSchema` in `packages/agent-compiler/src/types.ts`; unknown keys are errors):
+`id`, `name` (required); `description` (registry text; default is the frontmatter one), `category` (registry tier:
+essential, standard, extended, specialized, meta), `tags`, `dependencies`, `aliases`, `targets`, `exclude`,
+`overrides.claude-code.{name,description}`. There is no `type`, `version` or `author`.
+
+Per-host content: `oac:only` blocks as for agents. On OpenCode, write delegation examples in the
+v1 form (`task(subagent_type="TaskManager", ...)`); v2 gets `subagent(agent="task-manager", ...)`.
+
 ## Make the agent installable (profiles)
 
 A new agent is built and registered, but `oac init` / `install.sh` only install it if a system
@@ -133,6 +212,9 @@ Save the file, add its `id` to `agents` in `agent-library/profiles/system/<tier>
 `make build-canonical` once. The build resolves profiles against the registry it is about to write, so a new
 agent and its profile entry go through in one build. A profile that names an id that does not exist still
 fails with `System profile "developer" cannot be installed: agent:<id> does not resolve: no registry component has id "<id>" of type "agent"`.
+
+A skill or command is installed the same way: add `skill:<id>` / `command:<id>` to `skills` / `commands`
+in the profile that should carry it.
 
 Remember: an agent that ships to Claude Code needs `oac.overrides.claude-code.tools` (and a `description` with an
 `<example>`), or give it `exclude: [claude-code]`; otherwise the build fails with a message naming the missing field.
@@ -154,10 +236,10 @@ After the build, look at the three outputs, then try the ones you care about.
 
 | Path | Status |
 | --- | --- |
-| `built-ai-configs/{opencode,claude-code}/**`, `built-ai-configs/opencode-v1/agent/**/*.md`, `built-ai-configs/registry/*.json`, `built-ai-configs/README.md` | generated |
-| `.opencode/agent/*.md`, `plugins/claude-code/agents/*.md` | generated mirrors |
+| `built-ai-configs/{opencode,claude-code}/**`, `built-ai-configs/opencode-v1/{agent/**/*.md,skills,command}/**`, `built-ai-configs/registry/*.json`, `built-ai-configs/README.md` | generated |
+| `.opencode/{agent,skills,command}/**`, `plugins/claude-code/{agents,skills,commands}/**` | generated mirrors |
 | `.oac/build-manifest.json` | generated ledger |
-| `built-ai-configs/opencode-v1/{tool,plugin,plugins,skills,command}/**`, `.../agent/**/0-category.json` | hand-maintained v1 assets; the build never touches them |
+| `built-ai-configs/opencode-v1/{tool,plugin,plugins}/**`, `.../agent/**/0-category.json` | hand-maintained v1 assets; the build never touches them |
 
 A hand edit to a generated file fails `make check-core` (and CI).
 
@@ -182,4 +264,11 @@ Messages are from real runs of `oac build`.
 | `unknown target "claudecode" in oac:only marker (known: opencode, opencode-v1, claude-code)` | Fix the host name. |
 | `nested "oac:only" block (the block opened on line N is still open)` | Close each block with `<!-- /oac:only -->` before opening the next. |
 | `"Ghost" names no canonical agent emitted for this target` | A `task(subagent_type=...)` or `permission.task` reference points at no agent for that host. Fix the name or the `oac.id`. |
+| `oac.id "x" must equal the folder name "y"` / `... the file name "y"` | A skill's id is its folder name, a command's is its file name. |
+| `frontmatter name "X" must equal the skill id "y"` | Hosts find a skill by folder name; make `name:` equal the id (or drop it). |
+| `no description. Give the frontmatter a description: or set oac.description` | The registry entry needs one. |
+| `Duplicate skill id/alias "x"` | Ids and aliases are unique within skills and within commands. |
+| `skills are folders (skills/<id>/SKILL.md); a loose file is not a skill` / `only .md files may live under commands/` | Every `.md` under `commands/` is a command and every entry under `skills/` is a skill folder. Keep templates and docs in `docs/`. |
+| `[dead-dependency] oac.dependencies names skill:x, which does not exist` (a counted lint) | Fix the id, or add the skill, command or agent. |
+| `[skill-agent-unknown] frontmatter agent "x" is not a Claude Code agent` | A forked Claude skill's `agent:` must be an agent that ships to claude-code (or `Explore`, `Plan`, `general-purpose`). |
 | `build --check` prints `modified <path>` and exits 1 | A generated file was edited or the source changed without a rebuild. Run `make build-canonical`. |

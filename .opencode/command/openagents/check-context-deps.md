@@ -1,13 +1,5 @@
 ---
 description: Validate context file dependencies across agents and registry
-tags:
-  - registry
-  - validation
-  - context
-  - dependencies
-  - openagents
-dependencies:
-  - command:analyze-patterns
 ---
 
 # Check Context Dependencies

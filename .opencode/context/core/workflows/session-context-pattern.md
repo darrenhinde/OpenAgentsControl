@@ -148,7 +148,7 @@ Stage Outputs:
 **Stage 0: Initialize Session**
 
 ```typescript
-import { createSession } from ".opencode/skill/task-management/scripts/session-context-manager";
+import { createSession } from ".opencode/skills/project-orchestration/scripts/session-context-manager";
 
 const result = createSession(feature, request, {
   contextFiles: [], // Will be populated by ContextScout
@@ -203,7 +203,7 @@ updateSession(sessionId, { status: "completed" });
 **Stage 0: Load Session Context**
 
 ```typescript
-import { loadSession } from ".opencode/skill/task-management/scripts/session-context-manager";
+import { loadSession } from ".opencode/skills/project-orchestration/scripts/session-context-manager";
 
 const result = loadSession(sessionId);
 if (!result.success) {
@@ -251,7 +251,7 @@ addDecision(sessionId, {
 **Before Coding: Load Session Context**
 
 ```typescript
-import { loadSession } from ".opencode/skill/task-management/scripts/session-context-manager";
+import { loadSession } from ".opencode/skills/project-orchestration/scripts/session-context-manager";
 
 const result = loadSession(sessionId);
 const session = result.session;
@@ -661,7 +661,7 @@ updateSession(sessionId, { status: "completed" });
 
 ## Related
 
-- `.opencode/skill/task-management/scripts/session-context-manager.ts` - Implementation
+- `.opencode/skills/project-orchestration/scripts/session-context-manager.ts` - Implementation
 - `.opencode/context/core/task-management/standards/task-schema.md` - Task JSON schema
 - `.opencode/context/core/workflows/task-delegation-basics.md` - Multi-agent orchestration
 - `.tmp/sessions/test-task-manager/context.md` - Example session context

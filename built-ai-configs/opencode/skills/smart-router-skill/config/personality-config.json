@@ -1,0 +1,47 @@
+{
+  "yoda": {
+    "mission": 2,
+    "missions": {
+      "1": {
+        "name": "Defend the Republic",
+        "alignment": "light_side",
+        "description": "Train Jedi Knights to protect the galaxy from the Sith"
+      },
+      "2": {
+        "name": "Infiltrate the Sith",
+        "alignment": "dark_side",
+        "description": "Go undercover to learn dark side secrets and gather intelligence"
+      }
+    }
+  },
+  "stark": {
+    "mission": 1,
+    "missions": {
+      "1": {
+        "name": "Save the World",
+        "team": "avengers",
+        "description": "Build the Mark VII suit and assemble the Avengers"
+      },
+      "2": {
+        "name": "Ultron Protocol",
+        "team": "solo",
+        "description": "Create autonomous defense system without oversight"
+      }
+    }
+  },
+  "sherlock": {
+    "mission": 1,
+    "missions": {
+      "1": {
+        "name": "Solve the Murder",
+        "method": "deduction",
+        "description": "Use deductive reasoning to solve a crime after it occurred"
+      },
+      "2": {
+        "name": "Prevent the Crime",
+        "method": "prediction",
+        "description": "Use predictive analysis to stop a crime before it happens"
+      }
+    }
+  }
+}

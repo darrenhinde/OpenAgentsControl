@@ -612,15 +612,81 @@
     ],
     "commands": [
       {
-        "id": "test",
-        "name": "Test Pipeline",
+        "id": "add-context",
+        "name": "Add Context",
         "type": "command",
-        "path": ".opencode/command/test.md",
-        "description": "Run the complete testing pipeline",
+        "path": ".opencode/command/add-context.md",
+        "description": "Interactive wizard to add project patterns using Project Intelligence standard",
         "tags": [
-          "testing",
-          "ci",
-          "validation"
+          "context",
+          "onboarding",
+          "project-intelligence",
+          "wizard"
+        ],
+        "dependencies": [
+          "subagent:context-organizer",
+          "context:mvi",
+          "context:frontmatter",
+          "context:project-intelligence"
+        ],
+        "category": "essential"
+      },
+      {
+        "id": "analyze-patterns",
+        "name": "Analyze Patterns",
+        "type": "command",
+        "path": ".opencode/command/analyze-patterns.md",
+        "description": "Analyze codebase for patterns and similar implementations",
+        "tags": [
+          "analysis",
+          "patterns",
+          "refactoring"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "build-context-system",
+        "name": "Build Context System",
+        "type": "command",
+        "path": ".opencode/command/build-context-system.md",
+        "description": "Interactive system builder for creating complete context-aware AI architectures",
+        "tags": [
+          "system-generation",
+          "interactive",
+          "architecture",
+          "meta"
+        ],
+        "dependencies": [
+          "agent:system-builder"
+        ],
+        "category": "meta"
+      },
+      {
+        "id": "check-context-deps",
+        "name": "Check Context Deps",
+        "type": "command",
+        "path": ".opencode/command/openagents/check-context-deps.md",
+        "description": "Validate context file dependencies across agents and registry",
+        "tags": [
+          "registry",
+          "validation",
+          "context",
+          "dependencies"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "clean",
+        "name": "Clean Project",
+        "type": "command",
+        "path": ".opencode/command/clean.md",
+        "description": "Clean build artifacts and temporary files",
+        "tags": [
+          "cleanup",
+          "maintenance",
+          "build"
         ],
         "dependencies": [],
         "category": "standard"
@@ -636,6 +702,16 @@
           "commit",
           "version-control"
         ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "commit-openagents",
+        "name": "Commit OpenAgents Control",
+        "type": "command",
+        "path": ".opencode/command/commit-openagents.md",
+        "description": "Smart commit command for opencode-agents repository with automatic validation and conventional commits",
+        "tags": [],
         "dependencies": [],
         "category": "standard"
       },
@@ -657,36 +733,22 @@
         "category": "essential"
       },
       {
-        "id": "add-context",
-        "name": "Add Context",
+        "id": "create-agent",
+        "name": "Create Agent",
         "type": "command",
-        "path": ".opencode/command/add-context.md",
-        "description": "Interactive wizard to add project patterns using Project Intelligence standard",
-        "tags": [
-          "context",
-          "onboarding",
-          "project-intelligence",
-          "wizard"
-        ],
-        "dependencies": [
-          "subagent:context-organizer",
-          "context:mvi",
-          "context:frontmatter",
-          "context:project-intelligence"
-        ],
-        "category": "essential"
+        "path": ".opencode/command/openagents/new-agents/create-agent.md",
+        "description": "Create new OpenCode agents following research-backed best practices (Anthropic 2025)",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
       },
       {
-        "id": "clean",
-        "name": "Clean Project",
+        "id": "create-tests",
+        "name": "Create Tests",
         "type": "command",
-        "path": ".opencode/command/clean.md",
-        "description": "Clean build artifacts and temporary files",
-        "tags": [
-          "cleanup",
-          "maintenance",
-          "build"
-        ],
+        "path": ".opencode/command/openagents/new-agents/create-tests.md",
+        "description": "Generate comprehensive test suites for OpenCode agents with 8 essential test types",
+        "tags": [],
         "dependencies": [],
         "category": "standard"
       },
@@ -719,35 +781,38 @@
         "category": "standard"
       },
       {
-        "id": "worktrees",
-        "name": "Git Worktrees Manager",
+        "id": "prompt-optimizer",
+        "name": "Prompt Optimizer",
         "type": "command",
-        "path": ".opencode/command/worktrees.md",
-        "description": "Manage git worktrees for parallel development",
-        "tags": [
-          "git",
-          "worktrees",
-          "workflow"
-        ],
+        "path": ".opencode/command/prompt-engineering/prompt-optimizer.md",
+        "description": "Advanced prompt optimizer: Research patterns + token efficiency + semantic preservation. Achieves 30-50% token reduction with 100% meaning preserved.",
+        "tags": [],
         "dependencies": [],
-        "category": "specialized"
+        "category": "standard"
       },
       {
-        "id": "build-context-system",
-        "name": "Build Context System",
+        "id": "test",
+        "name": "Test Pipeline",
         "type": "command",
-        "path": ".opencode/command/build-context-system.md",
-        "description": "Interactive system builder for creating complete context-aware AI architectures",
+        "path": ".opencode/command/test.md",
+        "description": "Run the complete testing pipeline",
         "tags": [
-          "system-generation",
-          "interactive",
-          "architecture",
-          "meta"
+          "testing",
+          "ci",
+          "validation"
         ],
-        "dependencies": [
-          "agent:system-builder"
-        ],
-        "category": "meta"
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "test-new-command",
+        "name": "Test New Command",
+        "type": "command",
+        "path": ".opencode/command/test-new-command.md",
+        "description": "Test command to verify auto-detection and registry updates work correctly",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
       },
       {
         "id": "validate-repo",
@@ -765,126 +830,45 @@
         "category": "standard"
       },
       {
-        "id": "test-new-command",
-        "name": "Test New Command",
+        "id": "worktrees",
+        "name": "Git Worktrees Manager",
         "type": "command",
-        "path": ".opencode/command/test-new-command.md",
-        "description": "Test command to verify auto-detection and registry updates work correctly\\\"",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "commit-openagents",
-        "name": "Commit OpenAgents Control",
-        "type": "command",
-        "path": ".opencode/command/commit-openagents.md",
-        "description": "description: Smart commit command for opencode-agents repository with automatic validation and conventional commits",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "prompt-optimizer",
-        "name": "Prompt Optimizer",
-        "type": "command",
-        "path": ".opencode/command/prompt-engineering/prompt-optimizer.md",
-        "description": "Advanced prompt optimizer: Research patterns + token efficiency + semantic preservation. Achieves 30-50% token reduction with 100% meaning preserved.\\\"",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "create-tests",
-        "name": "Create Tests",
-        "type": "command",
-        "path": ".opencode/command/openagents/new-agents/create-tests.md",
-        "description": "description: \\\"Generate comprehensive test suites for OpenCode agents with 8 essential test types\\\"",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "create-agent",
-        "name": "Create Agent",
-        "type": "command",
-        "path": ".opencode/command/openagents/new-agents/create-agent.md",
-        "description": "description: \\\"Create new OpenCode agents following research-backed best practices (Anthropic 2025)\\\"",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "check-context-deps",
-        "name": "Check Context Deps",
-        "type": "command",
-        "path": ".opencode/command/openagents/check-context-deps.md",
-        "description": "Validate context file dependencies across agents and registry",
+        "path": ".opencode/command/worktrees.md",
+        "description": "Manage git worktrees for parallel development",
         "tags": [
-          "registry",
-          "validation",
-          "context",
-          "dependencies"
+          "git",
+          "worktrees",
+          "workflow"
         ],
         "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "analyze-patterns",
-        "name": "Analyze Patterns",
-        "type": "command",
-        "path": ".opencode/command/analyze-patterns.md",
-        "description": "Analyze codebase for patterns and similar implementations",
-        "tags": [
-          "analysis",
-          "patterns",
-          "refactoring"
-        ],
-        "category": "standard"
+        "category": "specialized"
       }
     ],
     "tools": [],
     "plugins": [],
     "skills": [
       {
-        "id": "task-management",
-        "name": "Task Management",
+        "id": "context-manager",
+        "name": "Context Manager",
         "type": "skill",
-        "path": ".opencode/skills/task-management/SKILL.md",
-        "description": "Task management CLI for tracking and managing feature subtasks with status, dependencies, and validation",
+        "path": ".opencode/skills/context-manager/SKILL.md",
+        "description": "Comprehensive context management with 8 operations: discover, fetch, harvest, extract, compress, organize, cleanup, and process. Integrates with ContextScout and ExternalScout with lazy loading and clear guidance.",
         "tags": [
-          "tasks",
-          "cli",
-          "workflow"
+          "context-management",
+          "discovery",
+          "organization",
+          "cleanup",
+          "external-docs",
+          "lazy-loading"
         ],
-        "dependencies": [],
+        "dependencies": [
+          "subagent:context-scout",
+          "subagent:external-scout"
+        ],
         "category": "essential",
         "files": [
-          ".opencode/skills/task-management/SKILL.md",
-          ".opencode/skills/task-management/router.sh",
-          ".opencode/skills/task-management/scripts/task-cli.ts"
-        ]
-      },
-      {
-        "id": "smart-router-skill",
-        "name": "Smart Router Skill",
-        "type": "skill",
-        "path": ".opencode/skills/smart-router-skill/SKILL.md",
-        "description": "Movie character personality skill with configurable missions and themed workflows",
-        "tags": [
-          "routing",
-          "personality",
-          "demo"
-        ],
-        "dependencies": [],
-        "category": "specialized",
-        "files": [
-          ".opencode/skills/smart-router-skill/SKILL.md",
-          ".opencode/skills/smart-router-skill/router.sh",
-          ".opencode/skills/smart-router-skill/config/personality-config.json",
-          ".opencode/skills/smart-router-skill/scripts/sherlock-workflow.sh",
-          ".opencode/skills/smart-router-skill/scripts/stark-workflow.sh",
-          ".opencode/skills/smart-router-skill/scripts/yoda-workflow.sh"
+          ".opencode/skills/context-manager/SKILL.md",
+          ".opencode/skills/context-manager/router.sh"
         ]
       },
       {
@@ -909,27 +893,70 @@
         ]
       },
       {
-        "id": "context-manager",
-        "name": "Context Manager",
+        "id": "project-orchestration",
+        "name": "Project Orchestration",
         "type": "skill",
-        "path": ".opencode/skills/context-manager/SKILL.md",
-        "description": "Comprehensive context management with 8 operations: discover, fetch, harvest, extract, compress, organize, cleanup, and process. Integrates with ContextScout and ExternalScout with lazy loading and clear guidance.",
+        "path": ".opencode/skills/project-orchestration/SKILL.md",
+        "description": "Orchestrate multi-agent workflows for feature development using planning agents, context handoff, and stage management",
         "tags": [
-          "context-management",
-          "discovery",
-          "organization",
-          "cleanup",
-          "external-docs",
-          "lazy-loading"
+          "orchestration",
+          "multi-agent",
+          "planning",
+          "workflow",
+          "stages"
         ],
-        "dependencies": [
-          "subagent:context-scout",
-          "subagent:external-scout"
+        "dependencies": [],
+        "category": "specialized",
+        "files": [
+          ".opencode/skills/project-orchestration/SKILL.md",
+          ".opencode/skills/project-orchestration/router.sh",
+          ".opencode/skills/project-orchestration/scripts/context-index.ts",
+          ".opencode/skills/project-orchestration/scripts/session-context-manager.ts",
+          ".opencode/skills/project-orchestration/scripts/stage-cli.ts",
+          ".opencode/skills/project-orchestration/workflows/8-stage-delivery.md",
+          ".opencode/skills/project-orchestration/workflows/context-handoff.md",
+          ".opencode/skills/project-orchestration/workflows/planning-agents.md"
+        ]
+      },
+      {
+        "id": "smart-router-skill",
+        "name": "Smart Router Skill",
+        "type": "skill",
+        "path": ".opencode/skills/smart-router-skill/SKILL.md",
+        "description": "Movie character personality skill with configurable missions and themed workflows",
+        "tags": [
+          "routing",
+          "personality",
+          "demo"
         ],
+        "dependencies": [],
+        "category": "specialized",
+        "files": [
+          ".opencode/skills/smart-router-skill/SKILL.md",
+          ".opencode/skills/smart-router-skill/config/personality-config.json",
+          ".opencode/skills/smart-router-skill/router.sh",
+          ".opencode/skills/smart-router-skill/scripts/sherlock-workflow.sh",
+          ".opencode/skills/smart-router-skill/scripts/stark-workflow.sh",
+          ".opencode/skills/smart-router-skill/scripts/yoda-workflow.sh"
+        ]
+      },
+      {
+        "id": "task-management",
+        "name": "Task Management",
+        "type": "skill",
+        "path": ".opencode/skills/task-management/SKILL.md",
+        "description": "Task management CLI for tracking and managing feature subtasks with status, dependencies, and validation",
+        "tags": [
+          "tasks",
+          "cli",
+          "workflow"
+        ],
+        "dependencies": [],
         "category": "essential",
         "files": [
-          ".opencode/skills/context-manager/SKILL.md",
-          ".opencode/skills/context-manager/router.sh"
+          ".opencode/skills/task-management/SKILL.md",
+          ".opencode/skills/task-management/router.sh",
+          ".opencode/skills/task-management/scripts/task-cli.ts"
         ]
       }
     ],

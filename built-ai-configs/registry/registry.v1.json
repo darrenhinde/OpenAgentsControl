@@ -700,55 +700,10 @@
     ],
     "commands": [
       {
-        "id": "test",
-        "name": "Test Pipeline",
-        "type": "command",
-        "path": ".opencode/command/test.md",
-        "description": "Run the complete testing pipeline",
-        "tags": [
-          "testing",
-          "ci",
-          "validation"
-        ],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "commit",
-        "name": "Smart Commit",
-        "type": "command",
-        "path": ".opencode/command/commit.md",
-        "description": "Create intelligent git commits with context",
-        "tags": [
-          "git",
-          "commit",
-          "version-control"
-        ],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "context",
-        "name": "Context Manager",
-        "type": "command",
-        "path": ".opencode/command/context.md",
-        "description": "Context system manager - harvest summaries, extract knowledge, organize context",
-        "tags": [
-          "context",
-          "knowledge-management",
-          "harvest"
-        ],
-        "dependencies": [
-          "subagent:context-organizer",
-          "subagent:context-scout"
-        ],
-        "category": "essential"
-      },
-      {
         "id": "add-context",
         "name": "Add Context",
         "type": "command",
-        "path": ".opencode/command/add-context.md",
+        "path": "built-ai-configs/opencode-v1/command/add-context.md",
         "description": "Interactive wizard to add project patterns using Project Intelligence standard",
         "tags": [
           "context",
@@ -765,66 +720,24 @@
         "category": "essential"
       },
       {
-        "id": "clean",
-        "name": "Clean Project",
+        "id": "analyze-patterns",
+        "name": "Analyze Patterns",
         "type": "command",
-        "path": ".opencode/command/clean.md",
-        "description": "Clean build artifacts and temporary files",
+        "path": "built-ai-configs/opencode-v1/command/analyze-patterns.md",
+        "description": "Analyze codebase for patterns and similar implementations",
         "tags": [
-          "cleanup",
-          "maintenance",
-          "build"
+          "analysis",
+          "patterns",
+          "refactoring"
         ],
         "dependencies": [],
         "category": "standard"
-      },
-      {
-        "id": "optimize",
-        "name": "Code Optimizer",
-        "type": "command",
-        "path": ".opencode/command/optimize.md",
-        "description": "Optimize code performance and bundle size",
-        "tags": [
-          "optimization",
-          "performance",
-          "build"
-        ],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "prompt-enhancer",
-        "name": "Prompt Enhancer",
-        "type": "command",
-        "path": ".opencode/command/prompt-engineering/prompt-enhancer.md",
-        "description": "Enhance and improve AI prompts",
-        "tags": [
-          "prompts",
-          "ai",
-          "enhancement"
-        ],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "worktrees",
-        "name": "Git Worktrees Manager",
-        "type": "command",
-        "path": ".opencode/command/worktrees.md",
-        "description": "Manage git worktrees for parallel development",
-        "tags": [
-          "git",
-          "worktrees",
-          "workflow"
-        ],
-        "dependencies": [],
-        "category": "specialized"
       },
       {
         "id": "build-context-system",
         "name": "Build Context System",
         "type": "command",
-        "path": ".opencode/command/build-context-system.md",
+        "path": "built-ai-configs/opencode-v1/command/build-context-system.md",
         "description": "Interactive system builder for creating complete context-aware AI architectures",
         "tags": [
           "system-generation",
@@ -836,71 +749,6 @@
           "agent:system-builder"
         ],
         "category": "meta"
-      },
-      {
-        "id": "validate-repo",
-        "name": "Validate Repository",
-        "type": "command",
-        "path": ".opencode/command/validate-repo.md",
-        "description": "Comprehensive validation of repository consistency between CLI, docs, registry, and components",
-        "tags": [
-          "validation",
-          "quality",
-          "consistency",
-          "maintenance"
-        ],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "test-new-command",
-        "name": "Test New Command",
-        "type": "command",
-        "path": ".opencode/command/test-new-command.md",
-        "description": "Test command to verify auto-detection and registry updates work correctly\\\"",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "commit-openagents",
-        "name": "Commit OpenAgents Control",
-        "type": "command",
-        "path": ".opencode/command/commit-openagents.md",
-        "description": "description: Smart commit command for opencode-agents repository with automatic validation and conventional commits",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "prompt-optimizer",
-        "name": "Prompt Optimizer",
-        "type": "command",
-        "path": ".opencode/command/prompt-engineering/prompt-optimizer.md",
-        "description": "Advanced prompt optimizer: Research patterns + token efficiency + semantic preservation. Achieves 30-50% token reduction with 100% meaning preserved.\\\"",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "create-tests",
-        "name": "Create Tests",
-        "type": "command",
-        "path": ".opencode/command/openagents/new-agents/create-tests.md",
-        "description": "description: \\\"Generate comprehensive test suites for OpenCode agents with 8 essential test types\\\"",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
-      },
-      {
-        "id": "create-agent",
-        "name": "Create Agent",
-        "type": "command",
-        "path": ".opencode/command/openagents/new-agents/create-agent.md",
-        "description": "description: \\\"Create new OpenCode agents following research-backed best practices (Anthropic 2025)\\\"",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
       },
       {
         "id": "check-context-deps",
@@ -918,17 +766,170 @@
         "category": "standard"
       },
       {
-        "id": "analyze-patterns",
-        "name": "Analyze Patterns",
+        "id": "clean",
+        "name": "Clean Project",
         "type": "command",
-        "path": ".opencode/command/analyze-patterns.md",
-        "description": "Analyze codebase for patterns and similar implementations",
+        "path": "built-ai-configs/opencode-v1/command/clean.md",
+        "description": "Clean build artifacts and temporary files",
         "tags": [
-          "analysis",
-          "patterns",
-          "refactoring"
+          "cleanup",
+          "maintenance",
+          "build"
         ],
+        "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "commit",
+        "name": "Smart Commit",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/commit.md",
+        "description": "Create intelligent git commits with context",
+        "tags": [
+          "git",
+          "commit",
+          "version-control"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "commit-openagents",
+        "name": "Commit OpenAgents Control",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/commit-openagents.md",
+        "description": "Smart commit command for opencode-agents repository with automatic validation and conventional commits",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "context",
+        "name": "Context Manager",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/context.md",
+        "description": "Context system manager - harvest summaries, extract knowledge, organize context",
+        "tags": [
+          "context",
+          "knowledge-management",
+          "harvest"
+        ],
+        "dependencies": [
+          "subagent:context-organizer",
+          "subagent:context-scout"
+        ],
+        "category": "essential"
+      },
+      {
+        "id": "create-agent",
+        "name": "Create Agent",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/openagents/new-agents/create-agent.md",
+        "description": "Create new OpenCode agents following research-backed best practices (Anthropic 2025)",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "create-tests",
+        "name": "Create Tests",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/openagents/new-agents/create-tests.md",
+        "description": "Generate comprehensive test suites for OpenCode agents with 8 essential test types",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "optimize",
+        "name": "Code Optimizer",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/optimize.md",
+        "description": "Optimize code performance and bundle size",
+        "tags": [
+          "optimization",
+          "performance",
+          "build"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "prompt-enhancer",
+        "name": "Prompt Enhancer",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/prompt-engineering/prompt-enhancer.md",
+        "description": "Enhance and improve AI prompts",
+        "tags": [
+          "prompts",
+          "ai",
+          "enhancement"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "prompt-optimizer",
+        "name": "Prompt Optimizer",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/prompt-engineering/prompt-optimizer.md",
+        "description": "Advanced prompt optimizer: Research patterns + token efficiency + semantic preservation. Achieves 30-50% token reduction with 100% meaning preserved.",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "test",
+        "name": "Test Pipeline",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/test.md",
+        "description": "Run the complete testing pipeline",
+        "tags": [
+          "testing",
+          "ci",
+          "validation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "test-new-command",
+        "name": "Test New Command",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/test-new-command.md",
+        "description": "Test command to verify auto-detection and registry updates work correctly",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "validate-repo",
+        "name": "Validate Repository",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/validate-repo.md",
+        "description": "Comprehensive validation of repository consistency between CLI, docs, registry, and components",
+        "tags": [
+          "validation",
+          "quality",
+          "consistency",
+          "maintenance"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "worktrees",
+        "name": "Git Worktrees Manager",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/worktrees.md",
+        "description": "Manage git worktrees for parallel development",
+        "tags": [
+          "git",
+          "worktrees",
+          "workflow"
+        ],
+        "dependencies": [],
+        "category": "specialized"
       }
     ],
     "tools": [
@@ -980,72 +981,10 @@
     ],
     "skills": [
       {
-        "id": "task-management",
-        "name": "Task Management",
-        "type": "skill",
-        "path": "built-ai-configs/opencode-v1/skills/task-management/SKILL.md",
-        "description": "Task management CLI for tracking and managing feature subtasks with status, dependencies, and validation",
-        "tags": [
-          "tasks",
-          "cli",
-          "workflow"
-        ],
-        "dependencies": [],
-        "category": "essential",
-        "files": [
-          "built-ai-configs/opencode-v1/skills/task-management/SKILL.md",
-          ".opencode/skills/task-management/router.sh",
-          ".opencode/skills/task-management/scripts/task-cli.ts"
-        ]
-      },
-      {
-        "id": "smart-router-skill",
-        "name": "Smart Router Skill",
-        "type": "skill",
-        "path": ".opencode/skills/smart-router-skill/SKILL.md",
-        "description": "Movie character personality skill with configurable missions and themed workflows",
-        "tags": [
-          "routing",
-          "personality",
-          "demo"
-        ],
-        "dependencies": [],
-        "category": "specialized",
-        "files": [
-          ".opencode/skills/smart-router-skill/SKILL.md",
-          ".opencode/skills/smart-router-skill/router.sh",
-          ".opencode/skills/smart-router-skill/config/personality-config.json",
-          ".opencode/skills/smart-router-skill/scripts/sherlock-workflow.sh",
-          ".opencode/skills/smart-router-skill/scripts/stark-workflow.sh",
-          ".opencode/skills/smart-router-skill/scripts/yoda-workflow.sh"
-        ]
-      },
-      {
-        "id": "context7",
-        "name": "Context7",
-        "type": "skill",
-        "path": ".opencode/skills/context7/SKILL.md",
-        "description": "Fetch live, version-specific documentation for external libraries and frameworks via Context7 API",
-        "tags": [
-          "documentation",
-          "external",
-          "libraries",
-          "api"
-        ],
-        "dependencies": [],
-        "category": "essential",
-        "files": [
-          ".opencode/skills/context7/SKILL.md",
-          ".opencode/skills/context7/README.md",
-          ".opencode/skills/context7/library-registry.md",
-          ".opencode/skills/context7/navigation.md"
-        ]
-      },
-      {
         "id": "context-manager",
         "name": "Context Manager",
         "type": "skill",
-        "path": ".opencode/skills/context-manager/SKILL.md",
+        "path": "built-ai-configs/opencode-v1/skills/context-manager/SKILL.md",
         "description": "Comprehensive context management with 8 operations: discover, fetch, harvest, extract, compress, organize, cleanup, and process. Integrates with ContextScout and ExternalScout with lazy loading and clear guidance.",
         "tags": [
           "context-management",
@@ -1061,8 +1000,96 @@
         ],
         "category": "essential",
         "files": [
-          ".opencode/skills/context-manager/SKILL.md",
-          ".opencode/skills/context-manager/router.sh"
+          "built-ai-configs/opencode-v1/skills/context-manager/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/context-manager/router.sh"
+        ]
+      },
+      {
+        "id": "context7",
+        "name": "Context7",
+        "type": "skill",
+        "path": "built-ai-configs/opencode-v1/skills/context7/SKILL.md",
+        "description": "Fetch live, version-specific documentation for external libraries and frameworks via Context7 API",
+        "tags": [
+          "documentation",
+          "external",
+          "libraries",
+          "api"
+        ],
+        "dependencies": [],
+        "category": "essential",
+        "files": [
+          "built-ai-configs/opencode-v1/skills/context7/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/context7/README.md",
+          "built-ai-configs/opencode-v1/skills/context7/library-registry.md",
+          "built-ai-configs/opencode-v1/skills/context7/navigation.md"
+        ]
+      },
+      {
+        "id": "project-orchestration",
+        "name": "Project Orchestration",
+        "type": "skill",
+        "path": "built-ai-configs/opencode-v1/skills/project-orchestration/SKILL.md",
+        "description": "Orchestrate multi-agent workflows for feature development using planning agents, context handoff, and stage management",
+        "tags": [
+          "orchestration",
+          "multi-agent",
+          "planning",
+          "workflow",
+          "stages"
+        ],
+        "dependencies": [],
+        "category": "specialized",
+        "files": [
+          "built-ai-configs/opencode-v1/skills/project-orchestration/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/router.sh",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/scripts/context-index.ts",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/scripts/session-context-manager.ts",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/scripts/stage-cli.ts",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/workflows/8-stage-delivery.md",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/workflows/context-handoff.md",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/workflows/planning-agents.md"
+        ]
+      },
+      {
+        "id": "smart-router-skill",
+        "name": "Smart Router Skill",
+        "type": "skill",
+        "path": "built-ai-configs/opencode-v1/skills/smart-router-skill/SKILL.md",
+        "description": "Movie character personality skill with configurable missions and themed workflows",
+        "tags": [
+          "routing",
+          "personality",
+          "demo"
+        ],
+        "dependencies": [],
+        "category": "specialized",
+        "files": [
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/config/personality-config.json",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/router.sh",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/scripts/sherlock-workflow.sh",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/scripts/stark-workflow.sh",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/scripts/yoda-workflow.sh"
+        ]
+      },
+      {
+        "id": "task-management",
+        "name": "Task Management",
+        "type": "skill",
+        "path": "built-ai-configs/opencode-v1/skills/task-management/SKILL.md",
+        "description": "Task management CLI for tracking and managing feature subtasks with status, dependencies, and validation",
+        "tags": [
+          "tasks",
+          "cli",
+          "workflow"
+        ],
+        "dependencies": [],
+        "category": "essential",
+        "files": [
+          "built-ai-configs/opencode-v1/skills/task-management/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/task-management/router.sh",
+          "built-ai-configs/opencode-v1/skills/task-management/scripts/task-cli.ts"
         ]
       }
     ],

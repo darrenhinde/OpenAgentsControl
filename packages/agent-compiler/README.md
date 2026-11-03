@@ -1,7 +1,7 @@
 # @controlstack/agent-compiler
 
 The build library behind `oac build`. It loads the canonical content tree
-(`agent-library/agents/**`, `agent-library/profiles/**`) and emits the per-tool trees plus
+(`agent-library/agents/**`, `skills/**`, `commands/**`, `profiles/**`) and emits the per-tool trees plus
 `built-ai-configs/registry/registry.json`.
 
 ## What it contains

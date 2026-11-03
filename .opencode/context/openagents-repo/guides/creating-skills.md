@@ -4,6 +4,11 @@
 
 **Purpose**: Step-by-step guide to create Agent Skills
 
+**In this repository** the Claude Code plugin's skills are canonical source too: write
+`agent-library/skills/{skill}/SKILL.md` with `targets: [claude-code]` in its `oac:` block and run
+`make build-canonical`; the build writes `plugins/claude-code/skills/` (never edit that folder). The
+steps below are for a skill in your own `~/.claude/skills/`.
+
 ---
 
 ## Quickstart

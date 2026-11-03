@@ -92,8 +92,9 @@ pnpm --dir evals/framework run validate:suites:all     # eval suite YAML validit
 
 ## Other kinds of change
 
-- **Commands, context, skills**: hand-written under `.opencode/command/`, `.opencode/context/`,
-  `.opencode/skills/`; registering them is in [CONTRIBUTING.md](CONTRIBUTING.md#registry).
+- **Skills and commands**: canonical in `agent-library/skills/` and `agent-library/commands/`, built like
+  agents ([agent-library/README.md](../../agent-library/README.md#skills-and-commands)).
+- **Context**: hand-written under `.opencode/context/`; registering it is in [CONTRIBUTING.md](CONTRIBUTING.md#registry).
 - **Tools and plugins**: OpenCode v1 only, hand-maintained in `built-ai-configs/opencode-v1/{tool,plugin,plugins}/`;
   the build neither writes nor checks them.
 - **Prompt variants**: [CONTRIBUTING.md](CONTRIBUTING.md#prompt-variants).

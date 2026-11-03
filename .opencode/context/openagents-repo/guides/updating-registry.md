@@ -10,8 +10,9 @@
 |---|---|
 | An agent or subagent (`agent-library/agents/**`) | none by hand: `make build-canonical` regenerates the entries and profiles |
 | A profile (`agent-library/profiles/**`) | none by hand: rebuild |
+| A skill or command (`agent-library/skills/**`, `agent-library/commands/**`) | nothing: the entry is generated from its `oac:` block; run `make build-canonical` |
 | A context file (`.opencode/context/**`) | hand-edit the `components.contexts` entry in BOTH registry files (below) |
-| A command, skill, tool, plugin, config | same, in the matching `components.<type>` array (v1 file only for v1-only assets) |
+| A tool, plugin, config | hand-edit the matching `components.<type>` array (v1 file only for v1-only assets) |
 
 ## Adding, renaming or removing a context file
 

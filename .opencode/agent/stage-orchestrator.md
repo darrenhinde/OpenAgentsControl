@@ -6,7 +6,7 @@ permission:
   bash:
     "*": "deny"
     "npx ts-node*stage-cli*": "allow"
-    "bash .opencode/skill/task-management/router.sh*": "allow"
+    "bash .opencode/skills/task-management/router.sh*": "allow"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
@@ -307,7 +307,7 @@ The StageOrchestrator manages complex feature development through 8 systematic s
 1. Create session directory: `.tmp/sessions/{timestamp}-{feature}/`
 2. Initialize stage tracking:
    ```bash
-   npx ts-node .opencode/skill/task-management/scripts/stage-cli.ts init {feature}
+   npx ts-node .opencode/skills/project-orchestration/scripts/stage-cli.ts init {feature}
    ```
 3. Load context and standards
 4. Create session context bundle
@@ -322,7 +322,7 @@ The StageOrchestrator manages complex feature development through 8 systematic s
 
 1. **Validate Prerequisites**
    ```bash
-   npx ts-node .opencode/skill/task-management/scripts/stage-cli.ts validate {feature} {stage}
+   npx ts-node .opencode/skills/project-orchestration/scripts/stage-cli.ts validate {feature} {stage}
    ```
    - Check previous stage completed
    - Verify required inputs exist
@@ -336,7 +336,7 @@ The StageOrchestrator manages complex feature development through 8 systematic s
 
 3. **Validate Stage Completion**
    ```bash
-   npx ts-node .opencode/skill/task-management/scripts/stage-cli.ts complete {feature} {stage}
+   npx ts-node .opencode/skills/project-orchestration/scripts/stage-cli.ts complete {feature} {stage}
    ```
    - Verify all outputs created
    - Check validation criteria met
@@ -370,7 +370,7 @@ The StageOrchestrator manages complex feature development through 8 systematic s
 
 3. **Execute Rollback (if needed)**
    ```bash
-   npx ts-node .opencode/skill/task-management/scripts/stage-cli.ts rollback {feature} {stage}
+   npx ts-node .opencode/skills/project-orchestration/scripts/stage-cli.ts rollback {feature} {stage}
    ```
    - Revert stage changes
    - Restore previous state
@@ -393,7 +393,7 @@ The StageOrchestrator manages complex feature development through 8 systematic s
 
 1. **Check Stage Status**
    ```bash
-   npx ts-node .opencode/skill/task-management/scripts/stage-cli.ts status {feature}
+   npx ts-node .opencode/skills/project-orchestration/scripts/stage-cli.ts status {feature}
    ```
 
 2. **Track Progress**
@@ -537,7 +537,7 @@ Retry 1/3: Re-executing task 05 with test requirement emphasized
 
 2. **Execute Rollback**
    ```bash
-   npx ts-node .opencode/skill/task-management/scripts/stage-cli.ts rollback {feature} {stage}
+   npx ts-node .opencode/skills/project-orchestration/scripts/stage-cli.ts rollback {feature} {stage}
    ```
    - Delete stage outputs
    - Restore previous state
@@ -567,7 +567,7 @@ Retry 1/3: Re-executing task 05 with test requirement emphasized
 
 2. **Execute Abort**
    ```bash
-   npx ts-node .opencode/skill/task-management/scripts/stage-cli.ts abort {feature}
+   npx ts-node .opencode/skills/project-orchestration/scripts/stage-cli.ts abort {feature}
    ```
    - Mark workflow as "aborted"
    - Document abort reason

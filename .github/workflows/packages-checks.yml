@@ -15,7 +15,11 @@ on:
       - 'agent-library/**'
       - 'built-ai-configs/**'
       - '.opencode/agent/**'
+      - '.opencode/skills/**'
+      - '.opencode/command/**'
       - 'plugins/claude-code/agents/**'
+      - 'plugins/claude-code/skills/**'
+      - 'plugins/claude-code/commands/**'
       - '.oac/**'
       - 'built-ai-configs/registry/registry.json'
       - 'built-ai-configs/registry/registry.v1.json'
@@ -144,7 +148,7 @@ jobs:
 
   # The structural guarantee the canonical refactor rests on: the generated trees stay
   # COMMITTED, so drift has to be impossible rather than merely discouraged. Rebuild them from
-  # agent-library/agents/** and fail if the build changed anything — a hand-edit to generated output
+  # agent-library/** (agents, skills, commands) and fail if the build changed anything — a hand-edit to generated output
   # turns this red. BLOCKING by design: no continue-on-error.
   canonical-drift:
     name: Canonical Build (no drift)
@@ -212,7 +216,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ needs.canonical-drift.result }}" = "failure" ]; then
-            echo "> The generated trees drift from \`agent-library/agents/**\`." >> $GITHUB_STEP_SUMMARY
+            echo "> The generated trees drift from \`agent-library/**\`." >> $GITHUB_STEP_SUMMARY
             echo "> Run \`make build-canonical\` and commit the result." >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi

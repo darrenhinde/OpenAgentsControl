@@ -150,6 +150,18 @@ Made by the maintainer on 2026-11-03.
 - **Rules out:** renaming or moving an agent without an alias or `previousPaths`; a `subagents/` folder; renaming `coder-agent` or `build-agent` without a deliberate migration.
 - **Revisit when:** the naming lint is promoted to failing, or a second host needs a per-host display name (rule 2).
 
+## D-020 Skills and commands are canonical, compiled content
+
+Made by the maintainer on 2026-11-03.
+
+- **Decision:** skills (`agent-library/skills/<id>/SKILL.md` plus supporting files) and commands (`agent-library/commands/[<group>/]<id>.md`) are source types like agents. Each carries an `oac:` block; `oac build` cuts it out, resolves `oac:only` blocks, rewrites OpenCode delegation examples per major, and writes every host's copy, the live mirrors (`.opencode/skills|command`, `plugins/claude-code/skills|commands`), the registry entries and the ledger. The 17 Claude plugin skills/commands are `targets: [claude-code]`; the OpenCode ones are `[opencode, opencode-v1]`. The two hand-maintained v1 variants (`task-management`, `check-context-deps`) are generated from one source. The singular `.opencode/skill/` folder is dropped; its only real skill, `project-orchestration`, became a canonical skill and its dead tests moved to `docs/history/`.
+  - **Skills are flat; commands take at most one group folder** (the two grandfathered `openagents/new-agents` commands are two deep). The group is part of the command's name on OpenCode (`/openagents/check-context-deps`), so it is kept, not normalised.
+  - **No `oac.previousPaths` for skills and commands.** The installers retire superseded files only under `agent/`, so a moved skill or command would leave a stale copy. Nothing moved: every installed path is unchanged.
+  - **Same-named skills are not merged.** The Claude plugin's `code-review` forks into a plugin agent; no OpenCode skill matches it.
+- **Why:** the user wants one set of files with three hosts working (Claude Code, OpenCode v1, OpenCode v2). Skills and commands were the last hand-copied content: `.opencode/skills`, a singular `skill/` with broken paths, a hand-kept v1 copy, and the plugin's own folders, each edited by hand with the registry entries maintained beside them.
+- **Rules out:** hand-editing a skill or command under `.opencode/`, `plugins/claude-code/` or `built-ai-configs/`; a `skill/` folder; renaming or moving an installed skill or command without teaching the installers to retire non-agent files first.
+- **Revisit when:** the installers learn to retire superseded files outside `agent/` (then `previousPaths` and folder moves become possible, and `openagents/new-agents` can flatten), or `oac apply claude` should also write skills and commands into `.claude/`.
+
 ---
 
 ## Open decisions
