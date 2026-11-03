@@ -153,6 +153,7 @@ export type {
  */
 export {
   BUILD_TARGETS,
+  GENERATED_ROOTS,
   HOSTS_ROOT,
   TARGET_LAYOUT,
   build,

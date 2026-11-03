@@ -1,6 +1,6 @@
 /**
- * The real tree's skills and commands: counts pinned, outputs consistent, nothing hand-maintained
- * left in a generated folder. A deliberate add or removal updates the numbers here.
+ * The real tree's skills and commands: outputs consistent, nothing hand-maintained left in a
+ * generated folder. Counts are floors, not pins: adding a skill or command must not need a test edit.
  */
 
 import { describe, expect, it } from "vitest";
@@ -26,19 +26,27 @@ const walk = (dir: string): string[] =>
       );
 const posix = (p: string): string => relative(REPO, p).split(sep).join("/");
 
-describe("canonical skills and commands (pinned counts)", () => {
-  it("has 17 skills: 12 for Claude Code, 5 for OpenCode (v2 and v1)", () => {
-    expect(skills).toHaveLength(17);
-    expect(shipsTo(skills, "claude-code")).toHaveLength(12);
-    expect(shipsTo(skills, "opencode")).toEqual(["context-manager", "context7", "project-orchestration", "smart-router-skill", "task-management"]);
+describe("canonical skills and commands (invariants)", () => {
+  it("ships at least the known skills; the OpenCode skills are the same for v2 and v1", () => {
+    expect(skills.length).toBeGreaterThanOrEqual(17);
+    expect(shipsTo(skills, "claude-code").length).toBeGreaterThanOrEqual(12);
+    // Regression: these OpenCode skills must keep shipping. New ones are welcome.
+    expect(shipsTo(skills, "opencode")).toEqual(expect.arrayContaining(["context-manager", "context7", "project-orchestration", "smart-router-skill", "task-management"]));
     expect(shipsTo(skills, "opencode-v1")).toEqual(shipsTo(skills, "opencode"));
   });
 
-  it("has 23 commands: 6 for Claude Code, 17 for OpenCode (v2 and v1)", () => {
-    expect(commands).toHaveLength(23);
-    expect(shipsTo(commands, "claude-code")).toEqual(["brainstorm", "debug", "install-context", "oac-cleanup", "oac-help", "oac-status"]);
-    expect(shipsTo(commands, "opencode")).toHaveLength(17);
+  it("ships at least the known commands; the OpenCode commands are the same for v2 and v1", () => {
+    expect(commands.length).toBeGreaterThanOrEqual(23);
+    expect(shipsTo(commands, "claude-code")).toEqual(expect.arrayContaining(["brainstorm", "debug", "install-context", "oac-cleanup", "oac-help", "oac-status"]));
+    expect(shipsTo(commands, "opencode").length).toBeGreaterThanOrEqual(17);
     expect(shipsTo(commands, "opencode-v1")).toEqual(shipsTo(commands, "opencode"));
+  });
+
+  it("asset ids are unique within each kind", () => {
+    for (const set of [skills, commands]) {
+      const ids = set.map((a) => a.oac.id);
+      expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([]);
+    }
   });
 
   it("no host-shared id collides across targets (a Claude and an OpenCode asset never share an id)", () => {
@@ -58,7 +66,7 @@ describe("registries list exactly the OpenCode skills and commands", () => {
     ["built-ai-configs/registry/registry.json", ".opencode"],
     ["built-ai-configs/registry/registry.v1.json", "built-ai-configs/opencode-v1"],
   ] as const) {
-    it(`${file}: 5 skills, 17 commands, every file on disk, no Claude-only entry`, () => {
+    it(`${file}: every OpenCode skill and command, every file on disk, no Claude-only entry`, () => {
       const registry = JSON.parse(readFileSync(repoPath(file), "utf-8")) as { components: Record<string, Array<{ id: string; path: string; files?: string[] }>> };
       expect(registry.components.skills!.map((e) => e.id)).toEqual(shipsTo(skills, "opencode"));
       expect(registry.components.commands!.map((e) => e.id)).toEqual(shipsTo(commands, "opencode").sort());
@@ -85,11 +93,11 @@ describe("generated folders hold only generated files", () => {
     expect(existsSync(repoPath(".opencode/skill"))).toBe(false);
   });
 
-  it("the 12 Claude skills and 6 Claude commands are in the plugin folders", async () => {
+  it("every Claude skill and command is in the plugin folders", async () => {
     const built = await plan({ root: REPO, targets: ["claude-code"], skipRegistry: true });
     const plugin = built.files.filter((f) => f.mirrorOf !== undefined && f.assetKind !== undefined).map((f) => f.path);
-    expect(plugin.filter((p) => p.endsWith("/SKILL.md"))).toHaveLength(12);
-    expect(plugin.filter((p) => p.startsWith("plugins/claude-code/commands/"))).toHaveLength(6);
+    expect(plugin.filter((p) => p.endsWith("/SKILL.md"))).toHaveLength(shipsTo(skills, "claude-code").length);
+    expect(plugin.filter((p) => p.startsWith("plugins/claude-code/commands/"))).toHaveLength(shipsTo(commands, "claude-code").length);
   });
 
   it("scripts keep their executable bit through the build", () => {

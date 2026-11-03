@@ -15,6 +15,22 @@ agent-library/
   context/components.json          registry metadata (id, name, tags, category) for the context files install.sh can install
 ```
 
+## Adding a thing
+
+Every row ends the same way: run `make build-canonical`, then commit your source file(s) and everything it
+regenerated. Nothing else is needed: no test, count or list elsewhere in the repo pins how many agents, skills,
+commands, context files or aliases exist, so a normal contribution does not turn `make check-core` red.
+
+| To add a... | Create or edit | Extra step (only if you want it installable) | Then |
+| --- | --- | --- | --- |
+| agent or subagent | `agent-library/agents/<category>/<id>.md` (file name = `oac.id`; `type: agent` or `subagent`) | add the id to `agents` in `profiles/system/<tier>.json`; a Claude Code agent needs `oac.overrides.claude-code.tools` and a `description` with an `<example>` | `make build-canonical` |
+| skill | `agent-library/skills/<id>/SKILL.md` (+ any supporting files in the folder) | add the plain id to `skills` in `profiles/system/<tier>.json` | `make build-canonical` |
+| command | `agent-library/commands/[<group>/]<id>.md` | add the plain id to `commands` in `profiles/system/<tier>.json` | `make build-canonical` |
+| context file | `agent-library/context/<path>.md` | add an entry (`id`, `name`, `file`, `description`, `category`) to `agent-library/context/components.json` to make it installable by `install.sh`; name its id (or a glob) in `profiles/context/*.json` to put it in a tier | `make build-canonical` |
+| profile entry | `agent-library/profiles/system/<tier>.json` (tiers: essential, developer, business, advanced, full) or `profiles/context/<set>.json` | list ids as plain strings (no `skill:` prefixes) | `make build-canonical` |
+| alias (rename an agent) | on the renamed agent, `oac.aliases: [old-id]`; if it also moved folder, `oac.previousPaths: [old/path.md]` | none: the registry gains `aliases` and `supersedes` automatically | `make build-canonical` |
+| retired file (stop shipping one) | delete the source, then add `{ "path": ".opencode/...", "sha256": [every version ever shipped] }` to `agent-library/retired.json` (paths under `.opencode/{agent,command,skills}/` or `.opencode/context/openagents-repo/`) | the hashes decide what installers may delete: get them with `git log --all --format=%H -- <path>` and `git show <commit>:<path> \| shasum -a 256` | `make build-canonical` |
+
 **This page is the one you need.** [CORE.md](../docs/architecture/CORE.md),
 [CONTRIBUTING](../docs/contributing/CONTRIBUTING.md) and [DEVELOPMENT](../docs/contributing/DEVELOPMENT.md) are optional depth.
 
@@ -100,6 +116,67 @@ Declaring `opencode` also builds the v1 copy. Declaring only `opencode-v1` makes
 only. Hosts: `opencode`, `opencode-v1`, `claude-code`. Blocks do not nest. Use them for text that is
 true on one tool only (Claude has no "call ContextScout").
 
+### Delegating on Claude Code
+
+Claude Code has no `task(subagent_type=...)` call. It has the `Task` tool, and a subagent can only use it if
+its `tools` list includes `Task`. The build does not rewrite delegation text for Claude, so a shared body
+that says `task(subagent_type="changelog-writer", ...)` reaches Claude as that literal OpenCode-style snippet.
+Write the call once per host with `oac:only`. Facts from the tree:
+
+- The seven agents the plugin ships today (`code-reviewer`, `coder-agent`, `context-manager`, `context-scout`,
+  `external-scout`, `task-manager`, `test-engineer`) all list `Task` under `disallowedTools`: none of them delegates.
+  The Claude path delegates from the top: the main session, or a skill with `context: fork` and `agent: <id>`,
+  starts the subagent and hands it its context (their Claude blocks say "context is supplied by the caller").
+- The capability lint fails the build (`delegation-without-task`) when a Claude agent's body tells it to
+  delegate and its `tools` has no `Task`.
+- A plugin's agents are listed to Claude as `oac:<id>` (the plugin name, a colon, the id).
+
+A coordinator that delegates on both hosts (builds as written, 0 lint findings; `changelog-writer` is the agent above):
+
+```markdown
+---
+name: ReleaseCoordinator
+description: Coordinates a release and delegates the changelog
+mode: primary
+permission:
+  task:
+    "*": deny
+    changelog-writer: allow        # OpenCode's allow-list; Claude cannot enforce it
+oac:
+  id: release-coordinator
+  name: ReleaseCoordinator
+  category: core
+  type: agent
+  dependencies:
+    - subagent:changelog-writer
+  overrides:
+    claude-code:
+      description: |
+        Coordinates a release and hands the changelog to changelog-writer.
+        <example>
+        user: "Prepare the release"
+        assistant: "I'll use release-coordinator to run the release steps."
+        </example>
+      tools: [Read, Glob, Grep, Task]   # Task is what lets it delegate on Claude Code
+---
+
+Run the release steps, then get the changelog drafted.
+
+<!-- oac:only opencode,opencode-v1 -->
+task(subagent_type="changelog-writer", description="Draft the changelog", prompt="Changes: ...")
+<!-- /oac:only -->
+<!-- oac:only claude-code -->
+Delegate the changelog with the Task tool: choose the `changelog-writer` agent (Claude lists a plugin's
+agents as `oac:changelog-writer`), give a short description, and put the list of changes in the prompt.
+<!-- /oac:only -->
+```
+
+Keep the Claude text as prose, as above. Writing `subagent_type: "oac:changelog-writer"` in a `claude-code`
+block fails the build (`"oac:changelog-writer" names no canonical agent emitted for this target`), because
+any structured delegation is checked against the agents that ship to that host by their plain `oac.id`.
+Built in a scratch copy: the Claude file has `tools: Read, Glob, Grep, Task` and only the Claude paragraph; the
+OpenCode files only the delegation call (v2 spells it `subagent(agent=...)`). Whether Claude resolves the `oac:` name at run time was not tested here.
+
 ## The workflow
 
 ```bash
@@ -110,11 +187,13 @@ make check-core             # 4. drift gate + compiler/CLI tests + typecheck + i
 git add -A && git commit    # 5. commit the source AND the generated files together
 ```
 
-`make check-core` also runs on every PR (it also lints the compiler). Adding an agent does not break it: no test pins the number of agents.
+`make check-core` also runs on every PR (it also lints the compiler). Adding an agent, skill, command, context file or alias does not break it: the tests assert invariants (every library file is built and in the ledger, ids and aliases are unique, lints are clean) and use counts only as minimums.
 
 Quick loops while editing (after `make oac-cli` once): `bun packages/cli/dist/index.js build --dry-run`
-previews, `... build --check` exits 1 if committed output is stale, `... build --target claude-code`
-builds one host, `... build --verbose` lists degradation warnings.
+previews (it prints drift lines but **always exits 0**; use `--check` when you want a failing exit code),
+`... build --check` exits 1 if committed output is stale or a generated folder holds a file no build produced,
+`... build --target claude-code` builds one host, `... build --verbose` lists the degradation warnings and the
+long report-only lint baseline (dead navigation entries, info naming notes), which are otherwise one count line.
 
 What the example above produced (built in a scratch copy of this repo):
 
@@ -270,7 +349,7 @@ After the build, look at the three outputs, then try the ones you care about.
 | `.oac/build-manifest.json` | generated ledger |
 | `built-ai-configs/opencode-v1/{tool,plugin,plugins}/**`, `.../agent/**/0-category.json` | hand-maintained v1 assets; the build never touches them |
 
-A hand edit to a generated file fails `make check-core` (and CI).
+A hand edit to a generated file fails `make check-core` (and CI), and so does a new file you drop into a generated folder (the gate lists it as a stray). Only the hand-maintained v1 assets in the last row are exempt.
 
 ## Common build errors
 
@@ -283,6 +362,7 @@ Messages are from real runs of `oac build`.
 | `[description-no-example] description has no <example> block; Claude Code selects a subagent from its description examples` | Required for every agent that ships to Claude Code, and it fails the build (exit 1) even though the files are written. Add `oac.overrides.claude-code.description` with at least one `<example>` block, as in the example above. Verified: an agent with only `tools:` fails; adding the `description` fixes it. |
 | `oac.id: id must be kebab-case` | Lowercase words joined by single hyphens. |
 | `Duplicate oac.id "code-reviewer"` | Ids are unique across the library; rename one. |
+| `System profile "developer" cannot be installed: agent:x does not resolve` | The profile names an id no agent has. A bad id (not kebab-case) fails earlier, at load, with its own message; an id that differs from the file name is named in a `note:` under this one. Fix the id or the profile entry. |
 | `oac.category: category must be one of: core, code, ...` | Use a listed category; it is also the folder name. |
 | `deprecated alias "x" -> use "y"` (build output, not an error) | A reference still uses a former id. Switch it to the current id; under `--strict` this fails. |
 | `alias "x" of "y" collides ...` / `alias "x" is declared by both ...` | An `oac.aliases` entry equals a real id or another agent's alias. Remove or fix it. |
@@ -300,4 +380,8 @@ Messages are from real runs of `oac build`.
 | `skills are folders (skills/<id>/SKILL.md); a loose file is not a skill` / `only .md files may live under commands/` | Every `.md` under `commands/` is a command and every entry under `skills/` is a skill folder. Keep templates and docs in `docs/`. |
 | `[dead-dependency] oac.dependencies names skill:x, which does not exist` (a counted lint) | Fix the id, or add the skill, command or agent. |
 | `[skill-agent-unknown] frontmatter agent "x" is not a Claude Code agent` | A forked Claude skill's `agent:` must be an agent that ships to claude-code (or `Explore`, `Plan`, `general-purpose`). |
+| `naming: <path> [category-folder] folder "x" != category "y"` (report-only; **build still exits 0**) | Move the file to `agent-library/agents/<category>/` so the folder equals `oac.category`, or set `category` to the folder. |
+| `naming: <path> [filename-is-id] file name "x" != id "y"` (report-only; **build still exits 0**) | Rename the file to `<oac.id>.md`, or change `oac.id`. If the agent is also in a profile and the id was a typo, the build fails with `profile ... cannot be installed`; the message then names the file whose id differs. |
+| `context: <path> [dead-link] ... is not in agent-library/context/` (report-only; **build still exits 0**) | Point the link at a file that exists under `agent-library/context/`, or add the missing file. Dead navigation entries and unreachable/unregistered files are a baseline count line; `--verbose` lists them. |
+| `unexpected file X not produced by the build — delete it or add it to agent-library/` (`build --check` and the drift gate exit 1; a plain build only warns) | A file sits in a generated folder (`built-ai-configs/**`, `.opencode/{agent,command,skills,context}`, `plugins/claude-code/{agents,skills,commands}`) that the build did not write. Delete it, or make it a real source under `agent-library/`. |
 | `build --check` prints `modified <path>` and exits 1 | A generated file was edited or the source changed without a rebuild. Run `make build-canonical`. |

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Report-only check: relative Markdown links in the top-level docs must point at files that exist.
-# Covers README.md, docs/contributing/CONTRIBUTING.md, docs/README.md, agent-library/README.md and
+# Covers README.md, docs/contributing/CONTRIBUTING.md, docs/README.md, agent-library/README.md,
+# plugins/claude-code/README.md, docs/guides/**, agent-library/context/openagents-repo/** and
 # docs/architecture/*.md. Prints dead links; exits 0 unless --strict is given.
 #
 #   bash scripts/validation/check-doc-links.sh [--strict]

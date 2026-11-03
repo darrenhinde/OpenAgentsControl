@@ -369,6 +369,36 @@ describe("orphan removal", () => {
     expect(drift).toContainEqual({ path: ALPHA_OUT, status: "orphan" });
     expect(existsSync(join(root, ALPHA_OUT))).toBe(true);
   });
+
+  it("reports a stray file in a generated root as drift, and leaves hand-written siblings alone", async () => {
+    write(await plan({ root }), { root });
+    expect(check(await plan({ root }), { root })).toEqual([]);
+
+    const strayPaths = [
+      ".opencode/agent/stray.md",
+      ".opencode/skills/mine/SKILL.md",
+      ".opencode/command/mine.md",
+      "plugins/claude-code/agents/mine.md",
+      "built-ai-configs/opencode/agent/mine.md",
+    ];
+    for (const p of strayPaths) {
+      mkdirSync(dirname(join(root, p)), { recursive: true });
+      writeFileSync(join(root, p), "x");
+    }
+    // Hand-written folders next to the generated roots are not scanned.
+    for (const p of [".opencode/prompts/mine.md", ".opencode/config/mine.json", ".opencode/docs/mine.md"]) {
+      mkdirSync(dirname(join(root, p)), { recursive: true });
+      writeFileSync(join(root, p), "x");
+    }
+
+    const strays = check(await plan({ root }), { root }).filter((d) => d.status === "stray");
+    expect(strays.map((d) => d.path).sort()).toEqual([...strayPaths].sort());
+  });
+
+  it("does not call another target's output a stray under a targeted plan", async () => {
+    write(await plan({ root }), { root });
+    expect(check(await plan({ root, targets: ["claude-code"] }), { root })).toEqual([]);
+  });
 });
 
 // ============================================================================

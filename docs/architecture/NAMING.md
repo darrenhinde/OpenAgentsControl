@@ -98,15 +98,15 @@ Kept in the lint source, so each is visible and testable.
 | `coder-agent`, `build-agent` keep the `-agent` suffix | `LEGACY_AGENT_SUFFIX_IDS` | **Legacy exceptions, revisit.** They are plugin-facing names (`oac:coder-agent`); renaming them changes what Claude Code users type. |
 | `adr` is upper-case in `ADRManager` | `ACRONYMS` | Established acronym. |
 
-## Target layout
+## Layout
 
 ```
 agent-library/
-  agents/<category>/<id>.md     category only: core, code, planning, content, data, meta, system-builder, dev
-  profiles/                     install tiers and context sets
+  agents/<category>/<id>.md         category only: core, code, planning, content, data, meta, system-builder, dev
+  skills/<id>/SKILL.md              + supporting files; flat, no category
+  commands/[<group>/]<id>.md        at most one group folder (the folder is part of the command name)
+  profiles/system/*.json            install tiers
+  profiles/context/*.json           named sets of context files
+  context/**                        the context library, copied verbatim; context/components.json is its registry metadata
+  retired.json                      files that earlier releases shipped and no longer do
 ```
-
-  skills/<id>/SKILL.md          + supporting files; flat, no category
-  commands/[<group>/]<id>.md    at most one group folder (the folder is part of the command name)
-
-Planned, not present: `context/` (shared context docs).

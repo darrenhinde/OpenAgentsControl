@@ -18,10 +18,19 @@
 # In CI the checkout is clean, so "clean after the build" and "unchanged by the build" are
 # the same statement. Locally they are not: `.opencode/agent/eval-runner.md` is a real,
 # shipped, hand-authored agent with no canonical source, and any contributor may have
-# unrelated work in progress under these roots. Comparing the status BEFORE the build to the
+# unrelated work in progress under these roots (every file in .opencode/agent, eval-runner.md
+# included, is generated: it is agent-library/agents/dev/eval-runner.md). Comparing the status BEFORE the build to the
 # status AFTER attributes drift to the build rather than to the worktree — pre-existing dirt
 # appears in both snapshots and cancels. The gate stays honest and stays runnable locally,
 # which is the only way contributors ever see it fail before CI does.
+#
+# ── Stray files ──────────────────────────────────────────────────────────────────────────
+#
+# A before/after status cannot see an UNTRACKED file that sits in a generated root, since it is
+# in both snapshots. So after the build the gate also runs `oac build --check`, which compares
+# each generated root's directory listing with the ledger and reports any file no build
+# produced ("unexpected file X not produced by the build — delete it or add it to
+# agent-library/"). Hand-written folders (.opencode/{prompts,docs,scripts,config}) are not roots.
 #
 set -euo pipefail
 
@@ -56,6 +65,15 @@ bun packages/cli/dist/index.js build
 after="$(snapshot)"
 
 if [ "$before" = "$after" ]; then
+  # The tracked bytes match; now look for files the build did not produce (see "Stray files").
+  if ! check_out="$(bun packages/cli/dist/index.js build --check 2>&1)"; then
+    echo "" >&2
+    echo "❌ Files in the generated trees that no build produced:" >&2
+    printf '%s\n' "$check_out" | grep -E '^\s*(✖|x|error)?.*(stray|unexpected file|missing |modified |orphan )' >&2 || printf '%s\n' "$check_out" >&2
+    echo "" >&2
+    echo "Delete each, or make it a real source file under agent-library/ and run: make build-canonical" >&2
+    exit 1
+  fi
   echo ""
   echo "✅ No drift — the generated trees match agent-library/**."
   exit 0

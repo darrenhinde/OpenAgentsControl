@@ -19,7 +19,7 @@
  * registry list, which is the one an install uses.
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
 import { ContextProfileSchema, SystemProfileSchema } from "../types.js";
@@ -249,7 +249,7 @@ export class ProfileLoader {
     if (failures.length > 0) {
       throw new ProfileLoadError(
         `System profile "${id}" cannot be installed:\n` +
-          failures.map((f) => `  ${f.ref} does not resolve: ${f.reason}`).join("\n"),
+          failures.map((f) => `  ${f.ref} does not resolve: ${f.reason}${this.idMismatchHint(f.ref)}`).join("\n"),
         `${SYSTEM_PROFILES_DIR}/${id}.json`
       );
     }
@@ -286,6 +286,31 @@ export class ProfileLoader {
       ...asAgent,
       reason: `${asAgent.reason} (also tried as "subagent:${id}": ${asSubagent.reason})`,
     };
+  }
+
+  /**
+   * When an unresolved `agent:<id>` matches the FILE NAME of an agent whose `oac.id` is something
+   * else, the real cause is the id (naming rule: the file is named after the id), not the profile.
+   * The naming lint would say so, but it never runs once the build fails here. Empty when no file matches.
+   */
+  private idMismatchHint(ref: string): string {
+    const id = ref.replace(/^(?:agent|subagent):/, "");
+    const base = join(this.root, "agent-library/agents");
+    const walk = (dir: string): string[] => {
+      try {
+        return readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]));
+      } catch {
+        return [];
+      }
+    };
+    for (const file of walk(base)) {
+      if (!file.endsWith(`/${id}.md`)) continue;
+      const declared = /^\s+id:\s*["']?([^\s"'#]+)/m.exec(readFileSync(file, "utf-8"))?.[1];
+      if (declared !== undefined && declared !== id) {
+        return `\n    note: ${file.slice(this.root.length + 1)} declares oac.id "${declared}", not "${id}" — the file name and the id must match (fix the id, or the profile entry)`;
+      }
+    }
+    return "";
   }
 
   /** Load, validate and return one canonical profile JSON document. */

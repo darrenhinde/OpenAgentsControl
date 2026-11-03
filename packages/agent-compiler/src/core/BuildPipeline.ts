@@ -1052,7 +1052,52 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
 /** One file whose on-disk bytes disagree with the plan. */
 export interface Drift {
   path: string;
-  status: "missing" | "modified" | "orphan";
+  status: "missing" | "modified" | "orphan" | "stray";
+}
+
+/**
+ * Folders `oac build` owns outright: every file in them is either build output (in the ledger)
+ * or does not belong. A file here that neither this plan nor the previous ledger claims is a
+ * {@link Drift} `stray` (an untracked leftover or a hand-written file in a generated root).
+ * Hand-written siblings (`.opencode/{prompts,docs,scripts,config}`) live outside these roots.
+ */
+export const GENERATED_ROOTS: readonly string[] = [
+  HOSTS_ROOT,
+  ".opencode/agent",
+  ".opencode/command",
+  ".opencode/skills",
+  ".opencode/context",
+  "plugins/claude-code/agents",
+  "plugins/claude-code/skills",
+  "plugins/claude-code/commands",
+];
+
+/**
+ * Committed, hand-maintained content that lives INSIDE a generated root and is not build output:
+ * the OpenCode v1 flavor ships its own plugin and tool sources, and each v1 agent category folder
+ * carries a `0-category.json`. Not strays. Anything else in a root is.
+ */
+const HAND_MAINTAINED: readonly RegExp[] = [
+  /^built-ai-configs\/opencode-v1\/(plugin|plugins|tool)\//,
+  /^built-ai-configs\/opencode-v1\/agent\/(.+\/)?0-category\.json$/,
+];
+
+/** Files under `dir` (POSIX, repo-relative), not following symlinks, skipping OS noise and node_modules. */
+function listFiles(root: string, dir: string): string[] {
+  const out: string[] = [];
+  let entries: import("node:fs").Dirent[];
+  try {
+    entries = readdirSync(join(root, dir), { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const entry of entries) {
+    if (entry.name === "node_modules" || entry.name === ".DS_Store") continue;
+    const rel = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) out.push(...listFiles(root, rel));
+    else out.push(rel);
+  }
+  return out;
 }
 
 /**
@@ -1084,6 +1129,17 @@ export function check(plan: BuildPlan, options: WriteOptions): Drift[] {
     if (foreign(entry, plan)) continue;
     if (!(path in next.files) && lexists(join(root, path))) {
       drift.push({ path, status: "orphan" });
+    }
+  }
+
+  // Strays: files in a generated root that neither this plan nor the committed ledger claims.
+  // Skipped when output is redirected (the roots are then somewhere else entirely).
+  if (Object.keys(outputRoots).length === 0) {
+    const claimed = new Set([...Object.keys(next.files), ...Object.keys(readManifest(root).files)]);
+    for (const dir of GENERATED_ROOTS) {
+      for (const path of listFiles(root, dir)) {
+        if (!claimed.has(path) && !HAND_MAINTAINED.some((re) => re.test(path))) drift.push({ path, status: "stray" });
+      }
     }
   }
 

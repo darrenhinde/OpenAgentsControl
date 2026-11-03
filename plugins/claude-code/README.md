@@ -508,9 +508,9 @@ Create `hooks/hooks.json`:
 
 ## 📖 Documentation
 
-- [Main Documentation](../.opencode/docs/)
-- [Context System](../docs/context-system/)
-- [Planning Documents (archived)](../docs/history/archive/planning/)
+- [Main Documentation](../../docs/README.md)
+- [Context System](../../docs/guides/context-system.md)
+- [Planning Documents (archived)](../../docs/history/archive/planning/)
 
 ## 🤝 Contributing
 
@@ -518,7 +518,7 @@ Contributions welcome! See the main [OpenAgents Control repository](https://gith
 
 ## 📄 License
 
-MIT License - see [LICENSE](../LICENSE) for details.
+MIT License - see [LICENSE](../../LICENSE) for details.
 
 ## 🆘 Support
 
@@ -529,7 +529,7 @@ MIT License - see [LICENSE](../LICENSE) for details.
 
 ### Phase 1: Foundation ✅ COMPLETE
 - ✅ Plugin structure
-- ✅ 6 custom subagents (task-manager, context-scout, external-scout, coder-agent, test-engineer, code-reviewer)
+- ✅ 7 custom subagents (task-manager, context-scout, external-scout, coder-agent, test-engineer, code-reviewer, context-manager)
 - ✅ 8 workflow skills (using-oac, context-discovery, external-scout, task-breakdown, code-execution, test-generation, code-review, install-context, parallel-execution)
 - ✅ 4 user commands (/install-context, /oac:help, /oac:status, /oac:cleanup)
 - ✅ SessionStart hook: a 3-line notice that OAC is active (skills load on demand)

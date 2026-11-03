@@ -5,9 +5,20 @@ import path from "node:path";
 const files = ["README.md", "docs/contributing/CONTRIBUTING.md", "docs/README.md", "agent-library/README.md"].filter((f) =>
   fs.existsSync(f),
 );
-for (const f of fs.readdirSync("docs/architecture")) {
-  if (f.endsWith(".md")) files.push(path.join("docs/architecture", f));
-}
+// Shipped guidance: the architecture docs, the end-user guides, the Claude plugin README and the
+// authoring context for contributors. Dated history and maintenance notes are not scanned.
+files.push("plugins/claude-code/README.md");
+const walkMd = (dir, deep) => {
+  if (!fs.existsSync(dir)) return;
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isFile() && e.name.endsWith(".md")) files.push(p);
+    else if (e.isDirectory() && deep && e.name !== "node_modules") walkMd(p, deep);
+  }
+};
+walkMd("docs/architecture", false);
+walkMd("docs/guides", true);
+walkMd("agent-library/context/openagents-repo", true);
 
 const dead = [];
 for (const file of files) {

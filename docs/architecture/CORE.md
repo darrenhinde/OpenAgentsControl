@@ -87,7 +87,7 @@ writes, prunes and drift-checks those and nothing else.
 `make check-core` must pass. It runs:
 
 1. build the compiler and the CLI;
-2. the drift gate: a real build, then no change to any generated file;
+2. the drift gate: a real build, then no change to any generated file, and no file in a generated folder that the build did not produce (a stray);
 3. compiler tests (vitest) and CLI tests (`bun test`);
 4. typecheck and lint of the compiler, typecheck of the CLI;
 5. the change-detection tests that decide which CI gates run;

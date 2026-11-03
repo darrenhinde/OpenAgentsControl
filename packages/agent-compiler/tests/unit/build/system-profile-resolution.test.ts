@@ -378,6 +378,22 @@ describe("system profile resolution", () => {
     await expect(resolution).rejects.toThrow(/agent.*missing-agent.*(not found|unknown|resolve)/i);
   });
 
+  it("names the id mismatch when the unresolved agent is a file whose oac.id differs from its name", async () => {
+    fixture(root, {
+      systemProfile: { id: "basic-system", agents: ["changelog-writer"], contextProfiles: ["basic-context"] },
+    });
+    mkdirSync(join(root, "agent-library/agents/content"), { recursive: true });
+    writeFileSync(
+      join(root, "agent-library/agents/content/changelog-writer.md"),
+      "---\ndescription: x\nmode: subagent\noac:\n  id: changelog-writer-x\n  category: content\n---\nbody\n",
+    );
+    const profileLoader = await loader(root);
+
+    await expect(profileLoader.resolveSystemProfile("basic-system")).rejects.toThrow(
+      /declares oac\.id "changelog-writer-x", not "changelog-writer"/,
+    );
+  });
+
   it("fails actionably for an unknown context without widening the selection", async () => {
     // Arrange
     fixture(root, {

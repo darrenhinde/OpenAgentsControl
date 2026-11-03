@@ -203,8 +203,9 @@ describe("the real library", () => {
       const byId = new Map<string, { aliases?: string[] }>(
         [...registry.components.subagents, ...registry.components.agents].map((e: { id: string; aliases?: string[] }) => [e.id, e]),
       );
-      expect(byId.get("test-engineer")!.aliases).toEqual(["tester"]);
-      expect(byId.get("code-reviewer")!.aliases).toEqual(["reviewer"]);
+      // The renames must stay reachable; a contributor may add more aliases beside them.
+      expect(byId.get("test-engineer")!.aliases).toContain("tester");
+      expect(byId.get("code-reviewer")!.aliases).toContain("reviewer");
       expect(byId.has("tester")).toBe(false);
     }
   });
@@ -215,7 +216,7 @@ describe("the real library", () => {
       const registry = JSON.parse(built.files.find((f) => f.path === file)!.content);
       return [...registry.components.subagents, ...registry.components.agents].find((e: { id: string }) => e.id === id)?.supersedes;
     };
-    expect(supersedes("built-ai-configs/registry/registry.json", "test-engineer")).toEqual([".opencode/agent/tester.md"]);
+    expect(supersedes("built-ai-configs/registry/registry.json", "test-engineer")).toContain(".opencode/agent/tester.md");
     expect(supersedes("built-ai-configs/registry/registry.json", "task-manager")).toBeUndefined();
     const v1 = "built-ai-configs/opencode-v1/agent";
     expect(supersedes("built-ai-configs/registry/registry.v1.json", "context-scout")).toEqual([
@@ -227,7 +228,7 @@ describe("the real library", () => {
 
   it("records aliases in the build ledger (the drift gate keeps the committed ledger fresh)", () => {
     const ledger = JSON.parse(readFileSync(repoPath(".oac/build-manifest.json"), "utf-8"));
-    expect(ledger.files["plugins/claude-code/agents/test-engineer.md"].aliases).toEqual(["tester"]);
+    expect(ledger.files["plugins/claude-code/agents/test-engineer.md"].aliases).toContain("tester");
     expect(ledger.files["plugins/claude-code/agents/coder-agent.md"].aliases).toBeUndefined();
   });
 });

@@ -41,18 +41,20 @@ files together. The full version, with a worked example, is in [agent-library/RE
 ## Repository layout
 
 ```
-agent-library/                 SOURCE of every agent (edit here)
-  agents/<dir>/*.md              one file per agent; OpenCode frontmatter + an `oac:` block
+agent-library/                 SOURCE of every agent, skill, command and context file (edit here)
+  agents/<category>/*.md         one file per agent; OpenCode frontmatter + an `oac:` block
+  skills/ commands/ context/     skills, commands and the context library
   profiles/{system,context}/     install tiers and context sets
 packages/
   agent-compiler/                build library: src/{core,adapters,hosts,verify}
   cli/                           the `oac` CLI
 built-ai-configs/              GENERATED output per tool (opencode, opencode-v1, claude-code, registry)
-                                 except opencode-v1/{tool,plugin,plugins,skills,command}: hand-maintained
+                                 except opencode-v1/{tool,plugin,plugins}: hand-maintained
 .opencode/                     this repo's own OpenCode config
-  agent/                         GENERATED mirror of built-ai-configs/opencode/agent
-  command/ context/ skills/ prompts/   hand-written
-plugins/claude-code/           Claude Code plugin: agents/ is a GENERATED mirror; skills, commands, hooks are hand-written
+  agent/ command/ skills/ context/   GENERATED mirrors (every file in them is in .oac/build-manifest.json,
+                                   including agent/eval-runner.md, which is agent-library/agents/dev/eval-runner.md)
+  prompts/ docs/ scripts/ config/    hand-written
+plugins/claude-code/           Claude Code plugin: agents/ skills/ commands/ are GENERATED mirrors; hooks, settings and README are hand-written
 .oac/build-manifest.json       GENERATED ledger of every built file
 evals/                         eval framework and suites
 scripts/                       registry, validation, installer tests, prompts (see scripts/README.md)
@@ -68,7 +70,7 @@ Never hand-edit anything marked GENERATED: CI fails on any difference. Details a
 `make check-core` (also what CI reproduces): the drift gate (`make check-canonical-drift`), compiler tests
 (vitest), CLI tests (`bun test`), typecheck of both packages, the compiler lint (`pnpm --dir packages/agent-compiler run lint`), change-detection tests
 (`bun test scripts/validation`) and the installer tests (`scripts/tests/test-flavor-install.sh`).
-No test pins the number of agents, so adding an agent keeps it green.
+No test pins how many agents, skills, commands, context files or aliases exist (counts are floors), so adding one keeps it green.
 
 Other checks, each passing on a clean checkout:
 

@@ -1,6 +1,6 @@
 # Documentation map
 
-**Working on the repo? Read [../agent-library/README.md](../agent-library/README.md) (row 4) and nothing else is required.**
+**Working on the repo? Read [../agent-library/README.md](../agent-library/README.md) (row 4) and nothing else is required. Its ["Adding a thing" table](../agent-library/README.md#adding-a-thing) says which file to create and which command to run for an agent, skill, command, context file, profile entry, alias or retired file.**
 [CORE.md](architecture/CORE.md), [CONTRIBUTING.md](contributing/CONTRIBUTING.md) and [DEVELOPMENT.md](contributing/DEVELOPMENT.md)
 are optional depth. Users only need the first two rows.
 
@@ -30,7 +30,7 @@ Component registry: [../built-ai-configs/registry/registry.json](../built-ai-con
 
 ## Other topics
 
-- [agents/](agents/): per-agent guides ([openagent](agents/openagent.md), [opencoder](agents/opencoder.md))
+- [agents/](agents/): per-agent guides ([openagent](agents/openagent.md), [opencoder](agents/opencoder.md)) and the [agent categories](agents/category-system.md)
 - [features/system-builder/](features/system-builder/): build an AI system for your domain
 - [features/agent-system-blueprint.md](features/agent-system-blueprint.md): architecture patterns
 - [guides/building-with-opencode.md](guides/building-with-opencode.md)

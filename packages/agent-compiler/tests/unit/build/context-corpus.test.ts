@@ -1,7 +1,7 @@
 /**
- * The real context library: counts pinned, `.opencode/context` is exactly its copy, the registry
- * is exactly its metadata, and every context path an agent, skill or command names resolves.
- * A deliberate add or removal updates the numbers here.
+ * The real context library: `.opencode/context` is exactly its copy, the registry is exactly its
+ * metadata, and every context path an agent, skill or command names resolves. Counts are floors,
+ * not pins: adding a context file (or a components.json entry) must not need a test edit.
  */
 
 import { describe, expect, it } from "vitest";
@@ -23,17 +23,24 @@ const walk = (dir: string): string[] =>
         e.name === "node_modules" ? [] : e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)],
       );
 
-describe("the library (pinned counts)", () => {
-  it("has 275 regular files and 3 legacy symlinks; 192 registry entries over 189 files", () => {
+describe("the library (invariants)", () => {
+  it("has at least the known files, and exactly the three legacy symlinks", () => {
     const links = library.files.filter((f) => f.linkTarget !== undefined);
-    expect(library.files.length - links.length).toBe(275);
+    // Floors only: a contribution grows these. Removing files below the floor is a deliberate act.
+    expect(library.files.length - links.length).toBeGreaterThanOrEqual(275);
     expect(links.map((f) => `${f.relativePath} -> ${f.linkTarget}`)).toEqual([
       "core/standards/code.md -> code-quality.md",
       "core/standards/docs.md -> documentation.md",
       "core/standards/tests.md -> test-coverage.md",
     ]);
-    expect(library.components).toHaveLength(192);
-    expect(new Set(library.components.map((c) => c.file)).size).toBe(189);
+    expect(library.components.length).toBeGreaterThanOrEqual(192);
+  });
+
+  it("registry entries have unique ids and each points at a file in the library", () => {
+    const ids = library.components.map((c) => c.id);
+    expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([]);
+    const files = new Set(library.files.map((f) => f.relativePath));
+    expect(library.components.filter((c) => !files.has(c.file)).map((c) => c.id)).toEqual([]);
   });
 
   it("has no dead links and no navigation entry to a missing file beyond the known baseline", () => {
@@ -66,7 +73,7 @@ describe("the copy", () => {
 
 describe("registries list exactly components.json", () => {
   for (const file of ["built-ai-configs/registry/registry.json", "built-ai-configs/registry/registry.v1.json"]) {
-    it(`${file}: 192 contexts, in order, every file on disk`, () => {
+    it(`${file}: every context, in order, every file on disk`, () => {
       const registry = JSON.parse(readFileSync(repoPath(file), "utf-8")) as { components: { contexts: Array<{ id: string; path: string }> } };
       expect(registry.components.contexts.map((e) => e.id)).toEqual(library.components.map((c) => c.id));
       for (const entry of registry.components.contexts) expect(existsSync(repoPath(entry.path)), entry.path).toBe(true);

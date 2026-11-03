@@ -44,8 +44,9 @@ instead of following it.
 The copy belongs to the `opencode` build target in the ledger (`assetKind: "context"`, `assetId` the
 path inside the library, `root: ".opencode/context"`). A build over `--target claude-code` alone does
 not touch it. Because only ledgered files are ever pruned, a file you add by hand to `.opencode/context/`
-is never deleted, but the drift gate (which compares git status before and after a build) will not
-treat it as drift either; do not put hand-written files there. Edit `agent-library/context/` instead.
+is never deleted by the build, but the drift gate now fails on it as a stray ("unexpected file X not
+produced by the build"): `oac build --check` compares each generated folder's listing with the ledger.
+Edit `agent-library/context/` instead.
 
 ## `components.json`
 
@@ -100,7 +101,7 @@ Profiles are unchanged: `agent-library/profiles/context/*.json` list registry id
 
 Documentation placeholders (`{category}/{file}.md`, `<name>`, the examples in `PLACEHOLDER_TARGETS`) are
 skipped. Baseline at the move: 28 dead navigation entries, 2 dead links, 98 unreachable and 86
-unregistered files; `tests/unit/build/context-corpus.test.ts` pins an upper bound so none can be added.
+unregistered files; `tests/unit/build/context-corpus.test.ts` caps the number of dead links and navigation entries at the baseline so none can be added. File and registry counts are only floors there, so adding a context file needs no test edit.
 
 The same test is the **runtime path check**: every `.opencode/context/<path>` and `.claude/context/<path>`
 named by an agent, skill or command in `agent-library/` must exist as a regular file in the library, which is

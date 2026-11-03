@@ -17,7 +17,7 @@ import { BUILD_TARGETS, lintBuild } from '@controlstack/agent-compiler';
 import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { IN_PLACE_TARGETS, assertInPlace, selectTargets, strictExitCode, buildExitCode, runBuild } from '../commands/build.js';
+import { IN_PLACE_TARGETS, assertInPlace, selectTargets, strictExitCode, buildExitCode, runBuild, fixHint, strayMessage } from '../commands/build.js';
 
 // ── selectTargets ─────────────────────────────────────────────────────────────
 
@@ -130,5 +130,43 @@ describe('naming lint is report-only', () => {
     expect(dirty.out).toContain('BadName.md [filename-is-id]')
     expect(dirty.out.indexOf('naming lint (report-only')).toBeGreaterThan(dirty.out.lastIndexOf('oac build'))
     expect(clean.out).not.toContain('BadName')
+    // Report-only warnings say how to clear them, and the baseline context lint is a count line.
+    expect(dirty.out).toContain('fix: rename the file to <oac.id>.md')
+    expect(clean.out).toContain('dead navigation entr(ies)')
+    expect(clean.out).not.toContain('[navigation-dead-entry]')
   }, 60_000)
+
+  test('every report-only rule a newcomer meets has a fix hint', () => {
+    for (const rule of ['category-folder', 'filename-is-id', 'dead-link', 'navigation-dead-entry']) {
+      expect(fixHint(rule)).toBeDefined()
+    }
+    expect(fixHint('role-suffix')).toBeUndefined()
+  })
+
+  test('--check fails on a stray file in a generated root and names it; a write build only warns', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'oac-stray-'))
+    const lines: string[] = []
+    const realLog = console.log
+    const realErr = console.error
+    try {
+      for (const dir of ['agent-library', 'built-ai-configs', '.oac', '.opencode', 'plugins']) {
+        mkdirSync(join(root, dir), { recursive: true })
+        cpSync(join(repo, dir), join(root, dir), { recursive: true, verbatimSymlinks: true, filter: (src) => !src.includes('node_modules') })
+      }
+      writeFileSync(join(root, '.opencode/agent/not-mine.md'), 'x')
+      writeFileSync(join(root, '.opencode/prompts/not-mine.md'), 'x')
+      console.log = (...args: unknown[]): void => { lines.push(args.join(' ')) }
+      console.error = (...args: unknown[]): void => { lines.push(args.join(' ')) }
+      const base = { target: undefined, check: true, dryRun: false, strict: false, prune: true, verbose: false, json: false } as never
+      expect(await runBuild(base, root)).toBe(1)
+      const out = lines.join('\n')
+      expect(out).toContain(strayMessage('.opencode/agent/not-mine.md'))
+      expect(out).not.toContain('.opencode/prompts/not-mine.md')
+      expect(await runBuild({ ...(base as object), check: false } as never, root)).toBe(0)
+    } finally {
+      console.log = realLog
+      console.error = realErr
+      rmSync(root, { recursive: true, force: true })
+    }
+  }, 120_000)
 })

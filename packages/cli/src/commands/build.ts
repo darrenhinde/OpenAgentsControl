@@ -182,6 +182,43 @@ const reportDeprecations = (built: BuildPlan): number => {
  * under its own heading AFTER the summary, never counted in the summary, `--strict` or the exit
  * code, until the rule is promoted. Returns the number of `warn`-level findings.
  */
+/**
+ * What to do about a report-only finding, keyed by lint rule. Printed after the message so a
+ * newcomer's own warning says how to clear it. Pure.
+ */
+export const fixHint = (rule: string): string | undefined => {
+  switch (rule) {
+    case 'category-folder':
+      return 'fix: move the file to agent-library/agents/<category>/ (folder == category) or set oac.category to its folder'
+    case 'filename-is-id':
+      return 'fix: rename the file to <oac.id>.md, or change oac.id to match the file name'
+    case 'dead-link':
+      return 'fix: point the link at a file that exists under agent-library/context/, or add the missing file'
+    case 'navigation-dead-entry':
+      return 'fix: remove the entry from navigation.md, or add the file it names'
+    case 'subagents-folder':
+      return 'fix: move the file up into its category folder and set type: subagent'
+    case 'id-kebab-case':
+      return 'fix: use lowercase words joined by single hyphens'
+    case 'category-deprecated':
+      return 'fix: use one of the current categories (see docs/architecture/NAMING.md)'
+    default:
+      return undefined
+  }
+}
+
+const withHint = (rule: string, text: string): string => {
+  const hint = fixHint(rule)
+  return hint === undefined ? text : `${text} (${hint})`
+}
+
+/**
+ * Naming lint (docs/architecture/NAMING.md) over the canonical source. REPORT-ONLY: printed
+ * under its own heading AFTER the summary, never counted in the summary, `--strict` or the exit
+ * code, until the rule is promoted. Warnings are always listed, each with a fix hint; the info
+ * notes (the long-standing role-suffix ones) collapse to a count unless `--verbose`.
+ * Returns the number of `warn`-level findings.
+ */
 const reportNaming = (built: BuildPlan): number => {
   const findings = [
     ...lintNaming(built.agents),
@@ -191,27 +228,27 @@ const reportNaming = (built: BuildPlan): number => {
   if (findings.length === 0) return 0
   log('')
   dim('  naming lint (report-only; not counted above, never changes the exit code):')
-  for (const f of findings) {
-    dim(`    naming: ${f.path} [${f.rule}] ${f.message}${f.level === 'info' ? ' (info)' : ''}`)
-  }
-  dim(`    ${warns.length} naming warning(s), ${findings.length - warns.length} info note(s); not counted above`)
+  for (const f of warns) dim(`    naming: ${f.path} [${f.rule}] ${withHint(f.rule, f.message)}`)
+  for (const f of findings.filter((x) => x.level === 'info')) verbose(`naming: ${f.path} [${f.rule}] ${f.message} (info)`)
+  dim(`    ${warns.length} naming warning(s), ${findings.length - warns.length} info note(s) (--verbose lists the notes); not counted above`)
   return warns.length
 }
 
 /**
  * Context-library lint (`verify/lint/context.ts`) over `agent-library/context/`. REPORT-ONLY like
- * the naming lint: dead links and navigation entries are listed, the long tail (unreachable and
- * unregistered files) is summarised unless `--verbose`. Never counted, never changes the exit code.
+ * the naming lint, never counted, never changes the exit code. Dead links are listed with a fix
+ * hint; the long baseline tail (dead navigation entries, unreachable and unregistered files) is a
+ * count line unless `--verbose`, so a contributor's own new warning is not buried in it.
  */
 const reportContext = (built: BuildPlan): void => {
   const findings = lintContext(built.context)
   if (findings.length === 0) return
-  const actionable = findings.filter((f) => f.rule === 'dead-link' || f.rule === 'navigation-dead-entry')
+  const actionable = findings.filter((f) => f.rule === 'dead-link')
   const counts = (rule: string): number => findings.filter((f) => f.rule === rule).length
   log('')
   dim('  context lint (report-only; not counted above, never changes the exit code):')
-  for (const f of actionable) dim(`    context: ${f.path} [${f.rule}] ${f.message}`)
-  for (const f of findings.filter((x) => !actionable.includes(x))) verbose(`context: ${f.path} [${f.rule}] ${f.message}`)
+  for (const f of actionable) dim(`    context: ${f.path} [${f.rule}] ${withHint(f.rule, f.message)}`)
+  for (const f of findings.filter((x) => !actionable.includes(x))) verbose(`context: ${f.path} [${f.rule}] ${withHint(f.rule, f.message)}`)
   dim(
     `    ${counts('navigation-dead-entry')} dead navigation entr(ies), ${counts('dead-link')} dead link(s), ` +
       `${counts('unreachable')} file(s) not reachable from navigation, ${counts('unregistered')} unregistered file(s) (--verbose lists them)`,
@@ -226,8 +263,15 @@ export const strictExitCode = (strict: boolean, ...counts: number[]): number =>
 export const buildExitCode = (strict: boolean, lintErrors: number, ...counts: number[]): number =>
   lintErrors > 0 ? 1 : strictExitCode(strict, ...counts)
 
+/** The fix hint for a stray: a file in a generated root that no build produced. */
+export const strayMessage = (path: string): string =>
+  `unexpected file ${path} not produced by the build — delete it or add it to agent-library/`
+
 const reportDrift = (drift: readonly Drift[]): void => {
-  for (const entry of drift) error(`${entry.status.padEnd(8)} ${entry.path}`)
+  for (const entry of drift) {
+    if (entry.status === 'stray') error(`stray    ${strayMessage(entry.path)}`)
+    else error(`${entry.status.padEnd(8)} ${entry.path}`)
+  }
 }
 
 // ── Command ──────────────────────────────────────────────────────────────────
@@ -277,6 +321,12 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
       `${result.removed.length} removed`,
   )
 
+  // A write build leaves strays alone (it cannot know whether they are precious); say so. The
+  // `--check` mode (and so the CI drift gate) fails on them.
+  for (const entry of checkPlan(built, { root }).filter((d) => d.status === 'stray')) {
+    warn(`stray   ${strayMessage(entry.path)}`)
+  }
+
   summarize(warningCount, deadCount, lintCount, deprecationCount, options.strict)
   reportNaming(built)
   reportContext(built)
@@ -316,10 +366,10 @@ export const registerBuildCommand = (program: Command): void => {
       `build only these targets (${BUILD_TARGETS.join(', ')})`,
     )
     .option('--check', 'report drift and write nothing; exit 1 if the tree is stale', false)
-    .option('--dry-run', 'preview the build and write nothing', false)
+    .option('--dry-run', 'preview the build and write nothing (prints drift lines but exits 0; use --check to fail on drift)', false)
     .option('--strict', 'also exit 1 on any degradation warning, dead reference or lint warning (lint errors always fail)', false)
     .option('--no-prune', 'keep generated files whose canonical source is gone')
-    .option('--verbose', 'list every degradation warning', false)
+    .option('--verbose', 'list every degradation warning and every report-only lint note (the baseline context lint, info naming notes)', false)
     .option('--json', 'reserved for machine-readable output', false)
     .action(async (options: BuildOptions) => {
       try {

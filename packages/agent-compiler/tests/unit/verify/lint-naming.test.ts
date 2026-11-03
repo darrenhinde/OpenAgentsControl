@@ -98,18 +98,17 @@ describe("lintNaming", () => {
     });
   });
 
-  it("pins the real library: 34 agents, no naming warnings, four known role-suffix notes", async () => {
+  it("the real library has no naming warnings; info notes are only role-suffix", async () => {
     const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
-    expect(agents).toHaveLength(34);
+    expect(agents.length).toBeGreaterThanOrEqual(34);
+    const ids = agents.map((a) => a.oac.id);
+    expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([]);
 
     const findings = lintNaming(agents);
-    const counts: Record<string, number> = {};
-    for (const f of findings) counts[`${f.level}:${f.rule}`] = (counts[`${f.level}:${f.rule}`] ?? 0) + 1;
-
-    // Any new warning is a regression. The info notes are the legacy `-agent` ids and two
-    // single-word roles outside the vocabulary; extend ROLE_SUFFIXES or rename, then update this pin.
-    expect(counts).toEqual({ "info:role-suffix": 4 });
-    expect(findings.map((f) => f.id).sort()).toEqual(["build-agent", "coder-agent", "data-analyst", "system-builder"]);
+    // Any new warning is a regression. Info notes are advisory (legacy `-agent` ids, single-word
+    // roles outside the vocabulary); a new agent may add one without failing.
+    expect(findings.filter((f) => f.level === "warn")).toEqual([]);
+    expect(findings.filter((f) => f.rule !== "role-suffix")).toEqual([]);
   });
 
   it("finds the legacy exceptions only through the allow-list, not by accident", async () => {
@@ -118,15 +117,27 @@ describe("lintNaming", () => {
     expect(legacy).toEqual([...LEGACY_AGENT_SUFFIX_IDS].sort());
   });
 
-  it("keeps every renamed agent reachable by its old id", async () => {
+  it("keeps the five known renames reachable by their old ids", async () => {
     const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
     const aliases = Object.fromEntries(agents.filter((a) => a.oac.aliases.length > 0).map((a) => [a.oac.id, a.oac.aliases]));
-    expect(aliases).toEqual({
-      "code-reviewer": ["reviewer"],
-      "context-scout": ["contextscout"],
-      "doc-writer": ["documentation"],
-      "external-scout": ["externalscout"],
-      "test-engineer": ["tester"],
-    });
+    // Regression pin for the renames the registry supersedes list depends on. New aliases are fine.
+    for (const [id, old] of Object.entries({
+      "code-reviewer": "reviewer",
+      "context-scout": "contextscout",
+      "doc-writer": "documentation",
+      "external-scout": "externalscout",
+      "test-engineer": "tester",
+    })) {
+      expect(aliases[id], id).toContain(old);
+    }
+  });
+
+  it("aliases are consistent: unique, and never another agent's id", async () => {
+    const agents = await new CanonicalAgentLoader(repoPath("agent-library/agents")).loadFromDirectory();
+    const ids = new Set(agents.map((a) => a.oac.id));
+    const all = agents.flatMap((a) => a.oac.aliases.map((alias) => ({ owner: a.oac.id, alias })));
+    expect(all.filter((x) => ids.has(x.alias))).toEqual([]);
+    const seen = all.map((x) => x.alias);
+    expect(seen.filter((x, i) => seen.indexOf(x) !== i)).toEqual([]);
   });
 });

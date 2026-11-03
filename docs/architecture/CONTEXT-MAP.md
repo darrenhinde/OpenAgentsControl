@@ -28,7 +28,7 @@ described in [CONTEXT.md](CONTEXT.md).
 | CLI v1 flavor | Context is shared with v2: `listBundledFiles` takes `.opencode/context` for both and only overlays `built-ai-configs/opencode-v1/{agent,command,plugin,plugins,skills,tool}`. **There is no per-flavor context.** | `bundled.ts:229-246`; v1 registry contexts equal the v2 ones |
 | CLI `update`, `list`, `status`, `doctor` | `update` re-resolves the same file lists. `list` and `status` count context files on disk that OAC does not own. `doctor` requires `.opencode/context/navigation.md` and, for Claude discovery, `.oac.json` with `context.root` exactly `.opencode/context`. | `commands/update.ts:50-57`; `commands/list.ts:29-90`; `lib/doctor-checks.ts:33-37`, `:74-132` |
 | `oac init` Claude pointer | Writes `.oac.json` `{"version":"1","context":{"root":".opencode/context"}}`. | `commands/init.ts:235-254` |
-| npm package | Root `package.json` `files` ships `.opencode/context/` and `CONTEXT_SYSTEM_GUIDE.md`; `packages/cli/package.json` `files` is only `dist` (the bundle is resolved from the root package). `.npmignore` excludes `evals/` etc. and nothing under context. | `package.json` `files`; `packages/cli/package.json:12`; `.npmignore`; `__tests__/package-contents.test.ts:66-69` |
+| npm package | Root `package.json` `files` ships `.opencode/context/` and `docs/guides/context-system.md` (the end-user guide, formerly `CONTEXT_SYSTEM_GUIDE.md` at the repo root); `packages/cli/package.json` `files` is only `dist` (the bundle is resolved from the root package). `.npmignore` excludes `evals/` etc. and nothing under context. | `package.json` `files`; `packages/cli/package.json:12`; `.npmignore`; `__tests__/package-contents.test.ts:66-69` |
 
 ## 2. Registries and profiles
 
@@ -115,7 +115,7 @@ install path: `update.sh:326` (raw fetch), the Claude `install-context.*` script
   (`standards/code.md`, `docs.md`, `tests.md`), which is why the symlinks must survive.
 - `docs/` (outside `docs/history/`) has 65 references; `README.md` documents the discovery order and
   `.opencode/context/project*` as the team-owned slot (`README.md:222, 291-300, 499-519, 724`).
-- `CONTEXT_SYSTEM_GUIDE.md` (repo root, 700+ lines) is an end-user guide listed in the npm `files`.
+- `docs/guides/context-system.md` (formerly `CONTEXT_SYSTEM_GUIDE.md` at the repo root, 700+ lines) is the end-user guide, listed in the npm `files` (re-included in `.npmignore`).
 - User-owned content lives **inside** the shipped tree: `project-intelligence/` and `project/` are
   where users put their own files (`README.md:510-519`). The CLI treats files it does not own as the
   user's (`list.ts:74-90`), and `oac update`/`install.sh` skip-or-backup on edited files.
