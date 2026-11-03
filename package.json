@@ -20,6 +20,8 @@
     ".oac/build-manifest.json",
     "!.opencode/node_modules/",
     "!**/node_modules/",
+    "!**/.env",
+    "!**/.env.*",
     "scripts/",
     "bin/",
     "built-ai-configs/registry/registry.json",
