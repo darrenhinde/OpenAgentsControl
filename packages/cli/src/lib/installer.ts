@@ -1,5 +1,5 @@
 import path from "node:path";
-import { copyFile, mkdir, readdir, rmdir, rm, stat } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readdir, rmdir, rm, stat } from "node:fs/promises";
 import { DEFAULT_FLAVOR, toDestPath, type OpenCodeFlavor } from "./flavor.js";
 import { computeFileHash, hashesMatch } from "./sha256.js";
 import {
@@ -12,7 +12,7 @@ import {
 } from "./manifest.js";
 import { listBundledFiles, getBundledFilePath, classifyBundledFile, toManifestType } from "./bundled.js";
 import { filesForComponent, isInstallablePath, loadRegistry, type Registry, type RegistryComponent } from "./registry.js";
-import { findSuperseded, looksLikeBundledCopy, supersededIndex } from "./superseded.js";
+import { AGENT_DIR, findSuperseded, isSafeToRemove, looksLikeBundledCopy, supersededIndex } from "./superseded.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -587,21 +587,42 @@ export async function retireSuperseded(
     const tracked = manifest?.files[oldPath];
     const oacOwned = tracked !== undefined && tracked.source !== "custom" && tracked.protected !== true;
     const absolute = path.join(options.projectRoot, oldPath);
-    if (!oacOwned && !(await looksLikeBundledCopy(absolute, component))) {
+    if (!(await isSafeToRemove(options.projectRoot, oldPath))) {
+      process.stdout.write(
+        `[oac] warn: "${oldPath}" is a symlink or sits behind one that leaves ${AGENT_DIR}/ — left in place, nothing was read or removed\n`,
+      );
+      patch = mergePatch(patch, { skipped: [oldPath] });
+      continue;
+    }
+    // OAC's own copy, untouched since install: remove outright. Anything else (not tracked, custom,
+    // or tracked but edited) must still read as the old bundled copy, or it is the user's own agent.
+    const untouched = oacOwned && hashesMatch(await computeFileHash(absolute), tracked.sha256);
+    if (!untouched && !(await looksLikeBundledCopy(absolute, component))) {
       process.stdout.write(
         `[oac] warn: "${oldPath}" looks like your own agent, not the old OAC one replaced by "${newPath}" — left in place; remove it yourself if it is a duplicate\n`,
       );
       patch = mergePatch(patch, { skipped: [oldPath] });
       continue;
     }
-    // Untracked or custom: no recorded hash, so an empty one forces the backup.
-    const entry = oacOwned ? tracked : ({ sha256: "" } as FileEntry);
-    const pruned = await pruneFile(oldPath, entry, options, timestamp);
+    // Edited, untracked or custom: force a backup (an empty hash never matches the file).
+    const entry = untouched ? tracked : ({ sha256: "" } as FileEntry);
+    const pruned = await pruneFile(oldPath, entry, options, timestamp, AGENT_DIR);
     patch = mergePatch(patch, { ...pruned, pruned: undefined, superseded: pruned.pruned });
-    if (pruned.errors === undefined) {
-      log(options, `superseded: ${oldPath} -> ${newPath}`);
+    if (pruned.errors === undefined && pruned.pruned !== undefined) {
+      log(options, options.dryRun ? `would supersede: ${oldPath} -> ${newPath}` : `superseded: ${oldPath} -> ${newPath}`);
       updatedManifest = removeFileFromManifest(updatedManifest, oldPath);
     }
+  }
+  // A manifest entry whose superseded file is already gone (a crash between the removal and the
+  // manifest write, or the user deleted the duplicate by hand) is a ghost: `oac doctor` reports it
+  // as a missing file. Drop it once the replacement is in place.
+  for (const { oldPath, newPath, component } of supersededIndex(registry).values()) {
+    if (only !== undefined && !only(component)) continue;
+    if (updatedManifest.files[oldPath] === undefined) continue;
+    if (await lstat(path.join(options.projectRoot, oldPath)).then(() => true).catch(() => false)) continue;
+    if (!planned.has(newPath) && !(await stat(path.join(options.projectRoot, newPath)).then((s) => s.isFile()).catch(() => false))) continue;
+    updatedManifest = removeFileFromManifest(updatedManifest, oldPath);
+    patch = mergePatch(patch, { removed_from_manifest: [oldPath] });
   }
   // v1 nests agents by folder, each with a `0-category.json`; once a folder's last agent is
   // retired the marker is all that is left, so retire it too (no empty shell, no manifest ghost).
@@ -611,7 +632,7 @@ export async function retireSuperseded(
       if (entries === null || entries.length !== 1 || entries[0] !== CATEGORY_MARKER) continue;
       const marker = `${folder}/${CATEGORY_MARKER}`;
       const tracked = updatedManifest.files[marker];
-      const pruned = await pruneFile(marker, tracked ?? ({ sha256: "" } as FileEntry), options, timestamp);
+      const pruned = await pruneFile(marker, tracked ?? ({ sha256: "" } as FileEntry), options, timestamp, AGENT_DIR);
       patch = mergePatch(patch, { ...pruned, pruned: undefined, superseded: pruned.pruned });
       if (pruned.errors === undefined) updatedManifest = removeFileFromManifest(updatedManifest, marker);
     }
@@ -657,8 +678,15 @@ async function pruneFile(
   entry: FileEntry,
   options: InstallOptions,
   timestamp: string,
+  jail: string = ".opencode",
 ): Promise<Partial<InstallResult>> {
   const absolute = path.join(options.projectRoot, trackedPath);
+  if (!(await isSafeToRemove(options.projectRoot, trackedPath, jail))) {
+    process.stdout.write(
+      `[oac] warn: "${trackedPath}" is a symlink or sits behind one that leaves ${jail}/ — left in place\n`,
+    );
+    return { skipped: [trackedPath] };
+  }
   const onDisk = await stat(absolute).then((s) => s.isFile()).catch(() => false);
   if (!onDisk) return { pruned: [trackedPath] };
 
@@ -690,7 +718,7 @@ async function removeEmptyParents(projectRoot: string, file: string): Promise<vo
   while (dir.startsWith(stop + path.sep)) {
     const entries = await readdir(dir).catch(() => null);
     if (entries === null || entries.length > 0) return;
-    await rmdir(dir);
+    if (!(await rmdir(dir).then(() => true).catch(() => false))) return;
     dir = path.dirname(dir);
   }
 }

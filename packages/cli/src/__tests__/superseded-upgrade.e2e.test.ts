@@ -10,7 +10,7 @@
  */
 import { afterEach, describe, expect, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -131,10 +131,41 @@ describe('upgrade across a rename (OpenCode v2, flat agents)', () => {
     await rm(join(project, '.oac/manifest.json'));
     await writeFile(join(project, '.opencode/agent/tester.md'), agentText('My team tester, nothing to do with OAC'));
     // Re-adopt: init records what is there; the foreign tester.md is protected, not OAC's.
-    expect(oac(project, newRoot, ['init', '--profile', 'full'], '2.0.30').code).toBe(0);
+    const adopt = oac(project, newRoot, ['init', '--profile', 'full'], '2.0.30');
+    expect(adopt.code).toBe(0);
+    expect(adopt.out).toContain('looks like your own agent, not the old OAC one replaced by');
+    expect(adopt.out).toContain('.opencode/agent/tester.md');
     expect(await exists(project, '.opencode/agent/tester.md')).toBe(true);
     expect(await readFile(join(project, '.opencode/agent/tester.md'), 'utf8')).toContain('My team tester');
     expect(await exists(project, '.opencode/agent/test-engineer.md')).toBe(true);
+  });
+
+  test('a tracked file the user fully replaced is left with a warning, not backed up and removed', async () => {
+    const { project, newRoot } = await setup();
+    await writeFile(join(project, '.opencode/agent/tester.md'), agentText('A completely different tester'));
+    const dry = oac(project, newRoot, ['update', '--dry-run'], '2.0.30');
+    expect(dry.out).not.toContain('would remove: .opencode/agent/tester.md');
+    expect(dry.out).toContain('would supersede: .opencode/agent/contextscout.md');
+    expect(dry.out).not.toContain('superseded: ');
+    const run = oac(project, newRoot, ['update'], '2.0.30');
+    expect(run.code).toBe(0);
+    expect(run.out).toContain('looks like your own agent, not the old OAC one replaced by');
+    expect(await readFile(join(project, '.opencode/agent/tester.md'), 'utf8')).toContain('A completely different tester');
+    expect(await exists(project, '.opencode/agent/contextscout.md')).toBe(false);
+    expect((await list(join(project, '.oac/backups'))).filter((f) => f.endsWith('tester.md'))).toEqual([]);
+  });
+
+  test('a manifest entry whose superseded file is already gone is dropped, and doctor is healthy', async () => {
+    const { project, newRoot } = await setup();
+    // A crash between the removal and the manifest write, or the user deleting the duplicate by hand.
+    await rm(join(project, '.opencode/agent/tester.md'));
+    const before = JSON.parse(await readFile(join(project, '.oac/manifest.json'), 'utf8')) as { files: Record<string, unknown> };
+    expect(Object.keys(before.files)).toContain('.opencode/agent/tester.md');
+    expect(oac(project, newRoot, ['update'], '2.0.30').code).toBe(0);
+    const after = JSON.parse(await readFile(join(project, '.oac/manifest.json'), 'utf8')) as { files: Record<string, unknown> };
+    expect(Object.keys(after.files)).not.toContain('.opencode/agent/tester.md');
+    expect(Object.keys(after.files)).not.toContain('.opencode/agent/contextscout.md');
+    expect(oac(project, newRoot, ['doctor'], '2.0.30').out).toContain('HEALTHY');
   });
 
   test('oac doctor warns about both copies and names the fix; the fix clears it', async () => {
@@ -225,5 +256,64 @@ describe('oac apply claude and superseded agents', () => {
     await rm(join(project, '.opencode/agent/doc-writer.md'));
     await rm(join(project, '.claude'), { recursive: true });
     expect(oac(project, REPO, ['apply', 'claude'], '2.0.30').out).toContain('Skipping 1 superseded agent(s)');
+  });
+});
+
+describe('a hostile registry or symlinks cannot make the removal leave agent/', () => {
+  /** A new release whose test-engineer claims to supersede `supersedes`; returns it with an upgraded project. */
+  const hostile = async (supersedes: string[]) => {
+    const oldRoot = await newProject();
+    const newRoot = await newProject();
+    await writePackage(oldRoot, 'v2', [{ id: 'tester', path: '.opencode/agent/tester.md', description: 'Test authoring agent' }]);
+    await writePackage(newRoot, 'v2', [
+      { id: 'test-engineer', path: '.opencode/agent/test-engineer.md', description: 'Test authoring agent', supersedes },
+    ]);
+    const project = await newProject();
+    expect(oac(project, oldRoot, ['init', '--profile', 'full'], '2.0.30').code).toBe(0);
+    return { project, newRoot };
+  };
+
+  test('supersedes outside agent/ or not .md is ignored (context files, other extensions, traversal)', async () => {
+    const { project, newRoot } = await hostile([
+      '.opencode/context/index.md', '.opencode/agent/notes.txt', '.opencode/agent/../context/navigation.md', '.opencode/agent/tester.md',
+    ]);
+    await mkdir(join(project, '.opencode/context'), { recursive: true });
+    await writeFile(join(project, '.opencode/context/index.md'), agentText('Test authoring agent'));
+    await writeFile(join(project, '.opencode/context/navigation.md'), agentText('Test authoring agent'));
+    await writeFile(join(project, '.opencode/agent/notes.txt'), 'keep');
+    const before = await list(join(project, '.opencode'));
+    const run = oac(project, newRoot, ['update'], '2.0.30');
+    expect(run.code).toBe(0);
+    expect(await exists(project, '.opencode/context/index.md')).toBe(true);
+    expect(await exists(project, '.opencode/context/navigation.md')).toBe(true);
+    expect(await exists(project, '.opencode/agent/notes.txt')).toBe(true);
+    // Only the legitimate agent/tester.md entry was acted on.
+    expect(await list(join(project, '.opencode'))).toEqual(
+      [...before.filter((f) => f !== 'agent/tester.md'), 'agent/test-engineer.md'].sort(),
+    );
+  });
+
+  test('a symlinked directory under agent/ cannot be used to remove a file outside the project', async () => {
+    const { project, newRoot } = await hostile(['.opencode/agent/linkdir/victim.md']);
+    const outside = await newProject();
+    await writeFile(join(outside, 'victim.md'), agentText('Test authoring agent'));
+    await symlink(outside, join(project, '.opencode/agent/linkdir'));
+    const run = oac(project, newRoot, ['update'], '2.0.30');
+    expect(run.code).toBe(0);
+    expect(run.out).toContain('is a symlink or sits behind one');
+    expect(await exists(outside, 'victim.md')).toBe(true);
+    expect(await list(join(project, '.oac/backups')).then((l) => l.filter((f) => f.endsWith('victim.md')))).toEqual([]);
+  });
+
+  test('a symlinked file is neither read nor removed', async () => {
+    const { project, newRoot } = await hostile(['.opencode/agent/linked.md']);
+    const outside = await newProject();
+    await writeFile(join(outside, 'real.md'), agentText('Test authoring agent'));
+    await symlink(join(outside, 'real.md'), join(project, '.opencode/agent/linked.md'));
+    const run = oac(project, newRoot, ['update'], '2.0.30');
+    expect(run.code).toBe(0);
+    expect(run.out).toContain('is a symlink or sits behind one');
+    expect(await readFile(join(outside, 'real.md'), 'utf8')).toContain('Test authoring agent');
+    expect((await stat(join(project, '.opencode/agent/linked.md'))).isFile()).toBe(true);
   });
 });

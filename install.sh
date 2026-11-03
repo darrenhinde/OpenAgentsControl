@@ -322,6 +322,39 @@ superseded_rows() {
         "$TEMP_DIR/registry.json" 2>/dev/null | tr -d '\r'
 }
 
+# Physical (symlink-free) path of a directory, or fail. cd -P / pwd -P exist in bash 3.2 and on macOS.
+physical_dir() {
+    (cd -P "$1" 2>/dev/null && pwd -P)
+}
+
+# A superseded file may only be an .md file under <install dir>/agent/ ($1 = install-relative path).
+# The registry comes from the network, so this holds whatever the build validated.
+superseded_rel_ok() {
+    case "$1" in
+        agent/*.md) ;;
+        *) return 1 ;;
+    esac
+    case "$1" in
+        *\\*|*/../*|../*|*/..|*//*|*/./*) return 1 ;;
+    esac
+    return 0
+}
+
+# Safe to read or remove $2 (a file under install dir $1)? Not a symlink, and its parent directory,
+# with symlinks resolved, lies inside the resolved <install dir>/agent. A missing file is fine.
+superseded_target_safe() {
+    local install_dir="$1" file="$2" agent_real parent_real
+    [ -L "$file" ] && return 1
+    [ -e "$file" ] || return 0
+    [ -f "$file" ] || return 1
+    agent_real=$(physical_dir "${install_dir}/agent") || return 1
+    parent_real=$(physical_dir "$(dirname "$file")") || return 1
+    case "${parent_real}/" in
+        "${agent_real}/"*) return 0 ;;
+    esac
+    return 1
+}
+
 # The description line of an agent's frontmatter, without surrounding quotes.
 frontmatter_description() {
     sed -n -E '1,/^---[[:space:]]*$/{ s/^description:[[:space:]]*//p; }' "$1" 2>/dev/null | head -n 1 \
@@ -334,7 +367,7 @@ prune_empty_dirs() {
     dir=$(dirname "$1")
     while [ "$dir" != "$INSTALL_DIR" ] && [ "${dir#"$INSTALL_DIR"/}" != "$dir" ]; do
         # A v1 folder holding only its category marker is empty for our purposes.
-        if [ -f "$dir/0-category.json" ] && [ "$(ls -A "$dir" | wc -l | tr -d ' ')" = "1" ]; then
+        if [ ! -L "$dir" ] && [ -f "$dir/0-category.json" ] && [ ! -L "$dir/0-category.json" ] && [ "$(ls -A "$dir" | wc -l | tr -d ' ')" = "1" ]; then
             rm -f "$dir/0-category.json"
         fi
         rmdir "$dir" 2>/dev/null || return 0
@@ -357,8 +390,14 @@ retire_superseded_files() {
         dest_new=$(get_install_path "$new") || continue
         dest_old=$(get_install_path "$old") || { print_warning "Refusing unsafe registry path: $old"; continue; }
         [ "$dest_old" != "$dest_new" ] || continue
-        [ -f "$dest_old" ] || continue
+        superseded_rel_ok "${dest_old#"${INSTALL_DIR}"/}" || { print_warning "Ignoring superseded path outside agent/: $old"; continue; }
+        [ -e "$dest_old" ] || [ -L "$dest_old" ] || continue
         [ -f "$dest_new" ] || continue
+        if ! superseded_target_safe "$INSTALL_DIR" "$dest_old"; then
+            print_warning "Left ${dest_old}: it is a symlink, or sits behind one that leaves ${INSTALL_DIR}/agent. Nothing was read or removed."
+            kept=$((kept + 1))
+            continue
+        fi
         actual=$(frontmatter_description "$dest_old")
         if [ "$actual" != "$desc" ]; then
             print_warning "Left ${dest_old}: it does not look like the old OAC file replaced by ${dest_new}. If it is a duplicate, remove it yourself."
@@ -380,10 +419,12 @@ retire_superseded_files() {
     done <<< "$rows"
     SUPERSEDED_RETIRED=$retired
     SUPERSEDED_KEPT=$kept
+    SUPERSEDED_BACKUP_DIR=$backup_dir
 }
 
 SUPERSEDED_RETIRED=0
 SUPERSEDED_KEPT=0
+SUPERSEDED_BACKUP_DIR=
 
 # Warn about agent files from an earlier layout that are still next to their replacements.
 # retire_superseded_files has already removed what it safely could; this names the rest.
@@ -1474,6 +1515,7 @@ perform_installation() {
     echo -e "  Installed: ${GREEN}${installed}${NC}"
     [ $skipped -gt 0 ] && echo -e "  Skipped: ${CYAN}${skipped}${NC}"
     [ $failed -gt 0 ] && echo -e "  Failed: ${RED}${failed}${NC}"
+    [ -n "$SUPERSEDED_BACKUP_DIR" ] && echo -e "  Replaced files backed up in: ${CYAN}${SUPERSEDED_BACKUP_DIR}${NC}"
     
     show_post_install
 }

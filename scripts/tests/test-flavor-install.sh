@@ -286,6 +286,72 @@ assert_no_file "$EVIL/proj/up.md" "a registry path with .. does not write outsid
 assert_no_file "/tmp/oac-escaped-abs.md" "an absolute registry path is not written"
 assert_contains "$EVIL/log" "unsafe registry path" "...and the refusal is reported"
 
+# --- a hostile registry or a symlink cannot make the superseded-file removal leave agent/ ----------
+echo -e "\n${BOLD}superseded path guard${NC}"
+HS="$TEST_DIR/hostile"
+mkdir -p "$HS/pkg/built-ai-configs/registry" "$HS/pkg/.opencode/agent"
+printf -- '---\ndescription: Shared description\nmode: subagent\n---\nnew\n' > "$HS/pkg/.opencode/agent/new.md"
+cat > "$HS/pkg/built-ai-configs/registry/registry.json" <<'JSON'
+{"version":"1.0.0","components":{"agents":[],"subagents":[
+ {"id":"new","name":"new","type":"subagent","path":".opencode/agent/new.md","description":"Shared description","tags":[],"dependencies":[],"category":"core",
+  "supersedes":[".opencode/context/index.md",".opencode/agent/x.txt",".opencode/agent/linkdir/victim.md",".opencode/agent/linked.md",".opencode/agent/old.md"]}
+],"commands":[],"tools":[],"plugins":[],"contexts":[],"skills":[],"config":[]},
+"profiles":{"essential":{"name":"e","description":"e","components":["subagent:new"]}}}
+JSON
+hostile_project() {
+    # $1 = project dir; leaves a decoy of everything the registry above tries to reach
+    rm -rf "$1" "$1-outside"
+    mkdir -p "$1/.opencode/context" "$1/.opencode/agent" "$1-outside"
+    local desc='---\ndescription: Shared description\nmode: subagent\n---\nold\n'
+    printf -- "$desc" > "$1/.opencode/context/index.md"
+    printf -- "$desc" > "$1/.opencode/agent/x.txt"
+    printf -- "$desc" > "$1/.opencode/agent/old.md"
+    printf -- "$desc" > "$1-outside/victim.md"
+    printf -- "$desc" > "$1-outside/real.md"
+    ln -s "$1-outside" "$1/.opencode/agent/linkdir"
+    ln -s "$1-outside/real.md" "$1/.opencode/agent/linked.md"
+}
+assert_hostile_survived() {
+    assert_file "$1/.opencode/context/index.md"  "$2: a supersedes path outside agent/ is ignored"
+    assert_file "$1/.opencode/agent/x.txt"       "$2: a supersedes path that is not .md is ignored"
+    assert_file "$1-outside/victim.md"           "$2: a symlinked directory cannot reach a file outside the install"
+    assert_file "$1-outside/real.md"             "$2: a symlinked file is neither read nor removed"
+    assert_no_file "$1/.opencode/agent/old.md"   "$2: the legitimate superseded file is still retired"
+    assert_file "$1/.opencode/agent/new.md"      "$2: the replacement is installed"
+}
+HP="$HS/p1"
+hostile_project "$HP"
+(cd "$REPO_ROOT" && OAC_RAW_URL="file://$HS/pkg" REGISTRY_URL="file://$HS/pkg/built-ai-configs/registry/registry.json" bash install.sh essential --install-dir="$HP/.opencode") > "$HS/install.log" 2>&1
+assert_hostile_survived "$HP" "install.sh"
+assert_contains "$HS/install.log" "symlink" "install.sh warns about the symlink"
+assert_contains "$HS/install.log" "Replaced files backed up in" "install.sh prints the backup directory in its summary"
+HU="$HS/p2"
+hostile_project "$HU"
+cp "$HS/pkg/.opencode/agent/new.md" "$HU/.opencode/agent/new.md"
+(cd "$REPO_ROOT" && OAC_RAW_URL="file://$HS/pkg" bash update.sh --install-dir "$HU/.opencode") > "$HS/update.log" 2>&1
+assert_hostile_survived "$HU" "update.sh"
+assert_contains "$HS/update.log" "symlink" "update.sh warns about the symlink"
+assert_contains "$HS/update.log" "backed up in" "update.sh prints the backup directory"
+
+# update.sh without jq must not fetch the old name (it 404s): it skips it and still succeeds.
+NJ="$HS/nojq-bin"
+mkdir -p "$NJ"
+for tool in curl cp rm mkdir date sed head tr grep find ls wc dirname cat mktemp mv basename sort uname awk printf touch chmod; do
+    p=$(command -v "$tool" 2>/dev/null) && [ -x "$p" ] && ln -sf "$p" "$NJ/$tool"
+done
+HN="$HS/p3"
+hostile_project "$HN"
+cp "$HS/pkg/.opencode/agent/new.md" "$HN/.opencode/agent/new.md"
+if (cd "$REPO_ROOT" && PATH="$NJ" OAC_RAW_URL="file://$HS/pkg" /bin/bash update.sh --install-dir "$HN/.opencode") > "$HS/nojq.log" 2>&1; then
+    pass "update.sh without jq succeeds when a superseded old file is installed"
+else
+    fail "update.sh without jq succeeds when a superseded old file is installed (see $HS/nojq.log)"; sed 's/^/    /' "$HS/nojq.log" | tail -15
+fi
+assert_contains "$HS/nojq.log" "jq not found" "...and warns that jq is missing"
+assert_contains "$HS/nojq.log" "Skipping agent/old.md" "...and skips the old name instead of fetching it"
+assert_file "$HN/.opencode/agent/old.md" "...and leaves it in place"
+assert_file "$HN-outside/victim.md" "...and touches nothing outside"
+
 echo ""
 echo -e "${BOLD}Passed: $PASSED  Failed: $FAILED${NC}"
 [ "$FAILED" -eq 0 ]

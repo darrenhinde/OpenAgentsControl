@@ -45,8 +45,12 @@ Code: `packages/agent-compiler/src/verify/lint/naming.ts`.
    current id there. The registry also records `supersedes`: the paths the agent used to ship at
    (the old file name next to the new one, plus any `oac.previousPaths` entry for an agent that
    moved folders under v1). `oac update`, `oac init`, `oac add`, `install.sh` and `update.sh` use
-   it to remove the stale installed copy (an edited one is backed up first), and `oac doctor`
-   warns while one is left. **Moving or renaming an agent: add the old id to `aliases`; if it
+   it to remove the stale installed copy, and `oac doctor` warns while one is left. They only touch
+   an `.md` file under `.opencode/agent/` and never follow a symlink. An untouched OAC file is
+   removed; an edited, custom or untracked one is removed only when its frontmatter `description`
+   still equals the bundled one, after a backup (`.oac/backups/` for the CLI,
+   `<install dir>.backup.<time>/` for the scripts, whose path they print); a file that does not
+   match (your own agent that reuses an old id, even one OAC tracked) is left with a warning. **Moving or renaming an agent: add the old id to `aliases`; if it
    keeps its id but changes folder, add the old path to `previousPaths`.**
 7. **Skills and commands** follow the same id rules (a skill is a noun or verb-first phrase, a
    command is a verb) but are not linted: they are not canonical source types today. (Planned.)

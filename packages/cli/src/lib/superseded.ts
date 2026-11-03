@@ -10,7 +10,7 @@
  *
  * Reads the disk, never writes.
  */
-import { readFile, stat } from 'node:fs/promises';
+import { lstat, readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { toDestPath } from './flavor.js';
 import { isInstallablePath, listComponents, type Registry, type RegistryComponent } from './registry.js';
@@ -26,7 +26,40 @@ export type SupersededFile = {
 const isFile = (absolute: string): Promise<boolean> =>
   stat(absolute).then((s) => s.isFile()).catch(() => false);
 
-/** Old destination path -> the component that replaced it. Only safe paths under `.opencode/`. Pure. */
+/** Where a superseded (stale) file may sit: only inside the installed agent directory. */
+export const AGENT_DIR = '.opencode/agent';
+
+/**
+ * True when `destPath` (relative to the project root, already mapped by `toDestPath`) is somewhere a
+ * superseded file may be removed: a normalised `.md` path under `.opencode/agent/`. The registry is
+ * data from the network, so this is enforced here whatever the compiler validated. Pure.
+ */
+export const isSupersededPath = (destPath: string): boolean =>
+  destPath.startsWith(`${AGENT_DIR}/`) &&
+  destPath.endsWith('.md') &&
+  !destPath.includes('\\') &&
+  path.posix.normalize(destPath) === destPath &&
+  !destPath.split('/').includes('..');
+
+/**
+ * True when removing (or reading, to back it up) `destPath` cannot leave the install's agent
+ * directory: the file itself is not a symlink and its parent directory, once symlinks are resolved,
+ * lies inside the resolved agent directory. A missing file is "safe" (nothing to touch).
+ */
+export const isSafeToRemove = async (projectRoot: string, destPath: string, jail: string = AGENT_DIR): Promise<boolean> => {
+  const absolute = path.join(projectRoot, destPath);
+  const info = await lstat(absolute).catch(() => null);
+  if (info === null) return true;
+  if (info.isSymbolicLink() || !info.isFile()) return false;
+  const [parent, root] = await Promise.all([
+    realpath(path.dirname(absolute)).catch(() => null),
+    realpath(path.join(projectRoot, jail)).catch(() => null),
+  ]);
+  if (parent === null || root === null) return false;
+  return parent === root || parent.startsWith(root + path.sep);
+};
+
+/** Old destination path -> the component that replaced it. Only `.md` paths under `.opencode/agent/`. Pure. */
 export const supersededIndex = (registry: Registry): Map<string, SupersededFile> => {
   const index = new Map<string, SupersededFile>();
   for (const component of listComponents(registry)) {
@@ -35,6 +68,7 @@ export const supersededIndex = (registry: Registry): Map<string, SupersededFile>
     for (const previous of component.supersedes ?? []) {
       if (!isInstallablePath(previous)) continue;
       const oldPath = toDestPath(previous);
+      if (!isSupersededPath(oldPath)) continue;
       if (oldPath !== newPath) index.set(oldPath, { oldPath, newPath, component });
     }
   }

@@ -64,6 +64,7 @@ OPENCODE_FLAVOR=""
 
 UPDATED_COUNT=0
 FAILED_COUNT=0
+SKIPPED_SUPERSEDED=0
 
 # Track backup files for cleanup on exit
 BACKUP_FILES=()
@@ -312,6 +313,14 @@ update_component() {
         return 1
     fi
 
+    # A file a renamed or moved agent replaced has no upstream copy under its old name: skip it
+    # (migrate_superseded handled it, or left it on purpose) instead of counting a 404 as a failure.
+    if is_superseded_old_path "$relative_path"; then
+        print_warning "Skipping ${relative_path}: replaced by a renamed or moved agent, so there is no newer copy under this name."
+        SKIPPED_SUPERSEDED=$((SKIPPED_SUPERSEDED + 1))
+        return 0
+    fi
+
     local url="${REPO_URL}/.opencode/${relative_path}"
     local backup="${path}.backup"
 
@@ -361,12 +370,45 @@ prune_empty_dirs() {
     local install_dir="$1" dir
     dir=$(dirname "$2")
     while [ "$dir" != "$install_dir" ] && [ "${dir#"$install_dir"/}" != "$dir" ]; do
-        if [ -f "$dir/0-category.json" ] && [ "$(ls -A "$dir" | wc -l | tr -d ' ')" = "1" ]; then
+        if [ ! -L "$dir" ] && [ -f "$dir/0-category.json" ] && [ ! -L "$dir/0-category.json" ] && [ "$(ls -A "$dir" | wc -l | tr -d ' ')" = "1" ]; then
             rm -f "$dir/0-category.json"
         fi
         rmdir "$dir" 2>/dev/null || return 0
         dir=$(dirname "$dir")
     done
+}
+
+# Physical (symlink-free) path of a directory, or fail. cd -P / pwd -P exist in bash 3.2 and on macOS.
+physical_dir() {
+    (cd -P "$1" 2>/dev/null && pwd -P)
+}
+
+# A superseded file may only be an .md file under <install dir>/agent/ ($1 = install-relative path).
+# The registry comes from the network, so this holds whatever the build validated.
+superseded_rel_ok() {
+    case "$1" in
+        agent/*.md) ;;
+        *) return 1 ;;
+    esac
+    case "$1" in
+        *\\*|*/../*|../*|*/..|*//*|*/./*) return 1 ;;
+    esac
+    return 0
+}
+
+# Safe to read or remove $2 (a file under install dir $1)? Not a symlink, and its parent directory,
+# with symlinks resolved, lies inside the resolved <install dir>/agent. A missing file is fine.
+superseded_target_safe() {
+    local install_dir="$1" file="$2" agent_real parent_real
+    [ -L "$file" ] && return 1
+    [ -e "$file" ] || return 0
+    [ -f "$file" ] || return 1
+    agent_real=$(physical_dir "${install_dir}/agent") || return 1
+    parent_real=$(physical_dir "$(dirname "$file")") || return 1
+    case "${parent_real}/" in
+        "${agent_real}/"*) return 0 ;;
+    esac
+    return 1
 }
 
 # Registry path -> path relative to the install dir (same prefixes as install.sh's get_install_path).
@@ -376,6 +418,21 @@ registry_relative_path() {
 }
 
 SUPERSEDED_RETIRED=0
+SUPERSEDED_BACKUP_DIR=
+# Install-relative paths (one per line) of files a renamed or moved agent replaced. The per-file
+# refresh must not fetch them: the old name no longer exists upstream.
+SUPERSEDED_OLD_PATHS=
+
+is_superseded_old_path() {
+    case "
+${SUPERSEDED_OLD_PATHS}
+" in
+        *"
+$1
+"*) return 0 ;;
+    esac
+    return 1
+}
 
 migrate_superseded() {
     local install_dir="$1"
@@ -390,8 +447,20 @@ migrate_superseded() {
         return 0
     fi
 
+    # The old paths, without jq: squeeze the JSON to one line and pull out every "supersedes" array.
+    # Only used to skip those files in the per-file refresh (they would 404), never to delete.
+    local old_registry_path old_rel
+    while IFS= read -r old_registry_path; do
+        [ -n "$old_registry_path" ] || continue
+        old_rel=$(registry_relative_path "$old_registry_path")
+        is_safe_relative_path "$old_rel" || continue
+        SUPERSEDED_OLD_PATHS="${SUPERSEDED_OLD_PATHS}${old_rel}
+"
+    done < <(tr -d '\n\r\t ' < "$registry_file" | grep -o '"supersedes":\[[^]]*\]' \
+                 | grep -o '"[^"]*"' | grep -v '^"supersedes"$' | tr -d '"')
+
     if ! command -v jq >/dev/null 2>&1; then
-        print_warning "jq not found: cannot check for agents renamed or moved by this release. Run 'oac update' (or install jq) to migrate them."
+        print_warning "jq not found: cannot check for agents renamed or moved by this release. Run 'oac update' (or install jq) to migrate them. Their old files are skipped by this update, not removed."
         rm -f "$registry_file"
         return 0
     fi
@@ -410,9 +479,14 @@ migrate_superseded() {
         rel_new=$(registry_relative_path "$new")
         is_safe_relative_path "$rel_old" && is_safe_relative_path "$rel_new" || { print_warning "Skipping suspicious registry path: $old"; continue; }
         [ "$rel_old" != "$rel_new" ] || continue
+        superseded_rel_ok "$rel_old" || { print_warning "Ignoring superseded path outside agent/: $old"; continue; }
         dest_old="${install_dir}/${rel_old}"
         dest_new="${install_dir}/${rel_new}"
-        [ -f "$dest_old" ] || continue
+        [ -e "$dest_old" ] || [ -L "$dest_old" ] || continue
+        if ! superseded_target_safe "$install_dir" "$dest_old"; then
+            print_warning "Left ${dest_old}: it is a symlink, or sits behind one that leaves ${install_dir}/agent. Nothing was read or removed."
+            continue
+        fi
 
         if [ "$(frontmatter_description "$dest_old")" != "$desc" ]; then
             print_warning "Left ${dest_old}: it does not look like the old OAC file replaced by ${rel_new}. If it is a duplicate, remove it yourself."
@@ -428,6 +502,7 @@ migrate_superseded() {
         fi
         if [ -z "$backup_dir" ]; then
             backup_dir="${install_dir}.backup.$(date +%Y%m%d-%H%M%S)"
+            SUPERSEDED_BACKUP_DIR="$backup_dir"
         fi
         mkdir -p "$(dirname "${backup_dir}/${rel_old}")"
         if cp "$dest_old" "${backup_dir}/${rel_old}" && rm -f "$dest_old"; then
@@ -472,6 +547,7 @@ update_all_components() {
         fi
     done < <(find "$install_dir" -name "*.sh" -type f -not -path "*/node_modules/*" -print0)
 
+    updated=$((updated - SKIPPED_SUPERSEDED))
     print_info "Updated: $updated file(s), failed: $failed file(s)"
     UPDATED_COUNT=$updated
     FAILED_COUNT=$failed
@@ -572,6 +648,10 @@ main() {
     fi
 
     record_flavor "$install_dir"
+
+    if [ -n "$SUPERSEDED_BACKUP_DIR" ]; then
+        print_info "Replaced files were backed up in: ${SUPERSEDED_BACKUP_DIR}"
+    fi
 
     if [ "$FAILED_COUNT" -gt 0 ]; then
         print_warning "Update finished, but ${FAILED_COUNT} file(s) were left as they were (not in this version, or unreachable)."
