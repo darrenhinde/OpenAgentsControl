@@ -159,8 +159,10 @@ Ask ContextScout for the project's entry format first.
 <!-- /oac:only -->
 ```
 
-Next to it, `agent-library/skills/changelog-style/format.sh` (any supporting file; keep it
-executable with `chmod +x`, the build preserves the bit). The registry lists every file of a skill
+Next to it, `agent-library/skills/changelog-style/format.sh` (any supporting file, at any depth, binary
+or text; symlinks, `.git/` and `.DS_Store` are not shipped). Keep a script executable with `chmod +x`: the
+build and `oac init` preserve the bit, but `install.sh` does not, so tell users to run it with `bash` as the
+example does. The registry lists every file of a skill
 in `files`, which is what the installers download.
 
 `agent-library/commands/changelog.md`
@@ -188,10 +190,16 @@ What the build wrote for the skill:
 | OpenCode v1 | `built-ai-configs/opencode-v1/skills/changelog-style/` |
 | Claude Code | nothing: `targets` omits `claude-code` |
 
+A command's group folder must be kebab-case (`openagents`, not `Open Agents`).
+
 Commands go to `.../command/` the same way (Claude Code: `built-ai-configs/claude-code/commands/`,
 mirrored to `plugins/claude-code/commands/`). The registries (`registry.json` and `registry.v1.json`)
 gain a `skills` and a `commands` entry with `files` for the skill. Skills and commands that ship only to
 Claude Code (`targets: [claude-code]`, the plugin's workflow skills) are not in either registry.
+
+A dependency's prefix must match the agent's `type`: `subagent:<id>` for a `type: subagent` agent,
+`agent:<id>` for a `type: agent` one. A wrong prefix is not caught by the asset lint but shows up as a dead
+reference in the build (`no registry component has id "changelog-writer" of type "agent"`).
 
 `oac:` fields for a skill or command (`OacAssetBlockFieldsSchema` in `packages/agent-compiler/src/types.ts`; unknown keys are errors):
 `id`, `name` (required); `description` (registry text; default is the frontmatter one), `category` (registry tier:
@@ -213,8 +221,12 @@ Save the file, add its `id` to `agents` in `agent-library/profiles/system/<tier>
 agent and its profile entry go through in one build. A profile that names an id that does not exist still
 fails with `System profile "developer" cannot be installed: agent:<id> does not resolve: no registry component has id "<id>" of type "agent"`.
 
-A skill or command is installed the same way: add `skill:<id>` / `command:<id>` to `skills` / `commands`
-in the profile that should carry it.
+A skill or command is installed the same way, but the lists hold plain ids: add `"changelog-style"` to `skills`
+and `"changelog"` to `commands` in the profile that should carry it (`task-management` is the only skill in
+any profile today). Do not write `skill:changelog-style`: the build prefixes the type itself and fails with
+`skill:skill:changelog-style does not resolve`. Verified by building the worked example and running
+`oac init --profile developer` (v2 and v1) and `install.sh developer`: both installed
+`.opencode/skills/changelog-style/{SKILL.md,format.sh}` and `.opencode/command/changelog.md`.
 
 Remember: an agent that ships to Claude Code needs `oac.overrides.claude-code.tools` (and a `description` with an
 `<example>`), or give it `exclude: [claude-code]`; otherwise the build fails with a message naming the missing field.

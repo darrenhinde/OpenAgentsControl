@@ -131,6 +131,9 @@ function scratchRoot(registryJson: string): string {
   const root = mkdtempSync(join(tmpdir(), "oac-registry-"));
   mkdirSync(join(root, "built-ai-configs/registry"), { recursive: true });
   writeFileSync(join(root, "built-ai-configs/registry/registry.json"), registryJson);
+  // The retired-file list is hand-maintained input, like the agents: the scratch tree needs it too.
+  mkdirSync(join(root, "agent-library"), { recursive: true });
+  writeFileSync(join(root, "agent-library/retired.json"), readFileSync(repoPath("agent-library/retired.json")));
   return root;
 }
 
@@ -202,6 +205,16 @@ describe("determinism", () => {
     const document = await new RegistryEmitter(repoPath()).emit();
 
     expect(document.metadata).toEqual(COMMITTED.metadata);
+  });
+
+  it("emits the hand-maintained retired list as a top-level key, and nothing else carries it", async () => {
+    const document = await new RegistryEmitter(repoPath()).emit();
+    const retired = document.retired as Array<{ path: string; sha256: string[] }>;
+    expect(retired).toHaveLength(12);
+    expect(retired.every((entry) => entry.path.startsWith(".opencode/command/openagents/new-agents/"))).toBe(true);
+    expect(retired.every((entry) => entry.sha256.length > 0)).toBe(true);
+    // ordering is part of the content: it comes last, after profiles
+    expect(Object.keys(document).at(-1)).toBe("retired");
   });
 
   it("sorts generated entries by id, not by filesystem or insertion order", async () => {

@@ -10,6 +10,7 @@ import {
   manifestUnavailable,
   openCodeFlavorCheck,
   overallStatus,
+  retiredCheck,
   safeReadManifest,
   summariseResults,
   type CheckResult,
@@ -266,5 +267,34 @@ describe('openCodeFlavorCheck', () => {
     expect(check('v1', true, 0).status).toBe('error');
     expect(check('v2', true, 0).status).toBe('error');
     expect(check('v2', false, 0).message).toContain('upgrade OpenCode');
+  });
+});
+
+// ── retiredCheck ──────────────────────────────────────────────────────────────
+
+describe('retiredCheck', () => {
+  const file = (path: string, removable: boolean) => ({ path, sha256: ['a'], root: '.opencode/command', removable });
+
+  test('is ok when nothing is left behind', () => {
+    expect(retiredCheck([], true).status).toBe('ok');
+  });
+
+  test('warns, and says oac update will remove a pristine copy', () => {
+    const result = retiredCheck([file('.opencode/command/x/README.md', true)], true);
+    expect(result.status).toBe('warn');
+    expect(result.message).toContain("run 'oac update'");
+    expect(result.message).not.toContain('edited');
+  });
+
+  test('says an edited copy is left, so the fix is by hand', () => {
+    const result = retiredCheck([file('.opencode/command/x/README.md', false)], true);
+    expect(result.status).toBe('warn');
+    expect(result.message).not.toContain("run 'oac update'");
+    expect(result.message).toContain('edited, a symlink or your own');
+    expect(result.detail?.[0]).toContain('left: edited or not removable');
+  });
+
+  test('names oac init when there is no manifest', () => {
+    expect(retiredCheck([file('.opencode/command/x/a.md', true)], false).message).toContain("run 'oac init'");
   });
 });

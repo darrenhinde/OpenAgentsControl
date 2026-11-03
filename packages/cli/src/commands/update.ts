@@ -127,7 +127,7 @@ function printSummary(result: InstallResult, isDryRun: boolean): void {
   printFileList(`  ${prefix}New files installed`, result.installed, success);
   printFileList(`  ${prefix}Backed up to .oac/backups/`, result.backed_up, info);
   printFileList(`  Skipped (user-modified)`, result.skipped, warn);
-  printFileList(`  ${isDryRun ? 'Would remove' : 'Removed'} (superseded by a renamed or moved agent; edited copies are backed up first)`, result.superseded, info);
+  printFileList(`  ${isDryRun ? 'Would remove' : 'Removed'} (superseded by a renamed or moved agent, or no longer shipped; non-pristine copies are backed up first)`, result.superseded, info);
   printFileList(`  ${prefix}Removed (other OpenCode layout)`, result.pruned, info);
   printFileList(`  Removed from manifest (no longer in bundle)`, result.removed_from_manifest, warn);
   printFileList(`  Errors`, result.errors, error);

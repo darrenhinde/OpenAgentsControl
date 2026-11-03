@@ -12,7 +12,7 @@ import {
 } from "./manifest.js";
 import { listBundledFiles, getBundledFilePath, classifyBundledFile, toManifestType } from "./bundled.js";
 import { filesForComponent, isInstallablePath, loadRegistry, type Registry, type RegistryComponent } from "./registry.js";
-import { AGENT_DIR, findSuperseded, isSafeToRemove, looksLikeBundledCopy, supersededIndex } from "./superseded.js";
+import { AGENT_DIR, findRetired, findSuperseded, isSafeToRemove, looksLikeBundledCopy, matchesRetiredHash, retiredIndex, supersededIndex } from "./superseded.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -624,6 +624,13 @@ export async function retireSuperseded(
     updatedManifest = removeFileFromManifest(updatedManifest, oldPath);
     patch = mergePatch(patch, { removed_from_manifest: [oldPath] });
   }
+  // Files no release ships any more (registry `retired`): not a rename, so no replacement is needed.
+  // `oac add` is scoped to one component and leaves them for the next update.
+  if (only === undefined) {
+    const retired = await retireRetired(options, registry, updatedManifest, timestamp);
+    patch = mergePatch(patch, retired.patch);
+    updatedManifest = retired.updatedManifest;
+  }
   // v1 nests agents by folder, each with a `0-category.json`; once a folder's last agent is
   // retired the marker is all that is left, so retire it too (no empty shell, no manifest ghost).
   if (!options.dryRun) {
@@ -636,6 +643,58 @@ export async function retireSuperseded(
       patch = mergePatch(patch, { ...pruned, pruned: undefined, superseded: pruned.pruned });
       if (pruned.errors === undefined) updatedManifest = removeFileFromManifest(updatedManifest, marker);
     }
+  }
+  return { patch, updatedManifest };
+}
+
+/**
+ * Removes installed copies of RETIRED files (the registry's `retired` list). Same containment as
+ * superseded agent files: a normalised path under `.opencode/{agent,command,skills}/`; a symlink,
+ * or a file behind a symlinked directory that leaves its folder, is never read or removed. The file
+ * must still hash to a version OAC shipped; an edited file, or the user's own at that path, is
+ * left and reported. A pristine copy OAC tracks is removed outright; any other match is copied to
+ * `.oac/backups/` first. A manifest entry for a retired file that is already gone is dropped.
+ */
+async function retireRetired(
+  options: InstallOptions,
+  registry: Registry,
+  manifest: ManifestFile,
+  timestamp: string,
+): Promise<{ patch: Partial<InstallResult>; updatedManifest: ManifestFile }> {
+  let updatedManifest = manifest;
+  let patch: Partial<InstallResult> = {};
+  for (const entry of await findRetired(options.projectRoot, registry)) {
+    const absolute = path.join(options.projectRoot, entry.path);
+    if (!(await isSafeToRemove(options.projectRoot, entry.path, entry.root))) {
+      process.stdout.write(
+        `[oac] warn: "${entry.path}" is a symlink or sits behind one that leaves ${entry.root}/ — left in place, nothing was read or removed\n`,
+      );
+      patch = mergePatch(patch, { skipped: [entry.path] });
+      continue;
+    }
+    if (!(await matchesRetiredHash(absolute, entry))) {
+      process.stdout.write(
+        `[oac] warn: "${entry.path}" is no longer shipped by OAC but differs from the version OAC shipped (edited, or your own file) — left in place; remove it yourself if you do not need it\n`,
+      );
+      patch = mergePatch(patch, { skipped: [entry.path] });
+      continue;
+    }
+    const tracked = manifest.files[entry.path];
+    const untouched = tracked !== undefined && tracked.source !== "custom" && tracked.protected !== true &&
+      hashesMatch(await computeFileHash(absolute), tracked.sha256);
+    const pruned = await pruneFile(entry.path, untouched ? tracked : ({ sha256: "" } as FileEntry), options, timestamp, entry.root);
+    patch = mergePatch(patch, { ...pruned, pruned: undefined, superseded: pruned.pruned });
+    if (pruned.errors === undefined && pruned.pruned !== undefined) {
+      log(options, options.dryRun ? `would retire: ${entry.path}` : `retired: ${entry.path}`);
+      updatedManifest = removeFileFromManifest(updatedManifest, entry.path);
+    }
+  }
+  // Ghost manifest entries: the file is gone (deleted by hand, or a crash before the manifest write).
+  for (const entry of retiredIndex(registry).values()) {
+    if (updatedManifest.files[entry.path] === undefined) continue;
+    if (await lstat(path.join(options.projectRoot, entry.path)).then(() => true).catch(() => false)) continue;
+    updatedManifest = removeFileFromManifest(updatedManifest, entry.path);
+    patch = mergePatch(patch, { removed_from_manifest: [entry.path] });
   }
   return { patch, updatedManifest };
 }

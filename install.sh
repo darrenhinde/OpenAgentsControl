@@ -341,13 +341,13 @@ superseded_rel_ok() {
 }
 
 # Safe to read or remove $2 (a file under install dir $1)? Not a symlink, and its parent directory,
-# with symlinks resolved, lies inside the resolved <install dir>/agent. A missing file is fine.
+# with symlinks resolved, lies inside the resolved <install dir>/<$3, default agent>. A missing file is fine.
 superseded_target_safe() {
-    local install_dir="$1" file="$2" agent_real parent_real
+    local install_dir="$1" file="$2" jail="${3:-agent}" agent_real parent_real
     [ -L "$file" ] && return 1
     [ -e "$file" ] || return 0
     [ -f "$file" ] || return 1
-    agent_real=$(physical_dir "${install_dir}/agent") || return 1
+    agent_real=$(physical_dir "${install_dir}/${jail}") || return 1
     parent_real=$(physical_dir "$(dirname "$file")") || return 1
     case "${parent_real}/" in
         "${agent_real}/"*) return 0 ;;
@@ -425,6 +425,100 @@ retire_superseded_files() {
 SUPERSEDED_RETIRED=0
 SUPERSEDED_KEPT=0
 SUPERSEDED_BACKUP_DIR=
+
+# Retired files: paths an earlier release shipped that no release ships now, replaced by nothing
+# installable (the registry's top-level "retired" list, e.g. the agent-creation templates that sat
+# in command/openagents/new-agents/). Same containment as superseded agent files, widened to the
+# three folders OpenCode loads content from: a normalised path under agent/, command/ or skills/,
+# no symlink, and a parent directory that stays inside that folder once symlinks are resolved. The
+# file must still hash to a version OAC shipped (they are not all agents, so there is no description
+# to compare); an edited file or the user's own is left and reported. A copy goes to
+# ${INSTALL_DIR}.backup.<time>/ before any removal.
+
+# Hex SHA-256 of a file, empty when no tool is available.
+file_sha256() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" 2>/dev/null | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" 2>/dev/null | awk '{print $1}'
+    elif command -v openssl >/dev/null 2>&1; then
+        openssl dgst -sha256 "$1" 2>/dev/null | awk '{print $NF}'
+    fi
+}
+
+# "path<TAB>sha1,sha2,..." for every retired entry in the registry file $1.
+retired_rows() {
+    [ -f "$1" ] || return 0
+    jq -r '(.retired // [])[]? | select(.path != null) | [.path, ((.sha256 // []) | join(","))] | @tsv' "$1" 2>/dev/null | tr -d '\r'
+}
+
+# A retired file may only sit under <install dir>/{agent,command,skills}/ ($1 = install-relative path).
+retired_rel_ok() {
+    case "$1" in
+        agent/?*|command/?*|skills/?*) ;;
+        *) return 1 ;;
+    esac
+    case "$1" in
+        *\\*|*/../*|../*|*/..|*//*|*/./*|*/.) return 1 ;;
+    esac
+    return 0
+}
+
+# Remove the retired files listed in registry file $1 from install dir $2. $3 turns a registry path
+# into the install-relative path (a function name). Updates SUPERSEDED_RETIRED / KEPT / BACKUP_DIR.
+retire_retired_files_from() {
+    local registry_file="$1" install_dir="$2" mapper="$3"
+    local rows path sums rel dest root actual backup_dir
+    rows=$(retired_rows "$registry_file") || return 0
+    [ -n "$rows" ] || return 0
+    backup_dir="$SUPERSEDED_BACKUP_DIR"
+    while IFS=$'\t' read -r path sums; do
+        [ -n "$path" ] || continue
+        rel=$($mapper "$path") || { print_warning "Refusing unsafe registry path: $path"; continue; }
+        retired_rel_ok "$rel" || { print_warning "Ignoring retired path outside agent/, command/ and skills/: $path"; continue; }
+        dest="${install_dir}/${rel}"
+        [ -e "$dest" ] || [ -L "$dest" ] || continue
+        root="${rel%%/*}"
+        if ! superseded_target_safe "$install_dir" "$dest" "$root"; then
+            print_warning "Left ${dest}: it is a symlink, or sits behind one that leaves ${install_dir}/${root}. Nothing was read or removed."
+            SUPERSEDED_KEPT=$((SUPERSEDED_KEPT + 1))
+            continue
+        fi
+        actual=$(file_sha256 "$dest")
+        case ",${sums}," in
+            *",${actual},"*) [ -n "$actual" ] || actual="" ;;
+            *) actual="" ;;
+        esac
+        if [ -z "$actual" ]; then
+            print_warning "Left ${dest}: OAC no longer ships it, but it differs from the version OAC shipped (edited, or your own file). Remove it yourself if you do not need it."
+            SUPERSEDED_KEPT=$((SUPERSEDED_KEPT + 1))
+            continue
+        fi
+        if [ -z "$backup_dir" ]; then
+            backup_dir="${install_dir}.backup.$(date +%Y%m%d-%H%M%S)"
+        fi
+        mkdir -p "$(dirname "${backup_dir}/${rel}")"
+        if cp "$dest" "${backup_dir}/${rel}" && rm -f "$dest"; then
+            SUPERSEDED_BACKUP_DIR="$backup_dir"
+            print_success "Removed retired ${rel} (no longer shipped; copy in ${backup_dir})"
+            prune_empty_dirs "$dest"
+            SUPERSEDED_RETIRED=$((SUPERSEDED_RETIRED + 1))
+        else
+            print_warning "Could not remove retired ${dest}"
+        fi
+    done <<< "$rows"
+}
+
+# install.sh: a registry path becomes install-relative the way get_install_path does.
+retired_mapper_install() {
+    local full
+    full=$(get_install_path "$1") || return 1
+    echo "${full#"${INSTALL_DIR}"/}"
+}
+
+retire_retired_files() {
+    retire_retired_files_from "$TEMP_DIR/registry.json" "$INSTALL_DIR" retired_mapper_install
+}
 
 # Warn about agent files from an earlier layout that are still next to their replacements.
 # retire_superseded_files has already removed what it safely could; this names the rest.
@@ -1505,6 +1599,7 @@ perform_installation() {
     record_flavor_if_ok "$FILES_WRITTEN" "$failed"
     # Always: a re-run that skipped everything can still find old copies beside earlier new ones.
     retire_superseded_files
+    retire_retired_files
     if [ "$installed" -gt 0 ] || [ "$SUPERSEDED_RETIRED" -gt 0 ] || [ "$SUPERSEDED_KEPT" -gt 0 ]; then
         warn_legacy_agent_layout
     fi

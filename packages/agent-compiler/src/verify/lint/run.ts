@@ -10,7 +10,7 @@ import { lintV1Agents, lintV1Artifacts, lintV2Agents, type LintFile, type LintFi
 /** The slice of a build file a lint needs (structurally a `BuildFile`). */
 export interface LintableFile {
   path: string;
-  content: string;
+  content: string | Buffer;
   target: string;
   /** Set on a live-path mirror of another file; mirrors are not linted twice. */
   mirrorOf?: string;
@@ -48,6 +48,7 @@ export function lintBuild(files: readonly LintableFile[]): TargetLintResult[] {
   const byTarget = new Map<string, LintFile[]>();
   for (const file of files) {
     if (LINTS[file.target] === undefined || file.mirrorOf !== undefined || file.assetKind !== undefined) continue;
+    if (typeof file.content !== "string") continue;
     byTarget.set(file.target, [...(byTarget.get(file.target) ?? []), { path: file.path, text: file.content }]);
   }
   return [...byTarget].map(([target, group]) => ({ target, findings: LINTS[target]!(group) }));

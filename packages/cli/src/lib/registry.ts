@@ -68,6 +68,17 @@ export const RegistryComponentSchema = z.object({
   supersedes: z.array(z.string()).optional(),
 });
 
+/**
+ * A file an earlier release installed that no release ships any more (registry top-level `retired`,
+ * from `agent-library/retired.json`). Removed from a project only when its bytes still hash to one
+ * of `sha256`; see `retireRetired` in installer.ts.
+ */
+export const RetiredFileEntrySchema = z.object({
+  path: z.string(),
+  sha256: z.array(z.string()).default([]),
+  replacedBy: z.string().optional(),
+});
+
 /** An install tier: a name, a blurb, and the `type:id` refs it pulls in. */
 export const RegistryProfileSchema = z.object({
   name: z.string(),
@@ -93,12 +104,15 @@ export const RegistrySchema = z.object({
     config: componentList,
   }),
   profiles: z.record(z.string(), RegistryProfileSchema).default({}),
+  /** Shipped paths that were retired. Absent in older registries. */
+  retired: z.array(RetiredFileEntrySchema).default([]),
 });
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 export type ComponentType = z.infer<typeof ComponentTypeSchema>;
 export type RegistryComponent = z.infer<typeof RegistryComponentSchema>;
+export type RetiredFileEntry = z.infer<typeof RetiredFileEntrySchema>;
 export type RegistryProfile = z.infer<typeof RegistryProfileSchema>;
 export type Registry = z.infer<typeof RegistrySchema>;
 

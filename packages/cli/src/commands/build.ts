@@ -127,7 +127,9 @@ const reportWarnings = (built: BuildPlan): void => {
  * makes them fatal, and CI's test suite catches them regardless.
  */
 const reportDeadReferences = async (root: string, built: BuildPlan): Promise<number> => {
-  const pending = new Map(built.files.map((file) => [file.path, file.content]))
+  const pending = new Map(
+    built.files.flatMap((file): Array<[string, string]> => (typeof file.content === 'string' ? [[file.path, file.content]] : [])),
+  )
   const dead = await new ReferenceResolver(root, undefined, pending).findDeadReferences()
   for (const resolution of dead) {
     warn(`${resolution.source}: ${resolution.ref} — ${resolution.reason ?? resolution.status}`)

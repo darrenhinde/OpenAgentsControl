@@ -109,8 +109,8 @@ export interface BuildFile {
    * only where a second copy would double-count, such as the lints.
    */
   mirrorOf?: string;
-  /** The exact bytes to write. */
-  content: string;
+  /** The exact bytes to write: a string (UTF-8) or, for a binary skill file, a Buffer. */
+  content: string | Buffer;
   /**
    * The target that produced it; `"registry"` / `"registry-v1"` for the two registry files and
    * `"hosts-readme"` for the generated `built-ai-configs/README.md` index.
@@ -368,8 +368,16 @@ function isUnder(path: string, root: string): boolean {
   return path === root || path.startsWith(`${root}/`);
 }
 
-function sha256(content: string): string {
-  return createHash("sha256").update(content, "utf-8").digest("hex");
+function sha256(content: string | Buffer): string {
+  return typeof content === "string"
+    ? createHash("sha256").update(content, "utf-8").digest("hex")
+    : createHash("sha256").update(content).digest("hex");
+}
+
+/** True when the file on disk holds exactly the planned bytes (no decoding, so binaries compare true). */
+function sameBytes(absolute: string, content: string | Buffer): boolean {
+  const disk = readFileSync(absolute);
+  return disk.equals(typeof content === "string" ? Buffer.from(content, "utf-8") : content);
 }
 
 /**
@@ -690,7 +698,7 @@ function foreign(entry: ManifestEntry, plan: BuildPlan): boolean {
  * The entry point `tests/unit/build/determinism.test.ts` drives: two calls over one tree must
  * produce identical maps.
  */
-export async function build(options: BuildOptions): Promise<Map<string, string>> {
+export async function build(options: BuildOptions): Promise<Map<string, string | Buffer>> {
   const { files } = await plan(options);
   return new Map(files.map((file) => [file.path, file.content]));
 }
@@ -735,7 +743,7 @@ export async function buildAgentIn(
     );
   }
 
-  return file.content;
+  return file.content.toString("utf-8");
 }
 
 // ============================================================================
@@ -809,7 +817,7 @@ function prunable(absolute: string, path: string, entry: ManifestEntry): string 
   if (!isUnder(path, entry.root)) {
     return `manifest entry sits outside its recorded output root (${entry.root})`;
   }
-  if (sha256(readFileSync(absolute, "utf-8")) !== entry.sha256) {
+  if (sha256(readFileSync(absolute)) !== entry.sha256) {
     return "modified since it was generated — refusing to delete a file someone has edited";
   }
 
@@ -875,7 +883,7 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
     const absolute = join(root, path);
     const exists = existsSync(absolute);
 
-    if (exists && readFileSync(absolute, "utf-8") === file.content) {
+    if (exists && sameBytes(absolute, file.content)) {
       if (file.executable === true && !isExecutableOnDisk(absolute)) {
         chmodSync(absolute, 0o755);
         result.changed.push(path);
@@ -886,7 +894,7 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
     }
 
     mkdirSync(dirname(absolute), { recursive: true });
-    writeFileSync(absolute, file.content, "utf-8");
+    writeFileSync(absolute, file.content);
     if (file.executable === true) chmodSync(absolute, 0o755);
     result.changed.push(path);
   }
@@ -966,7 +974,7 @@ export function check(plan: BuildPlan, options: WriteOptions): Drift[] {
     const absolute = join(root, path);
 
     if (!existsSync(absolute)) drift.push({ path, status: "missing" });
-    else if (readFileSync(absolute, "utf-8") !== file.content) {
+    else if (!sameBytes(absolute, file.content)) {
       drift.push({ path, status: "modified" });
     } else if (file.executable === true && !isExecutableOnDisk(absolute)) {
       drift.push({ path, status: "modified" });

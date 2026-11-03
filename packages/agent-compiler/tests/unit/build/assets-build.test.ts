@@ -4,7 +4,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { check, plan, readManifest, write } from "../../../src/core/BuildPipeline.js";
@@ -309,5 +310,114 @@ describe("lints", () => {
     put("agent-library/skills/smart-router-skill/SKILL.md", SKILL.replace(/id: demo/, "id: smart-router-skill").replace("name: demo", "name: smart-router-skill"));
     const naming = lintAssetNaming(loadCanonicalAssets(root).skills);
     expect(naming).toEqual([]);
+  });
+});
+
+// A PNG signature, a lone 0x80 / 0xFF (invalid UTF-8) and every byte value: what a utf-8 round trip corrupts.
+const BINARY = Buffer.concat([
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x80, 0xff, 0xfe]),
+  Buffer.from(Array.from({ length: 256 }, (_, i) => i)),
+]);
+
+describe("binary supporting files", () => {
+  const putBytes = (path: string, bytes: Buffer): void => {
+    const absolute = join(root, path);
+    mkdirSync(dirname(absolute), { recursive: true });
+    writeFileSync(absolute, bytes);
+  };
+
+  it("round-trips byte-identical through build, the mirrors, the ledger and the drift check", async () => {
+    putBytes("agent-library/skills/demo/assets/logo.png", BINARY);
+    const built = await plan({ root });
+    const emitted = built.files.find((f) => f.path === "built-ai-configs/opencode/skills/demo/assets/logo.png")!;
+    expect(Buffer.isBuffer(emitted.content)).toBe(true);
+    write(built, { root });
+
+    for (const out of [
+      "built-ai-configs/opencode/skills/demo/assets/logo.png",
+      ".opencode/skills/demo/assets/logo.png",
+      "built-ai-configs/opencode-v1/skills/demo/assets/logo.png",
+    ]) {
+      expect(readFileSync(join(root, out)).equals(BINARY)).toBe(true);
+    }
+    expect(readManifest(root).files[".opencode/skills/demo/assets/logo.png"]!.sha256).toBe(
+      createHash("sha256").update(BINARY).digest("hex"),
+    );
+    // unchanged on rebuild, clean drift check
+    expect(write(await plan({ root }), { root }).changed).toEqual([]);
+    expect(check(await plan({ root }), { root })).toEqual([]);
+
+    // a one-byte edit is drift
+    const edited = Buffer.from(BINARY);
+    edited[20] ^= 0x01;
+    writeFileSync(join(root, ".opencode/skills/demo/assets/logo.png"), edited);
+    expect(check(await plan({ root }), { root })).toEqual([{ path: ".opencode/skills/demo/assets/logo.png", status: "modified" }]);
+  });
+
+  it("prunes an unedited binary when its source is deleted, and keeps an edited one", async () => {
+    putBytes("agent-library/skills/demo/assets/logo.png", BINARY);
+    write(await plan({ root }), { root });
+    rmSync(join(root, "agent-library/skills/demo/assets"), { recursive: true });
+    const edited = Buffer.from(BINARY);
+    edited[3] = 0;
+    writeFileSync(join(root, "built-ai-configs/opencode/skills/demo/assets/logo.png"), edited);
+    const result = write(await plan({ root }), { root });
+    expect(result.removed).toContain(".opencode/skills/demo/assets/logo.png");
+    expect(result.kept.map((k) => k.path)).toEqual(["built-ai-configs/opencode/skills/demo/assets/logo.png"]);
+  });
+
+  it("keeps text files as strings", async () => {
+    const built = await plan({ root });
+    expect(typeof built.files.find((f) => f.path === "built-ai-configs/opencode/skills/demo/router.sh")!.content).toBe("string");
+  });
+});
+
+describe("hostile skill folders", () => {
+  it("never follows a symlink inside a skill (to a file or a folder), and does not crash", async () => {
+    put("outside/secret.txt", "TOP SECRET");
+    symlinkSync(join(root, "outside/secret.txt"), join(root, "agent-library/skills/demo/passwd-link"));
+    symlinkSync("/etc/passwd", join(root, "agent-library/skills/demo/etc-passwd"));
+    symlinkSync(join(root, "outside"), join(root, "agent-library/skills/demo/dir-link"));
+    const loaded = loadCanonicalAssets(root);
+    expect(loaded.skills.find((s) => s.oac.id === "demo")!.supporting.map((f) => f.relativePath)).toEqual(["notes.md", "router.sh"]);
+    const built = await plan({ root });
+    expect(built.files.some((f) => /passwd|secret|dir-link/.test(f.path))).toBe(false);
+    expect(built.files.some((f) => typeof f.content === "string" && f.content.includes("TOP SECRET"))).toBe(false);
+  });
+
+  it("skips .git folders and .DS_Store but ships other dotfiles", () => {
+    put("agent-library/skills/demo/.git/config", "x");
+    put("agent-library/skills/demo/.DS_Store", "x");
+    put("agent-library/skills/demo/node_modules/m/index.js", "x");
+    put("agent-library/skills/demo/.env.example", "A=1\n");
+    const supporting = loadCanonicalAssets(root).skills[0]!.supporting.map((f) => f.relativePath);
+    expect(supporting).toEqual([".env.example", "notes.md", "router.sh"]);
+  });
+
+  it("copies deep nesting and file names with spaces and unicode", async () => {
+    put("agent-library/skills/demo/a/b/c/d/e/f/g/deep.txt", "deep\n");
+    put("agent-library/skills/demo/my notes/Résumé \u00fcber.txt", "uni\n");
+    const built = await plan({ root });
+    const paths = built.files.map((f) => f.path);
+    expect(paths).toContain("built-ai-configs/opencode/skills/demo/a/b/c/d/e/f/g/deep.txt");
+    expect(paths).toContain("built-ai-configs/opencode/skills/demo/my notes/Résumé über.txt");
+  });
+
+  it("fails clearly, naming the file, on a malformed oac:only marker in a supporting .md", async () => {
+    put("agent-library/skills/demo/bad.md", "<!-- oac:only opencode -->\nnever closed\n");
+    await expect(plan({ root })).rejects.toThrow(/bad\.md/);
+    put("agent-library/skills/demo/bad.md", "<!-- oac:only nonsense-host -->\nx\n<!-- /oac:only -->\n");
+    await expect(plan({ root })).rejects.toThrow(/unknown target "nonsense-host"/);
+  });
+
+  it("requires a command group folder to be kebab-case", () => {
+    put("agent-library/commands/Open Agents/validate.md", COMMAND_PLAIN);
+    expect(() => loadCanonicalAssets(root)).toThrow(/group folder "Open Agents" must be kebab-case/);
+    rmSync(join(root, "agent-library/commands/Open Agents"), { recursive: true });
+    put("agent-library/commands/open_agents/validate.md", COMMAND_PLAIN);
+    expect(() => loadCanonicalAssets(root)).toThrow(/must be kebab-case/);
+    rmSync(join(root, "agent-library/commands/open_agents"), { recursive: true });
+    put("agent-library/commands/ok-group/sub-group/validate.md", COMMAND_PLAIN);
+    expect(loadCanonicalAssets(root).commands.map((c) => c.group)).toEqual(["ok-group/sub-group"]);
   });
 });

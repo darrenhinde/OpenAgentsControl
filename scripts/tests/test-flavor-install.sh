@@ -352,6 +352,106 @@ assert_contains "$HS/nojq.log" "Skipping agent/old.md" "...and skips the old nam
 assert_file "$HN/.opencode/agent/old.md" "...and leaves it in place"
 assert_file "$HN-outside/victim.md" "...and touches nothing outside"
 
+# --- retired files: shipped once, shipped no more (registry "retired"), same containment ----------------
+echo -e "\n${BOLD}retired files${NC}"
+RT="$TEST_DIR/retired"
+sha() { shasum -a 256 "$1" | awk '{print $1}'; }
+mkdir -p "$RT/pkg/built-ai-configs/registry" "$RT/pkg/.opencode/agent" "$RT/seed"
+printf -- '---\ndescription: Shared description\nmode: subagent\n---\nnew\n' > "$RT/pkg/.opencode/agent/new.md"
+printf 'old readme\n' > "$RT/seed/README.md"
+printf 'name: t\n' > "$RT/seed/t.yaml"
+printf '\000\377\200\n' > "$RT/seed/blob.bin"
+printf 'old skill\n' > "$RT/seed/SKILL.md"
+printf 'victim\n' > "$RT/seed/victim.md"
+printf 'index\n' > "$RT/seed/index.md"
+H_README=$(sha "$RT/seed/README.md"); H_YAML=$(sha "$RT/seed/t.yaml"); H_BIN=$(sha "$RT/seed/blob.bin")
+H_SKILL=$(sha "$RT/seed/SKILL.md"); H_VICTIM=$(sha "$RT/seed/victim.md"); H_INDEX=$(sha "$RT/seed/index.md")
+NA=".opencode/command/openagents/new-agents"
+cat > "$RT/pkg/built-ai-configs/registry/registry.json" <<JSON
+{"version":"1.0.0","components":{"agents":[],"subagents":[
+ {"id":"new","name":"new","type":"subagent","path":".opencode/agent/new.md","description":"Shared description","tags":[],"dependencies":[],"category":"core"}
+],"commands":[],"tools":[],"plugins":[],"contexts":[],"skills":[],"config":[]},
+"profiles":{"essential":{"name":"e","description":"e","components":["subagent:new"]}},
+"retired":[
+ {"path":"$NA/README.md","sha256":["$(printf 'f%.0s' $(seq 64))","$H_README"],"replacedBy":"docs/guides/new-agents/README.md"},
+ {"path":"$NA/templates/t.yaml","sha256":["$H_YAML"]},
+ {"path":"$NA/templates/blob.bin","sha256":["$H_BIN"]},
+ {"path":"$NA/edited.md","sha256":["$H_README"]},
+ {"path":".opencode/skills/old-skill/SKILL.md","sha256":["$H_SKILL"]},
+ {"path":".opencode/context/index.md","sha256":["$H_INDEX"]},
+ {"path":".opencode/command/../context/navigation.md","sha256":["$H_INDEX"]},
+ {"path":".opencode\\\\command\\\\x.md","sha256":["$H_INDEX"]},
+ {"path":".opencode/command/linkdir/victim.md","sha256":["$H_VICTIM"]},
+ {"path":".opencode/skills/linked.md","sha256":["$H_VICTIM"]}
+]}
+JSON
+retired_project() {
+    rm -rf "$1" "$1-outside"
+    mkdir -p "$1/$NA/templates" "$1/.opencode/skills/old-skill" "$1/.opencode/context" "$1/.opencode/agent" "$1-outside"
+    cp "$RT/seed/README.md" "$1/$NA/README.md"
+    cp "$RT/seed/t.yaml" "$1/$NA/templates/t.yaml"
+    cp "$RT/seed/blob.bin" "$1/$NA/templates/blob.bin"
+    { cat "$RT/seed/README.md"; echo "MY NOTES"; } > "$1/$NA/edited.md"
+    printf -- '---\ndescription: a real command\n---\nmine\n' > "$1/$NA/create-agent.md"
+    cp "$RT/seed/SKILL.md" "$1/.opencode/skills/old-skill/SKILL.md"
+    echo "mine" > "$1/.opencode/skills/old-skill/mine.md"
+    cp "$RT/seed/index.md" "$1/.opencode/context/index.md"
+    cp "$RT/seed/index.md" "$1/.opencode/context/navigation.md"
+    cp "$RT/seed/victim.md" "$1-outside/victim.md"
+    ln -s "$1-outside" "$1/.opencode/command/linkdir"
+    ln -s "$1-outside/victim.md" "$1/.opencode/skills/linked.md"
+}
+assert_retired_ok() {
+    assert_no_file "$1/$NA/README.md"                         "$2: a pristine retired .md is removed"
+    assert_no_file "$1/$NA/templates/t.yaml"                  "$2: a pristine retired yaml is removed"
+    assert_no_file "$1/$NA/templates/blob.bin"                "$2: a pristine retired binary is removed"
+    assert_no_file "$1/.opencode/skills/old-skill/SKILL.md"   "$2: a retired file under skills/ is removed"
+    assert_file    "$1/.opencode/skills/old-skill/mine.md"    "$2: a user's file next to it stays"
+    assert_file    "$1/$NA/edited.md"                         "$2: an edited retired file is left"
+    assert_file    "$1/$NA/create-agent.md"                   "$2: a real command in the same folder stays"
+    assert_file    "$1/.opencode/context/index.md"            "$2: a retired path outside agent/command/skills is ignored"
+    assert_file    "$1/.opencode/context/navigation.md"       "$2: a retired path with .. is ignored"
+    assert_file    "$1-outside/victim.md"                     "$2: a symlinked directory cannot reach a file outside the install"
+    assert_file    "$1/.opencode/skills/linked.md"            "$2: a symlinked file is not removed"
+    assert_file    "$1/.opencode/agent/new.md"                "$2: the rest of the install still happens"
+    assert_no_dir  "$1/$NA/templates"                         "$2: the emptied folder is removed"
+}
+RP="$RT/p1"
+retired_project "$RP"
+(cd "$REPO_ROOT" && OAC_RAW_URL="file://$RT/pkg" REGISTRY_URL="file://$RT/pkg/built-ai-configs/registry/registry.json" bash install.sh essential --install-dir="$RP/.opencode") > "$RT/install.log" 2>&1
+assert_retired_ok "$RP" "install.sh"
+assert_contains "$RT/install.log" "differs from the version OAC shipped" "install.sh says why the edited file stayed"
+assert_contains "$RT/install.log" "symlink" "install.sh warns about the symlink"
+RB=$(ls -d "$RP/.opencode".backup.* 2>/dev/null | head -n 1)
+assert_file "$RB/command/openagents/new-agents/README.md" "install.sh backs a retired file up before removing it"
+cmp -s "$RB/command/openagents/new-agents/templates/blob.bin" "$RT/seed/blob.bin" && pass "install.sh: the backed-up binary is byte-identical" || fail "install.sh: the backed-up binary is byte-identical"
+N2=$(count_backups "$RP/.opencode")
+(cd "$REPO_ROOT" && OAC_RAW_URL="file://$RT/pkg" REGISTRY_URL="file://$RT/pkg/built-ai-configs/registry/registry.json" bash install.sh essential --install-dir="$RP/.opencode") > "$RT/install2.log" 2>&1
+[ "$(count_backups "$RP/.opencode")" = "$N2" ] && pass "install.sh: a second run retires nothing more (idempotent)" || fail "install.sh: a second run retires nothing more (idempotent)"
+
+RU="$RT/p2"
+retired_project "$RU"
+cp "$RT/pkg/.opencode/agent/new.md" "$RU/.opencode/agent/new.md"
+(cd "$REPO_ROOT" && OAC_RAW_URL="file://$RT/pkg" bash update.sh --install-dir "$RU/.opencode") > "$RT/update.log" 2>&1
+assert_retired_ok "$RU" "update.sh"
+assert_contains "$RT/update.log" "backed up in" "update.sh prints the backup directory"
+assert_contains "$RT/update.log" "Skipping command/openagents/new-agents/edited.md" "update.sh skips the edited retired file instead of fetching it (it would 404)"
+
+# update.sh without jq: removes nothing, skips the retired names, still succeeds.
+RN="$RT/p3"
+retired_project "$RN"
+cp "$RT/pkg/.opencode/agent/new.md" "$RN/.opencode/agent/new.md"
+if (cd "$REPO_ROOT" && PATH="$NJ" OAC_RAW_URL="file://$RT/pkg" /bin/bash update.sh --install-dir "$RN/.opencode") > "$RT/nojq.log" 2>&1; then
+    pass "update.sh without jq succeeds when retired files are installed"
+else
+    fail "update.sh without jq succeeds when retired files are installed (see $RT/nojq.log)"; sed 's/^/    /' "$RT/nojq.log" | tail -15
+fi
+assert_contains "$RT/nojq.log" "jq not found" "...and warns that jq is missing"
+assert_contains "$RT/nojq.log" "Skipping command/openagents/new-agents/README.md" "...and skips the retired name instead of fetching it"
+assert_file "$RN/$NA/README.md" "...and removes nothing"
+assert_file "$RN/$NA/templates/t.yaml" "...not even a pristine yaml"
+assert_file "$RN-outside/victim.md" "...and touches nothing outside"
+
 echo ""
 echo -e "${BOLD}Passed: $PASSED  Failed: $FAILED${NC}"
 [ "$FAILED" -eq 0 ]

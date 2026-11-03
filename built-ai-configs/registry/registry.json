@@ -3540,5 +3540,96 @@
         "status": "stable"
       }
     }
-  }
+  },
+  "retired": [
+    {
+      "path": ".opencode/command/openagents/new-agents/README.md",
+      "sha256": [
+        "30c08ef52def2fc92cd79ba6626db15921fcccbcc6132ad0cdac346262bae082",
+        "6004a9dcdaa62b9a6b1ceeec5d2d7be273d250dc96519ec6f892132e69d7061c",
+        "63d2b9a64c22542c6efc95211f10d11f14ebd43fd13baf26f2201afd65b445b9",
+        "7d26b22e1ffa32d64868fd0f9b8b02faedecccd63bd403636a0f1b2ef8461773",
+        "9302246796085e0d0a12da80cb14194ed688eac797d4b3e59b50fb1b038c39c6",
+        "ffb5a377328635daba37a595911ee2fad45def47b7bad28145fb43e8da7c7474"
+      ],
+      "replacedBy": "docs/guides/new-agents/README.md"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/agent-template.md",
+      "sha256": [
+        "00b8199fd85674b69dabaa92649106f16977ef495f5fd4b1b290f2fb38e9dfa6"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/agent-template.md"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/context-template.md",
+      "sha256": [
+        "b086ca0b96d8044a3abbf21f640d183821f3ca9bdb0da238a0ed960eb82b06fe"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/context-template.md"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-1-planning-approval.yaml",
+      "sha256": [
+        "833c781d1f0707f9b79213458ce1eda52d72593851fdaef2b64bd1c1ee43d7d8"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-1-planning-approval.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-2-context-loading.yaml",
+      "sha256": [
+        "80a3a1034823a0cc517e0cec86bedbbd63eb9acbd430fedd74095ff3775c15f6"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-2-context-loading.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-3-incremental.yaml",
+      "sha256": [
+        "e1e9f9e7ec43e17928288ecc19c0c8d49dc173fb09950e7685be86bde760b975"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-3-incremental.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-4-tool-usage.yaml",
+      "sha256": [
+        "ae1cc81056f48c4a98f5ac3456d9fe9c087d9cec772e08c36590bbb606df5f82"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-4-tool-usage.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-5-error-handling.yaml",
+      "sha256": [
+        "431170e3d382df43c2e2ae4c3c00020470af0f928b8de6d98b75bc7079bfdd82"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-5-error-handling.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-6-extended-thinking.yaml",
+      "sha256": [
+        "2cc5e208e3b2af2af4b975e96c5d1eee309de028034199ccafe6abcb7dc0a4c5"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-6-extended-thinking.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-7-compaction.yaml",
+      "sha256": [
+        "1da4d48d01838e2b0561495faf0b13fe4e4b4809c02842ef0e290a20ef1ea104"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-7-compaction.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-8-completion.yaml",
+      "sha256": [
+        "4d7b3e017d12c522bf22583c6c23da8a9d4051213f707dea7e6fd011ee188e4a"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-8-completion.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-config-template.yaml",
+      "sha256": [
+        "6fcb0ece340f31f6a7e56b1b48773e85b9a3ff24945f3286a7aa4368db02f47c"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-config-template.yaml"
+    }
+  ]
 }

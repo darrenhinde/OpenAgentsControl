@@ -8,12 +8,18 @@
  * `installer.ts` removes them and `oac doctor` reports them. Nothing here is a list of agent
  * names, so a future rename needs no change in this file.
  *
+ * It also finds RETIRED files: paths an earlier release shipped that no release ships now and no
+ * component replaced (the registry's top-level `retired` list). They follow the same containment
+ * rules, widened to the three folders OpenCode loads content from, and are matched by SHA-256
+ * rather than by description.
+ *
  * Reads the disk, never writes.
  */
 import { lstat, readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { toDestPath } from './flavor.js';
 import { isInstallablePath, listComponents, type Registry, type RegistryComponent } from './registry.js';
+import { computeFileHash, hashesMatch } from './sha256.js';
 
 export type SupersededFile = {
   /** Destination path (relative to the project root) of the stale installed file. */
@@ -28,6 +34,22 @@ const isFile = (absolute: string): Promise<boolean> =>
 
 /** Where a superseded (stale) file may sit: only inside the installed agent directory. */
 export const AGENT_DIR = '.opencode/agent';
+export const COMMAND_DIR = '.opencode/command';
+export const SKILLS_DIR = '.opencode/skills';
+
+/** The folders a RETIRED file may sit in (any extension). Superseded agent files stay agent-only. */
+export const RETIRABLE_DIRS: readonly string[] = [AGENT_DIR, COMMAND_DIR, SKILLS_DIR];
+
+/**
+ * The retirable folder `destPath` sits in, or null: a normalised path (no `..`, no backslash)
+ * strictly under `.opencode/agent/`, `.opencode/command/` or `.opencode/skills/`. Pure.
+ */
+export const retirableRoot = (destPath: string): string | null =>
+  !destPath.includes('\\') &&
+  path.posix.normalize(destPath) === destPath &&
+  !destPath.split('/').includes('..')
+    ? (RETIRABLE_DIRS.find((dir) => destPath.startsWith(`${dir}/`) && destPath.length > dir.length + 1) ?? null)
+    : null;
 
 /**
  * True when `destPath` (relative to the project root, already mapped by `toDestPath`) is somewhere a
@@ -136,3 +158,48 @@ export const supersededStems = (
   }
   return stale;
 };
+
+// ── Retired files (shipped once, shipped no more, replaced by nothing installable) ────────────
+
+export type RetiredFile = {
+  /** Destination path (relative to the project root) of the installed file. */
+  path: string;
+  /** SHA-256 of every version a release shipped at this path. */
+  sha256: string[];
+  replacedBy?: string;
+  /** The retirable folder it sits in (the jail for removal). */
+  root: string;
+};
+
+/** Retired destination path -> entry. Entries outside the retirable folders or not installable are dropped. Pure. */
+export const retiredIndex = (registry: Registry): Map<string, RetiredFile> => {
+  const index = new Map<string, RetiredFile>();
+  for (const entry of registry.retired ?? []) {
+    if (!isInstallablePath(entry.path)) continue;
+    const dest = toDestPath(entry.path);
+    const root = retirableRoot(dest);
+    if (root === null) continue;
+    index.set(dest, { path: dest, sha256: entry.sha256, ...(entry.replacedBy === undefined ? {} : { replacedBy: entry.replacedBy }), root });
+  }
+  return index;
+};
+
+/** Retired files present in the project (a symlink counts as present: it is reported, never touched). Sorted. */
+export const findRetired = async (projectRoot: string, registry: Registry): Promise<RetiredFile[]> => {
+  const found: RetiredFile[] = [];
+  for (const entry of retiredIndex(registry).values()) {
+    if (await lstat(path.join(projectRoot, entry.path)).then(() => true).catch(() => false)) found.push(entry);
+  }
+  return found.sort((a, b) => a.path.localeCompare(b.path));
+};
+
+/** True when the file's bytes hash to one of the versions the registry records for it. */
+export const matchesRetiredHash = async (absolute: string, entry: RetiredFile): Promise<boolean> => {
+  const hash = await computeFileHash(absolute).catch(() => null);
+  return hash !== null && entry.sha256.some((known) => hashesMatch(hash, known));
+};
+
+/** True when `oac update` would remove this retired file: safe to touch (no symlink) and still a shipped version. */
+export const isRetiredRemovable = async (projectRoot: string, entry: RetiredFile): Promise<boolean> =>
+  (await isSafeToRemove(projectRoot, entry.path, entry.root)) &&
+  (await matchesRetiredHash(path.join(projectRoot, entry.path), entry));

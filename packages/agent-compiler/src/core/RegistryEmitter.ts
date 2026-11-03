@@ -84,11 +84,12 @@ import { resolve } from "node:path";
 import { CanonicalAgentLoader, type CanonicalAgentFile } from "./AgentLoader.js";
 import { AgentIdResolver } from "./AgentIdResolver.js";
 import { generatedPaths } from "./BuildManifest.js";
-import { ProfileLoader, type SystemProfileResolution } from "./ProfileLoader.js";
+import { ProfileLoader, type ProfileOmissions, type SystemProfileResolution } from "./ProfileLoader.js";
 import { ReferenceResolver } from "./ReferenceResolver.js";
 import { REGISTRY_TARGETS, type RegistryTarget, type RegistryTargetSpec } from "./RegistryTargets.js";
 import { emitsTo } from "./TargetPolicy.js";
 import { loadCanonicalAssets, type CanonicalAssetFile } from "./AssetLoader.js";
+import { loadRetired } from "./RetiredFiles.js";
 
 // ============================================================================
 // TYPES
@@ -450,14 +451,23 @@ export class RegistryEmitter {
       components[category] ??= merge(owned, [], ours);
     }
 
+    // Paths no release ships any more (agent-library/retired.json), additive and top-level. Dropped
+    // from the document when the list is empty, so a tree with none emits no `retired` key.
+    const shipped = Object.values(components).flatMap((entries) =>
+      entries.flatMap((entry) => [...(typeof entry.path === "string" ? [entry.path] : []), ...(Array.isArray(entry.files) ? (entry.files as string[]) : [])]),
+    );
+    const retired = loadRetired(this.root, shipped);
+
     const document: RegistryDocument = {} as RegistryDocument;
     for (const key of Object.keys(base)) {
+      if (key === "retired") continue;
       document[key] = key === "components"
         ? components
         : key === "profiles"
           ? await this.profiles(base, agents, components)
           : base[key];
     }
+    if (retired.length > 0) document.retired = retired;
 
     return document;
   }
@@ -545,10 +555,10 @@ export class RegistryEmitter {
     const baseProfiles = isRecord(base.profiles) ? base.profiles : {};
     const loader = new ProfileLoader(this.root, new ReferenceResolver(this.root, this.registryFile, pending));
     const aliasResolver = AgentIdResolver.fromCanonical(agents);
-    const omitFor = (profileId: string) => ({
+    const omitFor = (profileId: string): ProfileOmissions => ({
       kinds: this.spec.unavailableProfileKinds,
       agents: new Set(agents.filter((agent) => !emitsTo(agent, this.target)).map((agent) => agent.oac.id)),
-      canonicalAgent: (agentId: string) =>
+      canonicalAgent: (agentId: string): string =>
         this.canonicalAgentId(aliasResolver, agentId, `${SYSTEM_PROFILES_ROOT}/${profileId}.json`),
     });
     const agentTypes = new Map(agents.map((agent) => [agent.oac.id, agent.oac.type]));

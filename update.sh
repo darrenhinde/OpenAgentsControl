@@ -72,7 +72,9 @@ BACKUP_FILES=()
 # Clean up any leftover backup files on exit/interrupt
 cleanup_backups() {
     for f in "${BACKUP_FILES[@]}"; do
-        [ -f "$f" ] && rm -f "$f"
+        # `[ -f ] && rm` returns 1 for a backup that was already restored (mv), and under `set -e` a
+        # failing EXIT trap turns a finished update into exit status 1.
+        if [ -f "$f" ]; then rm -f "$f"; fi
     done
 }
 trap cleanup_backups EXIT INT TERM
@@ -316,7 +318,7 @@ update_component() {
     # A file a renamed or moved agent replaced has no upstream copy under its old name: skip it
     # (migrate_superseded handled it, or left it on purpose) instead of counting a 404 as a failure.
     if is_superseded_old_path "$relative_path"; then
-        print_warning "Skipping ${relative_path}: replaced by a renamed or moved agent, so there is no newer copy under this name."
+        print_warning "Skipping ${relative_path}: renamed, moved or no longer shipped by OAC, so there is no newer copy under this name."
         SKIPPED_SUPERSEDED=$((SKIPPED_SUPERSEDED + 1))
         return 0
     fi
@@ -397,13 +399,13 @@ superseded_rel_ok() {
 }
 
 # Safe to read or remove $2 (a file under install dir $1)? Not a symlink, and its parent directory,
-# with symlinks resolved, lies inside the resolved <install dir>/agent. A missing file is fine.
+# with symlinks resolved, lies inside the resolved <install dir>/<$3, default agent>. A missing file is fine.
 superseded_target_safe() {
-    local install_dir="$1" file="$2" agent_real parent_real
+    local install_dir="$1" file="$2" jail="${3:-agent}" agent_real parent_real
     [ -L "$file" ] && return 1
     [ -e "$file" ] || return 0
     [ -f "$file" ] || return 1
-    agent_real=$(physical_dir "${install_dir}/agent") || return 1
+    agent_real=$(physical_dir "${install_dir}/${jail}") || return 1
     parent_real=$(physical_dir "$(dirname "$file")") || return 1
     case "${parent_real}/" in
         "${agent_real}/"*) return 0 ;;
@@ -434,6 +436,80 @@ $1
     return 1
 }
 
+# Retired files: paths an earlier release shipped that no release ships now, replaced by nothing
+# installable (the registry's top-level "retired" list, e.g. the agent-creation templates that sat
+# in command/openagents/new-agents/). Same containment as superseded agent files, widened to the
+# three folders OpenCode loads content from: a normalised path under agent/, command/ or skills/,
+# no symlink, and a parent directory that stays inside that folder once symlinks are resolved. The
+# file must still hash to a version OAC shipped (they are not all agents, so there is no description
+# to compare); an edited file or the user's own is left and reported. A copy goes to
+# <install dir>.backup.<time>/ before any removal. Needs jq, like the superseded handling.
+
+# Hex SHA-256 of a file, empty when no tool is available.
+file_sha256() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" 2>/dev/null | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" 2>/dev/null | awk '{print $1}'
+    elif command -v openssl >/dev/null 2>&1; then
+        openssl dgst -sha256 "$1" 2>/dev/null | awk '{print $NF}'
+    fi
+}
+
+# A retired file may only sit under <install dir>/{agent,command,skills}/ ($1 = install-relative path).
+retired_rel_ok() {
+    case "$1" in
+        agent/?*|command/?*|skills/?*) ;;
+        *) return 1 ;;
+    esac
+    case "$1" in
+        *\\*|*/../*|../*|*/..|*//*|*/./*|*/.) return 1 ;;
+    esac
+    return 0
+}
+
+# Remove the retired files listed in registry file $2 from install dir $1.
+retire_retired_files() {
+    local install_dir="$1" registry_file="$2"
+    local rows path sums rel dest root actual
+    rows=$(jq -r '(.retired // [])[]? | select(.path != null) | [.path, ((.sha256 // []) | join(","))] | @tsv' \
+                "$registry_file" 2>/dev/null | tr -d '\r')
+    [ -n "$rows" ] || return 0
+    while IFS=$'\t' read -r path sums; do
+        [ -n "$path" ] || continue
+        rel=$(registry_relative_path "$path")
+        is_safe_relative_path "$rel" || { print_warning "Skipping suspicious registry path: $path"; continue; }
+        retired_rel_ok "$rel" || { print_warning "Ignoring retired path outside agent/, command/ and skills/: $path"; continue; }
+        dest="${install_dir}/${rel}"
+        [ -e "$dest" ] || [ -L "$dest" ] || continue
+        root="${rel%%/*}"
+        if ! superseded_target_safe "$install_dir" "$dest" "$root"; then
+            print_warning "Left ${dest}: it is a symlink, or sits behind one that leaves ${install_dir}/${root}. Nothing was read or removed."
+            continue
+        fi
+        actual=$(file_sha256 "$dest")
+        case ",${sums}," in
+            *",${actual},"*) ;;
+            *) actual="" ;;
+        esac
+        if [ -z "$actual" ]; then
+            print_warning "Left ${dest}: OAC no longer ships it, but it differs from the version OAC shipped (edited, or your own file). Remove it yourself if you do not need it."
+            continue
+        fi
+        if [ -z "$SUPERSEDED_BACKUP_DIR" ]; then
+            SUPERSEDED_BACKUP_DIR="${install_dir}.backup.$(date +%Y%m%d-%H%M%S)"
+        fi
+        mkdir -p "$(dirname "${SUPERSEDED_BACKUP_DIR}/${rel}")"
+        if cp "$dest" "${SUPERSEDED_BACKUP_DIR}/${rel}" && rm -f "$dest"; then
+            print_success "Removed retired ${rel} (no longer shipped; copy in ${SUPERSEDED_BACKUP_DIR})"
+            prune_empty_dirs "$install_dir" "$dest"
+            SUPERSEDED_RETIRED=$((SUPERSEDED_RETIRED + 1))
+        else
+            print_warning "Could not remove retired ${dest}"
+        fi
+    done <<< "$rows"
+}
+
 migrate_superseded() {
     local install_dir="$1"
     local registry_rel="built-ai-configs/registry/registry.json"
@@ -458,12 +534,23 @@ migrate_superseded() {
 "
     done < <(tr -d '\n\r\t ' < "$registry_file" | grep -o '"supersedes":\[[^]]*\]' \
                  | grep -o '"[^"]*"' | grep -v '^"supersedes"$' | tr -d '"')
+    # Retired entries are objects starting {"path":"..." (a component starts {"id":...), so this
+    # picks them out without jq. They are skipped by the per-file refresh too: no newer copy exists.
+    while IFS= read -r old_registry_path; do
+        [ -n "$old_registry_path" ] || continue
+        old_rel=$(registry_relative_path "$old_registry_path")
+        is_safe_relative_path "$old_rel" || continue
+        SUPERSEDED_OLD_PATHS="${SUPERSEDED_OLD_PATHS}${old_rel}
+"
+    done < <(tr -d '\n\r\t ' < "$registry_file" | grep -o '{"path":"[^"]*"' | sed -e 's/^{"path":"//' -e 's/"$//')
 
     if ! command -v jq >/dev/null 2>&1; then
-        print_warning "jq not found: cannot check for agents renamed or moved by this release. Run 'oac update' (or install jq) to migrate them. Their old files are skipped by this update, not removed."
+        print_warning "jq not found: cannot check for agents renamed or moved, or files retired, by this release. Run 'oac update' (or install jq) to migrate them. Their old files are skipped by this update, not removed."
         rm -f "$registry_file"
         return 0
     fi
+
+    retire_retired_files "$install_dir" "$registry_file"
 
     local rows
     rows=$(jq -r '.components | to_entries[] | .value[]? | select((.supersedes // []) | length > 0)

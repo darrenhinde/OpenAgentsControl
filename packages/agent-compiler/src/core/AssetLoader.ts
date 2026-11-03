@@ -136,15 +136,29 @@ function isExecutable(path: string): boolean {
   return (statSync(path).mode & 0o111) !== 0;
 }
 
+/** Folders never shipped or scanned. */
+const SKIPPED_DIRS: ReadonlySet<string> = new Set(["node_modules", ".git"]);
+/** Files never shipped. Every other file, dotfiles included, is shipped. */
+const SKIPPED_FILES: ReadonlySet<string> = new Set([".DS_Store"]);
+
+/**
+ * Every regular file under `dir`, sorted. Symlinks (to a file or a folder) are skipped, never
+ * followed: a link inside a skill must not pull in content from outside `agent-library/`.
+ * Skipped silently, by design; `.git` and `node_modules` folders and `.DS_Store` files likewise.
+ */
 function listFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true })
     .flatMap((entry) => {
       const full = join(dir, entry.name);
-      if (entry.isDirectory()) return entry.name === "node_modules" ? [] : listFiles(full);
-      return entry.isFile() && entry.name !== ".DS_Store" ? [full] : [];
+      if (entry.isSymbolicLink()) return [];
+      if (entry.isDirectory()) return SKIPPED_DIRS.has(entry.name) ? [] : listFiles(full);
+      return entry.isFile() && !SKIPPED_FILES.has(entry.name) ? [full] : [];
     })
     .sort(compare);
 }
+
+/** A command group folder is part of the command's name on the host, so it is a kebab-case slug. */
+const GROUP_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Parse one canonical file. `idFromPath` is the id the location demands. */
 function loadFile(
@@ -267,6 +281,13 @@ export function loadCanonicalCommands(root: string): CanonicalAssetFile[] {
     const group = segments.slice(0, -1);
     if (group.length > MAX_COMMAND_DEPTH) {
       throw new AssetLoadError(`${file}: commands nest at most ${MAX_COMMAND_DEPTH} folders deep.`, file);
+    }
+    const badGroup = group.find((name) => !GROUP_NAME.test(name));
+    if (badGroup !== undefined) {
+      throw new AssetLoadError(
+        `${file}: command group folder "${badGroup}" must be kebab-case (lowercase letters, digits, single hyphens); it is part of the command's name.`,
+        file,
+      );
     }
     return loadFile("command", file, relativePath, segments[segments.length - 1]!.replace(/\.md$/, ""), group.join("/"));
   });

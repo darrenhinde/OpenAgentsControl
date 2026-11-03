@@ -4,7 +4,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import { hostMismatch, isV2Host } from './flavor.js';
-import type { SupersededFile } from './superseded.js';
+import type { RetiredFile, SupersededFile } from './superseded.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -256,6 +256,33 @@ export const supersededCheck = (found: readonly SupersededFile[], hasManifest: b
     status: 'warn',
     message: `${found.length} installed file${found.length !== 1 ? 's' : ''} replaced by renamed or moved agents — ${fix} to remove them (edited copies are backed up first)`,
     detail: found.map((f) => `${f.oldPath} -> ${f.newPath}`),
+  };
+};
+
+// ── Retired files ─────────────────────────────────────────────────────────────
+
+/**
+ * Installed files an earlier release shipped that no release ships now (the registry's `retired`
+ * list). Some are loaded by OpenCode as junk commands. `removable` files are still a shipped version
+ * and `oac update` removes them; the rest are edited, symlinked or the user's own, and are left. Pure.
+ */
+export const retiredCheck = (
+  found: ReadonlyArray<RetiredFile & { removable: boolean }>,
+  hasManifest: boolean,
+): CheckResult => {
+  const name = 'Retired files';
+  if (found.length === 0) return { name, status: 'ok', message: 'No files from earlier releases left behind' };
+  const removable = found.filter((f) => f.removable);
+  const kept = found.length - removable.length;
+  const fix = hasManifest ? "run 'oac update'" : "run 'oac init' (it adopts this install)";
+  const parts: string[] = [];
+  if (removable.length > 0) parts.push(`${removable.length} no longer shipped by OAC — ${fix} to remove ${removable.length === 1 ? 'it' : 'them'} (a backup is taken unless the copy is untouched)`);
+  if (kept > 0) parts.push(`${kept} no longer shipped but edited, a symlink or your own — OAC leaves ${kept === 1 ? 'it' : 'them'}; delete by hand if unwanted`);
+  return {
+    name,
+    status: 'warn',
+    message: `${found.length} installed file${found.length !== 1 ? 's' : ''} from an earlier release: ${parts.join('; ')}`,
+    detail: found.map((f) => `${f.path}${f.removable ? '' : ' (left: edited or not removable)'}${f.replacedBy === undefined ? '' : ` — now ${f.replacedBy} in the OAC repository`}`),
   };
 };
 

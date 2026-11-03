@@ -11,7 +11,7 @@ import { computeFileHash, hashesMatch } from '../lib/sha256.js';
 import { detectIdes } from '../lib/ide-detect.js';
 import { getPackageRoot } from '../lib/bundled.js';
 import { loadRegistry } from '../lib/registry.js';
-import { findSuperseded } from '../lib/superseded.js';
+import { findRetired, findSuperseded, isRetiredRemovable } from '../lib/superseded.js';
 import {
   ideCheckResults,
   checkClaudeDiscoveryConfig,
@@ -22,6 +22,7 @@ import {
   safeReadManifest,
   summariseResults,
   supersededCheck,
+  retiredCheck,
   type CheckResult,
   type DoctorSummary,
 } from '../lib/doctor-checks.js';
@@ -249,6 +250,19 @@ const checkSuperseded = async (projectRoot: string): Promise<CheckResult> => {
   return supersededCheck(await findSuperseded(projectRoot, registry), hasManifest);
 };
 
+/** Check: files an earlier release shipped that no release ships now (some load as junk commands). */
+const checkRetired = async (projectRoot: string): Promise<CheckResult> => {
+  const registry = await readProjectFlavor(projectRoot)
+    .then(({ flavor }) => loadRegistry(getPackageRoot(), flavor))
+    .catch(() => null);
+  if (registry === null) return { name: 'Retired files', status: 'info', message: 'skipped — bundled registry unavailable' };
+  const read = await safeReadManifest(projectRoot);
+  const hasManifest = read.ok && read.manifest !== null;
+  const found = await findRetired(projectRoot, registry);
+  const classified = await Promise.all(found.map(async (entry) => ({ ...entry, removable: await isRetiredRemovable(projectRoot, entry) })));
+  return retiredCheck(classified, hasManifest);
+};
+
 /** Check 7: which tools are present. OpenCode present is the healthy state; Claude is informational. */
 const checkIdes = async (projectRoot: string): Promise<CheckResult[]> =>
   ideCheckResults(await detectIdes(projectRoot));
@@ -314,7 +328,7 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
   const projectRoot = process.cwd();
 
   // Run all independent async checks in parallel for speed
-  const [configResult, manifestResult, filesResult, modifiedResult, contextNavigationResult, claudeDiscoveryResult, ideResults, versionResult, flavorResult, supersededResult] =
+  const [configResult, manifestResult, filesResult, modifiedResult, contextNavigationResult, claudeDiscoveryResult, ideResults, versionResult, flavorResult, supersededResult, retiredResult] =
     await Promise.all([
       checkConfig(projectRoot),
       checkManifest(projectRoot),
@@ -326,6 +340,7 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
       checkOacVersion(),
       checkOpenCodeFlavor(projectRoot),
       checkSuperseded(projectRoot),
+      checkRetired(projectRoot),
     ]);
 
   const allResults: CheckResult[] = [
@@ -335,6 +350,7 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
     filesResult,
     modifiedResult,
     supersededResult,
+    retiredResult,
     contextNavigationResult,
     claudeDiscoveryResult,
     ...ideResults,    // checkIdes returns CheckResult[]

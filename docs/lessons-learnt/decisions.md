@@ -162,6 +162,15 @@ Made by the maintainer on 2026-11-03.
 - **Rules out:** hand-editing a skill or command under `.opencode/`, `plugins/claude-code/` or `built-ai-configs/`; a `skill/` folder; renaming or moving an installed skill or command without teaching the installers to retire non-agent files first.
 - **Revisit when:** the installers learn to retire superseded files outside `agent/` (then `previousPaths` and folder moves become possible, and `openagents/new-agents` can flatten), or `oac apply claude` should also write skills and commands into `.claude/`.
 
+## D-021 Retired files: a registry list, removed by hash
+
+Implemented 2026-11-03 as the least invasive way to clean up the 12 agent-creation files that `oac init --profile full` once copied into `command/openagents/new-agents/`; maintainer to confirm.
+
+- **Decision:** the registries gain an additive top-level `retired: [{path, sha256[], replacedBy?}]`, generated from the hand-maintained `agent-library/retired.json`. `oac update|init`, `install.sh` and `update.sh` remove a leftover file there under the superseded-file containment rules widened from `agent/*.md` to `.opencode/{agent,command,skills}/` (any extension): normalised path, no symlinks, jail check, backup unless the CLI manifest proves it untouched. The match is the SHA-256 of any version a release shipped, not a description. An edited file is left and reported, and `oac doctor` warns about it. `supersedes` is unchanged and stays `agent/*.md` only.
+- **Why:** these files are not agents (no frontmatter to compare), 3 are `.md` that OpenCode loads as junk commands, and the old behaviour was to tell users to delete them by hand.
+- **Known limits:** `update.sh` still overwrites a user-edited tracked file without a backup (it did before); without `jq` it removes nothing; `oac add` does not retire.
+- **Rules out:** deleting an unrecognised file because the registry says so; a retired entry that points at a path a component still ships (the compiler rejects it).
+
 ---
 
 ## Open decisions

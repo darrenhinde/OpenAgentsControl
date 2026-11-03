@@ -182,7 +182,7 @@ const printSummary = (result: InstallResult, reinstall: boolean, dryRun: boolean
     for (const f of result.skipped) dim(`    ${f}`);
   }
   if (result.superseded.length > 0) {
-    info(`Removed ${result.superseded.length} file${result.superseded.length !== 1 ? 's' : ''} superseded by renamed or moved agents (edited copies were backed up first):`);
+    info(`Removed ${result.superseded.length} file${result.superseded.length !== 1 ? 's' : ''} superseded by renamed or moved agents, or no longer shipped (copies that were not pristine were backed up first):`);
     for (const f of result.superseded) dim(`    ${f}`);
   }
   if (result.backed_up.length > 0) {
