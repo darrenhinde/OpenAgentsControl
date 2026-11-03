@@ -19,6 +19,13 @@ export interface RegistryTargetSpec {
   defaultAgentRoot: string;
   /** The path of one agent's shipped file under `root`. */
   agentPath(agent: CanonicalAgentFile, root: string): string;
+  /**
+   * Shipped paths (same form as {@link agentPath}) that an earlier OAC release used for this agent
+   * and that this one no longer ships: one per `oac.aliases` entry (the old file name, in the
+   * agent's current folder) plus each `oac.previousPaths` entry for layouts that nest by folder.
+   * Never includes the agent's current path.
+   */
+  supersededPaths(agent: CanonicalAgentFile, root: string): string[];
   /** `components` categories this target cannot load; emitted empty. */
   unavailableCategories: readonly string[];
   /** Profile component kinds (ProfileLoader field names) this target cannot install. */
@@ -31,6 +38,8 @@ export const REGISTRY_TARGETS: Readonly<Record<RegistryTarget, RegistryTargetSpe
     defaultAgentRoot: ".opencode/agent",
     // Flat: v2 derives the agent id from the file name.
     agentPath: (agent, root) => `${root}/${agent.oac.id}.md`,
+    // Flat: an old file name is the only way a v2 agent ever moved.
+    supersededPaths: (agent, root) => agent.oac.aliases.map((alias) => `${root}/${alias}.md`),
     // v2 never scans .opencode/tool/ and does not run v1 plugins (#367).
     unavailableCategories: ["tools", "plugins"],
     unavailableProfileKinds: ["tools", "plugins"],
@@ -39,6 +48,13 @@ export const REGISTRY_TARGETS: Readonly<Record<RegistryTarget, RegistryTargetSpe
     file: "built-ai-configs/registry/registry.v1.json",
     defaultAgentRoot: "built-ai-configs/opencode-v1/agent",
     agentPath: (agent, root) => `${root}/${agent.relativePath}`,
+    supersededPaths: (agent, root) => {
+      const folder = agent.relativePath.includes("/") ? agent.relativePath.slice(0, agent.relativePath.lastIndexOf("/") + 1) : "";
+      return [
+        ...agent.oac.aliases.map((alias) => `${root}/${folder}${alias}.md`),
+        ...agent.oac.previousPaths.map((previous) => `${root}/${previous}`),
+      ];
+    },
     unavailableCategories: [],
     unavailableProfileKinds: [],
   },

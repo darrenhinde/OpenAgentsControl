@@ -20,6 +20,7 @@ oac:
   name: ADRManager
   category: planning
   type: subagent
+  previousPaths: [subagents/planning/adr-manager.md]
   version: "1.0.0"
   author: opencode
   tags:

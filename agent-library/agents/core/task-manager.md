@@ -27,6 +27,7 @@ oac:
   name: TaskManager
   category: core
   type: subagent
+  previousPaths: [subagents/core/task-manager.md]
   version: "2.0.0"
   author: opencode
   tags:

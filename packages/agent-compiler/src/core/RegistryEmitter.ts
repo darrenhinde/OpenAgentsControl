@@ -112,6 +112,8 @@ export interface RegistryEntry {
   dependencies?: string[];
   category?: string;
   aliases?: string[];
+  /** Earlier shipped paths of this component that are no longer shipped (see RegistryTargetSpec.supersededPaths). */
+  supersedes?: string[];
   [key: string]: unknown;
 }
 
@@ -264,7 +266,12 @@ export function assertUniqueRegistryIdentities(document: RegistryDocument): void
  * `oac:`, the canonical metadata authored alongside the agent.
  */
 export function entryForAgent(agent: CanonicalAgentFile, agentInstallRoot: string): RegistryEntry {
-  return entryForAgentAt(agent, REGISTRY_TARGETS.opencode.agentPath(agent, agentInstallRoot));
+  return entryForAgentAt(
+    agent,
+    REGISTRY_TARGETS.opencode.agentPath(agent, agentInstallRoot),
+    (_type, id) => id,
+    REGISTRY_TARGETS.opencode.supersededPaths(agent, agentInstallRoot),
+  );
 }
 
 /** As {@link entryForAgent}, for an explicit shipped path (the v1 registry nests by category). */
@@ -273,7 +280,10 @@ export function entryForAgentAt(
   path: string,
   /** Maps a dependency id to its canonical id (deprecated alias -> current id). */
   canonicalDependency: (type: string, id: string) => string = (_type, id) => id,
+  /** Earlier shipped paths to retire at install time. Omitted from the entry when empty. */
+  supersedes: readonly string[] = [],
 ): RegistryEntry {
+  const stale = [...new Set(supersedes)].filter((p) => p !== path).sort(compare);
   return {
     id: agent.oac.id,
     name: agent.oac.name,
@@ -287,6 +297,9 @@ export function entryForAgentAt(
     // Additive: install.sh and the CLI already match a component by `.aliases`, so an old id
     // keeps installing. Omitted when empty so unaffected entries stay byte-identical.
     ...(agent.oac.aliases.length > 0 ? { aliases: [...agent.oac.aliases] } : {}),
+    // Additive: the installed files these ids/paths used to be. `oac update` and install.sh
+    // remove them once the file at `path` is installed, so a rename never leaves both behind.
+    ...(stale.length > 0 ? { supersedes: stale } : {}),
   };
 }
 
@@ -426,6 +439,7 @@ export class RegistryEmitter {
       entries.push(
         entryForAgentAt(agent, this.spec.agentPath(agent, this.agentInstallRoot), (type, id) =>
           type === "subagent" || type === "agent" ? this.canonicalAgentId(resolver, id, source) : id,
+          this.spec.supersededPaths(agent, this.agentInstallRoot),
         ),
       );
       byCategory.set(category, entries);

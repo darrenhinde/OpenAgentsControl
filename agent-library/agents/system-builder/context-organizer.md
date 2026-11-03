@@ -16,6 +16,7 @@ oac:
   name: ContextOrganizer
   category: system-builder
   type: subagent
+  previousPaths: [subagents/system-builder/context-organizer.md]
   version: "1.0.0"
   author: opencode
   tags:

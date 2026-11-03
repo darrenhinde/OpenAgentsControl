@@ -17,7 +17,7 @@ my-plugin/
 │   └── hello.md
 │
 ├── agents/                  # Custom subagent definitions
-│   └── reviewer.md
+│   └── code-reviewer.md
 │
 ├── skills/                  # Agent Skills
 │   └── code-review/

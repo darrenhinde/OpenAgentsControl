@@ -23,6 +23,7 @@ oac:
   category: core
   type: subagent
   aliases: [externalscout]
+  previousPaths: [subagents/core/externalscout.md]
   version: "1.0.0"
   author: opencode
   tags:

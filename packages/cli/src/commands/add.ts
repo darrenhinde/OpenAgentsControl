@@ -13,7 +13,7 @@ import {
 import { getPackageRoot } from '../lib/bundled.js';
 import { toDestPath, type OpenCodeFlavor } from '../lib/flavor.js';
 import { readProjectFlavor } from '../lib/project-flavor.js';
-import { backupFile, syncFiles } from '../lib/installer.js';
+import { backupFile, syncFiles, retireSuperseded, plannedDestinations } from '../lib/installer.js';
 import {
   readManifest,
   writeManifest,
@@ -25,7 +25,7 @@ import { log, info, warn, error, success, verbose } from '../ui/logger.js';
 import { createSpinner } from '../ui/spinner.js';
 import { computeFileHash, hashesMatch } from '../lib/sha256.js';
 import { readCliVersion } from '../lib/version.js';
-import type { RegistryComponent } from '../lib/registry.js';
+import type { Registry, RegistryComponent } from '../lib/registry.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -87,7 +87,7 @@ const printAvailableComponents = async (flavor: OpenCodeFlavor): Promise<void> =
 const resolveOrFail = async (
   ref: string,
   flavor: OpenCodeFlavor,
-): Promise<{ component: RegistryComponent; packageRoot: string }> => {
+): Promise<{ component: RegistryComponent; packageRoot: string; registry: Registry }> => {
   const packageRoot = getPackageRoot();
   const registry = await loadRegistry(packageRoot, flavor);
   const component = resolveComponent(registry, ref);
@@ -98,7 +98,7 @@ const resolveOrFail = async (
     process.exit(1);
   }
 
-  return { component, packageRoot };
+  return { component, packageRoot, registry };
 };
 
 /** Checks if the component is already installed and handles --force / warning. */
@@ -125,6 +125,7 @@ const performInstall = async (
   projectRoot: string,
   manifest: ManifestFile,
   opts: AddOptions,
+  registry: Registry,
 ): Promise<void> => {
   const files = filesForComponent(component);
   const destDir = destDirOf(component);
@@ -146,12 +147,25 @@ const performInstall = async (
 
   if (result.errors.length > 0) throw new Error(result.errors.join('; '));
 
+  // If an earlier release shipped this component under another name or path, retire that copy.
+  const retired = await retireSuperseded(
+    installOpts,
+    registry,
+    updatedManifest,
+    plannedDestinations(result),
+    (candidate) => candidate === component,
+  );
+  if (retired.patch.errors !== undefined && retired.patch.errors.length > 0) throw new Error(retired.patch.errors.join('; '));
+  for (const removed of retired.patch.superseded ?? []) {
+    info(`${opts.dryRun ? '[dry-run] Would remove' : 'Removed'} superseded ${removed} (replaced by ${component.id}; an edited copy is backed up to .oac/backups/ first)`);
+  }
+
   if (opts.dryRun) {
     info(`[dry-run] Would install ${component.type}:${component.id} to ${destDir}/`);
     return;
   }
 
-  await writeManifest(projectRoot, updatedManifest);
+  await writeManifest(projectRoot, retired.updatedManifest);
   success(`Added ${component.id} to ${destDir}/`);
 };
 
@@ -178,7 +192,7 @@ export async function addCommand(
   spinner.start();
 
   try {
-    const { component, packageRoot } = await resolveOrFail(ref, flavor);
+    const { component, packageRoot, registry } = await resolveOrFail(ref, flavor);
     spinner.stop();
 
     if (!filesForComponent(component).every(isInstallablePath)) {
@@ -191,7 +205,7 @@ export async function addCommand(
     const shouldAbort = checkAlreadyInstalled(manifest, toDestPath(component.path), options.force);
     if (shouldAbort) return;
 
-    await performInstall(component, packageRoot, projectRoot, manifest, options);
+    await performInstall(component, packageRoot, projectRoot, manifest, options, registry);
   } catch (err: unknown) {
     spinner.fail();
     const msg = err instanceof Error ? err.message : String(err);

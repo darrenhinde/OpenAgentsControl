@@ -45,7 +45,7 @@ Based on the OpenCode CLI registration, use these exact strings for `subagent_ty
 - `"Command Creator"` - Command creation
 
 **Utility Subagents**:
-- `"Image Specialist"` - Image generation/editing
+- `"ImageSpecialist"` - Image generation/editing (OpenCode v1 only: the v2 build has no image-specialist target)
 
 ---
 
@@ -97,7 +97,7 @@ cat built-ai-configs/registry/registry.json | jq -r '.components.subagents[] | "
 **Output**:
 ```
 Task Manager
-Image Specialist
+ImageSpecialist
 Reviewer
 TestEngineer
 Documentation Writer
@@ -302,7 +302,7 @@ available_types = [
   "Reviewer",
   "Coder Agent",
   "Build Agent",
-  "Image Specialist",
+  "ImageSpecialist",
   "Domain Analyzer",
   "Agent Generator",
   "Context Organizer",

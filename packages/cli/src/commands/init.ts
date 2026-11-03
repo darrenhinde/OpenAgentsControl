@@ -2,7 +2,7 @@ import { type Command } from 'commander';
 import { lstat, writeFile } from 'node:fs/promises';
 
 import { readCliVersion } from '../lib/version.js';
-import { isProjectRoot, installFiles, syncFiles, type InstallResult } from '../lib/installer.js';
+import { isProjectRoot, installFiles, syncFiles, retireSuperseded, plannedDestinations, type InstallResult } from '../lib/installer.js';
 import { getPackageRoot, listBundledFiles, classifyBundledFile } from '../lib/bundled.js';
 import { readManifest, writeManifest, type ManifestFile } from '../lib/manifest.js';
 import { readConfig, writeConfig, createDefaultConfig, withOpenCodeFlavor, type OacInstallationScope } from '../lib/config.js';
@@ -164,6 +164,10 @@ const printSummary = (result: InstallResult, reinstall: boolean, dryRun: boolean
   log('');
   if (dryRun) {
     info(`[dry-run] Would install ${written} file${written !== 1 ? 's' : ''}.`);
+    if (result.superseded.length > 0) {
+      info(`[dry-run] Would remove ${result.superseded.length} superseded file${result.superseded.length !== 1 ? 's' : ''} (edited ones backed up first):`);
+      for (const f of result.superseded) dim(`    ${f}`);
+    }
     if (result.skipped.length > 0) {
       info(`[dry-run] Would skip ${result.skipped.length} (modified since install — use --yolo to overwrite).`);
     }
@@ -176,6 +180,10 @@ const printSummary = (result: InstallResult, reinstall: boolean, dryRun: boolean
   if (reinstall && result.skipped.length > 0) {
     warn(`Skipped ${result.skipped.length} file${result.skipped.length !== 1 ? 's' : ''} you have modified (use --yolo to back up and overwrite):`);
     for (const f of result.skipped) dim(`    ${f}`);
+  }
+  if (result.superseded.length > 0) {
+    info(`Removed ${result.superseded.length} file${result.superseded.length !== 1 ? 's' : ''} superseded by renamed or moved agents (edited copies were backed up first):`);
+    for (const f of result.superseded) dim(`    ${f}`);
   }
   if (result.backed_up.length > 0) {
     info(`Backed up ${result.backed_up.length} file${result.backed_up.length !== 1 ? 's' : ''} to .oac/backups/.`);
@@ -260,6 +268,7 @@ const runInstall = async (
   projectRoot: string,
   packageRoot: string,
   options: InitOptions,
+  flavor: OpenCodeFlavor,
 ): Promise<InstallOutcome> => {
   const installOpts = {
     projectRoot,
@@ -269,13 +278,26 @@ const runInstall = async (
     verbose: options.verbose,
   };
 
-  if (existing === null) {
-    const { result, updatedManifest } = await installFiles(files, installOpts);
-    return { result, updatedManifest, reinstall: false };
-  }
+  const synced = existing === null
+    ? await installFiles(files, installOpts)
+    : await syncFiles(files, existing, installOpts);
 
-  const { result, updatedManifest } = await syncFiles(files, existing, installOpts);
-  return { result, updatedManifest, reinstall: true };
+  // An install made by an earlier release may hold files this one renamed or moved; retire them
+  // so the old and new copy of an agent are never both left behind.
+  const registry = await loadRegistry(packageRoot, flavor).catch(() => null);
+  if (registry === null) return { ...synced, reinstall: existing !== null };
+  const retired = await retireSuperseded(installOpts, registry, synced.updatedManifest, plannedDestinations(synced.result));
+  return {
+    result: {
+      ...synced.result,
+      superseded: retired.patch.superseded ?? [],
+      backed_up: [...synced.result.backed_up, ...(retired.patch.backed_up ?? [])],
+      skipped: [...synced.result.skipped, ...(retired.patch.skipped ?? [])],
+      errors: [...synced.result.errors, ...(retired.patch.errors ?? [])],
+    },
+    updatedManifest: retired.updatedManifest,
+    reinstall: existing !== null,
+  };
 };
 
 // ── Main command ──────────────────────────────────────────────────────────────
@@ -382,7 +404,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
   let outcome: InstallOutcome;
   try {
-    outcome = await runInstall(plan.files, existing, projectRoot, packageRoot, effectiveOptions);
+    outcome = await runInstall(plan.files, existing, projectRoot, packageRoot, effectiveOptions, flavor);
   } catch (err) {
     spinner.fail('Installation failed.');
     const msg = err instanceof Error ? err.message : String(err);

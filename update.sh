@@ -344,6 +344,102 @@ update_component() {
     fi
 }
 
+# A later release can rename an agent (contextscout -> context-scout) or move it (v1:
+# agent/subagents/core/x.md -> agent/core/x.md). The registry lists, on the component that replaced
+# it, the paths it used to ship at ("supersedes"). The per-file refresh below fetches each
+# installed file from its own path, so an old name would only ever 404: instead, install the
+# replacement and retire the old copy. Each retired file is first copied to
+# <install dir>.backup.<time>/ (the install.sh convention); a file whose description no longer
+# matches the bundled one is the user's own and is left and reported. Needs jq; without it the
+# stale files are named in a warning and nothing is removed.
+frontmatter_description() {
+    sed -n -E '1,/^---[[:space:]]*$/{ s/^description:[[:space:]]*//p; }' "$1" 2>/dev/null | head -n 1 \
+        | sed -E 's/^"(.*)"$/\1/; s/^'"'"'(.*)'"'"'$/\1/; s/[[:space:]]+$//'
+}
+
+prune_empty_dirs() {
+    local install_dir="$1" dir
+    dir=$(dirname "$2")
+    while [ "$dir" != "$install_dir" ] && [ "${dir#"$install_dir"/}" != "$dir" ]; do
+        if [ -f "$dir/0-category.json" ] && [ "$(ls -A "$dir" | wc -l | tr -d ' ')" = "1" ]; then
+            rm -f "$dir/0-category.json"
+        fi
+        rmdir "$dir" 2>/dev/null || return 0
+        dir=$(dirname "$dir")
+    done
+}
+
+# Registry path -> path relative to the install dir (same prefixes as install.sh's get_install_path).
+registry_relative_path() {
+    local rel="${1#.opencode/}"
+    echo "${rel#built-ai-configs/opencode-v1/}"
+}
+
+SUPERSEDED_RETIRED=0
+
+migrate_superseded() {
+    local install_dir="$1"
+    local registry_rel="built-ai-configs/registry/registry.json"
+    [ "$OPENCODE_FLAVOR" = "v1" ] && registry_rel="built-ai-configs/registry/registry.v1.json"
+
+    local registry_file
+    registry_file=$(mktemp "${TMPDIR:-/tmp}/oac-registry.XXXXXX") || return 0
+    if ! curl -fsSL "${REPO_URL}/${registry_rel}" -o "$registry_file" 2>/dev/null; then
+        print_warning "Could not fetch the registry; files replaced by renamed agents (if any) were not migrated. Run 'oac update' for that."
+        rm -f "$registry_file"
+        return 0
+    fi
+
+    if ! command -v jq >/dev/null 2>&1; then
+        print_warning "jq not found: cannot check for agents renamed or moved by this release. Run 'oac update' (or install jq) to migrate them."
+        rm -f "$registry_file"
+        return 0
+    fi
+
+    local rows
+    rows=$(jq -r '.components | to_entries[] | .value[]? | select((.supersedes // []) | length > 0)
+                  | .path as $p | (.description // "") as $d | .supersedes[] | [., $p, $d] | @tsv' \
+                 "$registry_file" 2>/dev/null | tr -d '\r')
+    rm -f "$registry_file"
+    [ -n "$rows" ] || return 0
+
+    local old new desc rel_old rel_new dest_old dest_new backup_dir="" rel
+    while IFS=$'\t' read -r old new desc; do
+        [ -n "$old" ] && [ -n "$new" ] || continue
+        rel_old=$(registry_relative_path "$old")
+        rel_new=$(registry_relative_path "$new")
+        is_safe_relative_path "$rel_old" && is_safe_relative_path "$rel_new" || { print_warning "Skipping suspicious registry path: $old"; continue; }
+        [ "$rel_old" != "$rel_new" ] || continue
+        dest_old="${install_dir}/${rel_old}"
+        dest_new="${install_dir}/${rel_new}"
+        [ -f "$dest_old" ] || continue
+
+        if [ "$(frontmatter_description "$dest_old")" != "$desc" ]; then
+            print_warning "Left ${dest_old}: it does not look like the old OAC file replaced by ${rel_new}. If it is a duplicate, remove it yourself."
+            continue
+        fi
+        if [ ! -f "$dest_new" ]; then
+            mkdir -p "$(dirname "$dest_new")"
+            if ! curl -fsSL "${REPO_URL}/${new}" -o "$dest_new" 2>/dev/null; then
+                rm -f "$dest_new"
+                print_warning "Could not fetch ${rel_new}; keeping ${rel_old}"
+                continue
+            fi
+        fi
+        if [ -z "$backup_dir" ]; then
+            backup_dir="${install_dir}.backup.$(date +%Y%m%d-%H%M%S)"
+        fi
+        mkdir -p "$(dirname "${backup_dir}/${rel_old}")"
+        if cp "$dest_old" "${backup_dir}/${rel_old}" && rm -f "$dest_old"; then
+            print_success "Replaced ${rel_old} with ${rel_new} (old copy saved in ${backup_dir})"
+            prune_empty_dirs "$install_dir" "$dest_old"
+            SUPERSEDED_RETIRED=$((SUPERSEDED_RETIRED + 1))
+        else
+            print_warning "Could not remove superseded ${dest_old}"
+        fi
+    done <<< "$rows"
+}
+
 update_all_components() {
     local install_dir="$1"
     local updated=0
@@ -466,6 +562,7 @@ main() {
     print_info "Updating installation at: ${CYAN}${install_dir}${NC} (OpenCode ${OPENCODE_FLAVOR})"
     print_step "Updating components..."
 
+    migrate_superseded "$install_dir"
     update_all_components "$install_dir"
 
     # Nothing could be refreshed: this is a failure, not an update (never report success).

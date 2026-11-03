@@ -8,6 +8,7 @@ oac:
   name: ImageSpecialist
   category: content
   type: subagent
+  previousPaths: [subagents/utils/image-specialist.md]
   version: "1.0.0"
   author: opencode
   tags:

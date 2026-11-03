@@ -273,6 +273,9 @@
         "category": "code",
         "aliases": [
           "reviewer"
+        ],
+        "supersedes": [
+          ".opencode/agent/reviewer.md"
         ]
       },
       {
@@ -379,6 +382,9 @@
         "category": "core",
         "aliases": [
           "contextscout"
+        ],
+        "supersedes": [
+          ".opencode/agent/contextscout.md"
         ]
       },
       {
@@ -428,6 +434,9 @@
         "category": "core",
         "aliases": [
           "documentation"
+        ],
+        "supersedes": [
+          ".opencode/agent/documentation.md"
         ]
       },
       {
@@ -464,6 +473,9 @@
         "category": "core",
         "aliases": [
           "externalscout"
+        ],
+        "supersedes": [
+          ".opencode/agent/externalscout.md"
         ]
       },
       {
@@ -577,6 +589,9 @@
         "category": "code",
         "aliases": [
           "tester"
+        ],
+        "supersedes": [
+          ".opencode/agent/tester.md"
         ]
       },
       {

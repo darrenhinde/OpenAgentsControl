@@ -309,13 +309,101 @@ warn_flavor_host_mismatch() {
     fi
 }
 
-# An earlier OAC layout nested agents by category (agent/core/openagent.md). OpenCode v2 loads
-# every file under agent/, so leaving those next to the flat v2 files would register each agent
-# twice. The shell installer never deletes files it did not just write; it says what to do.
+# A later release can rename an agent (contextscout -> context-scout) or move it (v1:
+# agent/subagents/core/x.md -> agent/core/x.md). The registry lists, on the component that replaced
+# it, the paths it used to ship at ("supersedes"). OpenCode loads every file under agent/, so
+# leaving the old copy next to the new one defines the agent twice.
+#
+# superseded_rows prints "old<TAB>new<TAB>description" for every such pair in the registry.
+superseded_rows() {
+    [ -f "$TEMP_DIR/registry.json" ] || return 0
+    jq -r '.components | to_entries[] | .value[]? | select((.supersedes // []) | length > 0)
+           | .path as $p | (.description // "") as $d | .supersedes[] | [., $p, $d] | @tsv' \
+        "$TEMP_DIR/registry.json" 2>/dev/null | tr -d '\r'
+}
+
+# The description line of an agent's frontmatter, without surrounding quotes.
+frontmatter_description() {
+    sed -n -E '1,/^---[[:space:]]*$/{ s/^description:[[:space:]]*//p; }' "$1" 2>/dev/null | head -n 1 \
+        | sed -E 's/^"(.*)"$/\1/; s/^'"'"'(.*)'"'"'$/\1/; s/[[:space:]]+$//'
+}
+
+# Remove empty directories between a removed file and the install dir (never the install dir itself).
+prune_empty_dirs() {
+    local dir
+    dir=$(dirname "$1")
+    while [ "$dir" != "$INSTALL_DIR" ] && [ "${dir#"$INSTALL_DIR"/}" != "$dir" ]; do
+        # A v1 folder holding only its category marker is empty for our purposes.
+        if [ -f "$dir/0-category.json" ] && [ "$(ls -A "$dir" | wc -l | tr -d ' ')" = "1" ]; then
+            rm -f "$dir/0-category.json"
+        fi
+        rmdir "$dir" 2>/dev/null || return 0
+        dir=$(dirname "$dir")
+    done
+}
+
+# Retire installed files that a renamed or moved component replaced, once the replacement is on
+# disk. Never deletes without a copy: each file is first copied to ${INSTALL_DIR}.backup.<time>/
+# (the same convention as the "backup" install strategy). A file that no longer reads as the old
+# bundled copy (its description differs) is the user's own agent: it is left and reported.
+# Needs jq (already required by this script). Paths come from the registry and are checked by
+# get_install_path, so nothing outside the install directory can be touched.
+retire_superseded_files() {
+    local rows old new desc dest_old dest_new retired=0 kept=0 backup_dir="" actual
+    rows=$(superseded_rows) || return 0
+    [ -n "$rows" ] || return 0
+    while IFS=$'\t' read -r old new desc; do
+        [ -n "$old" ] && [ -n "$new" ] || continue
+        dest_new=$(get_install_path "$new") || continue
+        dest_old=$(get_install_path "$old") || { print_warning "Refusing unsafe registry path: $old"; continue; }
+        [ "$dest_old" != "$dest_new" ] || continue
+        [ -f "$dest_old" ] || continue
+        [ -f "$dest_new" ] || continue
+        actual=$(frontmatter_description "$dest_old")
+        if [ "$actual" != "$desc" ]; then
+            print_warning "Left ${dest_old}: it does not look like the old OAC file replaced by ${dest_new}. If it is a duplicate, remove it yourself."
+            kept=$((kept + 1))
+            continue
+        fi
+        if [ -z "$backup_dir" ]; then
+            backup_dir="${INSTALL_DIR}.backup.$(date +%Y%m%d-%H%M%S)"
+        fi
+        local rel="${dest_old#"${INSTALL_DIR}"/}"
+        mkdir -p "$(dirname "${backup_dir}/${rel}")"
+        if cp "$dest_old" "${backup_dir}/${rel}" && rm -f "$dest_old"; then
+            print_success "Removed superseded ${rel} (replaced by ${dest_new#"${INSTALL_DIR}"/}; copy in ${backup_dir})"
+            prune_empty_dirs "$dest_old"
+            retired=$((retired + 1))
+        else
+            print_warning "Could not remove superseded ${dest_old}"
+        fi
+    done <<< "$rows"
+    SUPERSEDED_RETIRED=$retired
+    SUPERSEDED_KEPT=$kept
+}
+
+SUPERSEDED_RETIRED=0
+SUPERSEDED_KEPT=0
+
+# Warn about agent files from an earlier layout that are still next to their replacements.
+# retire_superseded_files has already removed what it safely could; this names the rest.
 warn_legacy_agent_layout() {
-    [ "$OPENCODE_FLAVOR" = "v2" ] || return 0
-    if [ -d "${INSTALL_DIR}/agent/core" ] || [ -d "${INSTALL_DIR}/agent/subagents" ]; then
-        print_warning "Found nested agents from an earlier install in ${INSTALL_DIR}/agent/. OpenCode v2 would load them next to the new ones. Run 'oac update --opencode v2' to migrate safely, or remove them."
+    # v2: an earlier release nested agents by category (agent/core/openagent.md); v2 loads every file.
+    if [ "$OPENCODE_FLAVOR" = "v2" ]; then
+        if [ -d "${INSTALL_DIR}/agent/core" ] || [ -d "${INSTALL_DIR}/agent/subagents" ]; then
+            print_warning "Found nested agents from an earlier install in ${INSTALL_DIR}/agent/. OpenCode v2 would load them next to the new ones. Run 'oac update --opencode v2' to migrate safely, or remove them."
+        fi
+        return 0
+    fi
+    # v1: subagents used to live in agent/subagents/<category>/; they now live in agent/<category>/.
+    if [ -d "${INSTALL_DIR}/agent/subagents" ]; then
+        local left
+        left=$(find "${INSTALL_DIR}/agent/subagents" -name '*.md' -type f 2>/dev/null | head -n 20)
+        if [ -n "$left" ]; then
+            print_warning "Old-layout agents remain in ${INSTALL_DIR}/agent/subagents/ (OpenCode v1 loads them next to their replacements in agent/<category>/):"
+            while IFS= read -r f; do printf '    %s\n' "$f"; done <<< "$left"
+            print_warning "Run 'oac update' to remove the ones OAC shipped (edited copies are backed up), or delete them yourself if they are duplicates."
+        fi
     fi
 }
 
@@ -1374,7 +1462,9 @@ perform_installation() {
     fi
     
     record_flavor_if_ok "$FILES_WRITTEN" "$failed"
-    if [ "$installed" -gt 0 ]; then
+    # Always: a re-run that skipped everything can still find old copies beside earlier new ones.
+    retire_superseded_files
+    if [ "$installed" -gt 0 ] || [ "$SUPERSEDED_RETIRED" -gt 0 ] || [ "$SUPERSEDED_KEPT" -gt 0 ]; then
         warn_legacy_agent_layout
     fi
 

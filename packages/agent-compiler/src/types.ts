@@ -573,6 +573,20 @@ export const OacBlockFieldsSchema = z
      * equal a real id or another agent's alias.
      */
     aliases: z.array(OacIdSchema).default([]),
+    /**
+     * Former locations of this agent's shipped file, relative to the agent output root, for
+     * layouts that nest agents by folder (OpenCode v1). Use it when an agent MOVES but keeps its
+     * id (a rename is already covered by `aliases`). The registry records each as `supersedes`
+     * so installers can retire the stale copy. Relative, no `..`, `.md` only.
+     */
+    previousPaths: z
+      .array(
+        z
+          .string()
+          .regex(/^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*\.md$/, "previousPaths entries are relative .md paths")
+          .refine((p) => !p.split("/").includes(".."), "previousPaths may not contain '..'"),
+      )
+      .default([]),
     targets: BuildTargetsSchema,
     exclude: BuildExcludesSchema,
     overrides: TargetOverridesSchema.default({}),

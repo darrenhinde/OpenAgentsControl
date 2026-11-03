@@ -18,6 +18,7 @@ oac:
   category: code
   type: subagent
   aliases: [reviewer]
+  previousPaths: [subagents/code/reviewer.md]
   version: "1.0.0"
   author: opencode
   tags:

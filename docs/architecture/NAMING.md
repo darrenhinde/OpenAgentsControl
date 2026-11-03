@@ -38,7 +38,16 @@ Code: `packages/agent-compiler/src/verify/lint/naming.ts`.
    real id, another agent's alias, or normalises onto a different agent fails the build. The
    registry entry gains an additive `aliases` field, which `install.sh` and the CLI already match
    on, so `oac add old-id` and `install.sh` keep working. Prose that merely mentions an agent is
-   never rewritten.
+   never rewritten. **Where aliases resolve:** for the OpenCode outputs (v2 and v1) in
+   `permission.task` keys, structured body calls, dependencies and profile lists; for Claude Code
+   in dependencies and profile lists (and `subagent:` refs are checked against the claude-code
+   roster). The Claude Code adapter does not rewrite delegation text in an agent body, so write the
+   current id there. The registry also records `supersedes`: the paths the agent used to ship at
+   (the old file name next to the new one, plus any `oac.previousPaths` entry for an agent that
+   moved folders under v1). `oac update`, `oac init`, `oac add`, `install.sh` and `update.sh` use
+   it to remove the stale installed copy (an edited one is backed up first), and `oac doctor`
+   warns while one is left. **Moving or renaming an agent: add the old id to `aliases`; if it
+   keeps its id but changes folder, add the old path to `previousPaths`.**
 7. **Skills and commands** follow the same id rules (a skill is a noun or verb-first phrase, a
    command is a verb) but are not linted: they are not canonical source types today. (Planned.)
 

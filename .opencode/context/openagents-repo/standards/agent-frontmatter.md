@@ -13,7 +13,7 @@ permission:
   bash:
     "npm test *": allow
 oac:
-  id: tester
+  id: test-engineer
   name: TestEngineer
   category: code
   type: subagent

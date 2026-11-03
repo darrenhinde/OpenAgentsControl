@@ -55,7 +55,10 @@
           "evals"
         ],
         "dependencies": [],
-        "category": "dev"
+        "category": "dev",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/test/eval-runner.md"
+        ]
       },
       {
         "id": "openagent",
@@ -189,7 +192,10 @@
           "decisions"
         ],
         "dependencies": [],
-        "category": "planning"
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/adr-manager.md"
+        ]
       },
       {
         "id": "agent-generator",
@@ -204,7 +210,10 @@
           "scaffolding"
         ],
         "dependencies": [],
-        "category": "system-builder"
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/agent-generator.md"
+        ]
       },
       {
         "id": "architecture-analyzer",
@@ -219,7 +228,10 @@
           "ddd"
         ],
         "dependencies": [],
-        "category": "planning"
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/architecture-analyzer.md"
+        ]
       },
       {
         "id": "batch-executor",
@@ -237,7 +249,10 @@
           "subagent:coder-agent",
           "subagent:task-manager"
         ],
-        "category": "core"
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/batch-executor.md"
+        ]
       },
       {
         "id": "build-agent",
@@ -252,7 +267,10 @@
           "type-checking"
         ],
         "dependencies": [],
-        "category": "code"
+        "category": "code",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/code/build-agent.md"
+        ]
       },
       {
         "id": "code-reviewer",
@@ -273,6 +291,10 @@
         "category": "code",
         "aliases": [
           "reviewer"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/code/reviewer.md",
+          "built-ai-configs/opencode-v1/agent/subagents/code/reviewer.md"
         ]
       },
       {
@@ -289,7 +311,10 @@
         "dependencies": [
           "context:standards-code"
         ],
-        "category": "code"
+        "category": "code",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/code/coder-agent.md"
+        ]
       },
       {
         "id": "command-creator",
@@ -304,7 +329,10 @@
           "scaffolding"
         ],
         "dependencies": [],
-        "category": "system-builder"
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/command-creator.md"
+        ]
       },
       {
         "id": "context-manager",
@@ -319,7 +347,10 @@
           "organization"
         ],
         "dependencies": [],
-        "category": "core"
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/context-manager.md"
+        ]
       },
       {
         "id": "context-organizer",
@@ -336,7 +367,10 @@
         "dependencies": [
           "context:core/context-system/*"
         ],
-        "category": "system-builder"
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/context-organizer.md"
+        ]
       },
       {
         "id": "context-retriever",
@@ -351,7 +385,10 @@
           "search"
         ],
         "dependencies": [],
-        "category": "core"
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/context-retriever.md"
+        ]
       },
       {
         "id": "context-scout",
@@ -379,6 +416,10 @@
         "category": "core",
         "aliases": [
           "contextscout"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/core/contextscout.md",
+          "built-ai-configs/opencode-v1/agent/subagents/core/contextscout.md"
         ]
       },
       {
@@ -394,7 +435,10 @@
           "openapi"
         ],
         "dependencies": [],
-        "category": "planning"
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/contract-manager.md"
+        ]
       },
       {
         "id": "devops-specialist",
@@ -409,7 +453,10 @@
           "infrastructure"
         ],
         "dependencies": [],
-        "category": "dev"
+        "category": "dev",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/development/devops-specialist.md"
+        ]
       },
       {
         "id": "doc-writer",
@@ -428,6 +475,10 @@
         "category": "core",
         "aliases": [
           "documentation"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/core/documentation.md",
+          "built-ai-configs/opencode-v1/agent/subagents/core/documentation.md"
         ]
       },
       {
@@ -443,7 +494,10 @@
           "architecture"
         ],
         "dependencies": [],
-        "category": "system-builder"
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/domain-analyzer.md"
+        ]
       },
       {
         "id": "external-scout",
@@ -464,6 +518,10 @@
         "category": "core",
         "aliases": [
           "externalscout"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/core/externalscout.md",
+          "built-ai-configs/opencode-v1/agent/subagents/core/externalscout.md"
         ]
       },
       {
@@ -481,7 +539,10 @@
         "dependencies": [
           "context:standards-code"
         ],
-        "category": "dev"
+        "category": "dev",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/development/frontend-specialist.md"
+        ]
       },
       {
         "id": "image-specialist",
@@ -498,7 +559,10 @@
         "dependencies": [
           "tool:gemini"
         ],
-        "category": "content"
+        "category": "content",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/utils/image-specialist.md"
+        ]
       },
       {
         "id": "prioritization-engine",
@@ -513,7 +577,10 @@
           "planning"
         ],
         "dependencies": [],
-        "category": "planning"
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/prioritization-engine.md"
+        ]
       },
       {
         "id": "simple-responder",
@@ -527,7 +594,10 @@
           "evaluation"
         ],
         "dependencies": [],
-        "category": "dev"
+        "category": "dev",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/test/simple-responder.md"
+        ]
       },
       {
         "id": "stage-orchestrator",
@@ -542,7 +612,10 @@
           "stages"
         ],
         "dependencies": [],
-        "category": "core"
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/stage-orchestrator.md"
+        ]
       },
       {
         "id": "story-mapper",
@@ -557,7 +630,10 @@
           "planning"
         ],
         "dependencies": [],
-        "category": "planning"
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/story-mapper.md"
+        ]
       },
       {
         "id": "task-manager",
@@ -574,7 +650,10 @@
         "dependencies": [
           "context:task-delegation-basics"
         ],
-        "category": "core"
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/task-manager.md"
+        ]
       },
       {
         "id": "test-engineer",
@@ -594,6 +673,10 @@
         "category": "code",
         "aliases": [
           "tester"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/code/tester.md",
+          "built-ai-configs/opencode-v1/agent/subagents/code/test-engineer.md"
         ]
       },
       {
@@ -609,7 +692,10 @@
           "architecture"
         ],
         "dependencies": [],
-        "category": "system-builder"
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/workflow-designer.md"
+        ]
       }
     ],
     "commands": [

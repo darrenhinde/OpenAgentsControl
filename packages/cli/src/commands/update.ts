@@ -127,6 +127,7 @@ function printSummary(result: InstallResult, isDryRun: boolean): void {
   printFileList(`  ${prefix}New files installed`, result.installed, success);
   printFileList(`  ${prefix}Backed up to .oac/backups/`, result.backed_up, info);
   printFileList(`  Skipped (user-modified)`, result.skipped, warn);
+  printFileList(`  ${isDryRun ? 'Would remove' : 'Removed'} (superseded by a renamed or moved agent; edited copies are backed up first)`, result.superseded, info);
   printFileList(`  ${prefix}Removed (other OpenCode layout)`, result.pruned, info);
   printFileList(`  Removed from manifest (no longer in bundle)`, result.removed_from_manifest, warn);
   printFileList(`  Errors`, result.errors, error);
@@ -137,6 +138,7 @@ function printSummary(result: InstallResult, isDryRun: boolean): void {
   const backedUpCount = result.backed_up.length;
 
   const parts: string[] = [];
+  if (result.superseded.length > 0) parts.push(`${result.superseded.length} superseded ${isDryRun ? 'would be removed' : 'removed'}`);
   if (result.pruned.length > 0) parts.push(`${result.pruned.length} ${isDryRun ? 'would be removed' : 'removed'}`);
   if (updatedCount > 0) parts.push(`${updatedCount} file(s) ${isDryRun ? 'would be updated' : 'updated'}`);
   if (result.unchanged.length > 0) parts.push(`${result.unchanged.length} unchanged`);
@@ -144,7 +146,7 @@ function printSummary(result: InstallResult, isDryRun: boolean): void {
   if (backedUpCount > 0) parts.push(`${backedUpCount} backed up`);
   if (result.errors.length > 0) parts.push(`${result.errors.length} error(s)`);
 
-  if (updatedCount === 0 && skippedCount === 0 && backedUpCount === 0 && result.pruned.length === 0 && result.errors.length === 0) {
+  if (updatedCount === 0 && skippedCount === 0 && backedUpCount === 0 && result.pruned.length === 0 && result.superseded.length === 0 && result.errors.length === 0) {
     info(`Everything is already up to date (${result.unchanged.length} file(s) unchanged).`);
     return;
   }

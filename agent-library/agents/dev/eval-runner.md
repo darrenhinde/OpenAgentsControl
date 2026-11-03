@@ -8,6 +8,7 @@ oac:
   name: EvalRunner
   category: dev
   type: agent
+  previousPaths: [subagents/test/eval-runner.md]
   version: "1.0.0"
   author: opencode
   tags:

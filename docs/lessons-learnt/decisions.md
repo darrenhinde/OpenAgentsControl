@@ -139,6 +139,17 @@ Made by the maintainer on 2026-10-20 and 2026-10-21.
 - **Rules out:** hand-editing a mirror; a gitignored `dist/` as the build output.
 - **Revisit when:** installers read `built-ai-configs/` directly (Stage 6). Then drop the mirrors.
 
+## D-019 Agent naming rules, aliases, category-only folders
+
+Made by the maintainer on 2026-11-03.
+
+- **Decision:** ids follow `docs/architecture/NAMING.md`. An id is kebab-case, equals the file name, is the same on every host, hyphenates run-together words (`context-scout`) and does not repeat the type as a `-agent` suffix. Agents live in `agent-library/agents/<category>/<id>.md`, one folder level, with no `subagents/` folder: primary vs subagent is the `type` field. A rename keeps the old id as `oac.aliases` and a folder move keeps the old path as `oac.previousPaths`; the registry records both as `aliases` / `supersedes`, and installers use them to retire the stale installed file (backup first if edited). Five agents were renamed this way: `context-scout`, `external-scout`, `code-reviewer`, `test-engineer`, `doc-writer`.
+  - **Legacy exceptions:** `coder-agent` and `build-agent` keep their `-agent` suffix. Their ids are referenced by users' own agents, evals and docs, and an alias cannot protect a name that is also used as free text. The lint reports them as info only.
+  - **Aliases resolve** in `permission.task`, structured calls, dependencies and profile lists for OpenCode outputs, and in dependencies and profile lists for Claude Code (its bodies are not rewritten).
+- **Why:** three spellings of one agent (`contextscout`, `ContextScout`, `Context Scout`) and a `subagents/` folder that duplicated the `type` field made delegation and installs error-prone. A rename must not break existing installs or leave two copies of an agent in a project.
+- **Rules out:** renaming or moving an agent without an alias or `previousPaths`; a `subagents/` folder; renaming `coder-agent` or `build-agent` without a deliberate migration.
+- **Revisit when:** the naming lint is promoted to failing, or a second host needs a per-host display name (rule 2).
+
 ---
 
 ## Open decisions

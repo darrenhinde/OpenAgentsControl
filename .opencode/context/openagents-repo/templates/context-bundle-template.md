@@ -213,7 +213,7 @@ Create a context bundle when:
 4. **Pass to subagent**:
    ```javascript
    task(
-     subagent_type="subagents/core/{subagent}",
+     subagent_type="{SubagentName}"  // OpenCode v1; on v2 delegate with agent="{subagent-id}",
      description="Brief description",
      prompt="Load context from .tmp/context/{session-id}/bundle.md before starting.
              

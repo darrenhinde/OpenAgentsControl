@@ -24,6 +24,7 @@ oac:
   name: ContractManager
   category: planning
   type: subagent
+  previousPaths: [subagents/planning/contract-manager.md]
   version: "1.0.0"
   author: opencode
   tags:

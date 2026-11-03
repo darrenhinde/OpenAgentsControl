@@ -8,6 +8,7 @@ oac:
   name: CommandCreator
   category: system-builder
   type: subagent
+  previousPaths: [subagents/system-builder/command-creator.md]
   version: "1.0.0"
   author: opencode
   tags:

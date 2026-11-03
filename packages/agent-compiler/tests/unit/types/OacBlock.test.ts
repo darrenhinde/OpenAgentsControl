@@ -148,6 +148,7 @@ describe("OacBlockSchema", () => {
         // Overrides are opt-in: the common case is a component with nothing target-specific
         // to say, and it must stay writable without an empty ceremonial block.
         overrides: {},
+        previousPaths: [],
       });
     });
   });

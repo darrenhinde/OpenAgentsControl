@@ -9,7 +9,7 @@
 
 ```bash
 # 1. create/edit the one source file
-$EDITOR agent-library/agents/subagents/<group>/<agent-id>.md
+$EDITOR agent-library/agents/<category>/<agent-id>.md
 # 2. build (builds the compiler + CLI first, then runs `oac build`)
 make build-canonical
 # 3. verify: a fresh build must change nothing

@@ -24,6 +24,7 @@ oac:
   category: core
   type: subagent
   aliases: [contextscout]
+  previousPaths: [subagents/core/contextscout.md]
   version: "1.0.0"
   author: opencode
   tags:

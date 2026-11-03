@@ -9,6 +9,9 @@ import { readProjectFlavor } from '../lib/project-flavor.js';
 import { detectOpenCodeMajor } from '../lib/opencode-host.js';
 import { computeFileHash, hashesMatch } from '../lib/sha256.js';
 import { detectIdes } from '../lib/ide-detect.js';
+import { getPackageRoot } from '../lib/bundled.js';
+import { loadRegistry } from '../lib/registry.js';
+import { findSuperseded } from '../lib/superseded.js';
 import {
   ideCheckResults,
   checkClaudeDiscoveryConfig,
@@ -18,6 +21,7 @@ import {
   overallStatus,
   safeReadManifest,
   summariseResults,
+  supersededCheck,
   type CheckResult,
   type DoctorSummary,
 } from '../lib/doctor-checks.js';
@@ -234,6 +238,17 @@ const checkModifiedFiles = async (projectRoot: string): Promise<CheckResult> => 
   return { name, status: 'ok', message: 'No files modified since install' };
 };
 
+/** Check: installed files that renamed or moved agents replaced (duplicates OpenCode would load). */
+const checkSuperseded = async (projectRoot: string): Promise<CheckResult> => {
+  const registry = await readProjectFlavor(projectRoot)
+    .then(({ flavor }) => loadRegistry(getPackageRoot(), flavor))
+    .catch(() => null);
+  if (registry === null) return { name: 'Superseded files', status: 'info', message: 'skipped — bundled registry unavailable' };
+  const read = await safeReadManifest(projectRoot);
+  const hasManifest = read.ok && read.manifest !== null;
+  return supersededCheck(await findSuperseded(projectRoot, registry), hasManifest);
+};
+
 /** Check 7: which tools are present. OpenCode present is the healthy state; Claude is informational. */
 const checkIdes = async (projectRoot: string): Promise<CheckResult[]> =>
   ideCheckResults(await detectIdes(projectRoot));
@@ -299,7 +314,7 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
   const projectRoot = process.cwd();
 
   // Run all independent async checks in parallel for speed
-  const [configResult, manifestResult, filesResult, modifiedResult, contextNavigationResult, claudeDiscoveryResult, ideResults, versionResult, flavorResult] =
+  const [configResult, manifestResult, filesResult, modifiedResult, contextNavigationResult, claudeDiscoveryResult, ideResults, versionResult, flavorResult, supersededResult] =
     await Promise.all([
       checkConfig(projectRoot),
       checkManifest(projectRoot),
@@ -310,6 +325,7 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
       checkIdes(projectRoot),
       checkOacVersion(),
       checkOpenCodeFlavor(projectRoot),
+      checkSuperseded(projectRoot),
     ]);
 
   const allResults: CheckResult[] = [
@@ -318,6 +334,7 @@ export async function doctorCommand(options: DoctorOptions): Promise<void> {
     manifestResult,
     filesResult,
     modifiedResult,
+    supersededResult,
     contextNavigationResult,
     claudeDiscoveryResult,
     ...ideResults,    // checkIdes returns CheckResult[]

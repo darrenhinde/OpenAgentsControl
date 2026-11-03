@@ -14,7 +14,12 @@ import { toDestPath } from './flavor.js';
 const key = (c: RegistryComponent): string => `${c.type}:${c.id}`;
 
 const ownerOf = (registry: Registry, destPath: string): RegistryComponent | undefined =>
-  listComponents(registry).find((c) => filesForComponent(c).some((f) => toDestPath(f) === destPath));
+  listComponents(registry).find(
+    (c) =>
+      filesForComponent(c).some((f) => toDestPath(f) === destPath) ||
+      // A file an earlier release shipped at an old path belongs to the component that replaced it.
+      (c.supersedes ?? []).some((f) => toDestPath(f) === destPath),
+  );
 
 /**
  * @param tracked  destination paths from the manifest.

@@ -4,6 +4,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import { hostMismatch, isV2Host } from './flavor.js';
+import type { SupersededFile } from './superseded.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -238,6 +239,24 @@ export const openCodeFlavorCheck = (input: {
     };
   }
   return { name, status: 'ok', message: `OpenCode ${hostMajor} matches the ${flavor} install` };
+};
+
+// ── Superseded files ──────────────────────────────────────────────────────────
+
+/**
+ * Installed files that a renamed or moved agent replaced. OpenCode loads every file under
+ * `agent/`, so each one is a duplicate definition. Pure.
+ */
+export const supersededCheck = (found: readonly SupersededFile[], hasManifest: boolean): CheckResult => {
+  const name = 'Superseded files';
+  if (found.length === 0) return { name, status: 'ok', message: 'No renamed or moved agents left behind' };
+  const fix = hasManifest ? "run 'oac update'" : "run 'oac init' (it adopts this install)";
+  return {
+    name,
+    status: 'warn',
+    message: `${found.length} installed file${found.length !== 1 ? 's' : ''} replaced by renamed or moved agents — ${fix} to remove them (edited copies are backed up first)`,
+    detail: found.map((f) => `${f.oldPath} -> ${f.newPath}`),
+  };
 };
 
 // ── Summary ───────────────────────────────────────────────────────────────────

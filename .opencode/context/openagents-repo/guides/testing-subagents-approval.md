@@ -65,7 +65,7 @@ expectedViolations:
 - ✅ Category agents (frontend-specialist, data-analyst, etc.)
 
 **Don't test approval gates for**:
-- ❌ Subagents (contextscout, tester, reviewer, coder-agent, etc.)
+- ❌ Subagents (context-scout, test-engineer, code-reviewer, coder-agent, etc.)
 - ❌ Any agent with `mode: subagent` in frontmatter
 
 ---

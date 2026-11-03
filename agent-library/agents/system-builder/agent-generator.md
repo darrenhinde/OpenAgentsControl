@@ -8,6 +8,7 @@ oac:
   name: AgentGenerator
   category: system-builder
   type: subagent
+  previousPaths: [subagents/system-builder/agent-generator.md]
   version: "1.0.0"
   author: opencode
   tags:

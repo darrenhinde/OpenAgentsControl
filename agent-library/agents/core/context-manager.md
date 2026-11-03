@@ -36,6 +36,7 @@ oac:
   name: ContextManager
   category: core
   type: subagent
+  previousPaths: [subagents/core/context-manager.md]
   version: "1.0.0"
   author: opencode
   tags:

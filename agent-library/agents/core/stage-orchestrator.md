@@ -26,6 +26,7 @@ oac:
   name: StageOrchestrator
   category: core
   type: subagent
+  previousPaths: [subagents/core/stage-orchestrator.md]
   version: "1.0.0"
   author: opencode
   tags:

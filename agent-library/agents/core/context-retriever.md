@@ -15,6 +15,7 @@ oac:
   name: ContextRetriever
   category: core
   type: subagent
+  previousPaths: [subagents/core/context-retriever.md]
   version: "1.0.0"
   author: opencode
   tags:

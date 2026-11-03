@@ -16,6 +16,7 @@ oac:
   name: WorkflowDesigner
   category: system-builder
   type: subagent
+  previousPaths: [subagents/system-builder/workflow-designer.md]
   version: "1.0.0"
   author: opencode
   tags:

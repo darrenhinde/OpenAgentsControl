@@ -706,12 +706,12 @@
       "agentId": "workflow-designer"
     },
     "built-ai-configs/registry/registry.json": {
-      "sha256": "eb1339698ef754f7b47f9ac6815b8cc6d9d2f7abe641bdb86f677d312e393875",
+      "sha256": "d5f74b6dbd4386ea9fe8f2c3a6870857c439961cfcb2367e131e13dab5a0ec18",
       "target": "registry",
       "root": "built-ai-configs/registry/registry.json"
     },
     "built-ai-configs/registry/registry.v1.json": {
-      "sha256": "068c1ce7e061ecc0adf13806f71a889cd8aca0af5a3441d3c29f62b381337316",
+      "sha256": "09cf2c8fc9a770cb2e60dc3abaf07c65cf4139d3deee0a7ae6b1fce55c7fc2f1",
       "target": "registry-v1",
       "root": "built-ai-configs/registry/registry.v1.json"
     },

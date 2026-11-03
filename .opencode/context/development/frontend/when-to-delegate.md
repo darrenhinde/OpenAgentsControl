@@ -239,8 +239,8 @@ You: [Read the CSS, fix the issue directly]
 ❌ **Task is backend/logic focused** → Wrong subagent (use coder-agent or handle directly)  
 ❌ **Task is a single line change** → Handle directly  
 ❌ **Task is content update** → Handle directly  
-❌ **Task is testing/validation** → Wrong subagent (use tester)  
-❌ **Task is code review** → Wrong subagent (use reviewer)  
+❌ **Task is testing/validation** → Wrong subagent (use test-engineer)  
+❌ **Task is code review** → Wrong subagent (use code-reviewer)  
 
 ---
 

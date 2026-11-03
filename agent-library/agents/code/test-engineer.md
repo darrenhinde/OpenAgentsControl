@@ -31,6 +31,7 @@ oac:
   category: code
   type: subagent
   aliases: [tester]
+  previousPaths: [subagents/code/test-engineer.md]
   version: "1.0.0"
   author: opencode
   tags:

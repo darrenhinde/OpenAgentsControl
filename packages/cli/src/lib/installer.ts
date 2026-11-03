@@ -11,7 +11,8 @@ import {
   createEmptyManifest,
 } from "./manifest.js";
 import { listBundledFiles, getBundledFilePath, classifyBundledFile, toManifestType } from "./bundled.js";
-import { isInstallablePath } from "./registry.js";
+import { filesForComponent, isInstallablePath, loadRegistry, type Registry, type RegistryComponent } from "./registry.js";
+import { findSuperseded, looksLikeBundledCopy, supersededIndex } from "./superseded.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,11 @@ export type InstallResult = {
   removed_from_manifest: string[];
   /** Relative paths of OAC-owned files removed because they belong to the other layout. */
   pruned: string[];
+  /**
+   * Relative paths of installed files removed because a renamed or moved component replaced them
+   * (an edited one was copied to `.oac/backups/` first and is listed in `backed_up`).
+   */
+  superseded: string[];
   /** Human-readable error messages for any failures. */
   errors: string[];
 };
@@ -72,6 +78,7 @@ const EMPTY_RESULT: InstallResult = {
   backed_up: [],
   removed_from_manifest: [],
   pruned: [],
+  superseded: [],
   errors: [],
 };
 
@@ -103,6 +110,7 @@ const mergeResult = (
     ...(patch.removed_from_manifest ?? []),
   ],
   pruned: [...base.pruned, ...(patch.pruned ?? [])],
+  superseded: [...base.superseded, ...(patch.superseded ?? [])],
   errors: [...base.errors, ...(patch.errors ?? [])],
 });
 
@@ -448,12 +456,34 @@ export async function updateFiles(
   const bundledFiles = await listBundledFiles(options.packageRoot, options.flavor ?? DEFAULT_FLAVOR);
   const isScopeRestricted = eligibleFiles !== undefined;
   const eligibleSet = new Set(eligibleFiles ?? bundledFiles);
+  // A tracked file that a renamed or moved component replaced carries its successor into scope:
+  // a project updated by tracked files alone would otherwise never receive the new file.
+  const registry = await loadRegistry(options.packageRoot, options.flavor ?? DEFAULT_FLAVOR).catch(() => null);
+  if (isScopeRestricted && registry !== null && manifest !== null) {
+    const index = supersededIndex(registry);
+    for (const tracked of Object.keys(manifest.files)) {
+      const successor = index.get(tracked);
+      if (successor !== undefined && manifest.files[tracked]?.protected !== true) {
+        for (const file of filesForComponent(successor.component)) eligibleSet.add(file);
+      }
+    }
+  }
   const filesToSync = bundledFiles.filter((file) => eligibleSet.has(file));
 
   // Phase 1: reconcile only the caller-authorized portion of the bundle.
-  const phase1 = await syncFiles(filesToSync, manifest, options).then(
+  let phase1 = await syncFiles(filesToSync, manifest, options).then(
     ({ result, updatedManifest }) => ({ result, workingManifest: updatedManifest }),
   );
+
+  // Phase 1b: retire installed files that renamed or moved components replaced. Before phase 2,
+  // so they are removed (with a backup when edited) instead of reported as "no longer maintained".
+  const retired = registry === null
+    ? null
+    : await retireSuperseded(options, registry, phase1.workingManifest, plannedDestinations(phase1.result));
+  if (retired !== null) {
+    phase1.result = mergeResult(phase1.result, retired.patch);
+    phase1.workingManifest = retired.updatedManifest;
+  }
 
   // Phase 2: handle files in manifest that are no longer in the bundle. The manifest is keyed by
   // destination path, so the bundle is compared as destinations too.
@@ -525,6 +555,77 @@ export async function updateFiles(
 
   return acc;
 }
+
+// ── Superseded files (a component was renamed or moved by a later release) ───
+
+/** Destination paths a finished sync installed, refreshed, found current or deliberately kept. */
+export const plannedDestinations = (result: InstallResult): Set<string> =>
+  new Set([...result.installed, ...result.updated, ...result.unchanged, ...result.skipped]);
+
+/**
+ * Removes installed files that a renamed or moved component supersedes, once the replacement is on
+ * disk (or in `planned`). Safe by construction:
+ *  - a file OAC installed and the user never touched is removed outright;
+ *  - an edited one is copied to `.oac/backups/<timestamp>/` first, then removed;
+ *  - a file OAC does not track (install.sh, or the user's own) is removed only when it still reads
+ *    as the old bundled copy, and always backed up first; anything else is left and reported;
+ *  - with `dryRun` nothing changes and the log says "would remove".
+ * `only` limits the work to some components (`oac add`). Does NOT write the manifest.
+ */
+export async function retireSuperseded(
+  options: InstallOptions,
+  registry: Registry,
+  manifest: ManifestFile | null,
+  planned: ReadonlySet<string>,
+  only?: (component: RegistryComponent) => boolean,
+): Promise<{ patch: Partial<InstallResult>; updatedManifest: ManifestFile }> {
+  let updatedManifest = manifest ?? createEmptyManifest("0.0.0");
+  let patch: Partial<InstallResult> = {};
+  const timestamp = buildTimestamp();
+
+  for (const { oldPath, newPath, component } of await findSuperseded(options.projectRoot, registry, planned, only)) {
+    const tracked = manifest?.files[oldPath];
+    const oacOwned = tracked !== undefined && tracked.source !== "custom" && tracked.protected !== true;
+    const absolute = path.join(options.projectRoot, oldPath);
+    if (!oacOwned && !(await looksLikeBundledCopy(absolute, component))) {
+      process.stdout.write(
+        `[oac] warn: "${oldPath}" looks like your own agent, not the old OAC one replaced by "${newPath}" — left in place; remove it yourself if it is a duplicate\n`,
+      );
+      patch = mergePatch(patch, { skipped: [oldPath] });
+      continue;
+    }
+    // Untracked or custom: no recorded hash, so an empty one forces the backup.
+    const entry = oacOwned ? tracked : ({ sha256: "" } as FileEntry);
+    const pruned = await pruneFile(oldPath, entry, options, timestamp);
+    patch = mergePatch(patch, { ...pruned, pruned: undefined, superseded: pruned.pruned });
+    if (pruned.errors === undefined) {
+      log(options, `superseded: ${oldPath} -> ${newPath}`);
+      updatedManifest = removeFileFromManifest(updatedManifest, oldPath);
+    }
+  }
+  // v1 nests agents by folder, each with a `0-category.json`; once a folder's last agent is
+  // retired the marker is all that is left, so retire it too (no empty shell, no manifest ghost).
+  if (!options.dryRun) {
+    for (const folder of new Set((patch.superseded ?? []).map((file) => path.dirname(file)))) {
+      const entries = await readdir(path.join(options.projectRoot, folder)).catch(() => null);
+      if (entries === null || entries.length !== 1 || entries[0] !== CATEGORY_MARKER) continue;
+      const marker = `${folder}/${CATEGORY_MARKER}`;
+      const tracked = updatedManifest.files[marker];
+      const pruned = await pruneFile(marker, tracked ?? ({ sha256: "" } as FileEntry), options, timestamp);
+      patch = mergePatch(patch, { ...pruned, pruned: undefined, superseded: pruned.pruned });
+      if (pruned.errors === undefined) updatedManifest = removeFileFromManifest(updatedManifest, marker);
+    }
+  }
+  return { patch, updatedManifest };
+}
+
+const mergePatch = (a: Partial<InstallResult>, b: Partial<InstallResult>): Partial<InstallResult> =>
+  Object.fromEntries(
+    (["installed", "updated", "unchanged", "skipped", "backed_up", "removed_from_manifest", "pruned", "superseded", "errors"] as const)
+      .map((key) => [key, [...(a[key] ?? []), ...(b[key] ?? [])]]),
+  ) as Partial<InstallResult>;
+
+const CATEGORY_MARKER = "0-category.json";
 
 // ── Pruning (moving an install between OpenCode layouts) ──────────────────────
 

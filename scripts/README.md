@@ -14,7 +14,6 @@ scripts/
 ├── testing/               # test.sh (eval runner)
 ├── tests/                 # Installer test scripts
 ├── prompts/               # Prompt variant scripts
-├── bridge/                # sync-to-claude.sh
 ├── docs/                  # sync-component-list.sh
 ├── external-context/      # manage-external-context.sh
 ├── check-context-logs/    # Context logging utilities

@@ -22,6 +22,9 @@ import type { IdeType } from '../lib/ide-detect.js'
 import { log, info, warn, error, success, dim, verbose, setVerbose } from '../ui/logger.js'
 import { createSpinner } from '../ui/spinner.js'
 import { getPackageRoot } from '../lib/bundled.js'
+import { loadRegistry } from '../lib/registry.js'
+import { readProjectFlavor } from '../lib/project-flavor.js'
+import { supersededStems } from '../lib/superseded.js'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -68,6 +71,26 @@ export async function loadCompiledClaudeAgents(
     }
   }
   return compiled
+}
+
+// ─── Superseded agents ────────────────────────────────────────────────────────
+
+/**
+ * Drops installed agents that an installed canonical agent has replaced (an old id kept as an
+ * `aliases` entry, or an old v1 path): converting them would write a second Claude Code agent
+ * for the same role. Returns what is left and the ids it dropped. Without a registry, nothing is dropped.
+ */
+export async function dropSupersededAgents(
+  agents: OpenAgent[],
+  projectRoot: string
+): Promise<{ kept: OpenAgent[]; dropped: string[] }> {
+  const registry = await readProjectFlavor(projectRoot)
+    .then(({ flavor }) => loadRegistry(getPackageRoot(), flavor))
+    .catch(() => null)
+  if (registry === null) return { kept: agents, dropped: [] }
+  const stale = supersededStems(registry, new Set(agents.map((agent) => agent.metadata.id ?? '')))
+  const kept = agents.filter((agent) => !stale.has(agent.metadata.id ?? ''))
+  return { kept, dropped: agents.filter((agent) => !kept.includes(agent)).map((agent) => agent.metadata.id ?? '') }
 }
 
 // ─── Size helpers ─────────────────────────────────────────────────────────────
@@ -279,6 +302,12 @@ export async function applyCommand(
     error(`Failed to load agents from ${agentDir}: ${err instanceof Error ? err.message : String(err)}`)
     process.exitCode = 1
     return
+  }
+
+  const { kept, dropped } = await dropSupersededAgents(agents, projectRoot)
+  if (dropped.length > 0) {
+    warn(`Skipping ${dropped.length} superseded agent(s) (replaced by a renamed agent that is also installed): ${dropped.join(', ')}. Run \`oac update\` to remove them.`)
+    agents = kept
   }
 
   if (agents.length === 0) {

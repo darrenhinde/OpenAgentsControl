@@ -21,7 +21,7 @@ const put = (relativePath: string, content: string): void => {
   writeFileSync(absolute, content, "utf-8");
 };
 
-const agent = (id: string, extra: { aliases?: string[]; task?: string[]; body?: string; deps?: string[] } = {}): string =>
+const agent = (id: string, extra: { aliases?: string[]; previous?: string[]; targets?: string; task?: string[]; body?: string; deps?: string[] } = {}): string =>
   [
     "---",
     `description: Fixture ${id}.`,
@@ -36,8 +36,10 @@ const agent = (id: string, extra: { aliases?: string[]; task?: string[]; body?: 
     "  category: core",
     "  type: subagent",
     ...(extra.aliases === undefined ? [] : [`  aliases: [${extra.aliases.join(", ")}]`]),
+    ...(extra.previous === undefined ? [] : [`  previousPaths: [${extra.previous.join(", ")}]`]),
     ...(extra.deps === undefined ? [] : ["  dependencies:", ...extra.deps.map((d) => `    - ${d}`)]),
-    "  targets: [opencode]",
+    `  targets: ${extra.targets ?? "[opencode]"}`,
+    ...((extra.targets ?? "").includes("claude-code") ? ["  overrides:", "    claude-code:", "      tools: [Read]"] : []),
     "---",
     "",
     extra.body ?? "Body.",
@@ -113,6 +115,50 @@ describe("oac.aliases in a build", () => {
   });
 });
 
+describe("v1 and Claude Code alias emission", () => {
+  const registryOf = (built: Awaited<ReturnType<typeof plan>>, file: string) =>
+    JSON.parse(built.files.find((f) => f.path === file)!.content).components.subagents as Array<{ id: string; path: string; aliases?: string[]; supersedes?: string[] }>;
+
+  it("emits aliases and the superseded paths on the v2 entry (the old flat file name)", async () => {
+    const built = await plan({ root, targets: ["opencode"] });
+    const entry = registryOf(built, "built-ai-configs/registry/registry.json").find((e) => e.id === "context-scout")!;
+    expect(entry.aliases).toEqual(["contextscout"]);
+    expect(entry.supersedes).toEqual([".opencode/agent/contextscout.md"]);
+  });
+
+  it("emits aliases and superseded paths on the v1 entry: the old name in the same folder plus each previousPaths entry", async () => {
+    put("agent-library/agents/core/context-scout.md", agent("context-scout", { aliases: ["contextscout"], previous: ["subagents/core/contextscout.md"], targets: "[opencode, opencode-v1]" }));
+    const built = await plan({ root, targets: ["opencode", "opencode-v1"] });
+    const entry = registryOf(built, "built-ai-configs/registry/registry.v1.json").find((e) => e.id === "context-scout")!;
+    expect(entry.path).toBe("built-ai-configs/opencode-v1/agent/core/context-scout.md");
+    expect(entry.aliases).toEqual(["contextscout"]);
+    expect(entry.supersedes).toEqual([
+      "built-ai-configs/opencode-v1/agent/core/contextscout.md",
+      "built-ai-configs/opencode-v1/agent/subagents/core/contextscout.md",
+    ]);
+    // previousPaths is OAC-only metadata: it never reaches the shipped agent file.
+    expect(built.files.find((f) => f.path === "built-ai-configs/opencode-v1/agent/core/context-scout.md")!.content).not.toContain("previousPaths");
+    // An agent with nothing to retire carries no field at all.
+    put("agent-library/agents/core/plain.md", agent("plain", { targets: "[opencode, opencode-v1]" }));
+    const again = await plan({ root, targets: ["opencode", "opencode-v1"] });
+    expect(registryOf(again, "built-ai-configs/registry/registry.v1.json").find((e) => e.id === "plain")!.supersedes).toBeUndefined();
+  });
+
+  it("rejects a previousPaths entry that could escape the agent root", async () => {
+    put("agent-library/agents/core/context-scout.md", agent("context-scout", { previous: ["../../etc/passwd.md"] }));
+    await expect(plan({ root, targets: ["opencode"] })).rejects.toThrow();
+  });
+
+  it("records aliases on the Claude Code file in the build ledger, and resolves stale dependencies", async () => {
+    put("agent-library/agents/core/context-scout.md", agent("context-scout", { aliases: ["contextscout"], targets: "[opencode, claude-code]" }));
+    put("agent-library/agents/core/caller.md", agent("caller", { deps: ["subagent:contextscout"], targets: "[opencode, claude-code]" }));
+    const built = await plan({ root, targets: ["opencode", "claude-code"] });
+    const claude = built.files.find((f) => f.target === "claude-code" && f.agentId === "context-scout")!;
+    expect(claude.agentAliases).toEqual(["contextscout"]);
+    expect(built.deprecations.some((d) => d.reason.includes('"contextscout"'))).toBe(true);
+  });
+});
+
 describe("AgentIdResolver aliases", () => {
   const roster = [
     { id: "code-reviewer", oacName: "CodeReviewer", name: "CodeReviewer", aliases: ["reviewer"] },
@@ -161,6 +207,22 @@ describe("the real library", () => {
       expect(byId.get("code-reviewer")!.aliases).toEqual(["reviewer"]);
       expect(byId.has("tester")).toBe(false);
     }
+  });
+
+  it("records every superseded path: the old flat names (v2) and the old v1 locations", async () => {
+    const built = await plan({ root: repoPath() });
+    const supersedes = (file: string, id: string): string[] | undefined => {
+      const registry = JSON.parse(built.files.find((f) => f.path === file)!.content);
+      return [...registry.components.subagents, ...registry.components.agents].find((e: { id: string }) => e.id === id)?.supersedes;
+    };
+    expect(supersedes("built-ai-configs/registry/registry.json", "test-engineer")).toEqual([".opencode/agent/tester.md"]);
+    expect(supersedes("built-ai-configs/registry/registry.json", "task-manager")).toBeUndefined();
+    const v1 = "built-ai-configs/opencode-v1/agent";
+    expect(supersedes("built-ai-configs/registry/registry.v1.json", "context-scout")).toEqual([
+      `${v1}/core/contextscout.md`,
+      `${v1}/subagents/core/contextscout.md`,
+    ]);
+    expect(supersedes("built-ai-configs/registry/registry.v1.json", "task-manager")).toEqual([`${v1}/subagents/core/task-manager.md`]);
   });
 
   it("records aliases in the build ledger (the drift gate keeps the committed ledger fresh)", () => {

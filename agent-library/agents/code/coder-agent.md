@@ -23,6 +23,7 @@ oac:
   name: CoderAgent
   category: code
   type: subagent
+  previousPaths: [subagents/code/coder-agent.md]
   version: "1.0.0"
   author: opencode
   tags:

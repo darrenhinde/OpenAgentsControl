@@ -254,11 +254,11 @@ test-subagent: ## Test subagent in standalone mode (requires SUBAGENT=name)
 	@if [ -z "$(SUBAGENT)" ]; then \
 		echo "Error: SUBAGENT is required"; \
 		echo "Usage: make test-subagent SUBAGENT=coder-agent"; \
-		echo "       make test-subagent SUBAGENT=tester"; \
+		echo "       make test-subagent SUBAGENT=test-engineer"; \
 		echo ""; \
 		echo "Available subagents:"; \
-		echo "  Code: coder-agent, tester, reviewer, build-agent"; \
-		echo "  Core: task-manager, documentation, context-retriever"; \
+		echo "  Code: coder-agent, test-engineer, code-reviewer, build-agent"; \
+		echo "  Core: task-manager, doc-writer, context-retriever"; \
 		echo "  System: agent-generator, command-creator, context-organizer"; \
 		exit 1; \
 	fi
@@ -270,7 +270,7 @@ test-subagent-delegate: ## Test subagent via parent delegation (requires SUBAGEN
 	@if [ -z "$(SUBAGENT)" ]; then \
 		echo "Error: SUBAGENT is required"; \
 		echo "Usage: make test-subagent-delegate SUBAGENT=coder-agent"; \
-		echo "       make test-subagent-delegate SUBAGENT=tester"; \
+		echo "       make test-subagent-delegate SUBAGENT=test-engineer"; \
 		exit 1; \
 	fi
 	@echo "🔗 Testing subagent (delegation mode): $(SUBAGENT)..."

@@ -25,6 +25,7 @@ oac:
   name: ArchitectureAnalyzer
   category: planning
   type: subagent
+  previousPaths: [subagents/planning/architecture-analyzer.md]
   version: "1.0.0"
   author: opencode
   tags:

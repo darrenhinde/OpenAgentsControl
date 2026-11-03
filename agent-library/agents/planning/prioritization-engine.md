@@ -20,6 +20,7 @@ oac:
   name: PrioritizationEngine
   category: planning
   type: subagent
+  previousPaths: [subagents/planning/prioritization-engine.md]
   version: "1.0.0"
   author: opencode
   tags:

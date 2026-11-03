@@ -25,6 +25,7 @@ oac:
   name: BatchExecutor
   category: core
   type: subagent
+  previousPaths: [subagents/core/batch-executor.md]
   version: "1.0.0"
   author: opencode
   tags:

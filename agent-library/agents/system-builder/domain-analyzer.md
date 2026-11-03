@@ -8,6 +8,7 @@ oac:
   name: DomainAnalyzer
   category: system-builder
   type: subagent
+  previousPaths: [subagents/system-builder/domain-analyzer.md]
   version: "1.0.0"
   author: opencode
   tags:

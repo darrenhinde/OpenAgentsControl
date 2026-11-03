@@ -27,6 +27,7 @@ oac:
   name: BuildAgent
   category: code
   type: subagent
+  previousPaths: [subagents/code/build-agent.md]
   version: "1.0.0"
   author: opencode
   tags:

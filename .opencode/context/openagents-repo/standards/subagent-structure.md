@@ -1,7 +1,7 @@
 <!-- Context: openagents-repo/standards/subagent-structure | Priority: critical | Version: 2.0 | Updated: 2026-09-02 -->
 # Standard: Subagent File Structure
 
-Create and edit subagents in `agent-library/agents/subagents/{category}/`. This canonical source contains both the prompt and its metadata.
+Create and edit subagents in `agent-library/agents/{category}/<id>.md`. This canonical source contains both the prompt and its metadata.
 
 ```markdown
 ---

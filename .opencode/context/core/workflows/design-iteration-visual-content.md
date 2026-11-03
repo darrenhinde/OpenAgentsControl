@@ -14,7 +14,7 @@ Delegate to **Image Specialist** subagent when users request:
 
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Generate/edit visual content",
   prompt="Context to load:
           - .opencode/context/core/visual-development.md
@@ -37,7 +37,7 @@ task(
 
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Generate microservices architecture diagram",
   prompt="Create a diagram showing:
           - 5 microservices (API Gateway, Auth, Orders, Payments, Notifications)
@@ -54,7 +54,7 @@ task(
 
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Generate dashboard mockup",
   prompt="Create a mockup for an analytics dashboard:
           - Header with navigation
@@ -71,7 +71,7 @@ task(
 
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Generate product launch graphic",
   prompt="Create a social media graphic announcing new feature:
           - Bold headline: 'Introducing Real-Time Collaboration'

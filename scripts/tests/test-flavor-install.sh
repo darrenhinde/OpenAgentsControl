@@ -189,6 +189,66 @@ JSON
 assert_contains "$PART/log" "Failed" "one component failed"
 assert_contains "$PART/proj/.opencode/.oac-opencode" "v2" "...but the marker is written because a file was installed"
 
+# --- agents renamed or moved by a release: the old copy is retired, never duplicated -------------
+echo -e "\n${BOLD}superseded agents${NC}"
+
+assert_no_dir() { [ ! -d "$1" ] && pass "$2" || fail "$2 (unexpected dir: $1)"; }
+count_backups() { ls -d "$1".backup.* 2>/dev/null | wc -l | tr -d ' '; }
+
+# v2, install.sh: an old install left tester.md / contextscout.md next to the new files.
+SD="$TEST_DIR/sup2/.opencode"
+install full --install-dir="$SD" > "$TEST_DIR/sup2a.log" 2>&1
+cp "$SD/agent/test-engineer.md" "$SD/agent/tester.md"
+{ cat "$SD/agent/context-scout.md"; echo "MY EDIT"; } > "$SD/agent/contextscout.md"
+printf -- '---\ndescription: my team reviewer, nothing to do with OAC\nmode: subagent\n---\nmine\n' > "$SD/agent/reviewer.md"
+printf -- '---\ndescription: mine\nmode: subagent\n---\nmine\n' > "$SD/agent/my-own.md"
+install full --install-dir="$SD" > "$TEST_DIR/sup2b.log" 2>&1
+assert_no_file "$SD/agent/tester.md"        "install.sh removes the superseded tester.md"
+assert_no_file "$SD/agent/contextscout.md"  "install.sh removes the superseded contextscout.md (even when edited)"
+assert_file    "$SD/agent/test-engineer.md" "...the replacement stays"
+assert_file    "$SD/agent/reviewer.md"      "install.sh leaves a user's own agent that shares an old id"
+assert_contains "$TEST_DIR/sup2b.log" "Left .*reviewer.md" "...and says so"
+assert_file    "$SD/agent/my-own.md"        "install.sh leaves custom agents alone"
+BK=$(ls -d "$SD".backup.* 2>/dev/null | head -n 1)
+assert_contains "$BK/agent/contextscout.md" "MY EDIT" "the edited file is backed up before removal"
+assert_file    "$BK/agent/tester.md"        "every removed file is backed up"
+N1=$(count_backups "$SD")
+install full --install-dir="$SD" > "$TEST_DIR/sup2c.log" 2>&1
+[ "$(count_backups "$SD")" = "$N1" ] && pass "a second install.sh run retires nothing more (idempotent)" || fail "a second install.sh run retires nothing more (idempotent)"
+
+# v2, update.sh: an old install (no doc-writer.md yet); the update installs the replacement.
+cp "$SD/agent/doc-writer.md" "$SD/agent/documentation.md"
+rm -f "$SD/agent/doc-writer.md"
+(cd "$REPO_ROOT" && bash update.sh --install-dir "$SD") > "$TEST_DIR/sup2d.log" 2>&1
+assert_file    "$SD/agent/doc-writer.md"    "update.sh installs the replacement of a renamed agent"
+assert_no_file "$SD/agent/documentation.md" "update.sh removes the superseded documentation.md"
+assert_file    "$SD/agent/reviewer.md"      "update.sh leaves the user's own agent"
+assert_file    "$SD/agent/my-own.md"        "update.sh leaves custom agents alone"
+assert_contains "$TEST_DIR/sup2d.log" "old copy saved in" "update.sh says where the backup went"
+
+# v1: subagents moved from agent/subagents/<category>/ to agent/<category>/.
+SV="$TEST_DIR/sup1/.opencode"
+install full --opencode v1 --install-dir="$SV" > "$TEST_DIR/sup1a.log" 2>&1
+mkdir -p "$SV/agent/subagents/core" "$SV/agent/subagents/development"
+cp "$SV/agent/core/context-scout.md" "$SV/agent/subagents/core/contextscout.md"
+cp "$SV/agent/dev/devops-specialist.md" "$SV/agent/subagents/development/devops-specialist.md"
+echo '{"name":"development"}' > "$SV/agent/subagents/development/0-category.json"
+printf -- '---\ndescription: mine\nmode: subagent\n---\nmine\n' > "$SV/agent/subagents/core/mine.md"
+install full --opencode v1 --install-dir="$SV" > "$TEST_DIR/sup1b.log" 2>&1
+assert_no_file "$SV/agent/subagents/core/contextscout.md"               "v1: install.sh removes the old-layout copy of a renamed subagent"
+assert_no_file "$SV/agent/subagents/development/devops-specialist.md"   "v1: install.sh removes the old-layout copy of a moved subagent"
+assert_no_dir  "$SV/agent/subagents/development"                        "v1: ...and the emptied folder (with its category marker)"
+assert_file    "$SV/agent/subagents/core/mine.md"                       "v1: a user's own file in agent/subagents/ is kept"
+assert_contains "$TEST_DIR/sup1b.log" "agent/subagents" "v1: the leftover old-layout folder is named in a warning"
+assert_file    "$SV/agent/core/context-scout.md"                        "v1: the replacement stays"
+
+rm -f "$SV/agent/core/task-manager.md"
+mkdir -p "$SV/agent/subagents/core"
+cp "$REPO_ROOT/built-ai-configs/opencode-v1/agent/core/task-manager.md" "$SV/agent/subagents/core/task-manager.md"
+(cd "$REPO_ROOT" && bash update.sh --install-dir "$SV") > "$TEST_DIR/sup1c.log" 2>&1
+assert_file    "$SV/agent/core/task-manager.md"                         "v1: update.sh installs the moved subagent at its new path"
+assert_no_file "$SV/agent/subagents/core/task-manager.md"               "v1: ...and removes the old-layout copy"
+
 echo -e "\n${BOLD}update.sh${NC} (config.json)"
 # a CLI-installed project: flavor only in .oac/config.json, no marker
 C="$TEST_DIR/cli/.opencode"

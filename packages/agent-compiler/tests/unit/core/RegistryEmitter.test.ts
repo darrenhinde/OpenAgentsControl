@@ -513,8 +513,9 @@ describe("generation from the canonical tree", () => {
       for (const entry of entries(document, category)) {
         if (entry.id === "eval-runner") continue; // carried through, keeps its own shape
 
-        // `aliases` is additive and trails `category`; only renamed agents carry it.
-        expect(Object.keys(entry).filter((key) => key !== "aliases"), `${entry.id} field order`).toEqual([
+        // `aliases` and `supersedes` are additive and trail `category` (in that order); only
+        // renamed or moved agents carry them.
+        expect(Object.keys(entry).filter((key) => key !== "aliases" && key !== "supersedes"), `${entry.id} field order`).toEqual([
           "id",
           "name",
           "type",
@@ -525,7 +526,8 @@ describe("generation from the canonical tree", () => {
           "dependencies",
           "category",
         ]);
-        if ("aliases" in entry) expect(Object.keys(entry).at(-1)).toBe("aliases");
+        const trailing = Object.keys(entry).slice(9);
+        expect(["", "aliases", "supersedes", "aliases,supersedes"], `${entry.id} trailing fields`).toContain(trailing.join(","));
       }
     }
   });

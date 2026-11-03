@@ -33,6 +33,7 @@ oac:
   name: OpenDevopsSpecialist
   category: dev
   type: subagent
+  previousPaths: [subagents/development/devops-specialist.md]
   version: "1.0.0"
   author: opencode
   tags:

@@ -21,6 +21,7 @@ oac:
   category: core
   type: subagent
   aliases: [documentation]
+  previousPaths: [subagents/core/documentation.md]
   version: "1.0.0"
   author: opencode
   tags:

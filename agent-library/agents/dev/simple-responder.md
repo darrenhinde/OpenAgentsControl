@@ -8,6 +8,7 @@ oac:
   name: SimpleResponder
   category: dev
   type: subagent
+  previousPaths: [subagents/test/simple-responder.md]
   version: "1.0.0"
   author: opencode
   tags:

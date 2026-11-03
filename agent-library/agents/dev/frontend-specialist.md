@@ -26,6 +26,7 @@ oac:
   name: OpenFrontendSpecialist
   category: dev
   type: subagent
+  previousPaths: [subagents/development/frontend-specialist.md]
   version: "1.0.0"
   author: opencode
   tags:

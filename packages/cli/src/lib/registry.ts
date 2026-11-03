@@ -60,6 +60,12 @@ export const RegistryComponentSchema = z.object({
   files: z.array(z.string()).optional(),
   /** Alternative ids a ref may use (legacy names kept for old profiles). */
   aliases: z.array(z.string()).optional(),
+  /**
+   * Paths an earlier OAC release shipped this component at (same form as `path`) that this one no
+   * longer ships. Written by the compiler from `oac.aliases` / `oac.previousPaths`. An installed
+   * file at one of these is superseded by the file at `path`.
+   */
+  supersedes: z.array(z.string()).optional(),
 });
 
 /** An install tier: a name, a blurb, and the `type:id` refs it pulls in. */
