@@ -52,6 +52,7 @@ import {
   BUILD_TARGETS,
   check as checkPlan,
   lintBuild,
+  lintNaming,
   plan as planBuild,
   ReferenceResolver,
   write as writePlan,
@@ -156,6 +157,24 @@ const reportLints = (built: BuildPlan): { count: number; errors: number } => {
   return { count, errors }
 }
 
+/**
+ * Naming lint (docs/architecture/NAMING.md) over the canonical source. REPORT-ONLY: its own
+ * section, never counted in the summary, `--strict` or the exit code, until the existing
+ * agents are renamed and the rule is promoted. Returns the number of `warn`-level findings.
+ */
+const reportNaming = (built: BuildPlan): number => {
+  const findings = lintNaming(built.agents)
+  const warns = findings.filter((f) => f.level === 'warn')
+  if (findings.length === 0) return 0
+  log('')
+  dim('  naming (report-only):')
+  for (const f of findings) {
+    dim(`    naming: ${f.path} [${f.rule}] ${f.message}${f.level === 'info' ? ' (info)' : ''}`)
+  }
+  dim(`    ${warns.length} naming warning(s), ${findings.length - warns.length} info note(s); not counted above`)
+  return warns.length
+}
+
 /** `--strict` fails on any warning, dead reference or lint finding. Pure. */
 export const strictExitCode = (strict: boolean, ...counts: number[]): number =>
   strict && counts.some((count) => count > 0) ? 1 : 0
@@ -182,6 +201,7 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
   const deadCount = await reportDeadReferences(root, built)
   const warningCount = built.warnings.length
   const { count: lintCount, errors: lintErrors } = reportLints(built)
+  reportNaming(built)
 
   bold('\n  oac build')
   info(`${built.agents.length} canonical agents -> ${built.files.length} files`)

@@ -341,5 +341,7 @@ export {
   OPENCODE_PATH_ALLOWLIST,
 } from "./verify/lint/capability.js";
 export type { ClaudeLintOptions, OpenCodeFlavor } from "./verify/lint/capability.js";
+export { lintNaming, ROLE_SUFFIXES } from "./verify/lint/naming.js";
+export type { NamingFinding, NamingLevel, NamingSubject } from "./verify/lint/naming.js";
 export { lintBuild } from "./verify/lint/run.js";
 export type { LintableFile, TargetLintResult } from "./verify/lint/run.js";

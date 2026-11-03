@@ -15,6 +15,7 @@ agent-library/
 
 Before the first build, once: `pnpm install --frozen-lockfile` (see [DEVELOPMENT.md](../docs/contributing/DEVELOPMENT.md#prerequisites) for the tool versions).
 
+Naming and folder rules: [docs/architecture/NAMING.md](../docs/architecture/NAMING.md) (`oac build` reports violations under "naming").
 Big picture: [docs/architecture/CORE.md](../docs/architecture/CORE.md). What each tool
 gets: [built-ai-configs/README.md](../built-ai-configs/README.md) (generated).
 
