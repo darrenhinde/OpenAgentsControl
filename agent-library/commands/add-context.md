@@ -650,7 +650,7 @@ Already have global patterns? Bring them into this project:
 
 - Project Intelligence: .opencode/context/core/standards/project-intelligence.md
 - MVI Principles: .opencode/context/core/context-system/standards/mvi.md
-- Context System: CONTEXT_SYSTEM_GUIDE.md
+- Context System: docs/guides/context-system.md (in the OpenAgentsControl repository)
 ```
 
 ---

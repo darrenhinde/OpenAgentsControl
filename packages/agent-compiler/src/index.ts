@@ -349,6 +349,16 @@ export {
   LEGACY_COMMAND_GROUPS,
 } from "./verify/lint/assets.js";
 export type { AssetNamingFinding } from "./verify/lint/assets.js";
+export { lintContext, PLACEHOLDER_TARGETS } from "./verify/lint/context.js";
+export type { ContextFinding, ContextRule } from "./verify/lint/context.js";
+export {
+  CONTEXT_COMPONENTS_FILE,
+  CONTEXT_OUTPUT_ROOT,
+  CONTEXT_SOURCE_ROOT,
+  ContextLoadError,
+  loadContextLibrary,
+} from "./core/ContextLoader.js";
+export type { ContextComponent, ContextFile, ContextLibrary } from "./core/ContextLoader.js";
 export {
   loadCanonicalAssets,
   loadCanonicalSkills,

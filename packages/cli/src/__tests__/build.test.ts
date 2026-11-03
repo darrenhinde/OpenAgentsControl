@@ -102,7 +102,7 @@ describe('naming lint is report-only', () => {
     try {
       for (const dir of ['agent-library', 'built-ai-configs', '.oac', '.opencode', 'plugins']) {
         mkdirSync(join(root, dir), { recursive: true })
-        cpSync(join(repo, dir), join(root, dir), { recursive: true, filter: (src) => !src.includes('node_modules') })
+        cpSync(join(repo, dir), join(root, dir), { recursive: true, verbatimSymlinks: true, filter: (src) => !src.includes('node_modules') })
       }
       if (extraAgent !== undefined) {
         writeFileSync(join(root, 'agent-library/agents/core/BadName.md'), extraAgent)

@@ -55,7 +55,7 @@ Adding an agent to a tier means editing the system profile JSON and rebuilding. 
 
 `built-ai-configs/` is the one folder to browse for what each tool gets (D-018); `built-ai-configs/README.md` indexes it. The mirrors exist only because installers and the Claude marketplace still read the old live paths. Edit a mirror and the drift gate fails, the same as editing `built-ai-configs/`.
 
-Still hand-authored (no canonical source yet): `.opencode/context/**`, `.opencode/command/**`, `.opencode/skills/**`, and `.opencode/tool/**`. Register those categories by hand: `guides/updating-registry.md`.
+The context library is canonical too: `agent-library/context/**` is copied verbatim to `.opencode/context/**` (the one installed location), and `components.contexts` is generated from `agent-library/context/components.json` (`guides/updating-registry.md`). Still hand-authored (no canonical source yet): `.opencode/tool/**` and the v1-only plugins; register those by hand.
 
 ## Related
 

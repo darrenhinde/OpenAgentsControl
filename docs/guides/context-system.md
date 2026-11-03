@@ -1,5 +1,9 @@
 # The Context System: A Complete Guide
 
+> This guide is for people who use context in a project. The library OAC ships (the `core/`, `openagents-repo/`, `development/` ... files) is
+> authored in `agent-library/context/` and copied verbatim to `.opencode/context/` by `oac build`; how that works and how to change it is in
+> [docs/architecture/CONTEXT.md](../architecture/CONTEXT.md). Your own project context still lives in `.opencode/context/project-intelligence/`.
+
 ## What Is Context?
 
 **Context** is your project's **coding standards and patterns** stored as markdown files. It tells agents:

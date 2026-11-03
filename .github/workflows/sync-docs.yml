@@ -9,6 +9,7 @@ on:
       - '.opencode/agent/**'
       - '.opencode/command/**'
       - '.opencode/context/**'
+      - 'agent-library/context/**'
   workflow_dispatch:
     inputs:
       force_update:

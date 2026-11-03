@@ -32,7 +32,7 @@
     "LICENSE",
     "README.md",
     "CHANGELOG.md",
-    "CONTEXT_SYSTEM_GUIDE.md",
+    "docs/guides/context-system.md",
     "packages/cli/dist/"
   ],
   "engines": {

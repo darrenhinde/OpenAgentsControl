@@ -1,6 +1,6 @@
 # agent-library
 
-The one place agents, skills and commands are written. One markdown file per agent or command, one
+The one place agents, skills, commands and the context library are written. One markdown file per agent or command, one
 folder per skill; `oac build` turns each into the format every tool needs: Claude Code, OpenCode v2
 (default) and OpenCode v1.
 
@@ -11,6 +11,8 @@ agent-library/
   commands/[<group>/]<id>.md       one file per command; at most one group folder (it is part of the command's name)
   profiles/system/*.json           install tiers (essential, developer, business, advanced, full)
   profiles/context/*.json          named sets of context files that tiers subscribe to
+  context/**                       the context library (standards, workflows, guides); copied verbatim, not compiled
+  context/components.json          registry metadata (id, name, tags, category) for the context files install.sh can install
 ```
 
 **This page is the one you need.** [CORE.md](../docs/architecture/CORE.md),
@@ -209,6 +211,16 @@ essential, standard, extended, specialized, meta), `tags`, `dependencies`, `alia
 Per-host content: `oac:only` blocks as for agents. On OpenCode, write delegation examples in the
 v1 form (`task(subagent_type="TaskManager", ...)`); v2 gets `subagent(agent="task-manager", ...)`.
 
+## Context files
+
+The context library is the knowledge agents read at runtime (`core/standards/code-quality.md`, ...). It lives in
+`agent-library/context/` and is **copied, never compiled**, to `.opencode/context/` (the one location every installer,
+updater and agent reference uses). To change it: edit under `agent-library/context/`, run `make build-canonical`, commit
+the source and the regenerated copy together. To make a new file installable by `install.sh` and the profiles, add an
+entry to `agent-library/context/components.json`; to put it in a tier, name its id (or a glob such as `core/*`) in
+`agent-library/profiles/context/*.json`. The build prints a report-only context lint (dead links, navigation entries
+that point at missing files, files not reachable from navigation). Spec: [docs/architecture/CONTEXT.md](../docs/architecture/CONTEXT.md).
+
 ## Make the agent installable (profiles)
 
 A new agent is built and registered, but `oac init` / `install.sh` only install it if a system
@@ -250,6 +262,7 @@ After the build, look at the three outputs, then try the ones you care about.
 | --- | --- |
 | `built-ai-configs/{opencode,claude-code}/**`, `built-ai-configs/opencode-v1/{agent/**/*.md,skills,command}/**`, `built-ai-configs/registry/*.json`, `built-ai-configs/README.md` | generated |
 | `.opencode/{agent,skills,command}/**`, `plugins/claude-code/{agents,skills,commands}/**` | generated mirrors |
+| `.opencode/context/**` | generated verbatim copy of `context/`; edit `agent-library/context/` |
 | `.oac/build-manifest.json` | generated ledger |
 | `built-ai-configs/opencode-v1/{tool,plugin,plugins}/**`, `.../agent/**/0-category.json` | hand-maintained v1 assets; the build never touches them |
 

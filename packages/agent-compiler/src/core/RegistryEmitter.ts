@@ -24,7 +24,9 @@
  * `components.agents` and `components.subagents` arrays and profile component lists from the
  * canonical trees that own them. It carries all other component categories, profile metadata,
  * categories, and document metadata through from the committed file. Later subtasks
- * canonicalise the rest.
+ * canonicalise the rest. Skills and commands joined agents (D-020); `components.contexts` is generated
+ * from `agent-library/context/components.json` (D-022): fully owned, in that file's order, with no
+ * carry-through, as soon as the library declares any component.
  *
  * ─── Which profile list is authoritative ────────────────────────────────────────────────
  *
@@ -90,6 +92,7 @@ import { REGISTRY_TARGETS, type RegistryTarget, type RegistryTargetSpec } from "
 import { emitsTo } from "./TargetPolicy.js";
 import { loadCanonicalAssets, type CanonicalAssetFile } from "./AssetLoader.js";
 import { loadRetired } from "./RetiredFiles.js";
+import { CONTEXT_OUTPUT_ROOT, loadContextLibrary, type ContextComponent } from "./ContextLoader.js";
 
 // ============================================================================
 // TYPES
@@ -413,6 +416,7 @@ export class RegistryEmitter {
     this.deprecations = [];
 
     const assets = loadCanonicalAssets(this.root);
+    const contexts = loadContextLibrary(this.root).components;
     const generated = this.generatedByCategory(agents, assets);
     const ours = this.previouslyGenerated();
     const components: Record<string, RegistryEntry[]> = {};
@@ -433,6 +437,12 @@ export class RegistryEmitter {
         components[category] = [];
         continue;
       }
+      // Contexts are fully owned once the library declares any: the list is `components.json`, in
+      // its order, and nothing is carried over from the committed file.
+      if (category === "contexts" && contexts.length > 0) {
+        components[category] = contexts.map(entryForContext);
+        continue;
+      }
       const existing = (base.components[category] ?? []).filter(
         (entry) =>
           !(AGENT_CATEGORIES.has(category) && notShipped.has(entry.id)) &&
@@ -450,6 +460,7 @@ export class RegistryEmitter {
     for (const [category, owned] of generated) {
       components[category] ??= merge(owned, [], ours);
     }
+    if (contexts.length > 0) components.contexts ??= contexts.map(entryForContext);
 
     // Paths no release ships any more (agent-library/retired.json), additive and top-level. Dropped
     // from the document when the list is empty, so a tree with none emits no `retired` key.
@@ -629,6 +640,26 @@ export class RegistryEmitter {
 
     throw new Error(`Cannot emit profile reference for unknown agent "${id}"`);
   }
+}
+
+/**
+ * One registry entry for a context-library component. Field order is the one the hand-written
+ * entries had (`id, name, type, path, [aliases,] description, tags, [dependencies,] category`), so
+ * the generated section is byte-identical to the committed one. The path is where the file is
+ * installed, on both registries: `.opencode/context/<file>`.
+ */
+function entryForContext(component: ContextComponent): RegistryEntry {
+  return {
+    id: component.id,
+    name: component.name,
+    type: "context",
+    path: `${CONTEXT_OUTPUT_ROOT}/${component.file}`,
+    ...(component.aliases === undefined ? {} : { aliases: [...component.aliases] }),
+    description: component.description,
+    tags: [...component.tags],
+    ...(component.dependencies === undefined ? {} : { dependencies: [...component.dependencies] }),
+    category: component.category,
+  };
 }
 
 /**

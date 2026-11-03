@@ -14,7 +14,9 @@ are optional depth. Users only need the first two rows.
 | 6 | [../packages/agent-compiler/README.md](../packages/agent-compiler/README.md) | The build library behind `oac build` |
 | 7 | [architecture/NAMING.md](architecture/NAMING.md) | Naming and layout rules for agent, skill and command ids; the report-only naming lint |
 | 8 | [architecture/SKILLS-AND-COMMANDS.md](architecture/SKILLS-AND-COMMANDS.md) | Skills and commands as canonical content: layout, `oac:` block, per-host output, registry, lints |
-| 9 | [features/opencode-v1-and-v2.md](features/opencode-v1-and-v2.md) | Why v1 and v2 output differ, how the choice is recorded |
+| 9 | [architecture/CONTEXT.md](architecture/CONTEXT.md) | The context library: `agent-library/context/`, how it is copied, `components.json`, lints, the deferred re-taxonomy |
+| 10 | [architecture/CONTEXT-MAP.md](architecture/CONTEXT-MAP.md) | Who reads the context library: installers, registry, runtime paths, CI (the evidence behind CONTEXT.md) |
+| 11 | [features/opencode-v1-and-v2.md](features/opencode-v1-and-v2.md) | Why v1 and v2 output differ, how the choice is recorded |
 
 What each tool gets, per host: [../built-ai-configs/README.md](../built-ai-configs/README.md) (generated).
 Component registry: [../built-ai-configs/registry/registry.json](../built-ai-configs/registry/registry.json) (generated).

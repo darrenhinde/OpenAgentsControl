@@ -171,6 +171,16 @@ Implemented 2026-11-03 as the least invasive way to clean up the 12 agent-creati
 - **Known limits:** `update.sh` still overwrites a user-edited tracked file without a backup (it did before); without `jq` it removes nothing; `oac add` does not retire.
 - **Rules out:** deleting an unrecognised file because the registry says so; a retired entry that points at a path a component still ships (the compiler rejects it).
 
+## D-022 The context library is canonical source, copied verbatim
+
+Implemented 2026-11-03 (step 4 of the canonical refactor); maintainer to confirm.
+
+- **Decision:** the context library (275 files and 3 legacy symlinks) moved from `.opencode/context/` to `agent-library/context/`, layout unchanged. `oac build` **copies** it byte for byte to `.opencode/context/` (ledgered, pruned, drift-checked like skills; symlinks are emitted as symlinks) and generates `components.contexts` in both registries from `agent-library/context/components.json`, in that file's order, with no carry-through. There is no `built-ai-configs/<host>/context` copy: `.opencode/context` is the one installed location for OpenCode v1 and v2, and the Claude plugin keeps its directory symlink to it. New report-only lints: dead links, navigation entries pointing at missing files, files not reachable from navigation. `CONTEXT_SYSTEM_GUIDE.md` moved to `docs/guides/context-system.md`.
+- **Why:** it was the last hand-edited tree beside the generated ones, and an edit to a context file could silently disagree with the registry. The repo path `.opencode/context/**` is also the distribution endpoint (raw URL for `update.sh`, sparse-clone source for the Claude install scripts, the npm bundle), and `install.sh` rewrites the literal text `.opencode/context` inside files at install time, so the output must be a verbatim copy at that path. See `docs/architecture/CONTEXT-MAP.md`.
+- **Deferred on purpose:** the internal re-taxonomy (`core/` into `standards/`, `workflows/`, `system/`; `development/`, `ui/`, `content-creation/` and the stubs into `domains/`). About 1,100 hand-written references, the profile directory globs, user-owned slots (`project-intelligence/`) and the lack of a `supersedes`/`retired` mechanism for context files make a move break installed copies. The exact mapping is in `docs/architecture/CONTEXT.md`.
+- **Rules out:** hand-editing `.opencode/context/**`; a registry `contexts` entry written by hand; moving or renaming an installed context file before the installers can retire it.
+- **Revisit when:** installers learn to retire or supersede context files (then the re-taxonomy becomes a safe change), or the Claude marketplace is shown not to dereference the `plugins/claude-code/context` symlink (then the plugin needs a real generated copy).
+
 ---
 
 ## Open decisions
@@ -178,4 +188,5 @@ Implemented 2026-11-03 as the least invasive way to clean up the 12 agent-creati
 | Decision | Recommendation | Needed by |
 |---|---|---|
 | npm scope and brand: the GitHub org `controlstack` belongs to "Control Stack Ltd." (2016); ownership of the `@controlstack` npm scope is unconfirmed | Claim the scope if it's yours. Otherwise ship under `@nextsystems/oac` and choose a distinct brand. | v1.1 |
+| Context re-taxonomy (D-022): do it after context `supersedes`/`retired` exist, or never | After the installers can retire non-agent files (needed by D-020 as well) | v1.2 |
 | #349 permission reorder in v1.1 or v1.2 | v1.1: it's a live bug on v1, under a day of work | v1.1 |

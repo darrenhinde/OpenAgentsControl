@@ -51,6 +51,7 @@ export function classifyChangedPaths(paths: readonly string[]): ChangeFlags {
       path.startsWith('.opencode/agent/') ||
       path.startsWith('.opencode/skills/') ||
       path.startsWith('.opencode/command/') ||
+      path.startsWith('.opencode/context/') ||
       path.startsWith('plugins/claude-code/agents/') ||
       path.startsWith('plugins/claude-code/skills/') ||
       path.startsWith('plugins/claude-code/commands/') ||

@@ -38,7 +38,7 @@
 
 | Path | |
 |---|---|
-| `.opencode/context/**` | context library (this folder: `openagents-repo/`) |
+| `agent-library/context/**` | context library source (this folder: `openagents-repo/`); `.opencode/context/**` is its generated verbatim copy |
 | `plugins/claude-code/{hooks,context,scripts}` | Claude Code plugin pieces other than agents, skills and commands |
 | `.claude-plugin/marketplace.json` | publishes `./plugins/claude-code` |
 | `evals/framework`, `evals/agents/**`, `evals/v2` | eval harnesses and suites |

@@ -50,8 +50,11 @@ export interface ManifestEntry {
   agentId?: string;
   /** The agent's `oac.aliases` (former ids), when it has any. Additive; consumers may ignore it. */
   aliases?: string[];
-  /** For a file built from a canonical skill or command: its kind and `oac.id`. */
-  assetKind?: "skill" | "command";
+  /**
+   * For a file built from a canonical skill or command: its kind and `oac.id`. For a file copied
+   * from the context library: `"context"` and its path inside the library.
+   */
+  assetKind?: "skill" | "command" | "context";
   assetId?: string;
 }
 

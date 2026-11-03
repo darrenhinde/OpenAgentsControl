@@ -158,8 +158,9 @@ high-priority: ## List all high priority items
 # Evaluation Framework Commands
 # =============================================================================
 
-# The canonical build: agent-library/{agents,skills,commands}/** is the source; built-ai-configs/** (with its live
-# mirrors .opencode/{agent,skills,command}/** and plugins/claude-code/{agents,skills,commands}/**),
+# The canonical build: agent-library/{agents,skills,commands,context}/** is the source; built-ai-configs/** (with its live
+# mirrors .opencode/{agent,skills,command}/** and plugins/claude-code/{agents,skills,commands}/**; the context library
+# agent-library/context/** is copied verbatim to .opencode/context/**),
 # built-ai-configs/registry/registry.json, built-ai-configs/registry/registry.v1.json and
 # .oac/build-manifest.json are its committed output. `check-canonical-drift` is exactly what CI
 # runs (.github/workflows/packages-checks.yml), so a contributor can reproduce a red gate here.

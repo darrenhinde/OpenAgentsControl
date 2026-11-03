@@ -3,7 +3,8 @@ name: Update Component Registry (Direct Push)
 # Manual only. `oac build` (RegistryEmitter) now owns the agent, subagent, skill, command and profile sections
 # of built-ai-configs/registry/registry.json and CI gates drift on them, so this append-only auto-detect pass must not run
 # on every push or it fights the emitter. Dispatch it by hand for the hand-authored categories
-# (contexts, tools, plugins, config). Skills and commands are generated from agent-library/ like agents.
+# (tools, plugins, config). Skills, commands and contexts are generated from agent-library/ like agents
+# (contexts from agent-library/context/components.json); do not use this pass for them.
 on:
   workflow_dispatch:
 

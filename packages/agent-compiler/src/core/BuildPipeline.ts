@@ -46,12 +46,15 @@ import { createHash } from "node:crypto";
 import {
   chmodSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   readdirSync,
+  readlinkSync,
   rmSync,
   rmdirSync,
   statSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -80,6 +83,7 @@ import { OpenCodeV1Adapter, OPENCODE_V1_AGENT_ROOT } from "../adapters/v1/OpenCo
 import { HOSTS_README_PATH, HOSTS_README_TARGET, renderHostsReadme } from "./HostsReadme.js";
 import { emitAsset } from "./AssetEmitter.js";
 import { loadCanonicalAssets, type AssetKind, type CanonicalAssetFile } from "./AssetLoader.js";
+import { CONTEXT_OUTPUT_ROOT, loadContextLibrary, type ContextLibrary } from "./ContextLoader.js";
 
 // ============================================================================
 // TYPES
@@ -121,6 +125,17 @@ export interface BuildFile {
   /** Set on a file built from a canonical skill or command: which kind, and its `oac.id`. */
   assetKind?: AssetKind;
   assetId?: string;
+  /**
+   * Set on a file copied from the context library (`agent-library/context/**`): its path inside
+   * the library. Such a file is copied verbatim to `.opencode/context/<contextId>`; it has no mirror.
+   */
+  contextId?: string;
+  /**
+   * Set when the file is a symlink, to its target as written (relative). The build creates the
+   * link and never writes through it; the ledger and the drift check compare the link target.
+   * `content` then holds the same text, for consumers that only look at it.
+   */
+  symlinkTo?: string;
   /** The file is executable (a skill's `router.sh`); the build sets the mode bit and the drift check compares it. */
   executable?: boolean;
   /** The source agent's `oac.aliases`, when it has any. Recorded in the ledger. */
@@ -147,6 +162,8 @@ export interface BuildPlan {
   /** Canonical skills and commands loaded, each sorted by `oac.id`. */
   skills: CanonicalAssetFile[];
   commands: CanonicalAssetFile[];
+  /** The context library (`agent-library/context/**`): shipped files and registry metadata. */
+  context: ContextLibrary;
   /**
    * References that name an agent by a deprecated `oac.aliases` entry (permission.task keys,
    * structured body calls, dependencies, profiles). Each still resolves; the author should switch
@@ -250,9 +267,16 @@ export interface TargetLayout {
    * `plugins/claude-code/agents/` (the Claude marketplace source). Generated, never edited.
    */
   mirrors: readonly string[];
+  /**
+   * Where the context library is copied (verbatim, from `agent-library/context/`). Only the
+   * `opencode` target carries it: `.opencode/context/` is the one installed location on every host
+   * (OpenCode v1 and v2 share it, the Claude plugin links to it), so there is no per-host copy.
+   */
+  context: AssetLayout;
 }
 
 const NO_ASSETS: TargetLayout["assets"] = { skill: { root: "", mirrors: [] }, command: { root: "", mirrors: [] } };
+const NO_CONTEXT: AssetLayout = { root: "", mirrors: [] };
 
 /**
  * The roots each target is permitted to write, and therefore the only roots pruning may ever
@@ -269,6 +293,7 @@ export const TARGET_LAYOUT: Readonly<Record<BuildFile["target"], TargetLayout>> 
       skill: { root: `${HOSTS_ROOT}/opencode/skills`, mirrors: [".opencode/skills"] },
       command: { root: `${HOSTS_ROOT}/opencode/command`, mirrors: [".opencode/command"] },
     },
+    context: { root: CONTEXT_OUTPUT_ROOT, mirrors: [] },
   },
   // The v1 build has no live mirror: it is display-only here, and installs read it from its
   // built-ai-configs/ folder (built-ai-configs/registry/registry.v1.json).
@@ -280,6 +305,7 @@ export const TARGET_LAYOUT: Readonly<Record<BuildFile["target"], TargetLayout>> 
       skill: { root: `${HOSTS_ROOT}/opencode-v1/skills`, mirrors: [] },
       command: { root: `${HOSTS_ROOT}/opencode-v1/command`, mirrors: [] },
     },
+    context: NO_CONTEXT,
   },
   "claude-code": {
     emitted: "plugins/claude-code/agents",
@@ -289,17 +315,18 @@ export const TARGET_LAYOUT: Readonly<Record<BuildFile["target"], TargetLayout>> 
       skill: { root: `${HOSTS_ROOT}/claude-code/skills`, mirrors: ["plugins/claude-code/skills"] },
       command: { root: `${HOSTS_ROOT}/claude-code/commands`, mirrors: ["plugins/claude-code/commands"] },
     },
+    context: NO_CONTEXT,
   },
-  registry: { emitted: "built-ai-configs/registry/registry.json", root: "built-ai-configs/registry/registry.json", mirrors: [], assets: NO_ASSETS },
-  "registry-v1": { emitted: "built-ai-configs/registry/registry.v1.json", root: "built-ai-configs/registry/registry.v1.json", mirrors: [], assets: NO_ASSETS },
+  registry: { emitted: "built-ai-configs/registry/registry.json", root: "built-ai-configs/registry/registry.json", mirrors: [], assets: NO_ASSETS, context: NO_CONTEXT },
+  "registry-v1": { emitted: "built-ai-configs/registry/registry.v1.json", root: "built-ai-configs/registry/registry.v1.json", mirrors: [], assets: NO_ASSETS, context: NO_CONTEXT },
   // The generated index of built-ai-configs/ (core/HostsReadme.ts). Only a full build owns it.
-  [HOSTS_README_TARGET]: { emitted: HOSTS_README_PATH, root: HOSTS_README_PATH, mirrors: [], assets: NO_ASSETS },
+  [HOSTS_README_TARGET]: { emitted: HOSTS_README_PATH, root: HOSTS_README_PATH, mirrors: [], assets: NO_ASSETS, context: NO_CONTEXT },
 };
 
 /** Every root a target may write: its primary root, then its mirrors. */
 function targetRoots(target: BuildFile["target"]): readonly string[] {
   const layout = TARGET_LAYOUT[target];
-  const assets = Object.values(layout.assets).filter((asset) => asset.root !== "");
+  const assets = [...Object.values(layout.assets), layout.context].filter((asset) => asset.root !== "");
   return [layout.root, ...layout.mirrors, ...assets.flatMap((asset) => [asset.root, ...asset.mirrors])];
 }
 
@@ -316,6 +343,7 @@ function reroot(path: string, from: string, to: string): string {
 /** The root a file was written under: the mirror root it copies into, or its target's primary root. */
 function rootOf(file: BuildFile): string {
   const layout = TARGET_LAYOUT[file.target];
+  if (file.contextId !== undefined) return layout.context.root;
   const own = file.assetKind === undefined
     ? { root: layout.root, mirrors: layout.mirrors }
     : layout.assets[file.assetKind];
@@ -372,6 +400,43 @@ function sha256(content: string | Buffer): string {
   return typeof content === "string"
     ? createHash("sha256").update(content, "utf-8").digest("hex")
     : createHash("sha256").update(content).digest("hex");
+}
+
+/** What the ledger records for a file: the hash of its bytes, or of `symlink:<target>` for a link. */
+function digestOf(file: BuildFile): string {
+  return file.symlinkTo === undefined ? sha256(file.content) : sha256(`symlink:${file.symlinkTo}`);
+}
+
+/** The ledger hash of whatever is on disk at `absolute`, symlinks hashed by their target, never followed. */
+function diskDigest(absolute: string): string {
+  return lstatSync(absolute).isSymbolicLink()
+    ? sha256(`symlink:${readlinkSync(absolute)}`)
+    : sha256(readFileSync(absolute));
+}
+
+/** True when something (a file, a link, even a broken link) is at `absolute`. */
+function lexists(absolute: string): boolean {
+  try {
+    lstatSync(absolute);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** True when `absolute` is a symlink, whatever it points at. */
+function isSymlink(absolute: string): boolean {
+  try {
+    return lstatSync(absolute).isSymbolicLink();
+  } catch {
+    return false;
+  }
+}
+
+/** True when the disk already holds exactly what `file` plans (a link with the same target, or the same bytes). */
+function onDiskMatches(absolute: string, file: BuildFile): boolean {
+  if (file.symlinkTo !== undefined) return isSymlink(absolute) && readlinkSync(absolute) === file.symlinkTo;
+  return !isSymlink(absolute) && existsSync(absolute) && sameBytes(absolute, file.content);
 }
 
 /** True when the file on disk holds exactly the planned bytes (no decoding, so binaries compare true). */
@@ -571,6 +636,29 @@ function emitAssetFiles(asset: CanonicalAssetFile, target: BuildTarget, resolver
 }
 
 /**
+ * The context library as build files: each shipped file copied verbatim to `.opencode/context/`,
+ * symlinks as links. Only the `opencode` target carries it (see {@link TargetLayout.context}).
+ */
+function contextFiles(library: ContextLibrary): BuildFile[] {
+  const { root } = TARGET_LAYOUT.opencode.context;
+  return library.files.map((file): BuildFile => {
+    const path = `${root}/${file.relativePath}`;
+    if (file.linkTarget !== undefined) {
+      return { path, content: file.linkTarget, symlinkTo: file.linkTarget, target: "opencode", contextId: file.relativePath, warnings: [] };
+    }
+    const bytes = readFileSync(file.filePath);
+    const text = bytes.toString("utf-8");
+    return {
+      path,
+      content: Buffer.from(text, "utf-8").equals(bytes) ? text : bytes,
+      target: "opencode",
+      contextId: file.relativePath,
+      warnings: [],
+    };
+  });
+}
+
+/**
  * Compute the full build. Reads the canonical tree; writes nothing, ever.
  *
  * A failure anywhere — a schema violation, an unrepresentable permission block an adapter
@@ -584,6 +672,7 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
     .loadFromDirectory();
 
   const { skills, commands } = loadCanonicalAssets(root);
+  const context = loadContextLibrary(root);
   const resolvers = new Map<BuildTarget, AgentIdResolver>();
   const files: BuildFile[] = [];
   const deprecations = new Map<string, BuildWarning>();
@@ -614,6 +703,7 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
   }
 
   assertUniqueOutputPaths(files, agents);
+  if (targets.includes("opencode")) files.push(...contextFiles(context));
 
   if (options.skipRegistry !== true) {
     // One registry per OpenCode major. The v1 registry is only built with the v1 target.
@@ -652,6 +742,7 @@ export async function plan(options: BuildOptions): Promise<BuildPlan> {
     agents,
     skills,
     commands,
+    context,
     deprecations: [...deprecations.values()],
     warnings: files.flatMap((file) => file.warnings),
     owns: ownedTargets(targets, options.skipRegistry === true),
@@ -755,12 +846,13 @@ function manifestFor(files: readonly BuildFile[], outputRoots: OutputRoots): Bui
   const entries: BuildManifest["files"] = {};
   for (const file of files) {
     entries[rebase(file.path, file.target, outputRoots)] = {
-      sha256: sha256(file.content),
+      sha256: digestOf(file),
       target: file.target,
       root: rebase(rootOf(file), file.target, outputRoots),
       ...(file.agentId === undefined ? {} : { agentId: file.agentId }),
       ...(file.agentAliases === undefined ? {} : { aliases: [...file.agentAliases] }),
       ...(file.assetKind === undefined ? {} : { assetKind: file.assetKind, assetId: file.assetId }),
+      ...(file.contextId === undefined ? {} : { assetKind: "context" as const, assetId: file.contextId }),
     };
   }
   return { version: 1, files: entries };
@@ -802,7 +894,7 @@ function prunable(absolute: string, path: string, entry: ManifestEntry): string 
   // Nothing on disk means nothing to delete, so there is nothing to refuse either. Checked
   // first so a ledger written for an older layout (e.g. `v1-opencode/`, now `built-ai-configs/opencode-v1/`)
   // drops its vanished entries quietly instead of reporting each one as "kept".
-  if (!existsSync(absolute)) {
+  if (!lexists(absolute)) {
     return "already gone";
   }
   if (!(entry.target in TARGET_LAYOUT)) {
@@ -817,7 +909,7 @@ function prunable(absolute: string, path: string, entry: ManifestEntry): string 
   if (!isUnder(path, entry.root)) {
     return `manifest entry sits outside its recorded output root (${entry.root})`;
   }
-  if (sha256(readFileSync(absolute)) !== entry.sha256) {
+  if (diskDigest(absolute) !== entry.sha256) {
     return "modified since it was generated — refusing to delete a file someone has edited";
   }
 
@@ -881,10 +973,9 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
   for (const file of plan.files) {
     const path = rebase(file.path, file.target, outputRoots);
     const absolute = join(root, path);
-    const exists = existsSync(absolute);
 
-    if (exists && sameBytes(absolute, file.content)) {
-      if (file.executable === true && !isExecutableOnDisk(absolute)) {
+    if (onDiskMatches(absolute, file)) {
+      if (file.symlinkTo === undefined && file.executable === true && !isExecutableOnDisk(absolute)) {
         chmodSync(absolute, 0o755);
         result.changed.push(path);
       } else {
@@ -894,8 +985,15 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
     }
 
     mkdirSync(dirname(absolute), { recursive: true });
-    writeFileSync(absolute, file.content);
-    if (file.executable === true) chmodSync(absolute, 0o755);
+    // Never write through a symlink (it would overwrite its target), and never leave a file
+    // where a link is planned: whatever is there is replaced.
+    if (lexists(absolute) && (file.symlinkTo !== undefined || isSymlink(absolute))) rmSync(absolute);
+    if (file.symlinkTo !== undefined) {
+      symlinkSync(file.symlinkTo, absolute);
+    } else {
+      writeFileSync(absolute, file.content);
+      if (file.executable === true) chmodSync(absolute, 0o755);
+    }
     result.changed.push(path);
   }
 
@@ -933,7 +1031,7 @@ export function write(plan: BuildPlan, options: WriteOptions): WriteResult {
   } else {
     // --no-prune leaves orphans in place; dropping their ledger line would hide them forever.
     for (const [path, entry] of Object.entries(previous.files)) {
-      if (!(path in next.files) && existsSync(join(root, path))) next.files[path] = entry;
+      if (!(path in next.files) && lexists(join(root, path))) next.files[path] = entry;
     }
   }
 
@@ -973,10 +1071,10 @@ export function check(plan: BuildPlan, options: WriteOptions): Drift[] {
     const path = rebase(file.path, file.target, outputRoots);
     const absolute = join(root, path);
 
-    if (!existsSync(absolute)) drift.push({ path, status: "missing" });
-    else if (!sameBytes(absolute, file.content)) {
+    if (!lexists(absolute)) drift.push({ path, status: "missing" });
+    else if (!onDiskMatches(absolute, file)) {
       drift.push({ path, status: "modified" });
-    } else if (file.executable === true && !isExecutableOnDisk(absolute)) {
+    } else if (file.symlinkTo === undefined && file.executable === true && !isExecutableOnDisk(absolute)) {
       drift.push({ path, status: "modified" });
     }
   }
@@ -984,7 +1082,7 @@ export function check(plan: BuildPlan, options: WriteOptions): Drift[] {
   for (const [path, entry] of Object.entries(readManifest(root).files)) {
     // Another target's output is not this plan's to call an orphan (see {@link foreign}).
     if (foreign(entry, plan)) continue;
-    if (!(path in next.files) && existsSync(join(root, path))) {
+    if (!(path in next.files) && lexists(join(root, path))) {
       drift.push({ path, status: "orphan" });
     }
   }

@@ -16,6 +16,8 @@ export interface LintableFile {
   mirrorOf?: string;
   /** Set on a file built from a skill or command; those are checked by `assets.ts`, not as agents. */
   assetKind?: string;
+  /** Set on a file copied from the context library; those are documents, not agents. */
+  contextId?: string;
 }
 
 export interface TargetLintResult {
@@ -47,7 +49,7 @@ const LINTS: Readonly<Record<string, (files: LintFile[]) => LintFinding[]>> = {
 export function lintBuild(files: readonly LintableFile[]): TargetLintResult[] {
   const byTarget = new Map<string, LintFile[]>();
   for (const file of files) {
-    if (LINTS[file.target] === undefined || file.mirrorOf !== undefined || file.assetKind !== undefined) continue;
+    if (LINTS[file.target] === undefined || file.mirrorOf !== undefined || file.assetKind !== undefined || file.contextId !== undefined) continue;
     if (typeof file.content !== "string") continue;
     byTarget.set(file.target, [...(byTarget.get(file.target) ?? []), { path: file.path, text: file.content }]);
   }

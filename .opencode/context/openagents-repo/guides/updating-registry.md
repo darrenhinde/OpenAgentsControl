@@ -11,18 +11,23 @@
 | An agent or subagent (`agent-library/agents/**`) | none by hand: `make build-canonical` regenerates the entries and profiles |
 | A profile (`agent-library/profiles/**`) | none by hand: rebuild |
 | A skill or command (`agent-library/skills/**`, `agent-library/commands/**`) | nothing: the entry is generated from its `oac:` block; run `make build-canonical` |
-| A context file (`.opencode/context/**`) | hand-edit the `components.contexts` entry in BOTH registry files (below) |
+| A context file (`agent-library/context/**`) | a registry entry is optional: add or edit it in `agent-library/context/components.json`; `make build-canonical` writes `components.contexts` in BOTH registries (below) |
 | A tool, plugin, config | hand-edit the matching `components.<type>` array (v1 file only for v1-only assets) |
 
 ## Adding, renaming or removing a context file
 
-1. Add/remove/rename the markdown file (use `git mv` / `git rm`).
-2. In `built-ai-configs/registry/registry.json` and `registry.v1.json` (keep them identical for contexts), edit
-   `components.contexts`: id (unique across all types), name, `"type": "context"`, `path`, description, tags,
-   `dependencies` (`context:<id>` strings), `"category": "standard"`. Remove or repoint any entry or
-   other component's `dependencies` that names a deleted id.
+1. Add/remove/rename the markdown file under `agent-library/context/` (use `git mv` / `git rm`). Never edit
+   `.opencode/context/`: it is a generated verbatim copy and the drift gate fails on a hand edit.
+2. To make it installable by `install.sh` and by `oac init --profile <tier>`, give it an entry in
+   `agent-library/context/components.json`: `id` (unique across the file), `name`, `file` (path inside the
+   library), description, tags, optional `dependencies` (`context:<id>` strings) and `aliases`, `"category"`.
+   A file with no entry still ships in `oac init --profile full` and in the Claude `install-context` scripts,
+   but no `install.sh` profile installs it. Remove or repoint any entry or other component's `dependencies`
+   that names a deleted id. The array order is the registry order.
 3. To ship it in a profile, add its id or a directory glob to a file in `agent-library/profiles/context/`.
-4. `make build-canonical` (normalises registry formatting and regenerates profiles), then validate:
+4. `make build-canonical` copies the file to `.opencode/context/`, writes `components.contexts` in both
+   registries and regenerates profiles. It also prints a report-only context lint (dead links, navigation
+   entries that point at missing files, files not reachable from navigation). Then validate:
 
 ```bash
 bash scripts/registry/validate-registry.sh

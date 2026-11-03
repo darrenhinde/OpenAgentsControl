@@ -38,7 +38,9 @@ cd "$ROOT"
 # blocks in agent-library/agents/**. See the docblock in packages/cli/src/commands/build.ts.
 # Skills and commands are mirrored the same way: .opencode/skills and .opencode/command copy the
 # OpenCode v2 build, plugins/claude-code/skills and plugins/claude-code/commands copy the Claude one.
-GENERATED=(built-ai-configs .opencode/agent .opencode/skills .opencode/command plugins/claude-code/agents plugins/claude-code/skills plugins/claude-code/commands built-ai-configs/registry/registry.json built-ai-configs/registry/registry.v1.json .oac/build-manifest.json)
+# The context library is copied verbatim from agent-library/context/ to .opencode/context (no built-ai-configs copy:
+# every installer reads that one path); the Claude plugin's context is a symlink to it.
+GENERATED=(built-ai-configs .opencode/agent .opencode/skills .opencode/command .opencode/context plugins/claude-code/agents plugins/claude-code/skills plugins/claude-code/commands built-ai-configs/registry/registry.json built-ai-configs/registry/registry.v1.json .oac/build-manifest.json)
 
 if [ ! -f packages/cli/dist/index.js ]; then
   echo "error: packages/cli/dist/index.js is missing — build the CLI first:" >&2

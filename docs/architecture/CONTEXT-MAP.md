@@ -130,8 +130,8 @@ install path: `update.sh:326` (raw fetch), the Claude `install-context.*` script
 4. `install.sh` and `oac init` install **different** context sets for one profile (the CLI adds the
    navigation spine; `install.sh` does not). Pre-existing, preserved by this step.
 5. A folder rename is a breaking change for installed copies (no context `supersedes`/`retired`) and
-   for ~1,100 hand-written references (276 in non-canonical scripts and docs under `core/` alone,
-   133 in canonical sources, 198 in evals).
+   for ~1,100 hand-written references (197 inside the library, 393 in scripts, tests and root files,
+   174 in canonical sources, 65 in docs, 271 in evals; `core/` alone is 119 + 276 + 133 + 28 + 198).
 
 ## Recommended design
 

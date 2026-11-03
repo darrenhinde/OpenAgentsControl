@@ -54,6 +54,7 @@ import {
   lintAssetNaming,
   lintAssetReferences,
   lintBuild,
+  lintContext,
   lintNaming,
   plan as planBuild,
   ReferenceResolver,
@@ -197,6 +198,26 @@ const reportNaming = (built: BuildPlan): number => {
   return warns.length
 }
 
+/**
+ * Context-library lint (`verify/lint/context.ts`) over `agent-library/context/`. REPORT-ONLY like
+ * the naming lint: dead links and navigation entries are listed, the long tail (unreachable and
+ * unregistered files) is summarised unless `--verbose`. Never counted, never changes the exit code.
+ */
+const reportContext = (built: BuildPlan): void => {
+  const findings = lintContext(built.context)
+  if (findings.length === 0) return
+  const actionable = findings.filter((f) => f.rule === 'dead-link' || f.rule === 'navigation-dead-entry')
+  const counts = (rule: string): number => findings.filter((f) => f.rule === rule).length
+  log('')
+  dim('  context lint (report-only; not counted above, never changes the exit code):')
+  for (const f of actionable) dim(`    context: ${f.path} [${f.rule}] ${f.message}`)
+  for (const f of findings.filter((x) => !actionable.includes(x))) verbose(`context: ${f.path} [${f.rule}] ${f.message}`)
+  dim(
+    `    ${counts('navigation-dead-entry')} dead navigation entr(ies), ${counts('dead-link')} dead link(s), ` +
+      `${counts('unreachable')} file(s) not reachable from navigation, ${counts('unregistered')} unregistered file(s) (--verbose lists them)`,
+  )
+}
+
 /** `--strict` fails on any warning, dead reference or lint finding. Pure. */
 export const strictExitCode = (strict: boolean, ...counts: number[]): number =>
   strict && counts.some((count) => count > 0) ? 1 : 0
@@ -226,7 +247,7 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
   const deprecationCount = reportDeprecations(built)
 
   bold('\n  oac build')
-  info(`${built.agents.length} canonical agents, ${built.skills.length} skills, ${built.commands.length} commands -> ${built.files.length} files`)
+  info(`${built.agents.length} canonical agents, ${built.skills.length} skills, ${built.commands.length} commands, ${built.context.files.length} context files -> ${built.files.length} files`)
 
   // --check and --dry-run share the plan above; neither writes. A check that re-derived the
   // build would eventually disagree with the build, and CI would trust the wrong one.
@@ -240,6 +261,7 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
 
     // Naming is report-only: printed after the summary, never an input to an exit code.
     reportNaming(built)
+    reportContext(built)
     if (options.check && drift.length > 0) return 1
     return buildExitCode(options.strict, lintErrors, warningCount, deadCount, lintCount, deprecationCount)
   }
@@ -257,6 +279,7 @@ export const runBuild = async (options: BuildOptions, root: string): Promise<num
 
   summarize(warningCount, deadCount, lintCount, deprecationCount, options.strict)
   reportNaming(built)
+  reportContext(built)
 
   return buildExitCode(options.strict, lintErrors, warningCount, deadCount, lintCount, deprecationCount)
 }

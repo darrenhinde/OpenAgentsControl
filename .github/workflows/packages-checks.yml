@@ -17,6 +17,7 @@ on:
       - '.opencode/agent/**'
       - '.opencode/skills/**'
       - '.opencode/command/**'
+      - '.opencode/context/**'
       - 'plugins/claude-code/agents/**'
       - 'plugins/claude-code/skills/**'
       - 'plugins/claude-code/commands/**'

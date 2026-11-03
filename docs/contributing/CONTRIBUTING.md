@@ -21,12 +21,12 @@ warnings from `oac build` is the normal baseline.
 | An agent or subagent | `agent-library/agents/<category>/<file>.md` | `make build-canonical`, commit the generated files with it |
 | Which agents an install tier ships | `agent-library/profiles/system/*.json` | `make build-canonical` |
 | A skill or command | `agent-library/skills/<id>/SKILL.md` (+ files), `agent-library/commands/[<group>/]<id>.md` | `make build-canonical`, commit the generated files with it |
-| Context files | `.opencode/context/**` | see "Registry" below |
+| Context files | `agent-library/context/**` (+ `components.json` to make a file installable) | `make build-canonical`, commit the generated `.opencode/context/**` with it |
 | Tools and plugins (OpenCode v1) | `built-ai-configs/opencode-v1/{tool,plugin,plugins}/**` | hand-maintained, no build step |
 | The compiler or CLI | `packages/agent-compiler/src`, `packages/cli/src` | `make check-core` |
 
 **Never hand-edit** `built-ai-configs/{opencode,claude-code}/**`, `built-ai-configs/opencode-v1/{agent/**/*.md,skills,command}/**`,
-`built-ai-configs/registry/*.json`, `built-ai-configs/README.md`, `.opencode/{agent,skills,command}/**`,
+`built-ai-configs/registry/*.json`, `built-ai-configs/README.md`, `.opencode/{agent,skills,command,context}/**`,
 `plugins/claude-code/{agents,skills,commands}/**` or `.oac/build-manifest.json`: they are build output and CI
 fails on any difference. The exact list and the reasons are in
 [docs/architecture/CORE.md](../architecture/CORE.md).

@@ -184,6 +184,17 @@ describe('classifyChangedPaths', () => {
     }
   })
 
+  test('routes context library sources and their generated copy to the drift gate', () => {
+    for (const path of [
+      'agent-library/context/core/navigation.md',
+      'agent-library/context/components.json',
+      '.opencode/context/core/navigation.md',
+    ]) {
+      expect(classifyChangedPaths([path])['has-canonical'], path).toBe(true)
+    }
+    expect(classifyChangedPaths(['.opencode/contexts/x.md'])['has-canonical']).toBe(false)
+  })
+
   test('detects mixed changes', () => {
     expect(
       classifyChangedPaths([
