@@ -3625,12 +3625,12 @@
       "assetId": "task-management"
     },
     "built-ai-configs/registry/registry.json": {
-      "sha256": "563a88b0cbec66e30c2a9c1e5ba652b6a684d93f6beb7a26e58a5a4fe1cb78b0",
+      "sha256": "b3938289f1d58a4e09fc8464a29bf36403c7cb0bf2adad48694cb9959f740f60",
       "target": "registry",
       "root": "built-ai-configs/registry/registry.json"
     },
     "built-ai-configs/registry/registry.v1.json": {
-      "sha256": "03f6e63679808d0e95e1fff411adb40cd0ae66ab50fb665dbdf8698448800b5d",
+      "sha256": "8bc0e11a53e2ef9053dcb9e322df7452b5da020cb661001191c7a301c22e91e5",
       "target": "registry-v1",
       "root": "built-ai-configs/registry/registry.v1.json"
     },

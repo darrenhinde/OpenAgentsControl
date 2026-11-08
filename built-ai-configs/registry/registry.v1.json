@@ -3507,7 +3507,6 @@
         "tool:gemini"
       ],
       "additionalPaths": [
-        ".Building/",
         ".github/workflows/"
       ]
     },

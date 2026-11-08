@@ -3370,7 +3370,6 @@
         "subagent:workflow-designer"
       ],
       "additionalPaths": [
-        ".Building/",
         ".github/workflows/"
       ]
     },

@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **A full sweep of changes is landing.** OAC now builds one agent library for Claude Code, OpenCode v2 and OpenCode v1. See [what changed](agent-library/README.md).
+
 <div align="center">
 
 ![OpenAgents Control Hero](docs/images/hero-image.png)
