@@ -60,8 +60,10 @@ describe("generateImage", () => {
 
   test("uses the China endpoint and parses base64 images", async () => {
     let requestUrl = ""
-    globalThis.fetch = (async (input) => {
+    let requestInit: RequestInit | undefined
+    globalThis.fetch = (async (input, init) => {
       requestUrl = String(input)
+      requestInit = init
       return Response.json({
         data: { image_base64: ["aW1hZ2U="] },
         metadata: { success_count: 1, failed_count: 0 },
@@ -71,12 +73,32 @@ describe("generateImage", () => {
 
     const result = await generateImage("A geometric fox", {
       region: "china",
+      model: "image-01-live",
+      subjectReference: [
+        {
+          type: "character",
+          imageFile: "https://images.example.test/character.png",
+        },
+      ],
       responseFormat: "base64",
       width: 1024,
       height: 1024,
     })
 
     expect(requestUrl).toBe("https://api.minimaxi.com/v1/image_generation")
+    expect(JSON.parse(String(requestInit?.body))).toEqual({
+      model: "image-01-live",
+      prompt: "A geometric fox",
+      subject_reference: [
+        {
+          type: "character",
+          image_file: "https://images.example.test/character.png",
+        },
+      ],
+      width: 1024,
+      height: 1024,
+      response_format: "base64",
+    })
     expect(result.images).toEqual(["aW1hZ2U="])
     expect(result.responseFormat).toBe("base64")
   })

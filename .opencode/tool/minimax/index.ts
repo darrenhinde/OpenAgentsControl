@@ -8,12 +8,18 @@ import { tool } from "@opencode-ai/plugin/tool"
 import { getApiKey } from "../env"
 
 export type MiniMaxImageRegion = "global" | "china"
-export type MiniMaxImageModel = "image-01"
+export type MiniMaxImageModel = "image-01" | "image-01-live"
 export type MiniMaxImageResponseFormat = "url" | "base64"
+
+export interface MiniMaxImageSubjectReference {
+  type: "character"
+  imageFile: string
+}
 
 export interface MiniMaxImageOptions {
   region?: MiniMaxImageRegion
   model?: MiniMaxImageModel
+  subjectReference?: MiniMaxImageSubjectReference[]
   aspectRatio?: "1:1" | "16:9" | "4:3" | "3:2" | "2:3" | "3:4" | "9:16" | "21:9"
   width?: number
   height?: number
@@ -68,6 +74,10 @@ export async function generateImage(
   const request = compactRequest({
     model: options.model ?? "image-01",
     prompt,
+    subject_reference: options.subjectReference?.map((reference) => ({
+      type: reference.type,
+      image_file: reference.imageFile,
+    })),
     aspect_ratio: options.aspectRatio,
     width: options.width,
     height: options.height,
@@ -113,7 +123,16 @@ export const generate = tool({
   args: {
     prompt: tool.schema.string().describe("Text description of the image to generate"),
     region: tool.schema.enum(["global", "china"]).optional().describe("API region (default: global)"),
-    model: tool.schema.enum(["image-01"]).optional().describe("Image model (default: image-01)"),
+    model: tool.schema.enum(["image-01", "image-01-live"]).optional().describe("Image model (default: image-01)"),
+    subject_reference: tool.schema
+      .array(
+        tool.schema.object({
+          type: tool.schema.enum(["character"]),
+          image_file: tool.schema.string(),
+        }),
+      )
+      .optional()
+      .describe("Character reference images as public URLs or base64 data URLs"),
     aspect_ratio: tool.schema
       .enum(["1:1", "16:9", "4:3", "3:2", "2:3", "3:4", "9:16", "21:9"])
       .optional()
@@ -130,6 +149,10 @@ export const generate = tool({
       const result = await generateImage(args.prompt, {
         region: args.region,
         model: args.model,
+        subjectReference: args.subject_reference?.map((reference) => ({
+          type: reference.type,
+          imageFile: reference.image_file,
+        })),
         aspectRatio: args.aspect_ratio,
         width: args.width,
         height: args.height,

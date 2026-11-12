@@ -25,6 +25,7 @@ export {
   type MiniMaxImageRegion,
   type MiniMaxImageResponseFormat,
   type MiniMaxImageResult,
+  type MiniMaxImageSubjectReference,
 } from "./minimax"
 
 // Environment variable utilities
