@@ -1146,8 +1146,16 @@ perform_installation() {
                 mkdir -p "$(dirname "$dest")"
                 
                 if curl -fsSL "$url" -o "$dest"; then
-                    # Transform paths for global installation
-                    if [[ "$INSTALL_DIR" != ".opencode" ]] && [[ "$INSTALL_DIR" != *"/.opencode" ]]; then
+                    # Path transformation: Only needed for non-standard install locations
+                    # where .opencode/ is NOT at the expected standard path.
+                    # Standard locations (no transformation):
+                    #   - .opencode/ (local relative)
+                    #   - ~/.config/opencode (global standard)
+                    #   - */.opencode/ (local in subdirectory)
+                    # Transformation is ONLY needed for unusual custom paths like /opt/opencode
+                    if [[ "$INSTALL_DIR" != ".opencode" ]] && \
+                       [[ "$INSTALL_DIR" != *"/.opencode" ]] && \
+                       [[ "$INSTALL_DIR" != "$HOME/.config/opencode" ]]; then
                         local expanded_path="${INSTALL_DIR/#\~/$HOME}"
                         sed -i.bak -e "s|@\.opencode/context/|@${expanded_path}/context/|g" \
                                    -e "s|\.opencode/context|${expanded_path}/context|g" "$dest" 2>/dev/null || true
@@ -1191,12 +1199,17 @@ perform_installation() {
             mkdir -p "$(dirname "$dest")"
             
             if curl -fsSL "$url" -o "$dest"; then
-                # Transform paths for global installation (any non-local path)
-                # Local paths: .opencode or */.opencode
-                if [[ "$INSTALL_DIR" != ".opencode" ]] && [[ "$INSTALL_DIR" != *"/.opencode" ]]; then
-                    # Expand tilde and get absolute path for transformation
+                # Path transformation: Only needed for non-standard install locations
+                # where .opencode/ is NOT at the expected standard path.
+                # Standard locations (no transformation):
+                #   - .opencode/ (local relative)
+                #   - ~/.config/opencode (global standard)
+                #   - */.opencode/ (local in subdirectory)
+                # Transformation is ONLY needed for unusual custom paths like /opt/opencode
+                if [[ "$INSTALL_DIR" != ".opencode" ]] && \
+                   [[ "$INSTALL_DIR" != *"/.opencode" ]] && \
+                   [[ "$INSTALL_DIR" != "$HOME/.config/opencode" ]]; then
                     local expanded_path="${INSTALL_DIR/#\~/$HOME}"
-                    # Transform @.opencode/context/ references to actual install path
                     sed -i.bak -e "s|@\.opencode/context/|@${expanded_path}/context/|g" \
                                -e "s|\.opencode/context|${expanded_path}/context|g" "$dest" 2>/dev/null || true
                     rm -f "${dest}.bak" 2>/dev/null || true
@@ -1247,7 +1260,7 @@ show_post_install() {
     echo ""
     print_step "Next Steps"
     
-    echo "1. Review the installed components in ${CYAN}${INSTALL_DIR}/${NC}"
+    echo -e "1. Review the installed components in ${CYAN}${INSTALL_DIR}/${NC}"
     
     # Check if env.example was installed
     if [ -f "${INSTALL_DIR}/env.example" ] || [ -f "env.example" ]; then
