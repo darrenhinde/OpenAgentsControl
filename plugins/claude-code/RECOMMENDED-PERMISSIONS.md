@@ -4,8 +4,12 @@
 
 ## Why this file exists
 
-The OpenCode `coder-agent` is authored with five path-scoped edit denies that protect
-secrets and repository internals:
+Five agents in this plugin (`coder-agent`, `test-engineer`, `context-manager`,
+`task-manager`, `external-scout`) are granted **every** Claude Code tool, including `Bash`,
+`Edit` and `Task`. That is a deliberate choice, not an oversight: on OpenCode they are
+authored with scoped permissions that Claude Code cannot express. For example, the
+OpenCode `coder-agent` carries five path-scoped edit denies that protect secrets and
+repository internals:
 
 - `**/*.env*`
 - `**/*.key`
@@ -16,18 +20,17 @@ secrets and repository internals:
 Claude Code cannot express these per-agent: subagent frontmatter `tools:` /
 `disallowedTools:` accept **tool names only** (no path patterns), and plugin-shipped
 `settings.json` files support only the `enabledPlugins` and `extraKnownMarketplaces`
-keys — a plugin **cannot ship permission rules** on your behalf. So the shipped
-`coder-agent` grants `Write`/`Edit` without those path guards enforced.
+keys — a plugin **cannot ship permission rules** on your behalf. So the shipped agents
+have `Write`/`Edit`/`Bash` with none of those guards enforced, and the OpenCode shell
+limits (`sudo` denied, `rm -rf` asked about) do not apply to them either.
 
-The plugin mitigates this two ways, but neither is a hard guarantee:
-
-1. `coder-agent` omits `Bash` and explicitly declares `disallowedTools: Bash, Task`
-   (fail-closed — do not re-add these).
-2. `coder-agent`'s prompt contains a hard protected-paths rule — but prompt rules are
-   instructions, **not enforcement**.
+The only mitigation inside the plugin is the agents' prompts, which restate the
+protected-paths rule — but prompt rules are instructions, **not enforcement**. Only
+`context-scout` and `code-reviewer` are read-only (`Read`, `Glob`, `Grep`).
 
 Real enforcement requires a one-time opt-in from you: copy the deny rules below into
-your project or user settings.
+your project or user settings. Because the agents above are unrestricted, treat this as
+required rather than optional, and consider the shell denies in the next sections too.
 
 ## Where to put the rules
 
@@ -80,8 +83,8 @@ capability:
 
 Do **not** hoist per-agent allow rules (for example
 `Bash(bash .opencode/skills/task-management/router.sh complete:*)`) into project or
-user settings. Project-level allows apply to **every** agent — including agents authored
-with no shell access at all — which silently re-creates the exact privilege escalation
+user settings. Project-level allows apply to **every** agent — including the read-only
+`context-scout` and `code-reviewer` — which silently re-creates the privilege escalation
 these denies exist to prevent, one layer up. This document intentionally contains deny
 rules only.
 

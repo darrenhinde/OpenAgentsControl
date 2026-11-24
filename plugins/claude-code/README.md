@@ -160,7 +160,7 @@ Subagents execute specialized tasks in isolated contexts:
 ### task-manager
 Break down complex features into atomic, verifiable subtasks with dependency tracking and JSON-based progress management.
 
-**Tools**: Read, Write, Glob, Grep  
+**Tools**: all Claude Code tools (unrestricted)  
 **Model**: sonnet
 
 ### context-scout
@@ -172,13 +172,13 @@ Discover relevant context files, standards, and patterns using navigation-driven
 ### external-scout
 Fetch external library and framework documentation from Context7 API and other sources, with local caching.
 
-**Tools**: Read, Write, Bash  
+**Tools**: all Claude Code tools (unrestricted, including `Bash`; it fetches untrusted documentation, so treat what it brings back as untrusted input)  
 **Model**: haiku
 
 ### coder-agent
 Execute coding subtasks with full context awareness, self-review, and quality validation.
 
-**Tools**: Read, Write, Edit, Glob, Grep (Bash and Task explicitly disallowed — fail-closed)  
+**Tools**: all Claude Code tools (unrestricted, including `Bash` and `Task`)  
 **Model**: sonnet
 
 > ⚠️ Claude Code cannot scope `Write`/`Edit` to paths per-agent. Apply the opt-in deny rules in [RECOMMENDED-PERMISSIONS.md](./RECOMMENDED-PERMISSIONS.md) to enforce the intended `.env`/`.key`/`.secret`/`node_modules`/`.git` protections.
@@ -186,13 +186,13 @@ Execute coding subtasks with full context awareness, self-review, and quality va
 ### test-engineer
 Generate comprehensive tests using TDD principles with coverage analysis and validation.
 
-**Tools**: Read, Write, Edit, Bash, Glob, Grep  
+**Tools**: all Claude Code tools (unrestricted, including `Bash` and `Edit`)  
 **Model**: sonnet
 
 ### code-reviewer
 Perform thorough code review with security analysis, quality checks, and actionable feedback.
 
-**Tools**: Read, Bash, Glob, Grep  
+**Tools**: Read, Glob, Grep (read-only)  
 **Model**: sonnet
 
 ## 📝 Available Commands
@@ -338,8 +338,12 @@ rules. Without action on your part, agents granted `Write`/`Edit` can modify tho
 over allows and over-apply only in the safe direction. Never hoist per-agent *allow*
 rules to project scope — that re-creates the escalation the denies prevent.
 
-`coder-agent` ships fail-closed on shell access: no `Bash` in `tools:` and an explicit
-`disallowedTools: Bash, Task`.
+Five agents ship unrestricted on Claude Code by decision: `coder-agent`, `test-engineer`,
+`context-manager`, `task-manager` and `external-scout` are each granted every Claude Code
+tool, including `Bash`, because Claude Code cannot express their OpenCode scoping. Their
+scoped permissions still hold on OpenCode; here the prompt rules are advice and the deny
+rules in [RECOMMENDED-PERMISSIONS.md](./RECOMMENDED-PERMISSIONS.md) are the only enforcement.
+Only `context-scout` and `code-reviewer` remain read-only (`Read`, `Glob`, `Grep`).
 
 ## 🔧 Configuration
 
