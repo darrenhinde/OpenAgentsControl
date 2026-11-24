@@ -1,0 +1,3989 @@
+{
+  "version": "2.0.0",
+  "schema_version": "2.0.0",
+  "repository": "https://github.com/darrenhinde/OpenAgentsControl",
+  "categories": {
+    "essential": "Minimal components for basic functionality",
+    "standard": "Standard components for typical use",
+    "extended": "Extended components for advanced features",
+    "specialized": "Specialized components for specific domains",
+    "meta": "Meta-level components for system generation"
+  },
+  "components": {
+    "agents": [
+      {
+        "id": "copywriter",
+        "name": "Copywriter",
+        "type": "agent",
+        "path": "built-ai-configs/opencode-v1/agent/content/copywriter.md",
+        "version": "1.0.0",
+        "description": "Expert in persuasive writing, marketing copy, and brand messaging",
+        "tags": [
+          "content",
+          "marketing",
+          "writing"
+        ],
+        "dependencies": [
+          "context:standards-docs"
+        ],
+        "category": "content"
+      },
+      {
+        "id": "data-analyst",
+        "name": "Data Analyst",
+        "type": "agent",
+        "path": "built-ai-configs/opencode-v1/agent/data/data-analyst.md",
+        "version": "1.0.0",
+        "description": "Expert in data analysis, visualization, and statistical insights",
+        "tags": [
+          "data",
+          "analysis",
+          "visualization"
+        ],
+        "dependencies": [],
+        "category": "data"
+      },
+      {
+        "id": "eval-runner",
+        "name": "EvalRunner",
+        "type": "agent",
+        "path": "built-ai-configs/opencode-v1/agent/dev/eval-runner.md",
+        "version": "1.0.0",
+        "description": "Test harness for evaluation framework - DO NOT USE DIRECTLY",
+        "tags": [
+          "testing",
+          "evals"
+        ],
+        "dependencies": [],
+        "category": "dev",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/test/eval-runner.md"
+        ]
+      },
+      {
+        "id": "openagent",
+        "name": "OpenAgent",
+        "type": "agent",
+        "path": "built-ai-configs/opencode-v1/agent/core/openagent.md",
+        "version": "1.0.0",
+        "description": "Universal agent for answering queries, executing tasks, and coordinating workflows across any domain",
+        "tags": [
+          "universal",
+          "coordination",
+          "primary"
+        ],
+        "dependencies": [
+          "subagent:task-manager",
+          "subagent:batch-executor",
+          "subagent:doc-writer",
+          "subagent:context-scout",
+          "subagent:external-scout",
+          "context:standards-code",
+          "context:standards-docs",
+          "context:standards-tests",
+          "context:review-ref",
+          "context:delegation-ref",
+          "context:external-libraries-workflow"
+        ],
+        "category": "core"
+      },
+      {
+        "id": "opencoder",
+        "name": "OpenCoder",
+        "type": "agent",
+        "path": "built-ai-configs/opencode-v1/agent/core/opencoder.md",
+        "version": "1.0.0",
+        "description": "Orchestration agent for complex coding, architecture, and multi-file refactoring",
+        "tags": [
+          "development",
+          "coding",
+          "implementation"
+        ],
+        "dependencies": [
+          "subagent:doc-writer",
+          "subagent:task-manager",
+          "subagent:batch-executor",
+          "subagent:coder-agent",
+          "subagent:test-engineer",
+          "subagent:code-reviewer",
+          "subagent:build-agent",
+          "subagent:context-scout",
+          "subagent:external-scout",
+          "context:standards-code",
+          "context:task-delegation-basics",
+          "context:component-planning",
+          "context:external-libraries-workflow"
+        ],
+        "category": "core"
+      },
+      {
+        "id": "repo-manager",
+        "name": "Repo Manager",
+        "type": "agent",
+        "path": "built-ai-configs/opencode-v1/agent/meta/repo-manager.md",
+        "version": "1.0.0",
+        "description": "Meta agent for managing OpenAgents Control repository development with lazy context loading, smart delegation, and automatic documentation",
+        "tags": [
+          "repository",
+          "management",
+          "orchestration"
+        ],
+        "dependencies": [
+          "subagent:task-manager",
+          "subagent:context-scout",
+          "subagent:doc-writer",
+          "subagent:coder-agent",
+          "subagent:test-engineer",
+          "subagent:code-reviewer",
+          "subagent:build-agent"
+        ],
+        "category": "meta"
+      },
+      {
+        "id": "system-builder",
+        "name": "System Builder",
+        "type": "agent",
+        "path": "built-ai-configs/opencode-v1/agent/meta/system-builder.md",
+        "version": "1.0.0",
+        "description": "Main orchestrator for building complete context-aware AI systems from user requirements",
+        "tags": [
+          "system-generation",
+          "architecture",
+          "scaffolding"
+        ],
+        "dependencies": [
+          "subagent:agent-generator",
+          "subagent:command-creator",
+          "subagent:domain-analyzer",
+          "subagent:context-organizer",
+          "subagent:workflow-designer"
+        ],
+        "category": "meta"
+      },
+      {
+        "id": "technical-writer",
+        "name": "Technical Writer",
+        "type": "agent",
+        "path": "built-ai-configs/opencode-v1/agent/content/technical-writer.md",
+        "version": "1.0.0",
+        "description": "Expert in documentation, API docs, and technical communication",
+        "tags": [
+          "documentation",
+          "technical",
+          "writing"
+        ],
+        "dependencies": [
+          "context:standards-docs"
+        ],
+        "category": "content"
+      }
+    ],
+    "subagents": [
+      {
+        "id": "adr-manager",
+        "name": "ADRManager",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/planning/adr-manager.md",
+        "version": "1.0.0",
+        "description": "Architecture Decision Record specialist capturing decisions, context, alternatives, and consequences in lightweight ADR format",
+        "tags": [
+          "adr",
+          "architecture",
+          "decisions"
+        ],
+        "dependencies": [],
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/adr-manager.md"
+        ]
+      },
+      {
+        "id": "agent-generator",
+        "name": "AgentGenerator",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/agent-generator.md",
+        "version": "1.0.0",
+        "description": "Generates XML-optimized agent files (orchestrator and subagents) following research-backed patterns",
+        "tags": [
+          "generation",
+          "agents",
+          "scaffolding"
+        ],
+        "dependencies": [],
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/agent-generator.md"
+        ]
+      },
+      {
+        "id": "architecture-analyzer",
+        "name": "ArchitectureAnalyzer",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/planning/architecture-analyzer.md",
+        "version": "1.0.0",
+        "description": "DDD-driven architecture analyzer identifying bounded contexts, module boundaries, and domain relationships for multi-stage orchestration",
+        "tags": [
+          "architecture",
+          "analysis",
+          "ddd"
+        ],
+        "dependencies": [],
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/architecture-analyzer.md"
+        ]
+      },
+      {
+        "id": "batch-executor",
+        "name": "BatchExecutor",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/core/batch-executor.md",
+        "version": "1.0.0",
+        "description": "Execute multiple tasks in parallel batches, managing simultaneous CoderAgent delegations and tracking batch completion",
+        "tags": [
+          "parallel-execution",
+          "batch-management",
+          "coordination"
+        ],
+        "dependencies": [
+          "subagent:coder-agent",
+          "subagent:task-manager"
+        ],
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/batch-executor.md"
+        ]
+      },
+      {
+        "id": "build-agent",
+        "name": "BuildAgent",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/code/build-agent.md",
+        "version": "1.0.0",
+        "description": "Type check and build validation agent",
+        "tags": [
+          "build",
+          "validation",
+          "type-checking"
+        ],
+        "dependencies": [],
+        "category": "code",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/code/build-agent.md"
+        ]
+      },
+      {
+        "id": "code-reviewer",
+        "name": "CodeReviewer",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/code/code-reviewer.md",
+        "version": "1.0.0",
+        "description": "Code review, security, and quality assurance agent",
+        "tags": [
+          "review",
+          "security",
+          "quality"
+        ],
+        "dependencies": [
+          "context:standards-code",
+          "context:review-ref"
+        ],
+        "category": "code",
+        "aliases": [
+          "reviewer"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/code/reviewer.md",
+          "built-ai-configs/opencode-v1/agent/subagents/code/reviewer.md"
+        ]
+      },
+      {
+        "id": "coder-agent",
+        "name": "CoderAgent",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/code/coder-agent.md",
+        "version": "1.0.0",
+        "description": "Executes coding subtasks in sequence, ensuring completion as specified",
+        "tags": [
+          "coding",
+          "implementation"
+        ],
+        "dependencies": [
+          "context:standards-code"
+        ],
+        "category": "code",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/code/coder-agent.md"
+        ]
+      },
+      {
+        "id": "command-creator",
+        "name": "CommandCreator",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/command-creator.md",
+        "version": "1.0.0",
+        "description": "Creates custom slash commands that route to appropriate agents with clear syntax and examples",
+        "tags": [
+          "commands",
+          "generation",
+          "scaffolding"
+        ],
+        "dependencies": [],
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/command-creator.md"
+        ]
+      },
+      {
+        "id": "context-manager",
+        "name": "ContextManager",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/core/context-manager.md",
+        "version": "1.0.0",
+        "description": "Context organization and lifecycle management specialist - discovers, catalogs, validates, and maintains project context structure with dependency tracking",
+        "tags": [
+          "context",
+          "management",
+          "organization"
+        ],
+        "dependencies": [],
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/context-manager.md"
+        ]
+      },
+      {
+        "id": "context-organizer",
+        "name": "ContextOrganizer",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/context-organizer.md",
+        "version": "1.0.0",
+        "description": "Organizes and generates context files (domain, processes, standards, templates) for optimal knowledge management",
+        "tags": [
+          "context",
+          "organization",
+          "structure"
+        ],
+        "dependencies": [
+          "context:core/context-system/*"
+        ],
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/context-organizer.md"
+        ]
+      },
+      {
+        "id": "context-retriever",
+        "name": "ContextRetriever",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/core/context-retriever.md",
+        "version": "1.0.0",
+        "description": "Generic context search and retrieval specialist for finding relevant context files, standards, and guides in any repository",
+        "tags": [
+          "context",
+          "retrieval",
+          "search"
+        ],
+        "dependencies": [],
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/context-retriever.md"
+        ]
+      },
+      {
+        "id": "context-scout",
+        "name": "ContextScout",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/core/context-scout.md",
+        "version": "1.0.0",
+        "description": "Discovers and recommends context files from .opencode/context/ ranked by priority. Suggests ExternalScout when a framework/library is mentioned but not found internally.",
+        "tags": [
+          "context",
+          "discovery",
+          "search"
+        ],
+        "dependencies": [
+          "command:check-context-deps",
+          "context:registry-dependencies",
+          "context:context-system",
+          "context:mvi",
+          "context:structure",
+          "context:workflows",
+          "subagent:external-scout",
+          "context:root-navigation",
+          "context:context-paths-config"
+        ],
+        "category": "core",
+        "aliases": [
+          "contextscout"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/core/contextscout.md",
+          "built-ai-configs/opencode-v1/agent/subagents/core/contextscout.md"
+        ]
+      },
+      {
+        "id": "contract-manager",
+        "name": "ContractManager",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/planning/contract-manager.md",
+        "version": "1.0.0",
+        "description": "API contract management specialist enabling parallel development through contract-first design with OpenAPI/Swagger support",
+        "tags": [
+          "contracts",
+          "api",
+          "openapi"
+        ],
+        "dependencies": [],
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/contract-manager.md"
+        ]
+      },
+      {
+        "id": "devops-specialist",
+        "name": "OpenDevopsSpecialist",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/dev/devops-specialist.md",
+        "version": "1.0.0",
+        "description": "DevOps specialist subagent - CI/CD, infrastructure as code, deployment automation",
+        "tags": [
+          "devops",
+          "ci-cd",
+          "infrastructure"
+        ],
+        "dependencies": [],
+        "category": "dev",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/development/devops-specialist.md"
+        ]
+      },
+      {
+        "id": "doc-writer",
+        "name": "DocWriter",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/core/doc-writer.md",
+        "version": "1.0.0",
+        "description": "Documentation authoring agent",
+        "tags": [
+          "documentation",
+          "writing"
+        ],
+        "dependencies": [
+          "context:standards-docs"
+        ],
+        "category": "core",
+        "aliases": [
+          "documentation"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/core/documentation.md",
+          "built-ai-configs/opencode-v1/agent/subagents/core/documentation.md"
+        ]
+      },
+      {
+        "id": "domain-analyzer",
+        "name": "DomainAnalyzer",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/domain-analyzer.md",
+        "version": "1.0.0",
+        "description": "Analyzes user domains to identify core concepts, recommended agents, and context structure",
+        "tags": [
+          "analysis",
+          "domain",
+          "architecture"
+        ],
+        "dependencies": [],
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/domain-analyzer.md"
+        ]
+      },
+      {
+        "id": "external-scout",
+        "name": "ExternalScout",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/core/external-scout.md",
+        "version": "1.0.0",
+        "description": "Fetches live, version-specific documentation for external libraries and frameworks using Context7 and other sources. Filters, sorts, and returns relevant documentation.",
+        "tags": [
+          "external",
+          "documentation",
+          "search"
+        ],
+        "dependencies": [
+          "skill:context7",
+          "context:context-system"
+        ],
+        "category": "core",
+        "aliases": [
+          "externalscout"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/core/externalscout.md",
+          "built-ai-configs/opencode-v1/agent/subagents/core/externalscout.md"
+        ]
+      },
+      {
+        "id": "frontend-specialist",
+        "name": "OpenFrontendSpecialist",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/dev/frontend-specialist.md",
+        "version": "1.0.0",
+        "description": "Frontend UI design specialist - subagent for design systems, themes, animations",
+        "tags": [
+          "frontend",
+          "ui",
+          "design"
+        ],
+        "dependencies": [
+          "context:standards-code"
+        ],
+        "category": "dev",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/development/frontend-specialist.md"
+        ]
+      },
+      {
+        "id": "image-specialist",
+        "name": "ImageSpecialist",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/content/image-specialist.md",
+        "version": "1.0.0",
+        "description": "Specialized agent for image editing and analysis using Gemini AI tools",
+        "tags": [
+          "images",
+          "editing",
+          "generation"
+        ],
+        "dependencies": [
+          "tool:gemini"
+        ],
+        "category": "content",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/utils/image-specialist.md"
+        ]
+      },
+      {
+        "id": "prioritization-engine",
+        "name": "PrioritizationEngine",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/planning/prioritization-engine.md",
+        "version": "1.0.0",
+        "description": "Scores and prioritizes backlog items using RICE/WSJF frameworks with MVP/post-MVP release slicing",
+        "tags": [
+          "prioritization",
+          "backlog",
+          "planning"
+        ],
+        "dependencies": [],
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/prioritization-engine.md"
+        ]
+      },
+      {
+        "id": "simple-responder",
+        "name": "SimpleResponder",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/dev/simple-responder.md",
+        "version": "1.0.0",
+        "description": "Test agent that responds with 'AWESOME TESTING' - for eval framework testing",
+        "tags": [
+          "testing",
+          "evaluation"
+        ],
+        "dependencies": [],
+        "category": "dev",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/test/simple-responder.md"
+        ]
+      },
+      {
+        "id": "stage-orchestrator",
+        "name": "StageOrchestrator",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/core/stage-orchestrator.md",
+        "version": "1.0.0",
+        "description": "Multi-stage workflow orchestrator managing stage transitions, gating rules, validation, and rollback for complex feature development",
+        "tags": [
+          "orchestration",
+          "workflow",
+          "stages"
+        ],
+        "dependencies": [],
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/stage-orchestrator.md"
+        ]
+      },
+      {
+        "id": "story-mapper",
+        "name": "StoryMapper",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/planning/story-mapper.md",
+        "version": "1.0.0",
+        "description": "User journey mapping specialist transforming user needs into epics, stories, and vertical slices with bounded context alignment",
+        "tags": [
+          "stories",
+          "user-journey",
+          "planning"
+        ],
+        "dependencies": [],
+        "category": "planning",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/planning/story-mapper.md"
+        ]
+      },
+      {
+        "id": "task-manager",
+        "name": "TaskManager",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/core/task-manager.md",
+        "version": "2.0.0",
+        "description": "JSON-driven task breakdown specialist transforming complex features into atomic, verifiable subtasks with dependency tracking and CLI integration",
+        "tags": [
+          "task-breakdown",
+          "planning",
+          "coordination"
+        ],
+        "dependencies": [
+          "context:task-delegation-basics"
+        ],
+        "category": "core",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/core/task-manager.md"
+        ]
+      },
+      {
+        "id": "test-engineer",
+        "name": "TestEngineer",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/code/test-engineer.md",
+        "version": "1.0.0",
+        "description": "Test authoring and TDD agent",
+        "tags": [
+          "testing",
+          "tdd",
+          "quality"
+        ],
+        "dependencies": [
+          "context:standards-tests"
+        ],
+        "category": "code",
+        "aliases": [
+          "tester"
+        ],
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/code/tester.md",
+          "built-ai-configs/opencode-v1/agent/subagents/code/test-engineer.md"
+        ]
+      },
+      {
+        "id": "workflow-designer",
+        "name": "WorkflowDesigner",
+        "type": "subagent",
+        "path": "built-ai-configs/opencode-v1/agent/system-builder/workflow-designer.md",
+        "version": "1.0.0",
+        "description": "Designs complete workflow definitions with context dependencies and success criteria",
+        "tags": [
+          "workflow",
+          "design",
+          "architecture"
+        ],
+        "dependencies": [],
+        "category": "system-builder",
+        "supersedes": [
+          "built-ai-configs/opencode-v1/agent/subagents/system-builder/workflow-designer.md"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "id": "add-context",
+        "name": "Add Context",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/add-context.md",
+        "description": "Interactive wizard to add project patterns using Project Intelligence standard",
+        "tags": [
+          "context",
+          "onboarding",
+          "project-intelligence",
+          "wizard"
+        ],
+        "dependencies": [
+          "subagent:context-organizer",
+          "context:mvi",
+          "context:frontmatter",
+          "context:project-intelligence"
+        ],
+        "category": "essential"
+      },
+      {
+        "id": "analyze-patterns",
+        "name": "Analyze Patterns",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/analyze-patterns.md",
+        "description": "Analyze codebase for patterns and similar implementations",
+        "tags": [
+          "analysis",
+          "patterns",
+          "refactoring"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "build-context-system",
+        "name": "Build Context System",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/build-context-system.md",
+        "description": "Interactive system builder for creating complete context-aware AI architectures",
+        "tags": [
+          "system-generation",
+          "interactive",
+          "architecture",
+          "meta"
+        ],
+        "dependencies": [
+          "agent:system-builder"
+        ],
+        "category": "meta"
+      },
+      {
+        "id": "check-context-deps",
+        "name": "Check Context Deps",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/openagents/check-context-deps.md",
+        "description": "Validate context file dependencies across agents and registry",
+        "tags": [
+          "registry",
+          "validation",
+          "context",
+          "dependencies"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "clean",
+        "name": "Clean Project",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/clean.md",
+        "description": "Clean build artifacts and temporary files",
+        "tags": [
+          "cleanup",
+          "maintenance",
+          "build"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "commit",
+        "name": "Smart Commit",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/commit.md",
+        "description": "Create intelligent git commits with context",
+        "tags": [
+          "git",
+          "commit",
+          "version-control"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "commit-openagents",
+        "name": "Commit OpenAgents Control",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/commit-openagents.md",
+        "description": "Smart commit command for opencode-agents repository with automatic validation and conventional commits",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "context",
+        "name": "Context Manager",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/context.md",
+        "description": "Context system manager - harvest summaries, extract knowledge, organize context",
+        "tags": [
+          "context",
+          "knowledge-management",
+          "harvest"
+        ],
+        "dependencies": [
+          "subagent:context-organizer",
+          "subagent:context-scout"
+        ],
+        "category": "essential"
+      },
+      {
+        "id": "create-agent",
+        "name": "Create Agent",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/openagents/new-agents/create-agent.md",
+        "description": "Create new OpenCode agents following research-backed best practices (Anthropic 2025)",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "create-tests",
+        "name": "Create Tests",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/openagents/new-agents/create-tests.md",
+        "description": "Generate comprehensive test suites for OpenCode agents with 8 essential test types",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "optimize",
+        "name": "Code Optimizer",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/optimize.md",
+        "description": "Optimize code performance and bundle size",
+        "tags": [
+          "optimization",
+          "performance",
+          "build"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "prompt-enhancer",
+        "name": "Prompt Enhancer",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/prompt-engineering/prompt-enhancer.md",
+        "description": "Enhance and improve AI prompts",
+        "tags": [
+          "prompts",
+          "ai",
+          "enhancement"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "prompt-optimizer",
+        "name": "Prompt Optimizer",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/prompt-engineering/prompt-optimizer.md",
+        "description": "Advanced prompt optimizer: Research patterns + token efficiency + semantic preservation. Achieves 30-50% token reduction with 100% meaning preserved.",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "test",
+        "name": "Test Pipeline",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/test.md",
+        "description": "Run the complete testing pipeline",
+        "tags": [
+          "testing",
+          "ci",
+          "validation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "test-new-command",
+        "name": "Test New Command",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/test-new-command.md",
+        "description": "Test command to verify auto-detection and registry updates work correctly",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "validate-repo",
+        "name": "Validate Repository",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/validate-repo.md",
+        "description": "Comprehensive validation of repository consistency between CLI, docs, registry, and components",
+        "tags": [
+          "validation",
+          "quality",
+          "consistency",
+          "maintenance"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "worktrees",
+        "name": "Git Worktrees Manager",
+        "type": "command",
+        "path": "built-ai-configs/opencode-v1/command/worktrees.md",
+        "description": "Manage git worktrees for parallel development",
+        "tags": [
+          "git",
+          "worktrees",
+          "workflow"
+        ],
+        "dependencies": [],
+        "category": "specialized"
+      }
+    ],
+    "tools": [
+      {
+        "id": "gemini",
+        "name": "Gemini AI Tool",
+        "type": "tool",
+        "path": "built-ai-configs/opencode-v1/tool/gemini/index.ts",
+        "description": "Image generation, editing, and analysis using Gemini AI",
+        "tags": [
+          "ai",
+          "images",
+          "gemini"
+        ],
+        "dependencies": [
+          "tool:env"
+        ],
+        "category": "specialized"
+      },
+      {
+        "id": "env",
+        "name": "Environment Manager",
+        "type": "tool",
+        "path": "built-ai-configs/opencode-v1/tool/env/index.ts",
+        "description": "Load and manage environment variables securely",
+        "tags": [
+          "environment",
+          "config",
+          "security"
+        ],
+        "dependencies": [],
+        "category": "essential"
+      }
+    ],
+    "plugins": [
+      {
+        "id": "notify",
+        "name": "Generic Notifier",
+        "type": "plugin",
+        "path": "built-ai-configs/opencode-v1/plugin/notify.ts",
+        "description": "Generic notification system",
+        "tags": [
+          "notifications",
+          "alerts"
+        ],
+        "dependencies": [],
+        "category": "specialized"
+      }
+    ],
+    "skills": [
+      {
+        "id": "context-manager",
+        "name": "Context Manager",
+        "type": "skill",
+        "path": "built-ai-configs/opencode-v1/skills/context-manager/SKILL.md",
+        "description": "Comprehensive context management with 8 operations: discover, fetch, harvest, extract, compress, organize, cleanup, and process. Integrates with ContextScout and ExternalScout with lazy loading and clear guidance.",
+        "tags": [
+          "context-management",
+          "discovery",
+          "organization",
+          "cleanup",
+          "external-docs",
+          "lazy-loading"
+        ],
+        "dependencies": [
+          "subagent:context-scout",
+          "subagent:external-scout"
+        ],
+        "category": "essential",
+        "files": [
+          "built-ai-configs/opencode-v1/skills/context-manager/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/context-manager/router.sh"
+        ]
+      },
+      {
+        "id": "context7",
+        "name": "Context7",
+        "type": "skill",
+        "path": "built-ai-configs/opencode-v1/skills/context7/SKILL.md",
+        "description": "Fetch live, version-specific documentation for external libraries and frameworks via Context7 API",
+        "tags": [
+          "documentation",
+          "external",
+          "libraries",
+          "api"
+        ],
+        "dependencies": [],
+        "category": "essential",
+        "files": [
+          "built-ai-configs/opencode-v1/skills/context7/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/context7/README.md",
+          "built-ai-configs/opencode-v1/skills/context7/library-registry.md",
+          "built-ai-configs/opencode-v1/skills/context7/navigation.md"
+        ]
+      },
+      {
+        "id": "project-orchestration",
+        "name": "Project Orchestration",
+        "type": "skill",
+        "path": "built-ai-configs/opencode-v1/skills/project-orchestration/SKILL.md",
+        "description": "Orchestrate multi-agent workflows for feature development using planning agents, context handoff, and stage management",
+        "tags": [
+          "orchestration",
+          "multi-agent",
+          "planning",
+          "workflow",
+          "stages"
+        ],
+        "dependencies": [],
+        "category": "specialized",
+        "files": [
+          "built-ai-configs/opencode-v1/skills/project-orchestration/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/router.sh",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/scripts/context-index.ts",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/scripts/session-context-manager.ts",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/scripts/stage-cli.ts",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/workflows/8-stage-delivery.md",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/workflows/context-handoff.md",
+          "built-ai-configs/opencode-v1/skills/project-orchestration/workflows/planning-agents.md"
+        ]
+      },
+      {
+        "id": "smart-router-skill",
+        "name": "Smart Router Skill",
+        "type": "skill",
+        "path": "built-ai-configs/opencode-v1/skills/smart-router-skill/SKILL.md",
+        "description": "Movie character personality skill with configurable missions and themed workflows",
+        "tags": [
+          "routing",
+          "personality",
+          "demo"
+        ],
+        "dependencies": [],
+        "category": "specialized",
+        "files": [
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/config/personality-config.json",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/router.sh",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/scripts/sherlock-workflow.sh",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/scripts/stark-workflow.sh",
+          "built-ai-configs/opencode-v1/skills/smart-router-skill/scripts/yoda-workflow.sh"
+        ]
+      },
+      {
+        "id": "task-management",
+        "name": "Task Management",
+        "type": "skill",
+        "path": "built-ai-configs/opencode-v1/skills/task-management/SKILL.md",
+        "description": "Task management CLI for tracking and managing feature subtasks with status, dependencies, and validation",
+        "tags": [
+          "tasks",
+          "cli",
+          "workflow"
+        ],
+        "dependencies": [],
+        "category": "essential",
+        "files": [
+          "built-ai-configs/opencode-v1/skills/task-management/SKILL.md",
+          "built-ai-configs/opencode-v1/skills/task-management/router.sh",
+          "built-ai-configs/opencode-v1/skills/task-management/scripts/task-cli.ts"
+        ]
+      }
+    ],
+    "contexts": [
+      {
+        "id": "essential-patterns",
+        "name": "Essential Patterns",
+        "type": "context",
+        "path": ".opencode/context/core/essential-patterns.md",
+        "description": "Core development patterns and best practices",
+        "tags": [
+          "patterns",
+          "best-practices",
+          "guidelines"
+        ],
+        "dependencies": [],
+        "category": "essential"
+      },
+      {
+        "id": "project-context",
+        "name": "Project Context",
+        "type": "context",
+        "path": ".opencode/context/project/project-context.md",
+        "description": "\u26d4 DEPRECATED: Replaced by project-intelligence/technical-domain.md",
+        "tags": [
+          "deprecated",
+          "context",
+          "project"
+        ],
+        "dependencies": [],
+        "category": "essential"
+      },
+      {
+        "id": "standards-code",
+        "name": "Code Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/code-quality.md",
+        "description": "Modular, functional code standards",
+        "tags": [
+          "standards",
+          "code",
+          "quality"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "standards-patterns",
+        "name": "Pattern Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/security-patterns.md",
+        "description": "Language-agnostic pattern catalog",
+        "tags": [
+          "standards",
+          "patterns",
+          "architecture"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "standards-tests",
+        "name": "Testing Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/test-coverage.md",
+        "description": "Testing best practices and guidelines",
+        "tags": [
+          "standards",
+          "testing",
+          "quality"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "standards-docs",
+        "name": "Documentation Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/documentation.md",
+        "description": "Documentation guidelines and templates",
+        "tags": [
+          "standards",
+          "documentation",
+          "writing"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "standards-analysis",
+        "name": "Analysis Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/code-analysis.md",
+        "description": "Code analysis framework and guidelines",
+        "tags": [
+          "standards",
+          "analysis",
+          "quality"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-review",
+        "name": "Code Review Workflow",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/code-review.md",
+        "description": "Code review process and guidelines",
+        "tags": [
+          "workflows",
+          "review",
+          "quality"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "system-context-guide",
+        "name": "Context System Guide",
+        "type": "context",
+        "path": ".opencode/context/core/system/context-guide.md",
+        "description": "Guide to the context system and file organization",
+        "tags": [
+          "system",
+          "guide",
+          "context"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "system-builder-guide",
+        "name": "System Builder Guide",
+        "type": "context",
+        "path": ".opencode/context/system-builder-templates/SYSTEM-BUILDER-GUIDE.md",
+        "description": "System Builder Guide",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "orchestrator-template",
+        "name": "Orchestrator Template",
+        "type": "context",
+        "path": ".opencode/context/system-builder-templates/orchestrator-template.md",
+        "description": "{domain} orchestrator for {primary_purpose}\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "subagent-template",
+        "name": "Subagent Template",
+        "type": "context",
+        "path": ".opencode/context/system-builder-templates/subagent-template.md",
+        "description": "{specific_task_description}\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "clean-code",
+        "name": "Clean Code",
+        "type": "context",
+        "path": ".opencode/context/development/principles/clean-code.md",
+        "description": "Clean Code Principles",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "react-patterns",
+        "name": "React Patterns",
+        "type": "context",
+        "path": ".opencode/context/ui/web/react-patterns.md",
+        "description": "React Patterns & Best Practices",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "api-design",
+        "name": "Api Design",
+        "type": "context",
+        "path": ".opencode/context/development/principles/api-design.md",
+        "description": "API Design Patterns",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "copywriting-frameworks",
+        "name": "Copywriting Frameworks",
+        "type": "context",
+        "path": ".opencode/context/content-creation/principles/copywriting-frameworks.md",
+        "description": "Copywriting Frameworks",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "tone-voice",
+        "name": "Tone Voice",
+        "type": "context",
+        "path": ".opencode/context/content-creation/principles/tone-voice.md",
+        "description": "Tone & Voice Guidelines",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "ui-styling-standards",
+        "name": "Ui Styling Standards",
+        "type": "context",
+        "path": ".opencode/context/ui/web/ui-styling-standards.md",
+        "description": "UI Styling Standards",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-systems",
+        "name": "Design Systems",
+        "type": "context",
+        "path": ".opencode/context/ui/web/design-systems.md",
+        "description": "Design Systems",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "quick-start",
+        "name": "Quick Start",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/quick-start.md",
+        "description": "OpenAgents Control Repository - Quick Start",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "commands",
+        "name": "Commands",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/lookup/commands.md",
+        "description": "Lookup: Command Reference",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "file-locations",
+        "name": "File Locations",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/lookup/file-locations.md",
+        "description": "Lookup: File Locations",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "creating-release",
+        "name": "Creating Release",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/creating-release.md",
+        "description": "Guide: Creating a Release",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "testing-agent",
+        "name": "Testing Agent",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/testing-agent.md",
+        "description": "Verify agent requests approval before execution",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "debugging",
+        "name": "Debugging",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/debugging.md",
+        "description": "Guide: Debugging Common Issues",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "updating-registry",
+        "name": "Updating Registry",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/updating-registry.md",
+        "description": "Guide: Updating Registry",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "context-bundle-example",
+        "name": "Context Bundle Example",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/examples/context-bundle-example.md",
+        "description": "Context Bundle Example: Create Data Analyst Agent",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "evals",
+        "name": "Evals",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/core-concepts/evals.md",
+        "description": "Verify agent responds correctly",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "canonical-build",
+        "name": "Canonical Build",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/core-concepts/canonical-build.md",
+        "description": "How agents are authored once in agent-library and built for every AI tool",
+        "tags": [
+          "build",
+          "canonical",
+          "agents"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "registry",
+        "name": "Registry",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/core-concepts/registry.md",
+        "description": "Core Concept: Registry System",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "harvest",
+        "name": "Harvest",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/harvest.md",
+        "description": "Context Harvest Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "extract",
+        "name": "Extract",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/extract.md",
+        "description": "Extract Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "error",
+        "name": "Error",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/error.md",
+        "description": "Error Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "migrate",
+        "name": "Migrate",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/migrate.md",
+        "description": "Migrate context from global to local project",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "organize",
+        "name": "Organize",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/organize.md",
+        "description": "Organize Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "update",
+        "name": "Update",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/operations/update.md",
+        "description": "Update Operation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows",
+        "name": "Workflows",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/guides/workflows.md",
+        "description": "Context Operation Workflows",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "creation",
+        "name": "Creation",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/guides/creation.md",
+        "description": "Context File Creation Standards",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "compact",
+        "name": "Compact",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/guides/compact.md",
+        "description": "Context Compaction (Minimization)",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "mvi",
+        "name": "Mvi",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/standards/mvi.md",
+        "description": "MVI Principle (Minimal Viable Information)",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "structure",
+        "name": "Structure",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/standards/structure.md",
+        "description": "Context Structure",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "context-system",
+        "name": "Context System",
+        "type": "context",
+        "path": ".opencode/context/core/context-system.md",
+        "description": "Context System",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "plugin-capability-agents",
+        "name": "Plugin Capability Agents",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/capabilities/agents.md",
+        "description": "Custom Agents in OpenCode",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "events_skills",
+        "name": "Events_skills",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/capabilities/events_skills.md",
+        "description": "OpenCode Events: Skills Plugin Implementation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "events",
+        "name": "Events",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/capabilities/events.md",
+        "description": "OpenCode Plugin Events",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "tools",
+        "name": "Tools",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/capabilities/tools.md",
+        "description": "Building Custom Tools",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "lifecycle",
+        "name": "Lifecycle",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/architecture/lifecycle.md",
+        "description": "Plugin Lifecycle & Packaging",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "overview",
+        "name": "Overview",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/architecture/overview.md",
+        "description": "OpenCode Plugins Overview",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "context-overview",
+        "name": "Context Overview",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/context-overview.md",
+        "description": "OpenCode Plugin Context Library",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "best-practices",
+        "name": "Best Practices",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/context/reference/best-practices.md",
+        "description": "Best Practices & Limitations",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "subagent-invocation",
+        "name": "Subagent Invocation",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/subagent-invocation.md",
+        "description": "Guide: Subagent Invocation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "registry-dependencies",
+        "name": "Registry Dependencies",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/quality/registry-dependencies.md",
+        "description": "Maintain registry quality through dependency validation and consistency checks",
+        "tags": [
+          "registry",
+          "quality",
+          "validation",
+          "dependencies"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "templates",
+        "name": "Context File Templates",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/standards/templates.md",
+        "description": "Standard formats for all context file types",
+        "tags": [
+          "context-system",
+          "standards",
+          "templates"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "frontmatter",
+        "name": "Frontmatter Standard",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/standards/frontmatter.md",
+        "description": "HTML comment frontmatter format for all context files",
+        "tags": [
+          "context-system",
+          "standards",
+          "frontmatter",
+          "metadata"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "codebase-references",
+        "name": "Codebase References Standard",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/standards/codebase-references.md",
+        "description": "How to link context files to actual code implementation",
+        "tags": [
+          "context-system",
+          "standards",
+          "codebase",
+          "references",
+          "documentation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "scroll-animation-prompts",
+        "name": "Scroll Animation Prompts",
+        "type": "context",
+        "path": ".opencode/context/ui/web/design/lookup/scroll-animation-prompts.md",
+        "description": "Lookup: Scroll Animation Image Generation Prompts",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "building-scrollytelling-pages",
+        "name": "Building Scrollytelling Pages",
+        "type": "context",
+        "path": ".opencode/context/ui/web/design/guides/building-scrollytelling-pages.md",
+        "description": "Guide: Building Scrollytelling Pages",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "scrollytelling-headphone",
+        "name": "Scrollytelling Headphone",
+        "type": "context",
+        "path": ".opencode/context/ui/web/design/examples/scrollytelling-headphone.md",
+        "description": "Example: Scrollytelling Headphone Animation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "scroll-linked-animations",
+        "name": "Scroll Linked Animations",
+        "type": "context",
+        "path": ".opencode/context/ui/web/design/concepts/scroll-linked-animations.md",
+        "description": "Concept: Scroll-Linked Animations",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "written-content",
+        "name": "Written Content",
+        "type": "context",
+        "path": ".opencode/context/content-creation/formats/written-content.md",
+        "description": "Written Content Guidelines",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "video-content",
+        "name": "Video Content",
+        "type": "context",
+        "path": ".opencode/context/content-creation/formats/video-content.md",
+        "description": "Video Content Guidelines",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "image-content",
+        "name": "Image Content",
+        "type": "context",
+        "path": ".opencode/context/content-creation/formats/image-content.md",
+        "description": "Image Content Guidelines",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "audio-content",
+        "name": "Audio Content",
+        "type": "context",
+        "path": ".opencode/context/content-creation/formats/audio-content.md",
+        "description": "Audio Content Guidelines",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "audience-review",
+        "name": "Audience Review",
+        "type": "context",
+        "path": ".opencode/context/content-creation/workflows/audience-review.md",
+        "description": "Audience Review",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "content-matrix",
+        "name": "Content Matrix",
+        "type": "context",
+        "path": ".opencode/context/content-creation/workflows/content-matrix.md",
+        "description": "Content Matrix",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "content-ideas",
+        "name": "Content Ideas",
+        "type": "context",
+        "path": ".opencode/context/content-creation/workflows/content-ideas.md",
+        "description": "Content Ideas",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "remix-repurpose",
+        "name": "Remix Repurpose",
+        "type": "context",
+        "path": ".opencode/context/content-creation/workflows/remix-repurpose.md",
+        "description": "Content Remix and Repurposing",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "hooks",
+        "name": "Hooks",
+        "type": "context",
+        "path": ".opencode/context/content-creation/principles/hooks.md",
+        "description": "Writing Compelling Hooks",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "audience-targeting",
+        "name": "Audience Targeting",
+        "type": "context",
+        "path": ".opencode/context/content-creation/principles/audience-targeting.md",
+        "description": "Audience Targeting",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "feature-breakdown",
+        "name": "Feature Breakdown",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/feature-breakdown.md",
+        "aliases": [
+          "workflows-task-breakdown"
+        ],
+        "description": "Task Breakdown Guidelines",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "session-management",
+        "name": "Session Management",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/session-management.md",
+        "aliases": [
+          "workflows-sessions"
+        ],
+        "description": "Session Management",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "component-planning",
+        "name": "Component Planning",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/component-planning.md",
+        "aliases": [
+          "workflows-component-planning"
+        ],
+        "description": "Iterative component-based planning for complex features",
+        "tags": [
+          "workflows",
+          "planning",
+          "architecture",
+          "components"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "changelog",
+        "name": "Changelog",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/CHANGELOG.md",
+        "description": "Context System Changelog",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "organizing-context",
+        "name": "Organizing Context",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/guides/organizing-context.md",
+        "description": "Guide: Organizing Context by Concern",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "navigation-examples",
+        "name": "Navigation Examples",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/examples/navigation-examples.md",
+        "description": "Examples: Navigation Files",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "code-quality",
+        "name": "Code Quality",
+        "type": "context",
+        "path": ".opencode/context/core/standards/code-quality.md",
+        "description": "Code Standards",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "test-coverage",
+        "name": "Test Coverage",
+        "type": "context",
+        "path": ".opencode/context/core/standards/test-coverage.md",
+        "description": "Testing Standards",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "typescript",
+        "name": "TypeScript",
+        "type": "context",
+        "path": ".opencode/context/core/standards/typescript.md",
+        "description": "Universal TypeScript language and engineering standards",
+        "tags": [
+          "typescript",
+          "standards"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "csharp",
+        "name": "C#",
+        "type": "context",
+        "path": ".opencode/context/core/standards/csharp.md",
+        "description": "Universal C# standards",
+        "tags": [
+          "csharp",
+          "standards"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "csharp-project-structure",
+        "name": "C# Project Structure",
+        "type": "context",
+        "path": ".opencode/context/core/standards/csharp-project-structure.md",
+        "description": "ASP.NET Core project structure and implementation patterns",
+        "tags": [
+          "csharp",
+          "standards",
+          "project-structure"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "documentation",
+        "name": "Documentation",
+        "type": "context",
+        "path": ".opencode/context/core/standards/documentation.md",
+        "description": "Documentation Standards",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "fullstack-navigation",
+        "name": "Fullstack Navigation",
+        "type": "context",
+        "path": ".opencode/context/development/fullstack-navigation.md",
+        "description": "Full-Stack Development Navigation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "ui-navigation",
+        "name": "Ui Navigation",
+        "type": "context",
+        "path": ".opencode/context/development/ui-navigation.md",
+        "description": "UI Development Navigation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "backend-navigation",
+        "name": "Backend Navigation",
+        "type": "context",
+        "path": ".opencode/context/development/backend-navigation.md",
+        "description": "Backend Development Navigation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "subagent-framework-maps",
+        "name": "Subagent Framework Maps",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/lookup/subagent-framework-maps.md",
+        "description": "Lookup: Subagent Framework Maps",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "subagent-test-commands",
+        "name": "Subagent Test Commands",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/lookup/subagent-test-commands.md",
+        "description": "Subagent Testing Commands - Quick Reference",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "testing-subagents",
+        "name": "Testing Subagents",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/testing-subagents.md",
+        "description": "Testing Subagents - Step-by-Step Guide",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "subagent-prompt-structure",
+        "name": "Subagent Prompt Structure",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/examples/subagent-prompt-structure.md",
+        "description": "Subagent Prompt Structure (Optimized)",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "subagent-testing-modes",
+        "name": "Subagent Testing Modes",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/concepts/subagent-testing-modes.md",
+        "description": "Subagent Testing Modes",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "tool-permission-errors",
+        "name": "Tool Permission Errors",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/errors/tool-permission-errors.md",
+        "description": "Tool Permission Errors",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "testing-subagents-approval",
+        "name": "Testing Subagents Approval",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/testing-subagents-approval.md",
+        "description": "Guide for testing subagents and handling approval gates",
+        "tags": [
+          "testing",
+          "subagents",
+          "approval-gates"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "task-commands",
+        "name": "Task Commands",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/lookup/task-commands.md",
+        "description": "Lookup: Task CLI Commands",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "splitting-tasks",
+        "name": "Splitting Tasks",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/guides/splitting-tasks.md",
+        "description": "Guide: Splitting Features into Tasks",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "managing-tasks",
+        "name": "Managing Tasks",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/guides/managing-tasks.md",
+        "description": "Guide: Managing Task Lifecycle",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "task-schema",
+        "name": "Task Schema",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/standards/task-schema.md",
+        "description": "Standard: Task JSON Schema",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "mastra-config",
+        "name": "Mastra Config",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/lookup/mastra-config.md",
+        "description": "Lookup: Mastra Configuration",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "modular-building",
+        "name": "Modular Building",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/guides/modular-building.md",
+        "description": "Guide: Modular Mastra Building",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "testing",
+        "name": "Testing",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/guides/testing.md",
+        "description": "Guide: Testing Mastra",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflow-step-structure",
+        "name": "Workflow Step Structure",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/guides/workflow-step-structure.md",
+        "description": "Guide: Workflow Step Structure",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflow-example",
+        "name": "Workflow Example",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/examples/workflow-example.md",
+        "description": "Example: Document Ingestion Workflow",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "storage",
+        "name": "Storage",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/storage.md",
+        "description": "Concept: Mastra Data Storage",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "mastra-workflows",
+        "name": "Mastra Workflows",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/workflows.md",
+        "description": "Concept: Mastra Workflows",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "agents-tools",
+        "name": "Agents Tools",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/agents-tools.md",
+        "description": "Concept: Mastra Agents & Tools",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "core",
+        "name": "Core",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/core.md",
+        "description": "Concept: Mastra Core",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "evaluations",
+        "name": "Evaluations",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/evaluations.md",
+        "description": "Concept: Mastra Evaluations",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "mastra-errors",
+        "name": "Mastra Errors",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/errors/mastra-errors.md",
+        "description": "Errors: Mastra Implementation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "building-cli-compact",
+        "name": "Building Cli Compact",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/building-cli-compact.md",
+        "description": "Building CLIs in OpenAgents Control: Compact Guide",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "resolving-installer-wildcard-failures",
+        "name": "Resolving Installer Wildcard Failures",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/resolving-installer-wildcard-failures.md",
+        "description": "Guide: Resolving Installer Wildcard Failures",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence",
+        "name": "Project Intelligence",
+        "type": "context",
+        "path": ".opencode/context/core/standards/project-intelligence.md",
+        "description": "What and why of project intelligence - bridging business and technical domains",
+        "tags": [
+          "project-intelligence",
+          "onboarding",
+          "business",
+          "technical"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-management",
+        "name": "Project Intelligence Management",
+        "type": "context",
+        "path": ".opencode/context/core/standards/project-intelligence-management.md",
+        "description": "How to manage project intelligence files - add, update, remove, version",
+        "tags": [
+          "project-intelligence",
+          "management",
+          "lifecycle"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-nav",
+        "name": "Project Intelligence Navigation",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/navigation.md",
+        "description": "Quick overview and routes for project intelligence files",
+        "tags": [
+          "project-intelligence",
+          "navigation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-business",
+        "name": "Business Domain",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/business-domain.md",
+        "description": "Business context, problems solved, target users, and value proposition",
+        "tags": [
+          "project-intelligence",
+          "business",
+          "domain"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-technical",
+        "name": "Technical Domain",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/technical-domain.md",
+        "description": "Technical foundation, stack, architecture, and key decisions",
+        "tags": [
+          "project-intelligence",
+          "technical",
+          "architecture"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-bridge",
+        "name": "Business Tech Bridge",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/business-tech-bridge.md",
+        "description": "How business needs map to technical solutions",
+        "tags": [
+          "project-intelligence",
+          "business",
+          "technical",
+          "mapping"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-decisions",
+        "name": "Decisions Log",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/decisions-log.md",
+        "description": "Major architectural and business decisions with full context",
+        "tags": [
+          "project-intelligence",
+          "decisions",
+          "context"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-notes",
+        "name": "Living Notes",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/living-notes.md",
+        "description": "Active issues, technical debt, open questions, and insights",
+        "tags": [
+          "project-intelligence",
+          "issues",
+          "debt",
+          "notes"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "delegation-ref",
+        "name": "Delegation Workflow Reference",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/delegation.md",
+        "description": "Quick reference to delegation workflow (see task-delegation-basics.md and related split files)",
+        "tags": [
+          "workflows",
+          "delegation",
+          "reference"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "review-ref",
+        "name": "Review Workflow Reference",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/review.md",
+        "description": "Quick reference to code review workflow (see code-review.md for full content)",
+        "tags": [
+          "workflows",
+          "review",
+          "reference"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-external-context-management",
+        "name": "External Context Management",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/external-context-management.md",
+        "description": "Complete guide to managing external context: persistence, organization, cleanup, and best practices",
+        "tags": [
+          "external-context",
+          "management",
+          "workflows",
+          "cleanup"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-external-context-integration",
+        "name": "External Context Integration",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/external-context-integration.md",
+        "description": "Integration guide for external context: how main agents fetch and pass to subagents",
+        "tags": [
+          "external-context",
+          "integration",
+          "workflows",
+          "delegation"
+        ],
+        "dependencies": [
+          "context:task-delegation-basics",
+          "context:workflows-external-context-management"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "visual-development",
+        "name": "Visual Development",
+        "type": "context",
+        "path": ".opencode/context/core/visual-development.md",
+        "description": "Visual development patterns and guidelines",
+        "tags": [
+          "visual",
+          "development",
+          "patterns"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "learning-readme",
+        "name": "Learning README",
+        "type": "context",
+        "path": ".opencode/context/learning/README.md",
+        "description": "Learning resources and guides",
+        "tags": [
+          "learning",
+          "guide"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "product-readme",
+        "name": "Product README",
+        "type": "context",
+        "path": ".opencode/context/product/README.md",
+        "description": "Product context overview and guide",
+        "tags": [
+          "product",
+          "guide"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "data-readme",
+        "name": "Data README",
+        "type": "context",
+        "path": ".opencode/context/data/README.md",
+        "description": "Data context overview and guide",
+        "tags": [
+          "data",
+          "guide"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "context-authoring-bundle-template",
+        "name": "Context Authoring Bundle Template",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/templates/context-bundle-template.md",
+        "description": "Template for creating context bundles",
+        "tags": [
+          "template",
+          "context",
+          "bundle"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "external-libraries-workflow",
+        "name": "External Libraries Workflow",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/external-libraries-workflow.md",
+        "description": "Guide for fetching current documentation for external packages when adding agents or skills",
+        "tags": [
+          "external-libraries",
+          "workflow",
+          "agents",
+          "skills",
+          "dependencies"
+        ],
+        "dependencies": [
+          "context:external-libraries-workflow",
+          "context:authoring-agents",
+          "context:adding-skill-basics"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "core-navigation",
+        "name": "Navigation: CORE",
+        "type": "context",
+        "path": ".opencode/context/core/navigation.md",
+        "description": "Navigation guide for core",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "core-standards-navigation",
+        "name": "Navigation: CORE STANDARDS",
+        "type": "context",
+        "path": ".opencode/context/core/standards/navigation.md",
+        "description": "Navigation guide for core standards",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "core-workflows-navigation",
+        "name": "Navigation: CORE WORKFLOWS",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/navigation.md",
+        "description": "Navigation guide for core workflows",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "core-context-system-navigation",
+        "name": "Navigation: CORE CONTEXT SYSTEM",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/navigation.md",
+        "description": "Navigation guide for core context system",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "core-system-navigation",
+        "name": "Navigation: CORE SYSTEM",
+        "type": "context",
+        "path": ".opencode/context/core/system/navigation.md",
+        "description": "Navigation guide for core system",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "core-task-management-navigation",
+        "name": "Navigation: CORE TASK MANAGEMENT",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/navigation.md",
+        "description": "Navigation guide for core task management",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "core-config-navigation",
+        "name": "Navigation: CORE CONFIG",
+        "type": "context",
+        "path": ".opencode/context/core/config/navigation.md",
+        "description": "Navigation guide for core config",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "development-navigation",
+        "name": "Navigation: DEVELOPMENT",
+        "type": "context",
+        "path": ".opencode/context/development/navigation.md",
+        "description": "Navigation guide for development",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "development-ai-navigation",
+        "name": "Navigation: DEVELOPMENT AI",
+        "type": "context",
+        "path": ".opencode/context/development/ai/navigation.md",
+        "description": "Navigation guide for development ai",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "development-backend-navigation",
+        "name": "Navigation: DEVELOPMENT BACKEND",
+        "type": "context",
+        "path": ".opencode/context/development/backend/navigation.md",
+        "description": "Navigation guide for development backend",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "development-data-navigation",
+        "name": "Navigation: DEVELOPMENT DATA",
+        "type": "context",
+        "path": ".opencode/context/development/data/navigation.md",
+        "description": "Navigation guide for development data",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "development-frameworks-navigation",
+        "name": "Navigation: DEVELOPMENT FRAMEWORKS",
+        "type": "context",
+        "path": ".opencode/context/development/frameworks/navigation.md",
+        "description": "Navigation guide for development frameworks",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "development-frontend-navigation",
+        "name": "Navigation: DEVELOPMENT FRONTEND",
+        "type": "context",
+        "path": ".opencode/context/development/frontend/navigation.md",
+        "description": "Navigation guide for development frontend",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "development-principles-navigation",
+        "name": "Navigation: DEVELOPMENT PRINCIPLES",
+        "type": "context",
+        "path": ".opencode/context/development/principles/navigation.md",
+        "description": "Navigation guide for development principles",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "development-integration-navigation",
+        "name": "Navigation: DEVELOPMENT INTEGRATION",
+        "type": "context",
+        "path": ".opencode/context/development/integration/navigation.md",
+        "description": "Navigation guide for development integration",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "development-infrastructure-navigation",
+        "name": "Navigation: DEVELOPMENT INFRASTRUCTURE",
+        "type": "context",
+        "path": ".opencode/context/development/infrastructure/navigation.md",
+        "description": "Navigation guide for development infrastructure",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "ui-root-navigation",
+        "name": "Navigation: UI",
+        "type": "context",
+        "path": ".opencode/context/ui/navigation.md",
+        "description": "Navigation guide for ui",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "ui-web-navigation",
+        "name": "Navigation: UI WEB",
+        "type": "context",
+        "path": ".opencode/context/ui/web/navigation.md",
+        "description": "Navigation guide for ui web",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "ui-terminal-navigation",
+        "name": "Navigation: UI TERMINAL",
+        "type": "context",
+        "path": ".opencode/context/ui/terminal/navigation.md",
+        "description": "Navigation guide for ui terminal",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "ui-web-design-navigation",
+        "name": "Navigation: UI WEB DESIGN",
+        "type": "context",
+        "path": ".opencode/context/ui/web/design/navigation.md",
+        "description": "Navigation guide for ui web design",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-navigation",
+        "name": "Navigation: OPENAGENTS REPO",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/navigation.md",
+        "description": "Navigation guide for openagents repo",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-core-concepts-navigation",
+        "name": "Navigation: OPENAGENTS REPO CORE CONCEPTS",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/core-concepts/navigation.md",
+        "description": "Navigation guide for openagents repo core concepts",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-guides-navigation",
+        "name": "Navigation: OPENAGENTS REPO GUIDES",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/navigation.md",
+        "description": "Navigation guide for openagents repo guides",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-examples-navigation",
+        "name": "Navigation: OPENAGENTS REPO EXAMPLES",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/examples/navigation.md",
+        "description": "Navigation guide for openagents repo examples",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-lookup-navigation",
+        "name": "Navigation: OPENAGENTS REPO LOOKUP",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/lookup/navigation.md",
+        "description": "Navigation guide for openagents repo lookup",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-concepts-navigation",
+        "name": "Navigation: OPENAGENTS REPO CONCEPTS",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/concepts/navigation.md",
+        "description": "Navigation guide for openagents repo concepts",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-errors-navigation",
+        "name": "Navigation: OPENAGENTS REPO ERRORS",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/errors/navigation.md",
+        "description": "Navigation guide for openagents repo errors",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-plugins-navigation",
+        "name": "Navigation: OPENAGENTS REPO PLUGINS",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/plugins/navigation.md",
+        "description": "Navigation guide for openagents repo plugins",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-quality-navigation",
+        "name": "Navigation: OPENAGENTS REPO QUALITY",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/quality/navigation.md",
+        "description": "Navigation guide for openagents repo quality",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "openagents-repo-templates-navigation",
+        "name": "Navigation: OPENAGENTS REPO TEMPLATES",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/templates/navigation.md",
+        "description": "Navigation guide for openagents repo templates",
+        "tags": [
+          "navigation",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "navigation"
+      },
+      {
+        "id": "context-paths",
+        "name": "Context Paths",
+        "type": "context",
+        "path": ".opencode/context/core/system/context-paths.md",
+        "description": "Additional Context File Paths",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "when-to-delegate",
+        "name": "When To Delegate",
+        "type": "context",
+        "path": ".opencode/context/development/frontend/when-to-delegate.md",
+        "description": "When to Delegate to Frontend Specialist",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "npm-publishing",
+        "name": "Npm Publishing",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/npm-publishing.md",
+        "description": "NPM Publishing Guide",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "github-issues-workflow",
+        "name": "Github Issues Workflow",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/github-issues-workflow.md",
+        "description": "Guide: GitHub Issues and Project Board Workflow",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "agent-metadata",
+        "name": "Agent Metadata",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/core-concepts/agent-metadata.md",
+        "description": "...\\\"               # \u2705 Valid OpenCode field",
+        "tags": [
+          "development",
+          "coding"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "task-delegation-basics",
+        "name": "Task Delegation Basics",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/task-delegation-basics.md",
+        "description": "Task delegation fundamentals and basic usage patterns",
+        "tags": [
+          "workflows",
+          "delegation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "task-delegation-specialists",
+        "name": "Task Delegation Specialists",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/task-delegation-specialists.md",
+        "description": "Specialist subagents for task delegation workflows",
+        "tags": [
+          "workflows",
+          "delegation",
+          "subagents"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "task-delegation-caching",
+        "name": "Task Delegation Caching",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/task-delegation-caching.md",
+        "description": "Caching strategies for task delegation workflows",
+        "tags": [
+          "workflows",
+          "delegation",
+          "caching"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration-overview",
+        "name": "Design Iteration Overview",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration-overview.md",
+        "description": "Overview of the design iteration workflow process",
+        "tags": [
+          "workflows",
+          "design",
+          "iteration"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration-plan-file",
+        "name": "Design Iteration Plan File",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration-plan-file.md",
+        "description": "Structure and format for design iteration plan files",
+        "tags": [
+          "workflows",
+          "design",
+          "planning"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration-plan-iterations",
+        "name": "Design Iteration Plan Iterations",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration-plan-iterations.md",
+        "description": "Planning iterations in the design workflow",
+        "tags": [
+          "workflows",
+          "design",
+          "planning"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration-stage-layout",
+        "name": "Design Iteration Stage - Layout",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration-stage-layout.md",
+        "description": "Layout stage guidelines for design iteration",
+        "tags": [
+          "workflows",
+          "design",
+          "layout"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration-stage-theme",
+        "name": "Design Iteration Stage - Theme",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration-stage-theme.md",
+        "description": "Theme stage guidelines for design iteration",
+        "tags": [
+          "workflows",
+          "design",
+          "theme"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration-stage-implementation",
+        "name": "Design Iteration Stage - Implementation",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration-stage-implementation.md",
+        "description": "Implementation stage guidelines for design iteration",
+        "tags": [
+          "workflows",
+          "design",
+          "implementation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration-stage-animation",
+        "name": "Design Iteration Stage - Animation",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration-stage-animation.md",
+        "description": "Animation stage guidelines for design iteration",
+        "tags": [
+          "workflows",
+          "design",
+          "animation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration-visual-content",
+        "name": "Design Iteration Visual Content",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration-visual-content.md",
+        "description": "Visual content guidelines for design iteration",
+        "tags": [
+          "workflows",
+          "design",
+          "visual"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration-best-practices",
+        "name": "Design Iteration Best Practices",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration-best-practices.md",
+        "description": "Best practices for design iteration workflows",
+        "tags": [
+          "workflows",
+          "design",
+          "best-practices"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "external-libraries-scenarios",
+        "name": "External Libraries Scenarios",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/external-libraries-scenarios.md",
+        "description": "Common scenarios for external library integration",
+        "tags": [
+          "workflows",
+          "external",
+          "libraries",
+          "scenarios"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "external-libraries-faq",
+        "name": "External Libraries FAQ",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/external-libraries-faq.md",
+        "description": "Frequently asked questions about external libraries",
+        "tags": [
+          "workflows",
+          "external",
+          "libraries",
+          "faq"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "authoring-agents",
+        "name": "Authoring Agents",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/authoring-agents.md",
+        "description": "Author flow, oac block fields, overrides and common build errors",
+        "tags": [
+          "guides",
+          "agents",
+          "authoring"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "compiler-development",
+        "name": "Compiler Development",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/compiler-development.md",
+        "description": "Changing the compiler or CLI, adding a host, tests and make check-core",
+        "tags": [
+          "guides",
+          "compiler",
+          "build"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "adding-agent-testing",
+        "name": "Adding Agent - Testing",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/adding-agent-testing.md",
+        "description": "Testing guide for new agents",
+        "tags": [
+          "guides",
+          "agents",
+          "testing"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "adding-skill-basics",
+        "name": "Adding Skill - Basics",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/adding-skill-basics.md",
+        "description": "Basic guide for adding new skills",
+        "tags": [
+          "guides",
+          "skills",
+          "basics"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "adding-skill-implementation",
+        "name": "Adding Skill - Implementation",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/adding-skill-implementation.md",
+        "description": "Implementation guide for new skills",
+        "tags": [
+          "guides",
+          "skills",
+          "implementation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "adding-skill-example",
+        "name": "Adding Skill - Example",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/adding-skill-example.md",
+        "description": "Example of adding a new skill",
+        "tags": [
+          "guides",
+          "skills",
+          "examples"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "navigation-design-basics",
+        "name": "Navigation Design Basics",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/guides/navigation-design-basics.md",
+        "description": "Basics of designing navigation files",
+        "tags": [
+          "context-system",
+          "navigation",
+          "design"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "navigation-templates",
+        "name": "Navigation Templates",
+        "type": "context",
+        "path": ".opencode/context/core/context-system/guides/navigation-templates.md",
+        "description": "Templates for navigation files",
+        "tags": [
+          "context-system",
+          "navigation",
+          "templates"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "animation-basics",
+        "name": "Animation Basics",
+        "type": "context",
+        "path": ".opencode/context/ui/web/animation-basics.md",
+        "description": "Basic animation patterns and guidelines",
+        "tags": [
+          "ui",
+          "web",
+          "animation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "animation-advanced",
+        "name": "Animation Advanced",
+        "type": "context",
+        "path": ".opencode/context/ui/web/animation-advanced.md",
+        "description": "Advanced animation patterns and techniques",
+        "tags": [
+          "ui",
+          "web",
+          "animation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "animation-components",
+        "name": "Animation Components",
+        "type": "context",
+        "path": ".opencode/context/ui/web/animation-components.md",
+        "description": "Component-specific animation patterns",
+        "tags": [
+          "ui",
+          "web",
+          "animation",
+          "components"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "animation-forms",
+        "name": "Animation Forms",
+        "type": "context",
+        "path": ".opencode/context/ui/web/animation-forms.md",
+        "description": "Animation patterns for forms",
+        "tags": [
+          "ui",
+          "web",
+          "animation",
+          "forms"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "animation-chat",
+        "name": "Animation Chat",
+        "type": "context",
+        "path": ".opencode/context/ui/web/animation-chat.md",
+        "description": "Animation patterns for chat interfaces",
+        "tags": [
+          "ui",
+          "web",
+          "animation",
+          "chat"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "animation-loading",
+        "name": "Animation Loading",
+        "type": "context",
+        "path": ".opencode/context/ui/web/animation-loading.md",
+        "description": "Loading animation patterns",
+        "tags": [
+          "ui",
+          "web",
+          "animation",
+          "loading"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "context-paths-config",
+        "name": "Context Paths Configuration",
+        "type": "context",
+        "path": ".opencode/context/core/config/paths.json",
+        "description": "CRITICAL: Context root path configuration - loaded via @ reference by agents",
+        "tags": [
+          "config",
+          "paths",
+          "critical",
+          "context-system"
+        ],
+        "dependencies": [],
+        "category": "essential"
+      },
+      {
+        "id": "root-navigation",
+        "name": "Root Navigation",
+        "type": "context",
+        "path": ".opencode/context/navigation.md",
+        "description": "CRITICAL: Root navigation file for context discovery - ContextScout starts here",
+        "tags": [
+          "navigation",
+          "root",
+          "critical",
+          "context-system"
+        ],
+        "dependencies": [],
+        "category": "essential"
+      },
+      {
+        "id": "oac-cli-install",
+        "name": "OAC CLI Install Guide",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/oac-cli-install.md",
+        "description": "How users install and manage OAC with the oac CLI: init, profiles, add, update, doctor, and the maintainer build loop",
+        "tags": [
+          "cli",
+          "install",
+          "profiles"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      }
+    ],
+    "config": [
+      {
+        "id": "env-example",
+        "name": "Environment Template",
+        "type": "config",
+        "path": "env.example",
+        "description": "Example environment configuration file",
+        "tags": [
+          "config",
+          "environment",
+          "template"
+        ],
+        "dependencies": [],
+        "category": "essential"
+      },
+      {
+        "id": "readme",
+        "name": "README",
+        "type": "config",
+        "path": "README.md",
+        "description": "Project documentation and setup guide",
+        "tags": [
+          "documentation",
+          "readme",
+          "guide"
+        ],
+        "dependencies": [],
+        "category": "essential"
+      }
+    ]
+  },
+  "profiles": {
+    "advanced": {
+      "name": "Advanced (Meta-Level)",
+      "description": "Full installation plus System Builder for creating custom AI architectures. Includes comprehensive context system, system builder templates, and repository management tools. For power users and contributors.",
+      "components": [
+        "agent:copywriter",
+        "agent:data-analyst",
+        "agent:eval-runner",
+        "agent:openagent",
+        "agent:opencoder",
+        "agent:repo-manager",
+        "agent:system-builder",
+        "agent:technical-writer",
+        "command:add-context",
+        "command:analyze-patterns",
+        "command:build-context-system",
+        "command:clean",
+        "command:commit",
+        "command:context",
+        "command:optimize",
+        "command:prompt-enhancer",
+        "command:test",
+        "command:validate-repo",
+        "command:worktrees",
+        "config:env-example",
+        "context:adding-skill-basics",
+        "context:animation-advanced",
+        "context:animation-basics",
+        "context:animation-components",
+        "context:api-design",
+        "context:clean-code",
+        "context:codebase-references",
+        "context:context-system",
+        "context:core/*",
+        "context:core/context-system/*",
+        "context:design-systems",
+        "context:development/*",
+        "context:essential-patterns",
+        "context:frontmatter",
+        "context:orchestrator-template",
+        "context:project-context",
+        "context:project-intelligence/*",
+        "context:quick-start",
+        "context:react-patterns",
+        "context:registry-dependencies",
+        "context:subagent-template",
+        "context:system-builder-guide",
+        "context:templates",
+        "context:ui-styling-standards",
+        "context:ui/*",
+        "plugin:notify",
+        "skill:task-management",
+        "subagent:agent-generator",
+        "subagent:build-agent",
+        "subagent:code-reviewer",
+        "subagent:coder-agent",
+        "subagent:command-creator",
+        "subagent:context-organizer",
+        "subagent:context-retriever",
+        "subagent:context-scout",
+        "subagent:devops-specialist",
+        "subagent:doc-writer",
+        "subagent:domain-analyzer",
+        "subagent:frontend-specialist",
+        "subagent:image-specialist",
+        "subagent:task-manager",
+        "subagent:test-engineer",
+        "subagent:workflow-designer",
+        "tool:env",
+        "tool:gemini"
+      ],
+      "additionalPaths": [
+        ".github/workflows/"
+      ]
+    },
+    "business": {
+      "name": "Business",
+      "description": "Business process automation, content creation, and visual workflows. Includes image generation, notifications, and documentation tools.",
+      "components": [
+        "agent:copywriter",
+        "agent:data-analyst",
+        "agent:openagent",
+        "agent:technical-writer",
+        "command:add-context",
+        "command:clean",
+        "command:context",
+        "command:prompt-enhancer",
+        "config:env-example",
+        "context:adding-skill-basics",
+        "context:core/*",
+        "context:essential-patterns",
+        "context:project-context",
+        "context:project-intelligence/*",
+        "context:quick-start",
+        "plugin:notify",
+        "skill:task-management",
+        "subagent:context-scout",
+        "subagent:doc-writer",
+        "subagent:image-specialist",
+        "subagent:task-manager",
+        "tool:env",
+        "tool:gemini"
+      ]
+    },
+    "developer": {
+      "name": "Developer",
+      "description": "Complete software development environment with code generation, testing, review, and build tools. Includes UI/UX patterns, development principles, and design systems. Use OpenAgent for general tasks (1-4 files) or OpenCoder for complex architecture (4+ files). Recommended for most developers.",
+      "badge": "RECOMMENDED",
+      "components": [
+        "agent:openagent",
+        "agent:opencoder",
+        "command:add-context",
+        "command:analyze-patterns",
+        "command:clean",
+        "command:commit",
+        "command:context",
+        "command:optimize",
+        "command:test",
+        "command:validate-repo",
+        "config:env-example",
+        "context:adding-skill-basics",
+        "context:animation-advanced",
+        "context:animation-basics",
+        "context:animation-components",
+        "context:api-design",
+        "context:clean-code",
+        "context:core/*",
+        "context:design-systems",
+        "context:development/*",
+        "context:essential-patterns",
+        "context:project-context",
+        "context:project-intelligence/*",
+        "context:quick-start",
+        "context:react-patterns",
+        "context:ui-styling-standards",
+        "context:ui/*",
+        "skill:task-management",
+        "subagent:build-agent",
+        "subagent:code-reviewer",
+        "subagent:coder-agent",
+        "subagent:context-scout",
+        "subagent:devops-specialist",
+        "subagent:doc-writer",
+        "subagent:frontend-specialist",
+        "subagent:task-manager",
+        "subagent:test-engineer",
+        "tool:env"
+      ]
+    },
+    "essential": {
+      "name": "Essential (Minimal)",
+      "description": "Minimal starter kit - universal agent with core subagents. Great for learning the system or lightweight tasks. Upgrade to Developer or Business for full features.",
+      "components": [
+        "agent:openagent",
+        "command:add-context",
+        "command:clean",
+        "command:context",
+        "config:env-example",
+        "context:adding-skill-basics",
+        "context:essential-patterns",
+        "context:feature-breakdown",
+        "context:project-context",
+        "context:quick-start",
+        "context:session-management",
+        "context:standards-analysis",
+        "context:standards-code",
+        "context:standards-docs",
+        "context:standards-patterns",
+        "context:standards-tests",
+        "context:system-context-guide",
+        "context:task-delegation-basics",
+        "context:workflows-review",
+        "skill:task-management",
+        "subagent:context-scout",
+        "subagent:doc-writer",
+        "subagent:task-manager",
+        "tool:env"
+      ]
+    },
+    "full": {
+      "name": "Full",
+      "description": "Everything included - all agents, subagents, tools, and plugins for maximum functionality. Includes UI/UX patterns, development principles, and design systems.",
+      "components": [
+        "agent:copywriter",
+        "agent:data-analyst",
+        "agent:eval-runner",
+        "agent:openagent",
+        "agent:opencoder",
+        "agent:technical-writer",
+        "command:add-context",
+        "command:analyze-patterns",
+        "command:clean",
+        "command:commit",
+        "command:context",
+        "command:optimize",
+        "command:prompt-enhancer",
+        "command:test",
+        "command:validate-repo",
+        "command:worktrees",
+        "config:env-example",
+        "context:adding-skill-basics",
+        "context:animation-advanced",
+        "context:animation-basics",
+        "context:animation-components",
+        "context:api-design",
+        "context:clean-code",
+        "context:core/*",
+        "context:design-systems",
+        "context:development/*",
+        "context:essential-patterns",
+        "context:project-context",
+        "context:project-intelligence/*",
+        "context:quick-start",
+        "context:react-patterns",
+        "context:ui-styling-standards",
+        "context:ui/*",
+        "plugin:notify",
+        "skill:task-management",
+        "subagent:build-agent",
+        "subagent:code-reviewer",
+        "subagent:coder-agent",
+        "subagent:context-scout",
+        "subagent:devops-specialist",
+        "subagent:doc-writer",
+        "subagent:frontend-specialist",
+        "subagent:image-specialist",
+        "subagent:task-manager",
+        "subagent:test-engineer",
+        "tool:env",
+        "tool:gemini"
+      ]
+    }
+  },
+  "metadata": {
+    "lastUpdated": "2026-03-21",
+    "schemaVersion": "1.0.0"
+  },
+  "subagents": {
+    "test": {
+      "simple-responder": {
+        "id": "simple-responder",
+        "name": "Simple Responder",
+        "description": "Test agent that responds with AWESOME TESTING",
+        "category": "test",
+        "type": "utility",
+        "version": "1.0.0",
+        "path": ".opencode/agent/simple-responder.md",
+        "mode": "subagent",
+        "status": "stable"
+      }
+    }
+  },
+  "retired": [
+    {
+      "path": ".opencode/command/openagents/new-agents/README.md",
+      "sha256": [
+        "30c08ef52def2fc92cd79ba6626db15921fcccbcc6132ad0cdac346262bae082",
+        "6004a9dcdaa62b9a6b1ceeec5d2d7be273d250dc96519ec6f892132e69d7061c",
+        "63d2b9a64c22542c6efc95211f10d11f14ebd43fd13baf26f2201afd65b445b9",
+        "7d26b22e1ffa32d64868fd0f9b8b02faedecccd63bd403636a0f1b2ef8461773",
+        "9302246796085e0d0a12da80cb14194ed688eac797d4b3e59b50fb1b038c39c6",
+        "ffb5a377328635daba37a595911ee2fad45def47b7bad28145fb43e8da7c7474"
+      ],
+      "replacedBy": "docs/guides/new-agents/README.md"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/agent-template.md",
+      "sha256": [
+        "00b8199fd85674b69dabaa92649106f16977ef495f5fd4b1b290f2fb38e9dfa6"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/agent-template.md"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/context-template.md",
+      "sha256": [
+        "b086ca0b96d8044a3abbf21f640d183821f3ca9bdb0da238a0ed960eb82b06fe"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/context-template.md"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-1-planning-approval.yaml",
+      "sha256": [
+        "833c781d1f0707f9b79213458ce1eda52d72593851fdaef2b64bd1c1ee43d7d8"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-1-planning-approval.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-2-context-loading.yaml",
+      "sha256": [
+        "80a3a1034823a0cc517e0cec86bedbbd63eb9acbd430fedd74095ff3775c15f6"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-2-context-loading.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-3-incremental.yaml",
+      "sha256": [
+        "e1e9f9e7ec43e17928288ecc19c0c8d49dc173fb09950e7685be86bde760b975"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-3-incremental.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-4-tool-usage.yaml",
+      "sha256": [
+        "ae1cc81056f48c4a98f5ac3456d9fe9c087d9cec772e08c36590bbb606df5f82"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-4-tool-usage.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-5-error-handling.yaml",
+      "sha256": [
+        "431170e3d382df43c2e2ae4c3c00020470af0f928b8de6d98b75bc7079bfdd82"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-5-error-handling.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-6-extended-thinking.yaml",
+      "sha256": [
+        "2cc5e208e3b2af2af4b975e96c5d1eee309de028034199ccafe6abcb7dc0a4c5"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-6-extended-thinking.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-7-compaction.yaml",
+      "sha256": [
+        "1da4d48d01838e2b0561495faf0b13fe4e4b4809c02842ef0e290a20ef1ea104"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-7-compaction.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-8-completion.yaml",
+      "sha256": [
+        "4d7b3e017d12c522bf22583c6c23da8a9d4051213f707dea7e6fd011ee188e4a"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-8-completion.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-config-template.yaml",
+      "sha256": [
+        "6fcb0ece340f31f6a7e56b1b48773e85b9a3ff24945f3286a7aa4368db02f47c"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-config-template.yaml"
+    },
+    {
+      "path": ".opencode/context/openagents-repo/blueprints/context-bundle-template.md",
+      "sha256": [
+        "3d7993593b5886950cfb5ce15075faf758da5eff13a9c15f88805932e63e528e",
+        "6186fdecdff7ab6486ed6a4ef6e2b4a5849878ca66dcc5661ba911acbc0c5d91",
+        "a7d498863486fbf575f74a29077326a6215f04eb0e82221d2eec234d7a02a5ef",
+        "b3673b9046de42922933be1977b400477949a26ef73d35e5ee87eaa7807bfb65",
+        "ec56fbadbf452c66f0a2731ee01073eea288b64776a5af511cd49dc09d23b93b"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/blueprints/navigation.md",
+      "sha256": [
+        "95949cbee1739810f975b65ccaf456fa553ab86ca35f16a86c04e32632f0c1e2",
+        "f2cc8fae0c91f68802fae3f5fd67833c18076989afa2e077ea9d8750aa5b22e1"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/concepts/compatibility-layer.md",
+      "sha256": [
+        "148cc4ba79316f3b1160b22d013f7446a39e3bf81654398541449281ab5b02af",
+        "358f946208d35ce998de3cb82f594633c543c3ab7f90f595686aed6d2d16ef64",
+        "5c8344245bece743302a9df5bc98ea8f90167fa492fbb541bd44661da2c9d586",
+        "61a1af218103d7acf2e9d703e72d5e911fcb9b9a871b94364ee6d49fb84d36d6",
+        "fae2f5590e7cc067b7e7a1247e46366a2723dd5b2ccfddecd14313be34c98cc2"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/core-concepts/agents.md",
+      "sha256": [
+        "1e32a39f0309e2a52c15cb9da166dcf2633bc1e34a6563937f863397e9106ace",
+        "5fdc8ccecafe6f5c9255b83d944230ecc3da25395894f415f2e5ad04bfd8e39f",
+        "64a97871cea4abb1b91d517726052474cdca1aaa95bbb3c4335cd24fd2dd0f42",
+        "7a336f5d7512cd0c96a01c538f4185fa95746016f7ddc852657b353de22da120",
+        "7d8ad233624752deba37c08e2d20a9a1507491341a5d496cbfa9c3799e15fbdd",
+        "9a2c8173a35400299d055f7376bd7ddec0c430e9ed05bdf1ef6bef8e6f75e96a",
+        "c713a959b0be0e18100e3e9990ec8d815469be9556e054938385405159c76c95",
+        "d93dca35d30353b530aabfb75493d5b7b8466c2d64b27c54418cdda1a0ce8398",
+        "f55e24dd3807dc7a5432bab95f7dc94fe4963726d88c523c8fefcffaa6f6dea4"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/core-concepts/categories.md",
+      "sha256": [
+        "049805f74e085719a924bc04498abad10906886585531863dc13faea5e10dc7d",
+        "7469e1125a28ba01e9753170282dbb1015ba065df82f5b094ad6b6350e7bf3f8",
+        "7b7136084c0da6c46854f6857173247ac0ed46d8fca0e89f61ecbc13ff5c3f15",
+        "8fd42301073a8164dfc7a696c5c21c56c129799aa47daeea8460122be2d781e7",
+        "a67aca262d4201c0e58fcf872a3182317e0c2a264c577a45abba704b6fc981f7",
+        "cbd6bef31dedeca2721a2b0647b7e25c2328b2865941c20d628a8924d2940e2a"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/examples/baseadapter-implementation.md",
+      "sha256": [
+        "2fbe2f7743f0bbb86bfec55a1e735e61cfd902407eee43d2bbf623a452603768",
+        "48a69d4594697a17166963dc324b4b7cc2bb045b602d6546283a9eed4842e263",
+        "c8e5ab0f41af71248d949f396ab8147e71712508c46d0c8f9974d2a39b4d5451"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/examples/baseadapter-pattern.md",
+      "sha256": [
+        "26187f21188ce10fe4795ceee75c166f8875e0928aec9fa6a46bbe0c96a0327e",
+        "86c7545cd3dded473b6653f31c859fae224d86c3fcf52c3cd0fd320a777c4d47",
+        "bb8c6cb6ca50275cc6853ebef048f31e8a165bdd5745b133b808ed3609d62a06"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/examples/zod-schema-migration.md",
+      "sha256": [
+        "3f34b5b26fa8cc2c5070a0193c7b0f39a798044d78d2526c21c38a1d87e0e18b",
+        "6d93b960a93a83fac397b794bb4af787fb28b4cdc0aa6cecd162d1b3c11c11e0",
+        "b0e6beab85d253f0656f9e0cd150fc9185aebaaa3a26723334789acf31dbecea"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/features/navigation.md",
+      "sha256": [
+        "c725d577a6588423a555e9ca48ce980ddd87d2d86f11ccda5ee9563f7c7e2c7c"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/features/oac-package-refactor.md",
+      "sha256": [
+        "8aff22aed04bd72953264f60de6d7b186e4cc6decbf07fa69627f7c1f99dee33",
+        "af6debe3157d757a0c77ff0256b49ee6c6b4daa7a01ec6f9a180fa7f28a3446e",
+        "df2ddb54f9e96f2a27b8e4ebd6bf0fa9100bdd336e8229423155954c40058c62"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/features/oac-refactor-feedback.md",
+      "sha256": [
+        "0257b254fe4c88ede186b82bb7d568100aa6bb7ec89e8d18e1015018dcbb15c1",
+        "a2bc6e0569f4c26bbbcdf31adc0eee0de73bce8f55adf0e5308c62e9fbfa7fd5",
+        "d1a9ec7d0a5cf428121e9a2148a3e544477c48a9635aefaab51873ab6b3229d1"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/features/oac-refactor-quickstart.md",
+      "sha256": [
+        "836310f7573e5e6fb6da56092b049bca5a40e3ed5db7b81c2c984ad06593a122",
+        "879707778f4d93b00ce2a970f69d507dddce0f863011415d4126c277994d23f0",
+        "e8532b5d578e70121924e6ecd72700bc830fda292800486c5917f4dc3e9e7326"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/adding-agent-basics.md",
+      "sha256": [
+        "0bcaf078029a3ce56febf4a69dafaef236282c778534933100faf4e2852f43d3",
+        "327600413ab459972d881f85c33dc53f5778daa56a1b9d621526289daadc7fda",
+        "5427dc8c560f57fc6b7032e2d31222a301af206e61fed59904e6b021d61fbf5e",
+        "6fec4edef8af9306a89ec6a47a52c95a9af9dc253c038742c1b8af61c2f4afe9",
+        "9e93fbd2f0b86e105fe61d6e1a7de1f32d2fcdb18c07049d579c4b311899be74",
+        "f8303dedf4e3d9590971d05058cea80e91c78687e4415793a8a6e51c270befc8"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/compatibility-layer-development.md",
+      "sha256": [
+        "1585f721f62637d75ad2e4dda3587de2eb66b0b23410a7fda868ccbc711fc7eb",
+        "6876a759cad73cdf01c187b8780a169254974a6fcabbc2c04ca7a49b616a5b62"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/compatibility-layer-workflow.md",
+      "sha256": [
+        "0f6d75365364a37018dcc08ef1bd9f7a71874e935da04cd1e3ebdae22238f47f",
+        "626c4974e449d5353bc2e856d9ba6e3fa702efeab8fd9f7f34cea2c6d1e84922",
+        "cd0c746dd11ac699677cdfc2dcf9bb59da82ab01aef9853a409c5677468f87ba",
+        "ef7e4bc74c3899810c17b500b9dbf0fb5d5e3df36b0afbf9e42e427902477ff4"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/creating-subagents.md",
+      "sha256": [
+        "0e4fd8e2062e2f3587f174c24135eff0ae583e03de567dddfca32c2ddea2647a",
+        "2ec3cb3697a99b8a9f10637f5c4512f2538d3f3596bca4da4f65ea4ce23e0990",
+        "3b2813c1c7c438fed40602eb09440236f70057cbbda21c604837468dd8ed8972",
+        "557b7de3c9541c4a65c1b6ebd696ba43a5cb51856119905716903c98acf760c8",
+        "b16fb8840838c0fc639cfa91aa9cd7b7b7105216975fc852a2b11babf6a20733",
+        "d9f79fd937a2d6e266192828ba3ae0c37770435264191c320310878cbda13949"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/profile-validation.md",
+      "sha256": [
+        "7a1c861d98f1a2c12d1456fd4783a7ef18ff7fe7b02f628c315d2fdadb0dc2c4",
+        "7cabb36a9ab51015455582d9cd17fd25dad69b805dafaafda8510a6740e82296",
+        "9e67616f80c3e803cd6311498d443e8e0d6c7b1ff89d483b05d27cb9bf633707",
+        "b45e70df7e9f3af40984c772cd5a9b82a53fe584440efffff455ccd712b266a7",
+        "c0a483c901506d4ece6408a9f4989efb6ef116f7a8506f7fe28636446e36d8d1",
+        "e09d5c6ffd761d12559f05884b730221c1178ba261c87a562fbd0135e63bfaaf",
+        "f205aaa733a704dfe50fbf9ad8f29eebe3c17aca6b8d87a3738e3b0ac2c903b1",
+        "f98e0f95711e4d0842c9708a4f7b1c0744cc6e333523ab66e3d3283a57babf8f"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-layer-adapters.md",
+      "sha256": [
+        "0d76798753f35f8c79e617e8589394722c9915a3cde09fe1d4e136a3fb0200bf",
+        "15e61fe5b0cbcc2489173c7071a6ea467e1d650ed70b80cc9be5af2214a44cb4",
+        "dfe1eb319a2e8ef2b57c0759631ddaec8d0314ddb177eb2aedce2ebc502a87e7",
+        "f014f04a7688c3ab45392dc7c2bb32d2bb3e63cef52fa2103df31d061906f07d"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-layer-progress.md",
+      "sha256": [
+        "340555a4c4b5ca26c245a487523798ef5a3f9ff93e974e7f77afcdfc1e968ef0",
+        "7e690feb3cbc5913e56a5ac66bdfcbd1a3ff5039f0df9dce1a6c67a7bdec7abe",
+        "b5d3ca5d935f089fb235f70b95a6bf8740cc5abf72a680204b066a34231f1913",
+        "d55ae0aceb5ef3e08466d5751dcf09c6264434edd1e83913f664dce2ac8f3d27"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-layer-structure.md",
+      "sha256": [
+        "0de9f2e5330d92bb80ba85aa4372902395f85563f034d10e1fb2214cd1735153",
+        "30d1ae1c6087495c39e76d7f43233567d52104c6bc184cc9e29d43b5effbaacd",
+        "ec26e2e9e865e30a11f6e1afe6a33453bf0d00dd20bceb5b45dfb203687cf288",
+        "fc80b56bd82627963165b9ac0cea80c8863a6a6373a036888c0c986e38b7d773"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-layer-summary.md",
+      "sha256": [
+        "33b9aae1684b7fe44f3ff1b7570e564cf4a7dcddc4513b6794dda5279d93738d",
+        "4d61518d81375ab21a6f7025aaa54e4cb48fb6e156e486bcb2dcad1a323350b7",
+        "bfb554bd012bfb820f051e34c0a6ae590bd863ee2414a5aa38a9a8461d81e4d9"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-learnings.md",
+      "sha256": [
+        "37548eab71254b5da249658f0da78a1504deb26c6514917a4852106b5e9e81ef",
+        "c9e59e99f8f2b50533675666cf1a777dc53d982bb618d299b73dbb8bdfde6ab2",
+        "e98e18fd58b1051c2101128be08cc47cfb1da98fae60250b457ff82d45c11c5d"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/tool-feature-parity.md",
+      "sha256": [
+        "3a86d6c8b0bce3c90f8af667a8bb6ff1c1ff29dbd410d23c1a3c98ac6755f7b1",
+        "3dc05736b05fa155b7fdb24293a1814ea99cd24efa9a9bc5f81d7d714e45e2af",
+        "723695f0dbace9c9e030c18e52583e4c0b69317b0769714700893470f0fd81e9"
+      ]
+    }
+  ]
+}

@@ -177,7 +177,7 @@ StoryMapper maps user stories to bounded contexts for service boundary alignment
 
 ### Related Files
 
-- Agent definition: `.opencode/agent/subagents/planning/architecture-analyzer.md`
+- Agent definition: `.opencode/agent/architecture-analyzer.md` (OpenCode v2; v1 nests it under `agent/planning/`)
 - DDD patterns: Discovered via ContextScout
 - Task schema: `.opencode/context/core/task-management/standards/enhanced-task-schema.md`
 
@@ -375,7 +375,7 @@ TaskManager converts stories into implementation subtasks.
 
 ### Related Files
 
-- Agent definition: `.opencode/agent/subagents/planning/story-mapper.md`
+- Agent definition: `.opencode/agent/story-mapper.md` (OpenCode v2; v1 nests it under `agent/planning/`)
 - User journey patterns: Discovered via ContextScout
 - Story format standards: Discovered via ContextScout
 
@@ -553,7 +553,7 @@ TaskManager creates subtasks for MVP features first.
 
 ### Related Files
 
-- Agent definition: `.opencode/agent/subagents/planning/prioritization-engine.md`
+- Agent definition: `.opencode/agent/prioritization-engine.md` (OpenCode v2; v1 nests it under `agent/planning/`)
 - Business goals: Discovered via ContextScout
 - Prioritization frameworks: RICE (Intercom), WSJF (SAFe)
 
@@ -714,7 +714,7 @@ TaskManager creates parallel frontend/backend subtasks using contracts.
 
 ### Related Files
 
-- Agent definition: `.opencode/agent/subagents/planning/contract-manager.md`
+- Agent definition: `.opencode/agent/contract-manager.md` (OpenCode v2; v1 nests it under `agent/planning/`)
 - API design patterns: Discovered via ContextScout
 - OpenAPI specification: https://spec.openapis.org/oas/v3.0.3
 - Contract testing: Pact (https://docs.pact.io/)
@@ -888,7 +888,7 @@ Tasks reference ADRs for implementation constraints.
 
 ### Related Files
 
-- Agent definition: `.opencode/agent/subagents/planning/adr-manager.md`
+- Agent definition: `.opencode/agent/adr-manager.md` (OpenCode v2; v1 nests it under `agent/planning/`)
 - ADR format standards: Discovered via ContextScout
 - ADR examples: `docs/adr/` directory
 - Lightweight ADR format: https://adr.github.io/
@@ -1112,13 +1112,13 @@ task(
 
 ## Related Documentation
 
-- **ArchitectureAnalyzer**: `.opencode/agent/subagents/planning/architecture-analyzer.md`
-- **StoryMapper**: `.opencode/agent/subagents/planning/story-mapper.md`
-- **PrioritizationEngine**: `.opencode/agent/subagents/planning/prioritization-engine.md`
-- **ContractManager**: `.opencode/agent/subagents/planning/contract-manager.md`
-- **ADRManager**: `.opencode/agent/subagents/planning/adr-manager.md`
-- **ContextScout**: `.opencode/agent/subagents/core/context-scout.md`
-- **TaskManager**: `.opencode/agent/subagents/core/task-manager.md`
+- **ArchitectureAnalyzer**: `.opencode/agent/architecture-analyzer.md` (OpenCode v2; v1 nests it under `agent/planning/`)
+- **StoryMapper**: `.opencode/agent/story-mapper.md` (OpenCode v2; v1 nests it under `agent/planning/`)
+- **PrioritizationEngine**: `.opencode/agent/prioritization-engine.md` (OpenCode v2; v1 nests it under `agent/planning/`)
+- **ContractManager**: `.opencode/agent/contract-manager.md` (OpenCode v2; v1 nests it under `agent/planning/`)
+- **ADRManager**: `.opencode/agent/adr-manager.md` (OpenCode v2; v1 nests it under `agent/planning/`)
+- **ContextScout**: `.opencode/agent/context-scout.md` (OpenCode v2; v1 nests it under `agent/core/`)
+- **TaskManager**: `.opencode/agent/task-manager.md` (OpenCode v2; v1 nests it under `agent/core/`)
 
 ---
 

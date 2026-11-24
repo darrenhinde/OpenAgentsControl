@@ -1,0 +1,300 @@
+import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test';
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import {
+  ideCheckResult,
+  ideCheckResults,
+  checkContextRootNavigation,
+  checkClaudeDiscoveryConfig,
+  manifestUnavailable,
+  openCodeFlavorCheck,
+  overallStatus,
+  retiredCheck,
+  safeReadManifest,
+  summariseResults,
+  type CheckResult,
+} from './doctor-checks.js';
+import { createEmptyManifest, writeManifest } from './manifest.js';
+
+// ── safeReadManifest ──────────────────────────────────────────────────────────
+
+describe('safeReadManifest', () => {
+  let missingRoot: string;
+  let corruptRoot: string;
+  let invalidRoot: string;
+  let validRoot: string;
+
+  beforeAll(async () => {
+    missingRoot = await mkdtemp(join(tmpdir(), 'oac-doctor-missing-'));
+
+    corruptRoot = await mkdtemp(join(tmpdir(), 'oac-doctor-corrupt-'));
+    await mkdir(join(corruptRoot, '.oac'), { recursive: true });
+    await writeFile(join(corruptRoot, '.oac', 'manifest.json'), '{ not json', 'utf8');
+
+    invalidRoot = await mkdtemp(join(tmpdir(), 'oac-doctor-invalid-'));
+    await mkdir(join(invalidRoot, '.oac'), { recursive: true });
+    await writeFile(join(invalidRoot, '.oac', 'manifest.json'), '{"files": "nope"}', 'utf8');
+
+    validRoot = await mkdtemp(join(tmpdir(), 'oac-doctor-valid-'));
+    await writeManifest(validRoot, createEmptyManifest('1.1.0'));
+  });
+
+  afterAll(async () => {
+    await Promise.all(
+      [missingRoot, corruptRoot, invalidRoot, validRoot].map((d) =>
+        rm(d, { recursive: true, force: true }),
+      ),
+    );
+  });
+
+  test('absent manifest is ok with null', async () => {
+    expect(await safeReadManifest(missingRoot)).toEqual({ ok: true, manifest: null });
+  });
+
+  test('unparseable JSON is a value, not an exception', async () => {
+    const read = await safeReadManifest(corruptRoot);
+    expect(read.ok).toBe(false);
+    if (!read.ok) expect(read.error.length).toBeGreaterThan(0);
+  });
+
+  test('schema-invalid manifest is a value, not an exception', async () => {
+    const read = await safeReadManifest(invalidRoot);
+    expect(read.ok).toBe(false);
+    if (!read.ok) expect(read.error).toContain('Invalid manifest');
+  });
+
+  test('valid manifest is returned', async () => {
+    const read = await safeReadManifest(validRoot);
+    expect(read.ok).toBe(true);
+    if (read.ok) expect(read.manifest?.files).toEqual({});
+  });
+});
+
+// ── manifestUnavailable ───────────────────────────────────────────────────────
+
+describe('manifestUnavailable', () => {
+  test('invalid manifest becomes an error check', () => {
+    const result = manifestUnavailable('Files on disk', { ok: false, error: 'boom' });
+    expect(result?.status).toBe('error');
+    expect(result?.message).toContain('invalid');
+  });
+
+  test('missing manifest becomes an error check', () => {
+    const result = manifestUnavailable('Files on disk', { ok: true, manifest: null });
+    expect(result?.status).toBe('error');
+    expect(result?.message).toContain('missing');
+  });
+
+  test('valid manifest lets the check proceed', () => {
+    const result = manifestUnavailable('Files on disk', {
+      ok: true,
+      manifest: createEmptyManifest('1.1.0'),
+    });
+    expect(result).toBeNull();
+  });
+});
+
+describe('checkContextRootNavigation', () => {
+  let projectRoot: string;
+
+  beforeAll(async () => {
+    projectRoot = await mkdtemp(join(tmpdir(), 'oac-doctor-context-'));
+  });
+
+  afterAll(async () => {
+    await rm(projectRoot, { recursive: true, force: true });
+  });
+
+  test('reports an error when root navigation is missing', async () => {
+    const result = await checkContextRootNavigation(projectRoot);
+    expect(result.status).toBe('error');
+    expect(result.message).toContain('navigation.md missing');
+  });
+
+  test('reports ok when root navigation is present', async () => {
+    const navigationPath = join(projectRoot, '.opencode', 'context', 'navigation.md');
+    await mkdir(join(projectRoot, '.opencode', 'context'), { recursive: true });
+    await writeFile(navigationPath, '# Context navigation\n', 'utf8');
+
+    const result = await checkContextRootNavigation(projectRoot);
+    expect(result.status).toBe('ok');
+  });
+});
+
+describe('checkClaudeDiscoveryConfig', () => {
+  let projectRoot: string;
+
+  beforeEach(async () => {
+    projectRoot = await mkdtemp(join(tmpdir(), 'oac-doctor-claude-'));
+  });
+
+  afterEach(async () => {
+    await rm(projectRoot, { recursive: true, force: true });
+  });
+
+  test('reports an error when .oac.json is missing', async () => {
+    const result = await checkClaudeDiscoveryConfig(projectRoot);
+    expect(result.status).toBe('error');
+    expect(result.message).toContain('.oac.json missing');
+  });
+
+  test('accepts the verified schema and existing navigation target', async () => {
+    await mkdir(join(projectRoot, '.opencode', 'context'), { recursive: true });
+    await writeFile(join(projectRoot, '.opencode', 'context', 'navigation.md'), '# Context navigation\n', 'utf8');
+    await writeFile(join(projectRoot, '.oac.json'), '{"version":"1","context":{"root":".opencode/context"}}', 'utf8');
+
+    expect((await checkClaudeDiscoveryConfig(projectRoot)).status).toBe('ok');
+  });
+
+  test('rejects unsupported configuration roots', async () => {
+    await writeFile(join(projectRoot, '.oac.json'), '{"version":"1","context":{"root":"context"}}', 'utf8');
+
+    const result = await checkClaudeDiscoveryConfig(projectRoot);
+    expect(result.status).toBe('error');
+    expect(result.message).toContain('expected version');
+  });
+
+  test('rejects a valid configuration whose navigation target is absent', async () => {
+    await writeFile(join(projectRoot, '.oac.json'), '{"version":"1","context":{"root":".opencode/context"}}', 'utf8');
+
+    const result = await checkClaudeDiscoveryConfig(projectRoot);
+    expect(result.status).toBe('error');
+    expect(result.message).toContain('target missing');
+  });
+});
+
+// ── IDE lines ─────────────────────────────────────────────────────────────────
+
+describe('ideCheckResult', () => {
+  test('OpenCode present is ok and never tells the user to apply', () => {
+    const result = ideCheckResult({
+      type: 'opencode',
+      detected: true,
+      indicator: '.opencode/ directory',
+    });
+    expect(result.status).toBe('ok');
+    expect(result.message).not.toContain('oac apply opencode');
+  });
+
+  test('Claude present is informational and points at the valid target', () => {
+    const result = ideCheckResult({ type: 'claude', detected: true, indicator: 'CLAUDE.md file' });
+    expect(result.status).toBe('info');
+    expect(result.message).toContain("oac apply claude");
+  });
+
+  test('a fresh install with only .opencode/ yields no warnings', () => {
+    const lines = ideCheckResults([
+      { type: 'opencode', detected: true, indicator: '.opencode/ directory' },
+      { type: 'claude', detected: false, indicator: '.claude/ directory or CLAUDE.md (not found)' },
+    ]);
+    expect(lines).toHaveLength(1);
+    expect(summariseResults(lines).warnings).toBe(0);
+  });
+
+  test('nothing detected yields a single hint', () => {
+    const lines = ideCheckResults([
+      { type: 'opencode', detected: false, indicator: '' },
+      { type: 'claude', detected: false, indicator: '' },
+    ]);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]?.status).toBe('info');
+  });
+});
+
+// ── Summary ───────────────────────────────────────────────────────────────────
+
+describe('summariseResults / overallStatus', () => {
+  const mk = (status: CheckResult['status']): CheckResult => ({ name: 'x', status, message: '' });
+
+  test('info counts as ok', () => {
+    expect(summariseResults([mk('ok'), mk('info')])).toEqual({ ok: 2, warnings: 0, errors: 0 });
+    expect(overallStatus(summariseResults([mk('ok'), mk('info')]))).toBe('healthy');
+  });
+
+  test('a warning downgrades to warning', () => {
+    expect(overallStatus(summariseResults([mk('ok'), mk('warn')]))).toBe('warning');
+  });
+
+  test('an error wins over warnings', () => {
+    expect(overallStatus(summariseResults([mk('warn'), mk('error')]))).toBe('error');
+  });
+});
+
+// ── OpenCode flavor vs the host ───────────────────────────────────────────────
+
+describe('openCodeFlavorCheck', () => {
+  const check = (flavor: 'v1' | 'v2', recorded: boolean, hostMajor: number | null) =>
+    openCodeFlavorCheck({ flavor, recorded, hostMajor });
+
+  test('a matching pair is ok, for both flavors', () => {
+    expect(check('v2', true, 2).status).toBe('ok');
+    expect(check('v1', true, 1).status).toBe('ok');
+  });
+
+  test('v2 recorded on a v1 host is an error that names both ways out', () => {
+    const r = check('v2', true, 1);
+    expect(r.status).toBe('error');
+    expect(r.message).toContain('--opencode v1');
+    expect(r.message.toLowerCase()).toContain('upgrade');
+  });
+
+  test('v1 recorded on a v2 host is an error: v1 agents, tools and plugins do not load there', () => {
+    const r = check('v1', true, 2);
+    expect(r.status).toBe('error');
+    expect(r.message).toContain('--opencode v2');
+  });
+
+  test('a 0.x host is reported by its real major, never as v1', () => {
+    expect(check('v2', true, 0).message).toContain('OpenCode 0.x is older than both');
+    expect(check('v2', false, 0).message).toContain('OpenCode 0.x is older than both');
+  });
+
+  test('no host found is informational, not a failure', () => {
+    expect(check('v2', true, null).status).toBe('info');
+    expect(check('v1', true, null).status).toBe('info');
+  });
+
+  test('an install with no recorded flavor is flagged, by host', () => {
+    expect(check('v2', false, 1).status).toBe('warn');
+    expect(check('v2', false, 1).message).toContain('oac update --opencode v1');
+    expect(check('v2', false, 2).status).toBe('warn');
+    expect(check('v2', false, 2).message).toContain('oac update');
+    expect(check('v2', false, null).status).toBe('info');
+  });
+
+  test('doctor and update agree on a 0.x host: a v1 install on host 0 is a mismatch, not ok', () => {
+    expect(check('v1', true, 0).status).toBe('error');
+    expect(check('v2', true, 0).status).toBe('error');
+    expect(check('v2', false, 0).message).toContain('upgrade OpenCode');
+  });
+});
+
+// ── retiredCheck ──────────────────────────────────────────────────────────────
+
+describe('retiredCheck', () => {
+  const file = (path: string, removable: boolean) => ({ path, sha256: ['a'], root: '.opencode/command', removable });
+
+  test('is ok when nothing is left behind', () => {
+    expect(retiredCheck([], true).status).toBe('ok');
+  });
+
+  test('warns, and says oac update will remove a pristine copy', () => {
+    const result = retiredCheck([file('.opencode/command/x/README.md', true)], true);
+    expect(result.status).toBe('warn');
+    expect(result.message).toContain("run 'oac update'");
+    expect(result.message).not.toContain('edited');
+  });
+
+  test('says an edited copy is left, so the fix is by hand', () => {
+    const result = retiredCheck([file('.opencode/command/x/README.md', false)], true);
+    expect(result.status).toBe('warn');
+    expect(result.message).not.toContain("run 'oac update'");
+    expect(result.message).toContain('edited, a symlink or your own');
+    expect(result.detail?.[0]).toContain('left: edited or not removable');
+  });
+
+  test('names oac init when there is no manifest', () => {
+    expect(retiredCheck([file('.opencode/command/x/a.md', true)], false).message).toContain("run 'oac init'");
+  });
+});

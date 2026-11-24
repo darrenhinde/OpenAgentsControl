@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
 
 /** Returns the hex SHA256 of a file's contents. Throws if file does not exist. */
 export async function computeFileHash(filePath: string): Promise<string> {
-  return Bun.file(filePath)
-    .bytes()
+  return readFile(filePath)
     .then((contents) => createHash("sha256").update(contents).digest("hex"))
     .catch((err: unknown) => {
       const msg = err instanceof Error ? err.message : String(err);

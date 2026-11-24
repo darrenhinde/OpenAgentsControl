@@ -5,6 +5,11 @@
 **Prerequisites**: Load `plugins/context/capabilities/events_skills.md` first  
 **Purpose**: Create an OpenCode skill directory and SKILL.md file
 
+**Where it goes**: skills are canonical source. Write them in `agent-library/skills/{skill-name}/` with an
+`oac:` block in the frontmatter, then run `make build-canonical`; the build writes `.opencode/skills/`,
+`built-ai-configs/opencode-v1/skills/` and the registry entries. Never write into `.opencode/skills/` by
+hand. Spec: `docs/architecture/SKILLS-AND-COMMANDS.md`.
+
 **Note**: This is for **OpenCode skills** (internal system). For **Claude Code Skills**, see `creating-skills.md`.
 
 ---
@@ -16,8 +21,8 @@ Adding an OpenCode skill involves:
 2. Creating SKILL.md file
 3. Creating router script (optional)
 4. Creating CLI implementation (optional)
-5. Registering in registry (optional)
-6. Testing
+5. Adding the `oac:` block (registry entry, hosts it ships to)
+6. Building and testing
 
 **Time**: ~10-15 minutes
 
@@ -34,12 +39,12 @@ Adding an OpenCode skill involves:
 ### Create Structure
 
 ```bash
-mkdir -p .opencode/skills/{skill-name}/scripts
+mkdir -p agent-library/skills/{skill-name}/scripts
 ```
 
 **Standard structure**:
 ```
-.opencode/skills/{skill-name}/
+agent-library/skills/{skill-name}/
 ├── SKILL.md              # Required: Main skill documentation
 ├── router.sh             # Optional: CLI router script
 └── scripts/
@@ -56,6 +61,12 @@ mkdir -p .opencode/skills/{skill-name}/scripts
 ---
 name: {skill-name}
 description: Brief description of what the skill provides
+oac:
+  id: {skill-name}                 # equals the folder name; frontmatter name must equal it too
+  name: Skill Name                 # registry name
+  category: standard               # registry tier: essential | standard | extended | specialized | meta
+  tags: [tag1, tag2]
+  targets: [opencode, opencode-v1] # omit to ship to every host
 ---
 
 # Skill Name
@@ -128,7 +139,7 @@ esac
 ```
 
 ```bash
-chmod +x .opencode/skills/{skill-name}/router.sh
+chmod +x agent-library/skills/{skill-name}/router.sh   # the build keeps the executable bit
 ```
 
 ---

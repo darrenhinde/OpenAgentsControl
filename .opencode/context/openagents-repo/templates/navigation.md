@@ -1,40 +1,14 @@
-<!-- Context: openagents-repo/navigation | Priority: critical | Version: 1.0 | Updated: 2026-02-15 -->
+<!-- Context: openagents-repo/templates/navigation | Priority: critical | Version: 2.0 | Updated: 2026-11-02 -->
 
-# OpenAgents Templates
+# Templates
 
-**Purpose**: Template files and patterns for OpenAgents Control
+**Purpose**: Reusable context templates
 
----
+| File | Topic |
+|------|-------|
+| [context-bundle-template.md](context-bundle-template.md) | Template for creating context bundles when delegating tasks to subagents |
 
-## Structure
+## Related
 
-```
-openagents-repo/templates/
-├── navigation.md (this file)
-└── [template files]
-```
-
----
-
-## Quick Routes
-
-| Task | Path |
-|------|------|
-| **View templates** | `./` |
-| **Blueprints** | `../blueprints/navigation.md` |
-| **Guides** | `../guides/navigation.md` |
-
----
-
-## By Type
-
-**Templates** → Reusable template files  
-**Patterns** → Common patterns and structures
-
----
-
-## Related Context
-
-- **OpenAgents Navigation** → `../navigation.md`
-- **Blueprints** → `../blueprints/navigation.md`
-- **Guides** → `../guides/navigation.md`
+- [Root](../navigation.md)
+- [Examples](../examples/navigation.md)

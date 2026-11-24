@@ -21,8 +21,7 @@ import { fileURLToPath } from 'url';
 
 // Configuration
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
-const REGISTRY_FILE = join(REPO_ROOT, 'registry.json');
-const PROFILES_DIR = join(REPO_ROOT, '.opencode/profiles');
+const REGISTRY_FILE = join(REPO_ROOT, 'built-ai-configs/registry/registry.json');
 
 // Colors
 const colors = {
@@ -144,7 +143,7 @@ function loadRegistry(): Registry {
     printSuccess('Registry loaded successfully');
     return registry;
   } catch (error) {
-    printError('Failed to parse registry.json');
+    printError('Failed to parse built-ai-configs/registry/registry.json');
     process.exit(3);
   }
 }
@@ -152,20 +151,6 @@ function loadRegistry(): Registry {
 // Load profiles
 function loadProfiles(): Record<string, any> {
   const profiles: Record<string, any> = {};
-  
-  const profileFiles = ['essential', 'developer', 'business', 'full', 'advanced'];
-  
-  for (const profileName of profileFiles) {
-    const profilePath = join(PROFILES_DIR, profileName, 'profile.json');
-    if (existsSync(profilePath)) {
-      try {
-        const content = readFileSync(profilePath, 'utf-8');
-        profiles[profileName] = JSON.parse(content);
-      } catch (error) {
-        printWarning(`Failed to load profile: ${profileName}`);
-      }
-    }
-  }
   
   const registry = loadRegistry();
   if (registry.profiles) {
@@ -365,7 +350,7 @@ function printSummary(): number {
     printInfo('No issues found. Registry is consistent.');
   } else {
     console.log(`${colors.yellow}Action required:${colors.reset}`);
-    console.log('  1. Add missing components to registry.json');
+    console.log('  1. Add missing components to built-ai-configs/registry/registry.json');
     console.log('  2. Update profile references to use valid component IDs');
     console.log('  3. Ensure all component dependencies exist');
     console.log('');

@@ -45,7 +45,7 @@ Based on the OpenCode CLI registration, use these exact strings for `subagent_ty
 - `"Command Creator"` - Command creation
 
 **Utility Subagents**:
-- `"Image Specialist"` - Image generation/editing
+- `"ImageSpecialist"` - Image generation/editing (OpenCode v1 only: the v2 build has no image-specialist target)
 
 ---
 
@@ -78,7 +78,7 @@ task(
 
 // ❌ Using registry path
 task(
-  subagent_type=".opencode/agent/subagents/core/task-manager.md",
+  subagent_type=".opencode/agent/task-manager.md",
   ...
 )
 ```
@@ -91,13 +91,13 @@ task(
 
 ```bash
 # List all subagent names
-cat registry.json | jq -r '.components.subagents[] | "\(.name)"'
+cat built-ai-configs/registry/registry.json | jq -r '.components.subagents[] | "\(.name)"'
 ```
 
 **Output**:
 ```
 Task Manager
-Image Specialist
+ImageSpecialist
 Reviewer
 TestEngineer
 Documentation Writer
@@ -302,7 +302,7 @@ available_types = [
   "Reviewer",
   "Coder Agent",
   "Build Agent",
-  "Image Specialist",
+  "ImageSpecialist",
   "Domain Analyzer",
   "Agent Generator",
   "Context Organizer",
@@ -337,7 +337,7 @@ if subagent_type not in available_types:
 
 **Solutions**:
 1. Check registry for correct name
-2. Verify subagent exists in `.opencode/agent/subagents/`
+2. Verify subagent exists in `.opencode/agent/`
 3. Use exact name from registry `name` field
 4. If subagent not registered, use direct operations instead
 
@@ -363,8 +363,8 @@ if subagent_type not in available_types:
 
 ## Related Files
 
-- **Registry**: `registry.json` - Component catalog
-- **Subagents**: `.opencode/agent/subagents/` - Subagent definitions
+- **Registry**: `built-ai-configs/registry/registry.json` - Component catalog
+- **Subagents**: `.opencode/agent/` - Subagent definitions
 - **Validation**: `scripts/registry/validate-registry.sh`
 
 ---

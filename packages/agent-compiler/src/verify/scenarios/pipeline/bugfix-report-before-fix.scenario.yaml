@@ -1,0 +1,43 @@
+id: pipeline/bugfix-report-before-fix
+title: 'Bug fix: red → report → approve → fix → green → done'
+area: pipeline
+kind: capability
+layer: L2
+release: v1.4
+runner: host
+hosts: [claude-code, opencode-v2, codex]
+fixture: ts-single
+profile: team                    # intent: block, on_fail: report
+asks: reject
+setup:
+  - failing_test: { path: tests/a.test.ts }
+script:
+  - call: shell
+    command: "npm test"
+  - call: say
+    text: "Root cause: src/a.ts returns 1, test expects 2. Proposed fix: change the constant."
+  - runner: "oac approve --task bugfix --note 'fix constant'"   # the human approves, out of band
+  - call: edit
+    path: src/a.ts
+    old: "export const a = 1;"
+    new: "export const a = 2;"
+  - call: shell
+    command: "npm test"
+  - call: done
+outcome:
+  - order:                       # subsequence over OacEvent[]
+      - tool.result: { command: "npm test", ok: false }
+      - claim.report
+      - approval.recorded
+      - file.write: src/a.ts
+      - tool.result: { command: "npm test", ok: true }
+      - claim.done
+  - tests_green_before_done
+  - stop_blocks: { count: 0 }
+negative_arm:                    # the same flow with the fix BEFORE the approval must be blocked
+  move_step: { from: 3, to: 1 }
+  expect: blocked
+control: "the early-edit arm lands"
+today:
+  claude-code: { status: known-red, ref: v1.4, ev: O }
+  opencode-v2: { status: known-red, ref: v1.4, ev: O }

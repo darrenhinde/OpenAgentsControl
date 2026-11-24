@@ -56,17 +56,17 @@ npm run eval:sdk -- --subagent=contextscout --pattern="01-test.yaml" --debug
 
 ```bash
 # Check agent file
-cat .opencode/agent/subagents/core/contextscout.md | head -20
+cat .opencode/agent/context-scout.md | head -20
 
 # Verify frontmatter
-grep -A 5 "^id:" .opencode/agent/subagents/core/contextscout.md
+grep -A 5 "^id:" .opencode/agent/context-scout.md
 ```
 
 **Expected**:
 ```yaml
 id: contextscout
 name: ContextScout
-category: subagents/core
+category: core
 type: subagent
 mode: subagent  # ← Will be forced to 'primary' in standalone tests
 ```

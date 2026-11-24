@@ -54,7 +54,7 @@ Subagents are isolated AI assistants that handle specific tasks. Each runs in it
 ## Related
 
 - `../lookup/builtin-subagents.md` - Built-in subagents
-- `../guides/creating-subagents.md` - Creation guide
+- `../guides/authoring-agents.md` - Creation guide
 - `../lookup/subagent-frontmatter.md` - Configuration
 
 **Reference**: https://docs.anthropic.com/en/docs/claude-code/sub-agents

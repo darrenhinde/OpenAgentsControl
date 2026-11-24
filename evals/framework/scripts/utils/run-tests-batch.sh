@@ -15,6 +15,8 @@ NC='\033[0m' # No Color
 AGENT="${1:-openagent}"
 BATCH_SIZE="${2:-3}"
 DELAY_BETWEEN_BATCHES="${3:-10}"
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+FRAMEWORK_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 
 echo -e "${GREEN}🚀 Batch Test Runner${NC}"
 echo "Agent: $AGENT"
@@ -23,7 +25,7 @@ echo "Delay between batches: ${DELAY_BETWEEN_BATCHES}s"
 echo ""
 
 # Get all test files
-TEST_DIR="../agents/$AGENT/tests"
+TEST_DIR="$FRAMEWORK_ROOT/../agents/$AGENT/tests"
 
 if [ ! -d "$TEST_DIR" ]; then
   echo -e "${RED}❌ Test directory not found: $TEST_DIR${NC}"
@@ -76,7 +78,7 @@ for TEST_FILE in $TEST_FILES; do
       REL_PATH=$(echo "$FILE" | sed "s|$TEST_DIR/||")
       echo -e "${GREEN}▶ Running: $REL_PATH${NC}"
       
-      npm run eval:sdk -- --agent="$AGENT" --pattern="$REL_PATH" 2>&1 | grep -E "(PASSED|FAILED|Duration|Violations)" || true
+      pnpm --dir "$FRAMEWORK_ROOT" run eval:sdk -- --agent="$AGENT" --pattern="$REL_PATH" 2>&1 | grep -E "(PASSED|FAILED|Duration|Violations)" || true
       
       echo ""
     done

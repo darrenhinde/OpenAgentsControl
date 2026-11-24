@@ -23,7 +23,7 @@ TEMP_DIR="/tmp/opencode-installer-test-$$"
 
 # Allow local testing (useful for CI/CD or when testing changes before pushing)
 USE_LOCAL=false
-LOCAL_REGISTRY="./registry.json"
+LOCAL_REGISTRY="./built-ai-configs/registry/registry.json"
 
 # Global variables
 VERBOSE=false
@@ -225,7 +225,7 @@ print_summary() {
         echo ""
         echo -e "${YELLOW}These files need to be:${NC}"
         echo "  1. Added to the repository, OR"
-        echo "  2. Removed from registry.json"
+        echo "  2. Removed from built-ai-configs/registry/registry.json"
         echo ""
         return 1
     else
@@ -242,14 +242,14 @@ usage() {
     echo "  --profile=<name>    Test a specific profile (essential, developer, business, full, advanced)"
     echo "  --all               Test all components (default)"
     echo "  --verbose           Show successful file checks"
-    echo "  --local             Use local registry.json instead of downloading from GitHub"
+    echo "  --local             Use local built-ai-configs/registry/registry.json instead of downloading from GitHub"
     echo "  --help              Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0                                    # Test all components (remote registry)"
     echo "  $0 --profile=essential               # Test essential profile"
     echo "  $0 --profile=developer --verbose     # Test developer profile with details"
-    echo "  $0 --local                           # Test using local registry.json"
+    echo "  $0 --local                           # Test using local built-ai-configs/registry/registry.json"
     echo ""
     exit 0
 }
@@ -323,8 +323,8 @@ main() {
         print_success "Local registry loaded"
     else
         print_step "Downloading registry from GitHub..."
-        if ! curl -fsSL "${RAW_URL}/registry.json" -o "${TEMP_DIR}/registry.json"; then
-            print_error "Failed to download registry from ${RAW_URL}/registry.json"
+        if ! curl -fsSL "${RAW_URL}/built-ai-configs/registry/registry.json" -o "${TEMP_DIR}/registry.json"; then
+            print_error "Failed to download registry from ${RAW_URL}/built-ai-configs/registry/registry.json"
             exit 1
         fi
         print_success "Registry downloaded successfully"

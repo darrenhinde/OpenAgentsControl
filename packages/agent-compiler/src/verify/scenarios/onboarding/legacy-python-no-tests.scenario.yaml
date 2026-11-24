@@ -1,0 +1,27 @@
+id: onboarding/legacy-python-no-tests
+title: oac init on a legacy Python repo with no tests
+area: onboarding
+kind: capability
+layer: L0
+release: v1.3
+runner: cli                      # no model
+hosts: [claude-code, opencode-v2, codex]
+fixture: legacy-python-no-tests  # setup.py + requirements.txt, app/, no tests/, a hand-written CLAUDE.md
+steps:
+  - run: "oac init --yes --profile solo"
+    expect_exit: 0
+  - run: "oac init --yes --profile solo"       # idempotent
+    expect_no_diff: true
+outcome:
+  - detected: { languages: [python], test_command: null, package_manager: pip }
+  - policy_value: { path: verify.commands, equals: {} }
+  - verifier_mode_for_missing_tests: warn       # no invented "pytest"
+  - areas_proposed: ["app"]
+  - diff_outside_managed_blocks_empty            # CLAUDE.md user text untouched
+  - budget: { agents_md_kib_max: 32, claude_md_lines_max: 200 }
+  - files_written_subset_of: ["oac.policy", "AGENTS.md", "CLAUDE.md", ".claude/settings.json", "opencode.json", ".oac/**", ".gitignore"]
+  - nothing_outside_temp_changed
+then_l2: secrets/read-env      # the "try it" step runs on the initialised tree
+control: none
+today:
+  all: { status: known-red, ref: v1.3, ev: O }

@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> **A full sweep of changes is coming soon.** Expect a new system. This version of OAC targets **OpenCode v1**; the upcoming release will replace much of what is here.
+> **A full sweep of changes is landing.** OAC now builds one agent library for Claude Code, OpenCode v2 and OpenCode v1. See [what changed](agent-library/README.md).
 
 <div align="center">
 
@@ -17,8 +17,8 @@
 📝 **Editable Agents** - Full control over AI behavior  
 👥 **Team-Ready** - Everyone uses the same patterns
 
-**Multi-language:** TypeScript • Python • Go • Rust  • C# • Any language*  
-**Model Agnostic:** Claude • GPT • Gemini • MiniMax • Local models
+**Multi-language:** TypeScript • Python • Go • Rust • C# (other languages work but are less tested; see the [FAQ](#getting-started))  
+**Models:** whatever your host runs. OpenCode supports any provider it is configured for (Claude, GPT, Gemini, MiniMax, local); the Claude Code plugin runs Claude models.
 
 
 [![GitHub stars](https://img.shields.io/github/stars/darrenhinde/OpenAgentsControl?style=flat-square&logo=github&labelColor=black&color=ffcb47)](https://github.com/darrenhinde/OpenAgentsControl/stargazers)
@@ -32,7 +32,7 @@
 
 ---
 
-> **Built on [OpenCode](https://opencode.ai)** - An open-source AI coding framework. OAC extends OpenCode with specialized agents, context management, and team workflows.
+> **One source, three tools.** OAC's agents, skills, commands and context are written once in [`agent-library/`](agent-library/README.md) and built for **Claude Code**, **OpenCode v2** (the default) and **OpenCode v1**. [OpenCode](https://opencode.ai) is the open-source AI coding framework OAC extends with specialized agents, context management, and team workflows. Using OAC: the install commands [below](#-quick-start). Working on OAC: [agent-library/README.md](agent-library/README.md) and the [documentation map](docs/README.md).
 
 ---
 
@@ -69,19 +69,19 @@ export async function POST(request: Request) {
 Agents load YOUR patterns before generating code. Code matches your project from the start. No refactoring needed.
 
 **📝 Editable Agents (Not Baked-In Plugins)**  
-Full control over agent behavior. Edit markdown files directly—no compilation, no vendor lock-in. Change workflows, add constraints, customize for your team.
+Full control over agent behavior. Everything installed into your project is plain markdown you edit in place, with no vendor lock-in. Change workflows, add constraints, customize for your team. (Repo maintainers author each agent once under `agent-library/` and run `oac build` to generate every tool's copy; as a user you never need that step.)
 
 **✋ Approval Gates (Human-Guided AI)**  
-Agents ALWAYS request approval before execution. Propose → Approve → Execute. You stay in control. No "oh no, what did the AI just do?" moments.
+The core agents are written to propose a plan and ask before they execute: Propose → Approve → Execute. Today this is prompt guidance plus your host's permission settings, not an enforced gate (that is planned for v1.4).
 
 **⚡ Token Efficient (MVI Principle)**  
-Minimal Viable Information design. Only load what's needed, when it's needed. Context files <200 lines, lazy loading, faster responses.
+Minimal Viable Information design: context files are kept short and loaded lazily, only when a task needs them. We have not published token measurements yet.
 
 **👥 Team-Ready (Repeatable Patterns)**  
 Store YOUR coding patterns once. Entire team uses same standards. Commit context to repo. New developers inherit team patterns automatically.
 
-**🔄 Model Agnostic**  
-Use any AI model (Claude, GPT, Gemini, local). No vendor lock-in.
+**🔄 Your Choice of Model**  
+OAC's agents are plain markdown, so they run on whatever models your host supports: any configured provider on OpenCode, Claude models on Claude Code. They are not tuned or tested equally on every model.
 
 **Full-stack development:** OAC handles both frontend and backend work. The agents coordinate to build complete features from UI to database.
 
@@ -92,11 +92,11 @@ Use any AI model (Claude, GPT, Gemini, local). No vendor lock-in.
 | Feature | OpenAgentsControl | Cursor/Copilot | Aider | Oh My OpenCode |
 |---------|-------------------|----------------|-------|----------------|
 | **Learn Your Patterns** | ✅ Built-in context system | ❌ No pattern learning | ❌ No pattern learning | ⚠️ Manual setup |
-| **Approval Gates** | ✅ Always required | ⚠️ Optional (default off) | ❌ Auto-executes | ❌ Fully autonomous |
-| **Token Efficiency** | ✅ MVI principle (80% reduction) | ❌ Full context loaded | ❌ Full context loaded | ❌ High token usage |
+| **Approval Gates** | ⚠️ Prompt-guided (enforced gate planned) | ⚠️ Optional (default off) | ❌ Auto-executes | ❌ Fully autonomous |
+| **Token Efficiency** | ⚠️ Lazy-loaded context (not yet measured) | ❌ Full context loaded | ❌ Full context loaded | ❌ High token usage |
 | **Team Standards** | ✅ Shared context files | ❌ Per-user settings | ❌ No team support | ⚠️ Manual config per user |
 | **Edit Agent Behavior** | ✅ Markdown files you edit | ❌ Proprietary/baked-in | ⚠️ Limited prompts | ✅ Config files |
-| **Model Choice** | ✅ Any model, any provider | ⚠️ Limited options | ⚠️ OpenAI/Claude only | ✅ Multiple models |
+| **Model Choice** | ✅ Whatever your host supports | ⚠️ Limited options | ⚠️ OpenAI/Claude only | ✅ Multiple models |
 | **Execution Speed** | ⚠️ Sequential with approval | Fast | Fast | ✅ Parallel agents |
 | **Error Recovery** | ✅ Human-guided validation | ⚠️ Auto-retry (can loop) | ⚠️ Auto-retry | ✅ Self-correcting |
 | **Best For** | Production code, teams | Quick prototypes | Solo developers | Power users, complex projects |
@@ -118,38 +118,73 @@ Use any AI model (Claude, GPT, Gemini, local). No vendor lock-in.
 
 ## 🚀 Quick Start
 
-**Prerequisites:** [OpenCode CLI](https://opencode.ai/docs) (free, open-source) • Bash 3.2+ • Git
+**Prerequisites:** [OpenCode CLI](https://opencode.ai/docs) (free, open-source) • Node 20+ (for the `oac` CLI) • Git
 
 ### Step 1: Install
 
-**One command:**
+**With the `oac` CLI (recommended):**
+
+```bash
+npm i -g @controlstack/oac
+cd your-project
+oac init                      # essential tier: one agent, core subagents, core standards
+oac init --profile developer  # or: business, advanced, full
+oac init --context-only       # just the context/standards files, bring your own agents
+oac apply claude              # project into Claude Code
+oac doctor                    # verify
+oac update                    # later: refresh, keeps your edits
+```
+
+`oac init` writes everything into `.opencode/` in your project and records what it installed in `.oac/manifest.json`, so `oac update` can refresh OAC-owned files and leave anything you edited alone. Pull one more thing at any time with `oac add context:react-patterns` or `oac add skill:task-management`.
+
+**What the tiers contain:**
+
+| Profile | Agents | Context | Also |
+|---------|--------|---------|------|
+| `essential` (default) | OpenAgent + ContextScout, Documentation, TaskManager | Core (quick start, project context) + core standards (code, tests, docs, patterns, analysis, review workflow, session management) | `add-context`, `clean`, `context` commands; task-management skill |
+| `developer` | + OpenCoder, CoderAgent, Reviewer, Tester, BuildAgent, DevOps and Frontend specialists | Core + engineering (development, UI, API design, clean code, React patterns, repo standards) | + `commit`, `test`, `optimize`, `analyze-patterns`, `validate-repo` |
+| `business` | OpenAgent + Copywriter, DataAnalyst, TechnicalWriter, ImageSpecialist, ContextScout, Documentation, TaskManager | Core + business (project intelligence) | + `prompt-enhancer`; gemini tool |
+| `full` | Every developer and business agent | Core + engineering | Every command; gemini tool |
+| `advanced` | Full plus the SystemBuilder, RepoManager and generator subagents | Core + engineering + meta-authoring (templates, frontmatter, context-system internals) | + `build-context-system`, `worktrees` |
+
+`--context-only` installs only the context files of the chosen tier: the standards, patterns and navigation indexes, with no agents, commands or skills. Use it when you already have agents you like and just want them to read your standards.
+
+**Alternative: shell installer**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh | bash -s developer
 ```
 
-<sub>The installer will set up OpenCode CLI if you don't have it yet.</sub>
-
-**Or interactive:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/install.sh -o install.sh
-bash install.sh
-```
+<sub>The installer does not install OpenCode itself; install the [OpenCode CLI](https://opencode.ai/docs) first. Interactive mode: download `install.sh` and run `bash install.sh`. `install.sh --help` lists every option (`--install-dir`, `--opencode v1|v2`).</sub>
 
 ### Keep Updated
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash
+oac update            # recommended (skips files you have modified; --yolo to overwrite with a backup)
 ```
 
-> Use `--install-dir PATH` if you installed to a custom location (e.g. `~/.config/opencode`).
+Installed with the shell installer? `update.sh` refuses an older install it cannot place on a version. Run either of these:
+
+```bash
+oac update            # npm i -g @controlstack/oac first; migrates the install safely
+```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash -s -- --opencode v1   # stay on OpenCode v1
+```
+
+Installs made by the current `install.sh` record their version, so a plain `curl -fsSL .../update.sh | bash` works for them (it replaces files you edited, but saves each old copy first; `oac update` goes further and skips edited files). New installs default to OpenCode v2; pass `--opencode v1` to `install.sh` or `oac init` for v1. Every file `update.sh` changes, retires or replaces has its old copy saved in `.opencode.backup.<timestamp>/`; add `.opencode.backup.*/` to your `.gitignore`.
+
+> Use `--install-dir PATH` with the shell updater if you installed to a custom location (e.g. `~/.config/opencode`).
 
 ### Step 2: Start Building
 
 ```bash
-opencode --agent OpenAgent
+opencode --agent openagent
 > "Create a user authentication system"
 ```
+
+> OAC installs for **OpenCode v2** by default (agents are addressed by id, e.g. `openagent`). On OpenCode v1, install with `oac init --opencode v1` (or `install.sh --opencode v1`); there the agent is `OpenAgent`. See [OpenCode v1 and v2](docs/features/opencode-v1-and-v2.md).
 
 ### Step 3: Approve & Ship
 
@@ -180,9 +215,9 @@ opencode --agent OpenAgent
 /plugin install oac
 ```
 
-3. Download context files:
+3. Set up context files (detects your project type and recommends a profile):
 ```bash
-/oac:setup --core
+/oac:context-setup
 ```
 
 4. Start building:
@@ -191,18 +226,15 @@ Add a login endpoint
 ```
 
 **Features:**
-- ✅ 6-stage workflow with approval gates
+- ✅ 6-stage workflow that asks for approval before implementing (prompt-guided)
 - ✅ Context-aware code generation
 - ✅ 7 specialized subagents (task-manager, context-scout, context-manager, coder-agent, test-engineer, code-reviewer, external-scout)
-- ✅ 9 workflow skills + 6 user commands
+- ✅ 12 skills + 6 user commands
 - ✅ Flexible context discovery (.oac config, .claude/context, context, .opencode/context)
 - ✅ Add context from GitHub, worktrees, local files, or URLs
-- ✅ Easy feature planning with `/oac:plan`
 
 **Documentation:**
 - [Plugin README](./plugins/claude-code/README.md) - Complete plugin documentation
-- [First-Time Setup](./plugins/claude-code/FIRST-TIME-SETUP.md) - Step-by-step guide
-- [Quick Start](./plugins/claude-code/QUICK-START.md) - Quick reference
 
 **Status:** BETA - Actively tested and ready for early adopters
 
@@ -255,9 +287,8 @@ Ships without refactoring ✅
 
 **OAC approach:**
 - Loads only relevant patterns
-- Context files <200 lines (quick to load)
+- Short context files (quick to load)
 - Lazy loading (agents load what they need)
-- 80% of tasks use isolation context (minimal overhead)
 
 **Real benefits:**
 - **Efficiency:** Lower token usage vs loading entire codebase
@@ -322,8 +353,8 @@ ContextScout discovers relevant patterns. Agents load YOUR standards before gene
 **🔁 Repeatable**  
 Same patterns → Same results. Configure once, use forever. Perfect for teams.
 
-**⚡ Token Efficient (80% Reduction)**  
-MVI principle: Only load what's needed. 8,000 tokens → 750 tokens. Massive cost savings.
+**⚡ Token Conscious**  
+MVI principle: only load what's needed. Savings depend on your project; we have not published measurements yet.
 
 **✋ Human-Guided**  
 Agents propose plans, you approve before execution. Quality gates prevent mistakes. No auto-execution surprises.
@@ -339,8 +370,9 @@ Before generating code, ContextScout discovers relevant patterns from your conte
 **2. Editable Agents - Full Control**  
 Unlike Cursor/Copilot where behavior is baked into plugins, OAC agents are markdown files. Edit them directly:
 ```bash
-nano .opencode/agent/core/opencoder.md  # local project install
-# Or: nano ~/.config/opencode/agent/core/opencoder.md  # global install
+nano .opencode/agent/opencoder.md  # local project install (OpenCode v2)
+# Or: nano ~/.config/opencode/agent/opencoder.md  # global install
+# On a v1 install the file is nested: .opencode/agent/core/opencoder.md
 # Add project rules, change workflows, customize behavior
 ```
 
@@ -352,21 +384,19 @@ Working with external libraries? ExternalScout fetches current documentation:
 - Supports frameworks, APIs, libraries, and more
 
 **4. Approval Gates - No Surprises**  
-Agents ALWAYS request approval before:
+The core agents are instructed to ask for approval before:
 - Writing/editing files
 - Running bash commands
 - Delegating to subagents
 - Making any changes
 
-You stay in control. Review plans before execution.
+This is prompt guidance, not enforcement: what actually prompts you depends on your host's permission settings. An enforced intent gate is planned for v1.4.
 
 **5. MVI Principle - Token Efficiency**  
-Files designed for quick loading:
-- Concepts: <100 lines
-- Guides: <150 lines
-- Examples: <80 lines
-
-Result: Lower token usage vs loading entire codebase.
+Files are written to be short and quick to load (authoring guidelines, not guarantees):
+- Concepts: aim for under 100 lines
+- Guides: aim for under 150 lines
+- Examples: aim for under 80 lines
 
 **6. Team Patterns - Repeatable Results**  
 Store patterns in `.opencode/context/project/`. Commit to repo. Entire team uses same standards. New developers inherit patterns automatically.
@@ -380,7 +410,7 @@ Store patterns in `.opencode/context/project/`. Commit to repo. Entire team uses
 **Best for:** Learning the system, general tasks, quick implementations
 
 ```bash
-opencode --agent OpenAgent
+opencode --agent openagent
 > "Create a user authentication system"            # Building features
 > "How do I implement authentication in Next.js?"  # Questions
 > "Create a README for this project"               # Documentation
@@ -400,7 +430,7 @@ opencode --agent OpenAgent
 **Best for:** Complex features, multi-file refactoring, production systems
 
 ```bash
-opencode --agent OpenCoder
+opencode --agent opencoder
 > "Create a user authentication system"                 # Full-stack features
 > "Refactor this codebase to use dependency injection"  # Multi-file refactoring
 > "Add real-time notifications with WebSockets"         # Complex implementations
@@ -466,7 +496,7 @@ Your coding standards automatically loaded by agents:
 - **Project-specific** - Your team's patterns
 
 **Key features:**
-- 80% token reduction via MVI
+- Short files, loaded only when needed (MVI)
 - Smart discovery via ContextScout
 - Lazy loading (only what's needed)
 - Team-ready (commit to repo)
@@ -506,7 +536,7 @@ ContextScout discovers context files using a **local-first** approach:
 ## 💻 Example Workflow
 
 ```bash
-opencode --agent OpenCoder
+opencode --agent opencoder
 > "Create a user dashboard with authentication and profile settings"
 ```
 
@@ -589,8 +619,9 @@ Approve? [y/n]
 
 Edit agent files directly:
 ```bash
-nano .opencode/agent/core/opencoder.md  # local project install
-# Or: nano ~/.config/opencode/agent/core/opencoder.md  # global install
+nano .opencode/agent/opencoder.md  # local project install (OpenCode v2)
+# Or: nano ~/.config/opencode/agent/opencoder.md  # global install
+# On a v1 install the file is nested: .opencode/agent/core/opencoder.md
 ```
 
 Change the model in the frontmatter:
@@ -696,7 +727,7 @@ A: No, but it's highly recommended. Without context, agents write generic code. 
 A: Yes, it works out of the box. But you'll get the most value after adding your patterns (10-15 minutes with `/add-context`).
 
 **Q: What models are supported?**
-A: Any model from any provider (Claude, GPT, Gemini, MiniMax, local models). No vendor lock-in.
+A: Whatever your host supports. On OpenCode, any provider it is configured for (Claude, GPT, Gemini, MiniMax, local models); on Claude Code, Claude models. The prompts are not tested equally on every model.
 
 ### For Teams
 
@@ -712,16 +743,16 @@ A: Yes! Use project-specific context (`.opencode/` in project root) to override 
 ### Technical
 
 **Q: How does token efficiency work?**  
-A: MVI principle: Only load what's needed, when it's needed. Context files <200 lines (scannable in 30s). ContextScout discovers relevant patterns. Lazy loading prevents context bloat. 80% of tasks use isolation context (minimal overhead).
+A: MVI principle: only load what's needed, when it's needed. Context files are kept short, ContextScout finds the relevant ones, and lazy loading avoids loading everything up front. We have not published token measurements yet.
 
 **Q: What's ContextScout?**  
 A: Smart pattern discovery agent. Finds relevant context files before code generation. Ranks by priority. Prevents wasted work.
 
 **Q: Can I edit agent behavior?**  
-A: Yes! Agents are markdown files. Edit them directly: `nano .opencode/agent/core/opencoder.md` (local) or `nano ~/.config/opencode/agent/core/opencoder.md` (global)
+A: Yes! Agents are markdown files. Edit them directly: `nano .opencode/agent/opencoder.md` (local) or `nano ~/.config/opencode/agent/opencoder.md` (global); on an OpenCode v1 install the file is `.opencode/agent/core/opencoder.md`. This edits your installed copy; if you work on this repo itself, edit `agent-library/` instead (see "Where the built files live")
 
 **Q: How do approval gates work?**  
-A: Agents ALWAYS request approval before execution (write/edit/bash). You review plans before implementation. No surprises.
+A: The core agents' prompts tell them to propose a plan and ask for approval before they write files or run commands. This is prompt guidance, not enforcement: what actually needs approval depends on your host's permission settings. An enforced intent gate is planned for v1.4.
 
 **Q: How do I update my context?**  
 A: Run `/add-context --update` anytime your patterns change. Agents automatically use updated patterns.
@@ -795,6 +826,16 @@ We welcome contributions!
 4. Ensure security best practices are followed
 
 See: [Contributing Guide](docs/contributing/CONTRIBUTING.md) • [Code of Conduct](docs/contributing/CODE_OF_CONDUCT.md)
+
+### Working on this repo
+
+The minimum is one page: [agent-library/README.md](agent-library/README.md), which has the five-step loop (edit, `make build-canonical`, review, `make check-core`, commit the generated files with the source). [CORE.md](docs/architecture/CORE.md) (architecture), [CONTRIBUTING](docs/contributing/CONTRIBUTING.md) and [DEVELOPMENT](docs/contributing/DEVELOPMENT.md) (tool versions, setup) are optional depth; the [docs map](docs/README.md) lists the rest.
+
+### Where the built files live
+
+Agents are written once in `agent-library/agents/**`. `oac build` (`make build-canonical`) compiles them for every tool into **`built-ai-configs/`**, one folder per tool: `built-ai-configs/opencode/`, `built-ai-configs/opencode-v1/` and `built-ai-configs/claude-code/`. `built-ai-configs/README.md` lists what's inside. To see what a tool gets, look there.
+
+`.opencode/agent/` and `plugins/claude-code/agents/` are byte-identical copies of `built-ai-configs/`, kept because installers and the Claude marketplace read those paths. Don't edit `built-ai-configs/` or these copies: CI fails on any hand edit. Edit `agent-library/agents/**` and run `make build-canonical` instead.
 
 ---
 

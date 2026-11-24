@@ -75,4 +75,4 @@ npm run eval:sdk -- --subagent=contextscout --delegate
 ## Related
 
 - `guides/testing-subagents.md` - Full testing guide
-- `guides/adding-agent.md` - Creating new agents
+- `guides/authoring-agents.md` - Creating new agents

@@ -1,13 +1,5 @@
 ---
 description: Validate context file dependencies across agents and registry
-tags:
-  - registry
-  - validation
-  - context
-  - dependencies
-  - openagents
-dependencies:
-  - command:analyze-patterns
 ---
 
 # Check Context Dependencies
@@ -23,7 +15,7 @@ dependencies:
 Validates consistency between:
 1. **Actual usage** - Context files referenced in agent prompts
 2. **Declared dependencies** - Dependencies in agent frontmatter
-3. **Registry entries** - Dependencies in registry.json
+3. **Registry entries** - Dependencies in built-ai-configs/registry/registry.json
 
 **Identifies**:
 - ✅ Missing dependency declarations (agents use context but don't declare it)
@@ -40,7 +32,7 @@ Validates consistency between:
 /check-context-deps
 
 # Analyze specific agent
-/check-context-deps contextscout
+/check-context-deps context-scout
 
 # Auto-fix missing dependencies
 /check-context-deps --fix
@@ -49,7 +41,7 @@ Validates consistency between:
 /check-context-deps --verbose
 
 # Combine flags
-/check-context-deps contextscout --verbose
+/check-context-deps context-scout --verbose
 ```
 
 ---
@@ -77,11 +69,11 @@ Validates consistency between:
   </stage>
   
   <stage id="2" name="CheckRegistry" required="true">
-    For each agent found, check registry.json:
+    For each agent found, check built-ai-configs/registry/registry.json:
     
     ```bash
-    jq '.components.agents[] | select(.id == "AGENT_ID") | .dependencies' registry.json
-    jq '.components.subagents[] | select(.id == "AGENT_ID") | .dependencies' registry.json
+    jq '.components.agents[] | select(.id == "AGENT_ID") | .dependencies' built-ai-configs/registry/registry.json
+    jq '.components.subagents[] | select(.id == "AGENT_ID") | .dependencies' built-ai-configs/registry/registry.json
     ```
     
     **Verify**:
@@ -100,7 +92,7 @@ Validates consistency between:
     
     **Check registry**:
     ```bash
-    jq '.components.contexts[] | select(.id == "core/standards/code")' registry.json
+    jq '.components.contexts[] | select(.id == "core/standards/code")' built-ai-configs/registry/registry.json
     ```
     
     **Identify issues**:
@@ -152,7 +144,7 @@ Validates consistency between:
     ```yaml
     dependencies:
       - subagent:task-manager
-      - subagent:documentation
+      - subagent:doc-writer
       - context:core/standards/code
       - context:core/standards/docs
       - context:core/standards/tests
@@ -258,12 +250,12 @@ grep -rn "^\s*-\s*context:" .opencode/agent/ .opencode/command/
 
 **Check if context file is in registry**:
 ```bash
-jq '.components.contexts[] | select(.id == "core/standards/code")' registry.json
+jq '.components.contexts[] | select(.id == "core/standards/code")' built-ai-configs/registry/registry.json
 ```
 
 **Get agent dependencies**:
 ```bash
-jq '.components.agents[] | select(.id == "opencoder") | .dependencies[]?' registry.json
+jq '.components.agents[] | select(.id == "opencoder") | .dependencies[]?' built-ai-configs/registry/registry.json
 ```
 
 ---
@@ -273,8 +265,8 @@ jq '.components.agents[] | select(.id == "opencoder") | .dependencies[]?' regist
 This command delegates to an analysis agent to perform the work:
 
 ```javascript
-task(
-  subagent_type="PatternAnalyst",
+subagent(
+  agent="PatternAnalyst",
   description="Analyze context dependencies",
   prompt=`
     Analyze context file usage across all agents in this repository.
@@ -292,12 +284,12 @@ task(
     3. For each agent file found:
        - Extract agent ID from frontmatter
        - List all context files it references
-       - Check registry.json for declared dependencies
+       - Check built-ai-configs/registry/registry.json for declared dependencies
        - Identify missing dependency declarations
     
     4. For each context file in .opencode/context/core/:
        - Count how many agents reference it
-       - Check if it exists in registry.json
+       - Check if it exists in built-ai-configs/registry/registry.json
        - Identify unused context files
     
     5. Generate a comprehensive report showing:
@@ -361,12 +353,12 @@ Run /check-context-deps --fix to auto-update frontmatter
 ### Example 2: Analyze Specific Agent
 
 ```bash
-/check-context-deps contextscout
+/check-context-deps context-scout
 ```
 
 **Output**:
 ```
-Analyzing agent: contextscout
+Analyzing agent: context-scout
 
 Context files referenced:
 ✓ .opencode/context/core/context-system.md (1 reference)

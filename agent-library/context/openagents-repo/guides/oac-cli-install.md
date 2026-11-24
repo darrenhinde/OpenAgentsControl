@@ -1,0 +1,65 @@
+<!-- Context: openagents-repo/guides | Priority: high | Version: 1.0 | Updated: 2026-09-02 -->
+
+# Guide: The `oac` CLI (install, profiles, update)
+
+**Purpose**: How end users install and manage OAC with the npm CLI, and how that connects to the canonical `agent-library/` build maintainers run.
+
+---
+
+## Commands (packages/cli/src/commands)
+
+| Command | What it does | Key flags |
+|---------|--------------|-----------|
+| `oac init` | Install a profile into `./.opencode/`, write `.oac/manifest.json` and `.oac/config.json`. Requires a `package.json` or `.git` in cwd. | `--profile <id>` (default `essential`), `--opencode v1|v2`, `--context-only`, `--list-profiles`, `--dry-run`, `--yolo`, `--verbose` |
+| `oac add <type:id>` | Copy one registry component (and every file in its `files[]`) from the bundle and record it in the manifest. No argument lists what is available. | `--force`, `--dry-run` |
+| `oac remove <type:id>` | Delete an installed component and drop it from the manifest. | `--dry-run` |
+| `oac update` | Re-copy every OAC-owned file whose on-disk sha256 still matches the manifest; skip files the user changed. Files no longer shipped are left on disk and dropped from the manifest with a warning. | `--check`, `--dry-run`, `--yolo` (overwrite after backing up to `.oac/backups/<timestamp>/`), `-p, --profile <id>`, `--opencode v1|v2` (switch flavor; leftovers of the old flavor are removed, edited ones backed up) |
+| `oac apply claude` | Write `.claude/agents/<name>.md`: the compiled Claude agents (same files as `plugins/claude-code/agents`) for each installed agent that has one; agents without a Claude build fall back to a lossy conversion with a warning. Claude Code is the only apply target. | `--dry-run`, `--yolo`, `--all`, `--verbose` |
+| `oac doctor` | Health checks: Node ≥ 20, config, manifest, tracked files present, sha drift, detected tools, npm latest. Exit 0 with OK on a correct fresh install. | `--verbose`, `--json` |
+| `oac list` / `oac status` | Manifest contents (flagging locally modified files) / one-screen summary. | `--type`, `--verbose` |
+| `oac build` | **Maintainer only.** Regenerate the tool trees from `agent-library/agents/`. Needs the repo, not the npm package. | `--check`, `--dry-run`, `--strict`, `--target` |
+
+All commands are offline except `doctor`'s npm-latest check. Runtime is plain Node; Bun is only used to bundle the CLI.
+
+## Profiles
+
+Two layers, both canonical under `agent-library/profiles/`:
+
+- **Context profiles** (`agent-library/profiles/context/<id>.json`): `{ id, contexts[] }`. Each entry is a registry context id or a directory glob such as `core/*`. Examples: `core`, `essentials`, `engineering`, `business`, `meta-authoring`.
+- **System profiles** (`agent-library/profiles/system/<id>.json`): `{ id, agents[], contextProfiles[], commands[], skills[], tools[], plugins[], config[] }`. These are the installable tiers: `essential`, `developer`, `business`, `full`, `advanced`. They name context profiles, never raw context ids.
+
+`oac build` resolves system → context profiles → registry components and emits the result as `built-ai-configs/registry/registry.json → profiles.<id>.components`, a flat list of `type:id` references. **The CLI reads that generated map**; it never parses `agent-library/` at install time.
+
+`oac init --profile <id>` resolves each `type:id` in the profile to its registry entry and copies `path` plus `files[]`. `--context-only` keeps only the `context:` references. `--profile full` is the previous "install everything" behaviour.
+
+Adding an agent to a tier means editing the system profile JSON and rebuilding. Every new agent must land in at least one profile or users cannot install it .
+
+## Manifest: how local edits are protected
+
+`.oac/manifest.json` records, per installed file, its sha256 at install time, its kind (agent / context / skill / command / tool / config), and source. `oac update` compares disk to manifest:
+
+| Disk vs manifest | Action |
+|------------------|--------|
+| Same hash | Overwrite with the new bundled version |
+| Different hash | Skip and report; `--yolo` backs up then overwrites |
+| Not in bundle any more | Leave on disk, remove from manifest, warn |
+
+`oac init` on a project that already has a manifest takes the same path, so re-running it never clobbers edited files. `oac add` and `oac remove` keep the manifest in sync; `oac list` shows which files differ from install.
+
+## Maintainer loop (repo only)
+
+1. Edit the canonical source: `agent-library/agents/**` (agent markdown with the `oac:` block) or `agent-library/profiles/**`.
+2. `make build-canonical` (runs `oac build`). It rewrites `built-ai-configs/opencode/agent/**`, `built-ai-configs/opencode-v1/agent/**` and `built-ai-configs/claude-code/agents/**`, their byte-identical mirrors `.opencode/agent/**` and `plugins/claude-code/agents/**`, the agent/subagent/profile sections of `built-ai-configs/registry/registry.json`, and the ledger `.oac/build-manifest.json`, all in place. The Claude Code agents take their frontmatter from `oac.overrides.claude-code` and their Claude-only body text from `<!-- oac:only claude-code -->` host blocks in the same `agent-library/agents/**` file; never hand-edit `plugins/claude-code/agents/**`.
+3. Commit the regenerated output together with the source change.
+4. CI runs `scripts/validation/check-build-drift.sh`; a hand edit to any generated file turns the build red.
+
+`built-ai-configs/` is the one folder to browse for what each tool gets (D-018); `built-ai-configs/README.md` indexes it. The mirrors exist only because installers and the Claude marketplace still read the old live paths. Edit a mirror and the drift gate fails, the same as editing `built-ai-configs/`.
+
+The context library is canonical too: `agent-library/context/**` is copied verbatim to `.opencode/context/**` (the one installed location), and `components.contexts` is generated from `agent-library/context/components.json` (`guides/updating-registry.md`). Still hand-authored (no canonical source yet): `.opencode/tool/**` and the v1-only plugins; register those by hand.
+
+## Related
+
+- `standards/agent-frontmatter.md` — what goes in the `oac:` block
+- `core-concepts/canonical-build.md` — build flow from `agent-library/` to registry
+- `guides/authoring-agents.md` — author flow
+- `docs/architecture/canonical-refactor/04-cli-build-distribution.md` — CLI and build spec

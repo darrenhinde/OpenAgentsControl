@@ -1,5 +1,6 @@
 import path from "node:path";
-import { stat } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readdir, rmdir, rm, stat } from "node:fs/promises";
+import { DEFAULT_FLAVOR, toDestPath, type OpenCodeFlavor } from "./flavor.js";
 import { computeFileHash, hashesMatch } from "./sha256.js";
 import {
   type ManifestFile,
@@ -9,7 +10,9 @@ import {
   readManifest,
   createEmptyManifest,
 } from "./manifest.js";
-import { listBundledFiles, getBundledFilePath, classifyBundledFile } from "./bundled.js";
+import { listBundledFiles, getBundledFilePath, classifyBundledFile, toManifestType } from "./bundled.js";
+import { filesForComponent, isInstallablePath, loadRegistry, type Registry, type RegistryComponent } from "./registry.js";
+import { AGENT_DIR, findRetired, findSuperseded, isSafeToRemove, looksLikeBundledCopy, matchesRetiredHash, retiredIndex, supersededIndex } from "./superseded.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,6 +27,21 @@ export type InstallOptions = {
   yolo: boolean;
   /** When true: emit verbose log lines. */
   verbose: boolean;
+  /** Ownership recorded for files copied through this synchronization path. */
+  source?: FileEntry["source"];
+  /** Which OpenCode build the bundle is read as (default v2). `updateFiles` only. */
+  flavor?: OpenCodeFlavor;
+  /**
+   * Remove OAC-owned files that belong to the other layout (nested v1 agents, tools, plugins).
+   * Set only when an install is deliberately moved between flavors. `updateFiles` only.
+   */
+  pruneStale?: boolean;
+  /**
+   * With `pruneStale`: the flavor being left. Files its bundle ships that sit in a flavor-sensitive
+   * directory, are absent from the new bundle and are not in the manifest (for example agents an
+   * `install.sh` run placed that the CLI's profile does not know) are pruned too. `updateFiles` only.
+   */
+  previousFlavor?: OpenCodeFlavor;
 };
 
 export type InstallResult = {
@@ -31,12 +49,21 @@ export type InstallResult = {
   installed: string[];
   /** Relative paths of files updated (were untouched by user). */
   updated: string[];
+  /** Relative paths of managed files whose content already matches the bundle (nothing written). */
+  unchanged: string[];
   /** Relative paths of files skipped because user modified them. */
   skipped: string[];
   /** Relative paths of files backed up before yolo overwrite. */
   backed_up: string[];
   /** Relative paths removed from manifest (no longer in bundle). */
   removed_from_manifest: string[];
+  /** Relative paths of OAC-owned files removed because they belong to the other layout. */
+  pruned: string[];
+  /**
+   * Relative paths of installed files removed because a renamed or moved component replaced them
+   * (an edited one was copied to `.oac/backups/` first and is listed in `backed_up`).
+   */
+  superseded: string[];
   /** Human-readable error messages for any failures. */
   errors: string[];
 };
@@ -46,9 +73,12 @@ export type InstallResult = {
 const EMPTY_RESULT: InstallResult = {
   installed: [],
   updated: [],
+  unchanged: [],
   skipped: [],
   backed_up: [],
   removed_from_manifest: [],
+  pruned: [],
+  superseded: [],
   errors: [],
 };
 
@@ -72,12 +102,15 @@ const mergeResult = (
 ): InstallResult => ({
   installed: [...base.installed, ...(patch.installed ?? [])],
   updated: [...base.updated, ...(patch.updated ?? [])],
+  unchanged: [...base.unchanged, ...(patch.unchanged ?? [])],
   skipped: [...base.skipped, ...(patch.skipped ?? [])],
   backed_up: [...base.backed_up, ...(patch.backed_up ?? [])],
   removed_from_manifest: [
     ...base.removed_from_manifest,
     ...(patch.removed_from_manifest ?? []),
   ],
+  pruned: [...base.pruned, ...(patch.pruned ?? [])],
+  superseded: [...base.superseded, ...(patch.superseded ?? [])],
   errors: [...base.errors, ...(patch.errors ?? [])],
 });
 
@@ -103,7 +136,18 @@ export async function installFile(
     log(options, `[dry-run] would copy: ${sourcePath} → ${destPath}`);
     return;
   }
-  await Bun.write(destPath, Bun.file(sourcePath));
+  await copyFileCreatingDirs(sourcePath, destPath);
+}
+
+/**
+ * Copies `src` to `dest`, creating `dest`'s parent directories first.
+ *
+ * `fs.copyFile` fails when the destination directory does not exist, so the
+ * mkdir is required — every caller here writes into a tree that may not exist yet.
+ */
+async function copyFileCreatingDirs(src: string, dest: string): Promise<void> {
+  await mkdir(path.dirname(dest), { recursive: true });
+  await copyFile(src, dest);
 }
 
 /**
@@ -117,7 +161,7 @@ export async function backupFile(
   const timestamp = buildTimestamp();
   const relativePath = path.relative(projectRoot, filePath);
   const backupPath = buildBackupPath(projectRoot, timestamp, relativePath);
-  await Bun.write(backupPath, Bun.file(filePath));
+  await copyFileCreatingDirs(filePath, backupPath);
   return backupPath;
 }
 
@@ -126,6 +170,8 @@ export async function backupFile(
 type FileDecision =
   | { action: "install" }
   | { action: "update" }
+  | { action: "protect"; observedHash: string }
+  | { action: "adopt"; hash: string }
   | { action: "skip"; reason: string }
   | { action: "yolo-overwrite"; backupNeeded: true };
 
@@ -138,16 +184,35 @@ async function decideFileAction(
   manifest: ManifestFile | null,
   destPath: string,
   options: InstallOptions,
+  sourcePath: string,
 ): Promise<FileDecision> {
   const manifestEntry = manifest?.files[relativePath];
+  const diskExists = await stat(destPath).then((s) => s.isFile()).catch(() => false);
 
-  // File not in manifest → brand new, always install
+  // An unmanaged tree belongs to the user. Record, but never overwrite, its files.
   if (manifestEntry === undefined) {
-    return { action: "install" };
+    if (!diskExists) return { action: "install" };
+    // Byte-identical to the bundle (for example placed by install.sh): OAC's own file, not the user's.
+    const observedHash = await computeFileHash(destPath);
+    if (hashesMatch(observedHash, await computeFileHash(sourcePath))) return { action: "adopt", hash: observedHash };
+    if (options.yolo) return { action: "yolo-overwrite", backupNeeded: true };
+    return { action: "protect", observedHash };
   }
 
-  // File is in manifest — check if user modified it
-  const diskExists = await Bun.file(destPath).exists();
+  if (manifestEntry.protected === true) {
+    // Heals a manifest written before adoption existed: identical to the bundle means not custom.
+    if (diskExists) {
+      const observedHash = await computeFileHash(destPath);
+      if (hashesMatch(observedHash, await computeFileHash(sourcePath))) return { action: "adopt", hash: observedHash };
+    }
+    if (options.yolo && diskExists) return { action: "yolo-overwrite", backupNeeded: true };
+    return {
+      action: "skip",
+      reason: `${relativePath} existed before OAC managed it — skipping (use --yolo to overwrite)`,
+    };
+  }
+
+  // File is in the manifest and was installed by OAC.
   if (!diskExists) {
     // File was deleted by user — treat as new install
     return { action: "install" };
@@ -194,7 +259,7 @@ async function processOneFile(
 
   const decisionResult = await (async () => {
     try {
-      return { ok: true as const, value: await decideFileAction(relativePath, manifest, destPath, options) };
+      return { ok: true as const, value: await decideFileAction(relativePath, manifest, destPath, options, sourcePath) };
     } catch (err) {
       return { ok: false as const, msg: err instanceof Error ? err.message : String(err) };
     }
@@ -208,7 +273,8 @@ async function processOneFile(
   const decision = decisionResult.value;
 
   const now = new Date().toISOString();
-  const fileType = classifyBundledFile(relativePath);
+  const fileType = toManifestType(classifyBundledFile(relativePath));
+  const managedSource = options.source ?? "bundled";
 
   try {
     if (decision.action === "install") {
@@ -218,18 +284,50 @@ async function processOneFile(
       const entry: FileEntry = {
         sha256,
         type: fileType,
-        source: "bundled",
+        source: managedSource,
         installedAt: now,
       };
       return { patch: { installed: [relativePath] }, entry };
     }
 
+    if (decision.action === "adopt") {
+      log(options, `adopt: ${relativePath} already matches the bundle`);
+      const existingEntry = manifest?.files[relativePath];
+      const entry: FileEntry = {
+        ...(existingEntry ?? {}),
+        sha256: decision.hash,
+        type: fileType,
+        source: managedSource,
+        installedAt: existingEntry?.installedAt ?? now,
+        protected: false,
+      };
+      return { patch: { unchanged: [relativePath] }, entry };
+    }
+
+    if (decision.action === "protect") {
+      log(options, `skip: ${relativePath} existed before OAC managed it`);
+      const entry: FileEntry = {
+        sha256: decision.observedHash,
+        type: fileType,
+        source: "custom",
+        installedAt: now,
+        protected: true,
+      };
+      return { patch: { skipped: [relativePath] }, entry };
+    }
+
     if (decision.action === "update") {
+      // Untouched by the user and already identical to the bundle: nothing to write or report.
+      if (hashesMatch(await computeFileHash(sourcePath), await computeFileHash(destPath))) {
+        return { patch: { unchanged: [relativePath] }, entry: manifest?.files[relativePath] ?? null };
+      }
       log(options, `update: ${relativePath}`);
       await installFile(sourcePath, destPath, options);
       const sha256 = options.dryRun ? "" : await computeFileHash(destPath);
-      const existingEntry = manifest!.files[relativePath]!;
-      const entry: FileEntry = { ...existingEntry, sha256 };
+      const existingEntry = manifest?.files[relativePath];
+      const entry: FileEntry = existingEntry === undefined
+        ? { sha256, type: fileType, source: managedSource, installedAt: now }
+        : { ...existingEntry, sha256, protected: false };
       return { patch: { updated: [relativePath] }, entry };
     }
 
@@ -237,14 +335,16 @@ async function processOneFile(
       log(options, `yolo: backing up and overwriting ${relativePath}`);
       const backupPath = buildBackupPath(options.projectRoot, timestamp, relativePath);
       if (!options.dryRun) {
-        await Bun.write(backupPath, Bun.file(destPath));
+        await copyFileCreatingDirs(destPath, backupPath);
       } else {
         log(options, `[dry-run] would backup: ${destPath} → ${backupPath}`);
       }
       await installFile(sourcePath, destPath, options);
       const sha256 = options.dryRun ? "" : await computeFileHash(destPath);
-      const existingEntry = manifest!.files[relativePath]!;
-      const entry: FileEntry = { ...existingEntry, sha256 };
+      const existingEntry = manifest?.files[relativePath];
+      const entry: FileEntry = existingEntry === undefined
+        ? { sha256, type: fileType, source: managedSource, installedAt: now, protected: false }
+        : { ...existingEntry, sha256, source: managedSource, protected: false };
       return {
         patch: { backed_up: [backupPath], updated: [relativePath] },
         entry,
@@ -269,8 +369,8 @@ async function processOneFile(
 
 /**
  * Installs a list of files from the bundle into the project root.
- * Does NOT consult the manifest — treats every file as new.
- * Used by `oac init` for a fresh install.
+ * Used by `oac init` for a fresh install. Existing destination files are treated as
+ * user-owned and recorded as protected unless --yolo is explicitly requested.
  *
  * Does NOT write the manifest — caller is responsible.
  */
@@ -278,51 +378,61 @@ export async function installFiles(
   files: string[],
   options: InstallOptions,
 ): Promise<{ result: InstallResult; updatedManifest: ManifestFile }> {
-  const now = new Date().toISOString();
+  return syncFiles(files, null, options);
+}
 
-  type FileOutcome =
-    | { ok: true; relativePath: string; entry: FileEntry }
-    | { ok: false; relativePath: string; msg: string };
+/**
+ * Reconciles an explicit list of bundled files against the manifest: new files are
+ * installed, untouched files are refreshed, user-modified files are skipped (or backed up
+ * and overwritten with --yolo). Entries already in the manifest but not in `files` are left
+ * alone — this is the merge step `oac init` re-runs and `oac update` share.
+ *
+ * Does NOT write the manifest — caller is responsible.
+ */
+export async function syncFiles(
+  files: string[],
+  manifest: ManifestFile | null,
+  options: InstallOptions,
+): Promise<{ result: InstallResult; updatedManifest: ManifestFile }> {
+  const timestamp = buildTimestamp();
+  const rejectedPaths = files.filter((relativePath) => !isInstallablePath(relativePath));
+  const installableFiles = files.filter(isInstallablePath);
 
   const outcomes = await Promise.all(
-    files.map(async (relativePath): Promise<FileOutcome> => {
-      const sourcePath = getBundledFilePath(options.packageRoot, relativePath);
+    installableFiles.map(async (sourceRelative) => {
+      // The manifest, backups and user-facing messages all speak in DESTINATION paths: a file
+      // from the v1 source folder is recorded where it lands, so the folder name never leaks.
+      const relativePath = toDestPath(sourceRelative);
+      const sourcePath = getBundledFilePath(options.packageRoot, sourceRelative);
       const destPath = path.join(options.projectRoot, relativePath);
-      log(options, `install: ${relativePath}`);
-      try {
-        await installFile(sourcePath, destPath, options);
-        const sha256 = options.dryRun ? "" : await computeFileHash(destPath);
-        const entry: FileEntry = {
-          sha256,
-          type: classifyBundledFile(relativePath),
-          source: "bundled",
-          installedAt: now,
-        };
-        return { ok: true, relativePath, entry };
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        return { ok: false, relativePath, msg };
-      }
+      const { patch, entry } = await processOneFile({
+        relativePath,
+        sourcePath,
+        destPath,
+        manifest,
+        options,
+        timestamp,
+      });
+      return { relativePath, patch, entry };
     }),
   );
 
-  const { result, updatedManifest } = outcomes.reduce(
-    (acc, outcome) => {
-      if (outcome.ok) {
-        return {
-          result: mergeResult(acc.result, { installed: [outcome.relativePath] }),
-          updatedManifest: addFileToManifest(acc.updatedManifest, outcome.relativePath, outcome.entry),
-        };
-      }
-      return {
-        result: mergeResult(acc.result, { errors: [`${outcome.relativePath}: ${outcome.msg}`] }),
-        updatedManifest: acc.updatedManifest,
-      };
+  return outcomes.reduce(
+    (acc, { relativePath, patch, entry }) => ({
+      result: mergeResult(acc.result, patch),
+      updatedManifest:
+        entry !== null
+          ? addFileToManifest(acc.updatedManifest, relativePath, entry)
+          : acc.updatedManifest,
+    }),
+    {
+      result: {
+        ...EMPTY_RESULT,
+        errors: rejectedPaths.map((relativePath) => `Refusing unsafe destination path: ${relativePath}`),
+      } as InstallResult,
+      updatedManifest: manifest ?? createEmptyManifest("0.0.0"),
     },
-    { result: { ...EMPTY_RESULT }, updatedManifest: createEmptyManifest("0.0.0") },
   );
-
-  return { result, updatedManifest };
 }
 
 /**
@@ -340,63 +450,336 @@ export async function installFiles(
  */
 export async function updateFiles(
   options: InstallOptions,
+  eligibleFiles?: readonly string[],
 ): Promise<{ result: InstallResult; updatedManifest: ManifestFile }> {
   const manifest = await readManifest(options.projectRoot);
-  const bundledFiles = await listBundledFiles(options.packageRoot);
+  const bundledFiles = await listBundledFiles(options.packageRoot, options.flavor ?? DEFAULT_FLAVOR);
+  const isScopeRestricted = eligibleFiles !== undefined;
+  const eligibleSet = new Set(eligibleFiles ?? bundledFiles);
+  // A tracked file that a renamed or moved component replaced carries its successor into scope:
+  // a project updated by tracked files alone would otherwise never receive the new file.
+  const registry = await loadRegistry(options.packageRoot, options.flavor ?? DEFAULT_FLAVOR).catch(() => null);
+  if (isScopeRestricted && registry !== null && manifest !== null) {
+    const index = supersededIndex(registry);
+    for (const tracked of Object.keys(manifest.files)) {
+      const successor = index.get(tracked);
+      if (successor !== undefined && manifest.files[tracked]?.protected !== true) {
+        for (const file of filesForComponent(successor.component)) eligibleSet.add(file);
+      }
+    }
+  }
+  const filesToSync = bundledFiles.filter((file) => eligibleSet.has(file));
+
+  // Phase 1: reconcile only the caller-authorized portion of the bundle.
+  let phase1 = await syncFiles(filesToSync, manifest, options).then(
+    ({ result, updatedManifest }) => ({ result, workingManifest: updatedManifest }),
+  );
+
+  // Phase 1b: retire installed files that renamed or moved components replaced. Before phase 2,
+  // so they are removed (with a backup when edited) instead of reported as "no longer maintained".
+  const retired = registry === null
+    ? null
+    : await retireSuperseded(options, registry, phase1.workingManifest, plannedDestinations(phase1.result));
+  if (retired !== null) {
+    phase1.result = mergeResult(phase1.result, retired.patch);
+    phase1.workingManifest = retired.updatedManifest;
+  }
+
+  // Phase 2: handle files in manifest that are no longer in the bundle. The manifest is keyed by
+  // destination path, so the bundle is compared as destinations too.
+  const bundledSet = new Set(filesToSync.map(toDestPath));
+  const wholeBundle = new Set(bundledFiles.map(toDestPath));
+  const eligibleDest = new Set([...eligibleSet].map(toDestPath));
+  const timestamp = buildTimestamp();
+  let acc = { result: phase1.result, updatedManifest: phase1.workingManifest };
+  // Hashes of the bundle being left, so a file tracked as custom that is still byte-identical to it
+  // (not an edit of the user's) can be pruned like any other previous-flavor file.
+  const previousHashes = new Map<string, string>();
+  if (options.pruneStale === true && options.previousFlavor !== undefined && options.previousFlavor !== (options.flavor ?? DEFAULT_FLAVOR)) {
+    for (const source of await listBundledFiles(options.packageRoot, options.previousFlavor)) {
+      previousHashes.set(toDestPath(source), await computeFileHash(getBundledFilePath(options.packageRoot, source)));
+    }
+  }
+
+  for (const trackedPath of Object.keys(phase1.workingManifest.files)) {
+    if (bundledSet.has(trackedPath)) continue;
+
+    let entry = phase1.workingManifest.files[trackedPath]!;
+    if (options.pruneStale === true && (entry.source === "custom" || entry.protected === true)) {
+      const previous = previousHashes.get(trackedPath);
+      const absolute = path.join(options.projectRoot, trackedPath);
+      if (previous !== undefined && (await stat(absolute).then((s) => s.isFile()).catch(() => false)) &&
+          hashesMatch(await computeFileHash(absolute), previous)) {
+        entry = { ...entry, source: "bundled", protected: false, sha256: previous };
+      }
+    }
+    if (options.pruneStale === true && isPrunable(trackedPath, entry, wholeBundle)) {
+      const patch = await pruneFile(trackedPath, entry, options, timestamp);
+      acc = {
+        result: mergeResult(acc.result, patch),
+        updatedManifest: removeFileFromManifest(acc.updatedManifest, trackedPath),
+      };
+      continue;
+    }
+
+    // An unscoped update owns every bundled path, so it retains the historic removal behavior.
+    // A profile-scoped update must retain entries belonging to another selected (or previously
+    // selected) profile.
+    if (!isScopeRestricted || eligibleDest.has(trackedPath)) {
+      process.stdout.write(
+        `[oac] warn: "${trackedPath}" is no longer maintained by OAC — your copy is untouched\n`,
+      );
+      acc = {
+        result: mergeResult(acc.result, { removed_from_manifest: [trackedPath] }),
+        updatedManifest: removeFileFromManifest(acc.updatedManifest, trackedPath),
+      };
+    }
+  }
+
+  if (options.pruneStale === true && options.previousFlavor !== undefined && options.previousFlavor !== (options.flavor ?? DEFAULT_FLAVOR)) {
+    const tracked = new Set(Object.keys(manifest?.files ?? {}));
+    const previous = await listBundledFiles(options.packageRoot, options.previousFlavor);
+    for (const source of previous) {
+      const dest = toDestPath(source);
+      if (wholeBundle.has(dest) || tracked.has(dest) || !isInstallablePath(source)) continue;
+      if (!FLAVOR_SENSITIVE_PREFIXES.some((prefix) => dest.startsWith(prefix))) continue;
+      const absolute = path.join(options.projectRoot, dest);
+      if (!(await stat(absolute).then((s) => s.isFile()).catch(() => false))) continue;
+      // Not tracked, so there is no recorded hash: compare with the previous bundle's own copy.
+      // Identical -> removed; edited -> backed up first (same rule as a tracked file).
+      const sha256 = await computeFileHash(getBundledFilePath(options.packageRoot, source));
+      const patch = await pruneFile(dest, { sha256 } as FileEntry, options, timestamp);
+      acc = { ...acc, result: mergeResult(acc.result, patch) };
+    }
+  }
+
+  return acc;
+}
+
+// ── Superseded files (a component was renamed or moved by a later release) ───
+
+/** Destination paths a finished sync installed, refreshed, found current or deliberately kept. */
+export const plannedDestinations = (result: InstallResult): Set<string> =>
+  new Set([...result.installed, ...result.updated, ...result.unchanged, ...result.skipped]);
+
+/**
+ * Removes installed files that a renamed or moved component supersedes, once the replacement is on
+ * disk (or in `planned`). Safe by construction:
+ *  - a file OAC installed and the user never touched is removed outright;
+ *  - an edited one is copied to `.oac/backups/<timestamp>/` first, then removed;
+ *  - a file OAC does not track (install.sh, or the user's own) is removed only when it still reads
+ *    as the old bundled copy, and always backed up first; anything else is left and reported;
+ *  - with `dryRun` nothing changes and the log says "would remove".
+ * `only` limits the work to some components (`oac add`). Does NOT write the manifest.
+ */
+export async function retireSuperseded(
+  options: InstallOptions,
+  registry: Registry,
+  manifest: ManifestFile | null,
+  planned: ReadonlySet<string>,
+  only?: (component: RegistryComponent) => boolean,
+): Promise<{ patch: Partial<InstallResult>; updatedManifest: ManifestFile }> {
+  let updatedManifest = manifest ?? createEmptyManifest("0.0.0");
+  let patch: Partial<InstallResult> = {};
   const timestamp = buildTimestamp();
 
-  // Phase 1: process each file in the new bundle (parallel)
-  const phase1Results = await Promise.all(
-    bundledFiles.map(async (relativePath) => {
-      const sourcePath = getBundledFilePath(options.packageRoot, relativePath);
-      const destPath = path.join(options.projectRoot, relativePath);
-      const { patch, entry } = await processOneFile({
-        relativePath,
-        sourcePath,
-        destPath,
-        manifest,
-        options,
-        timestamp,
-      });
-      return { relativePath, patch, entry };
-    }),
-  );
+  for (const { oldPath, newPath, component } of await findSuperseded(options.projectRoot, registry, planned, only)) {
+    const tracked = manifest?.files[oldPath];
+    const oacOwned = tracked !== undefined && tracked.source !== "custom" && tracked.protected !== true;
+    const absolute = path.join(options.projectRoot, oldPath);
+    if (!(await isSafeToRemove(options.projectRoot, oldPath))) {
+      process.stdout.write(
+        `[oac] warn: "${oldPath}" is a symlink or sits behind one that leaves ${AGENT_DIR}/ — left in place, nothing was read or removed\n`,
+      );
+      patch = mergePatch(patch, { skipped: [oldPath] });
+      continue;
+    }
+    // OAC's own copy, untouched since install: remove outright. Anything else (not tracked, custom,
+    // or tracked but edited) must still read as the old bundled copy, or it is the user's own agent.
+    const untouched = oacOwned && hashesMatch(await computeFileHash(absolute), tracked.sha256);
+    if (!untouched && !(await looksLikeBundledCopy(absolute, component))) {
+      process.stdout.write(
+        `[oac] warn: "${oldPath}" looks like your own agent, not the old OAC one replaced by "${newPath}" — left in place; remove it yourself if it is a duplicate\n`,
+      );
+      patch = mergePatch(patch, { skipped: [oldPath] });
+      continue;
+    }
+    // Edited, untracked or custom: force a backup (an empty hash never matches the file).
+    const entry = untouched ? tracked : ({ sha256: "" } as FileEntry);
+    const pruned = await pruneFile(oldPath, entry, options, timestamp, AGENT_DIR);
+    patch = mergePatch(patch, { ...pruned, pruned: undefined, superseded: pruned.pruned });
+    if (pruned.errors === undefined && pruned.pruned !== undefined) {
+      log(options, options.dryRun ? `would supersede: ${oldPath} -> ${newPath}` : `superseded: ${oldPath} -> ${newPath}`);
+      updatedManifest = removeFileFromManifest(updatedManifest, oldPath);
+    }
+  }
+  // A manifest entry whose superseded file is already gone (a crash between the removal and the
+  // manifest write, or the user deleted the duplicate by hand) is a ghost: `oac doctor` reports it
+  // as a missing file. Drop it once the replacement is in place.
+  for (const { oldPath, newPath, component } of supersededIndex(registry).values()) {
+    if (only !== undefined && !only(component)) continue;
+    if (updatedManifest.files[oldPath] === undefined) continue;
+    if (await lstat(path.join(options.projectRoot, oldPath)).then(() => true).catch(() => false)) continue;
+    if (!planned.has(newPath) && !(await stat(path.join(options.projectRoot, newPath)).then((s) => s.isFile()).catch(() => false))) continue;
+    updatedManifest = removeFileFromManifest(updatedManifest, oldPath);
+    patch = mergePatch(patch, { removed_from_manifest: [oldPath] });
+  }
+  // Files no release ships any more (registry `retired`): not a rename, so no replacement is needed.
+  // `oac add` is scoped to one component and leaves them for the next update.
+  if (only === undefined) {
+    const retired = await retireRetired(options, registry, updatedManifest, timestamp);
+    patch = mergePatch(patch, retired.patch);
+    updatedManifest = retired.updatedManifest;
+  }
+  // v1 nests agents by folder, each with a `0-category.json`; once a folder's last agent is
+  // retired the marker is all that is left, so retire it too (no empty shell, no manifest ghost).
+  if (!options.dryRun) {
+    for (const folder of new Set((patch.superseded ?? []).map((file) => path.dirname(file)))) {
+      const entries = await readdir(path.join(options.projectRoot, folder)).catch(() => null);
+      if (entries === null || entries.length !== 1 || entries[0] !== CATEGORY_MARKER) continue;
+      const marker = `${folder}/${CATEGORY_MARKER}`;
+      const tracked = updatedManifest.files[marker];
+      const pruned = await pruneFile(marker, tracked ?? ({ sha256: "" } as FileEntry), options, timestamp, AGENT_DIR);
+      patch = mergePatch(patch, { ...pruned, pruned: undefined, superseded: pruned.pruned });
+      if (pruned.errors === undefined) updatedManifest = removeFileFromManifest(updatedManifest, marker);
+    }
+  }
+  return { patch, updatedManifest };
+}
 
-  const phase1 = phase1Results.reduce(
-    (acc, { relativePath, patch, entry }) => ({
-      result: mergeResult(acc.result, patch),
-      workingManifest:
-        entry !== null
-          ? addFileToManifest(acc.workingManifest, relativePath, entry)
-          : acc.workingManifest,
-    }),
-    {
-      result: { ...EMPTY_RESULT } as InstallResult,
-      workingManifest: manifest ?? createEmptyManifest("0.0.0"),
-    },
-  );
+/**
+ * Removes installed copies of RETIRED files (the registry's `retired` list). Same containment as
+ * superseded agent files: a normalised path under `.opencode/{agent,command,skills}/`; a symlink,
+ * or a file behind a symlinked directory that leaves its folder, is never read or removed. The file
+ * must still hash to a version OAC shipped; an edited file, or the user's own at that path, is
+ * left and reported. A pristine copy OAC tracks is removed outright; any other match is copied to
+ * `.oac/backups/` first. A manifest entry for a retired file that is already gone is dropped.
+ */
+async function retireRetired(
+  options: InstallOptions,
+  registry: Registry,
+  manifest: ManifestFile,
+  timestamp: string,
+): Promise<{ patch: Partial<InstallResult>; updatedManifest: ManifestFile }> {
+  let updatedManifest = manifest;
+  let patch: Partial<InstallResult> = {};
+  for (const entry of await findRetired(options.projectRoot, registry)) {
+    const absolute = path.join(options.projectRoot, entry.path);
+    if (!(await isSafeToRemove(options.projectRoot, entry.path, entry.root))) {
+      process.stdout.write(
+        `[oac] warn: "${entry.path}" is a symlink or sits behind one that leaves ${entry.root}/ — left in place, nothing was read or removed\n`,
+      );
+      patch = mergePatch(patch, { skipped: [entry.path] });
+      continue;
+    }
+    if (!(await matchesRetiredHash(absolute, entry))) {
+      process.stdout.write(
+        `[oac] warn: "${entry.path}" is no longer shipped by OAC but differs from the version OAC shipped (edited, or your own file) — left in place; remove it yourself if you do not need it\n`,
+      );
+      patch = mergePatch(patch, { skipped: [entry.path] });
+      continue;
+    }
+    const tracked = manifest.files[entry.path];
+    const untouched = tracked !== undefined && tracked.source !== "custom" && tracked.protected !== true &&
+      hashesMatch(await computeFileHash(absolute), tracked.sha256);
+    const pruned = await pruneFile(entry.path, untouched ? tracked : ({ sha256: "" } as FileEntry), options, timestamp, entry.root);
+    patch = mergePatch(patch, { ...pruned, pruned: undefined, superseded: pruned.pruned });
+    if (pruned.errors === undefined && pruned.pruned !== undefined) {
+      log(options, options.dryRun ? `would retire: ${entry.path}` : `retired: ${entry.path}`);
+      updatedManifest = removeFileFromManifest(updatedManifest, entry.path);
+    }
+  }
+  // Ghost manifest entries: the file is gone (deleted by hand, or a crash before the manifest write).
+  for (const entry of retiredIndex(registry).values()) {
+    if (updatedManifest.files[entry.path] === undefined) continue;
+    if (await lstat(path.join(options.projectRoot, entry.path)).then(() => true).catch(() => false)) continue;
+    updatedManifest = removeFileFromManifest(updatedManifest, entry.path);
+    patch = mergePatch(patch, { removed_from_manifest: [entry.path] });
+  }
+  return { patch, updatedManifest };
+}
 
-  // Phase 2: handle files in manifest that are no longer in the bundle
-  const bundledSet = new Set(bundledFiles);
-  const manifestPaths = Object.keys(phase1.workingManifest.files);
+const mergePatch = (a: Partial<InstallResult>, b: Partial<InstallResult>): Partial<InstallResult> =>
+  Object.fromEntries(
+    (["installed", "updated", "unchanged", "skipped", "backed_up", "removed_from_manifest", "pruned", "superseded", "errors"] as const)
+      .map((key) => [key, [...(a[key] ?? []), ...(b[key] ?? [])]]),
+  ) as Partial<InstallResult>;
 
-  const { result, updatedManifest } = manifestPaths.reduce(
-    (acc, trackedPath) => {
-      if (!bundledSet.has(trackedPath)) {
-        process.stdout.write(
-          `[oac] warn: "${trackedPath}" is no longer maintained by OAC — your copy is untouched\n`,
-        );
-        return {
-          result: mergeResult(acc.result, { removed_from_manifest: [trackedPath] }),
-          updatedManifest: removeFileFromManifest(acc.updatedManifest, trackedPath),
-        };
-      }
-      return acc;
-    },
-    { result: phase1.result, updatedManifest: phase1.workingManifest },
-  );
+const CATEGORY_MARKER = "0-category.json";
 
-  return { result, updatedManifest };
+// ── Pruning (moving an install between OpenCode layouts) ──────────────────────
+
+/** The directories whose contents differ by flavor, and so the only ones a migration may prune. */
+const FLAVOR_SENSITIVE_PREFIXES = [
+  ".opencode/agent/",
+  ".opencode/tool/",
+  ".opencode/plugin/",
+  ".opencode/plugins/",
+] as const;
+
+/**
+ * True when a tracked file may be removed during a flavor move: OAC installed it (not custom,
+ * not a pre-existing file OAC merely observed), it sits in a flavor-sensitive directory, and
+ * the target flavor's bundle no longer ships that destination. Pure.
+ */
+const isPrunable = (trackedPath: string, entry: FileEntry, targetBundle: ReadonlySet<string>): boolean =>
+  entry.source !== "custom" &&
+  entry.protected !== true &&
+  FLAVOR_SENSITIVE_PREFIXES.some((prefix) => trackedPath.startsWith(prefix)) &&
+  !targetBundle.has(trackedPath);
+
+/**
+ * Removes one stale OAC-owned file. A file the user edited is copied to `.oac/backups/` first, so
+ * nothing is lost and no stale agent is left next to its replacement (OpenCode v2 would load both).
+ */
+async function pruneFile(
+  trackedPath: string,
+  entry: FileEntry,
+  options: InstallOptions,
+  timestamp: string,
+  jail: string = ".opencode",
+): Promise<Partial<InstallResult>> {
+  const absolute = path.join(options.projectRoot, trackedPath);
+  if (!(await isSafeToRemove(options.projectRoot, trackedPath, jail))) {
+    process.stdout.write(
+      `[oac] warn: "${trackedPath}" is a symlink or sits behind one that leaves ${jail}/ — left in place\n`,
+    );
+    return { skipped: [trackedPath] };
+  }
+  const onDisk = await stat(absolute).then((s) => s.isFile()).catch(() => false);
+  if (!onDisk) return { pruned: [trackedPath] };
+
+  try {
+    const untouched = hashesMatch(await computeFileHash(absolute), entry.sha256);
+    if (options.dryRun) {
+      log(options, `[dry-run] would remove: ${trackedPath}${untouched ? "" : " (after backing it up)"}`);
+      return { pruned: [trackedPath] };
+    }
+    const backed_up: string[] = [];
+    if (!untouched) {
+      const backupPath = buildBackupPath(options.projectRoot, timestamp, trackedPath);
+      await copyFileCreatingDirs(absolute, backupPath);
+      backed_up.push(backupPath);
+    }
+    await rm(absolute);
+    await removeEmptyParents(options.projectRoot, absolute);
+    log(options, `remove: ${trackedPath}`);
+    return { pruned: [trackedPath], backed_up };
+  } catch (err) {
+    return { errors: [`${trackedPath}: ${err instanceof Error ? err.message : String(err)}`] };
+  }
+}
+
+/** Removes now-empty directories above `file`, stopping at (and never removing) `.opencode`. */
+async function removeEmptyParents(projectRoot: string, file: string): Promise<void> {
+  const stop = path.join(projectRoot, ".opencode");
+  let dir = path.dirname(file);
+  while (dir.startsWith(stop + path.sep)) {
+    const entries = await readdir(dir).catch(() => null);
+    if (entries === null || entries.length > 0) return;
+    if (!(await rmdir(dir).then(() => true).catch(() => false))) return;
+    dir = path.dirname(dir);
+  }
 }
 
 /**
@@ -405,9 +788,8 @@ export async function updateFiles(
  */
 export async function isProjectRoot(dir: string): Promise<boolean> {
   const [hasPackageJson, hasGit] = await Promise.all([
-    Bun.file(path.join(dir, "package.json")).exists(),
+    stat(path.join(dir, "package.json")).then((s) => s.isFile()).catch(() => false),
     // stat() works for both files (.git in worktrees) and directories (.git in normal repos)
-    // Bun.file().exists() returns false for directories, so we must use stat() here
     stat(path.join(dir, ".git")).then(() => true).catch(() => false),
   ]);
   return hasPackageJson || hasGit;

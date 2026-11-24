@@ -75,7 +75,7 @@ Output goes to Claude, script content stays out of context.
 
 ## Related
 
-- `../concepts/agent-skills.md` - Skills overview
+- `../../concepts/agent-skills.md` - Skills overview
 - `../../lookup/skill-metadata.md` - Metadata fields
 
 **Reference**: https://docs.anthropic.com/en/docs/claude-code/skills

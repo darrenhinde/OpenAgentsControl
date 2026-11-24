@@ -40,7 +40,10 @@ on:
     paths:
       - 'evals/framework/**'
       - 'evals/agents/**'
-      - '.github/workflows/evals/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/run-evaluations.yml'
 
 jobs:
   run-evaluations:
@@ -48,32 +51,39 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      with:
+        persist-credentials: false
       
+    - name: Setup pnpm
+      uses: pnpm/action-setup@b0f76dfb45f55f8421693e4803ac7bb65143bd34 # v6
+
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       with:
         node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: evals/framework/package-lock.json
+        cache: 'pnpm'
+        cache-dependency-path: pnpm-lock.yaml
         
-    - name: Install dependencies
-      working-directory: evals/framework
-      run: npm ci
+    - name: Install workspace dependencies
+      run: pnpm install --frozen-lockfile
       
     - name: Build framework
-      working-directory: evals/framework
-      run: npm run build
+      run: pnpm --dir evals/framework run build
       
     - name: Install OpenCode CLI
       run: |
-        # Install OpenCode CLI if available
-        # This step may need to be adjusted based on OpenCode installation method
-        echo "OpenCode CLI installation would go here"
+        pnpm add --global opencode-ai@1.17.20
+        opencode --version
         
     - name: Run evaluations
       working-directory: evals/framework
       env:
+        EVAL_AGENT: ${{ inputs.agent || 'openagent' }}
+        EVAL_MODEL: ${{ inputs.model || 'opencode/grok-code' }}
+        EVAL_PATTERN: ${{ inputs.pattern || '**/golden/*.yaml' }}
+        EVAL_SEED: ${{ inputs.seed || 'ci-evaluation-seed' }}
+        EVAL_TIMEOUT: ${{ inputs.timeout || '120000' }}
         OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         OPENCODE_SESSION_STORAGE: /tmp/opencode-sessions
       run: |
@@ -81,17 +91,17 @@ jobs:
         mkdir -p /tmp/opencode-sessions
         
         # Run evaluations with isolation and seeding
-        npm run eval:sdk \
-          -- --agent=${{ github.event.inputs.agent || 'openagent' }} \
-          --pattern="${{ github.event.inputs.pattern || '**/golden/*.yaml' }}" \
-          --model=${{ github.event.inputs.model || 'opencode/grok-code' }} \
-          --seed=${{ github.event.inputs.seed || 'ci-evaluation-seed' }} \
-          --timeout=${{ github.event.inputs.timeout || '120000' }} \
+        pnpm run eval:sdk \
+          -- --agent="$EVAL_AGENT" \
+          --pattern="$EVAL_PATTERN" \
+          --model="$EVAL_MODEL" \
+          --seed="$EVAL_SEED" \
+          --timeout="$EVAL_TIMEOUT" \
           --isolate-environment \
           --debug
           
     - name: Upload results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       if: always()
       with:
         name: evaluation-results
@@ -107,24 +117,23 @@ jobs:
           echo "## Evaluation Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Extract summary from latest results
-          node -e "
-            const results = require('./evals/results/latest.json');
-            const passed = results.filter(r => r.passed).length;
-            const total = results.length;
-            const failed = total - passed;
-            
-            console.log(\`| ✅ ${passed}/${total} tests passed\`);
-            console.log(\`| ❌ ${failed} failures\`);
-            console.log('');
-            
-            if (failed > 0) {
-              console.log('### Failed Tests');
-              results.filter(r => !r.passed).forEach(r => {
-                console.log(\`- ${r.testCase.id}: ${r.errors.join(', ')}\`);
-              });
+          node <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          const fs = require('node:fs')
+          const results = JSON.parse(fs.readFileSync('evals/results/latest.json', 'utf8'))
+
+          console.log(`| ✅ ${results.summary.passed}/${results.summary.total} tests passed`)
+          console.log(`| ❌ ${results.summary.failed} failures`)
+          console.log('')
+
+          if (results.summary.failed > 0) {
+            console.log('### Failed Tests')
+            for (const test of results.tests.filter((result) => !result.passed)) {
+              const messages = (test.violations.details ?? []).map((detail) => detail.message)
+              const reason = messages.length > 0 ? messages.join(', ') : `${test.violations.errors} error violations`
+              console.log(`- ${test.id}: ${reason}`)
             }
-          " >> $GITHUB_STEP_SUMMARY
+          }
+          NODE
         else
           echo "## No Results Generated" >> $GITHUB_STEP_SUMMARY
           echo "Evaluation run may have failed to complete." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,22 @@
+id: context/sessionstart-payload
+title: Startup injection is at most 3 lines with scout off
+area: context
+kind: regression
+layer: L1
+release: v1.1
+runner: host
+hosts: [claude-code, opencode-v2, codex]
+fixture: ts-single
+profile: solo                    # context.scout: off
+script:
+  - call: say
+    text: "hi"
+    check:
+      sessionstart_payload: { lines_max: 3, bytes_max: 400, must_not_contain: ["MUST", "context-discovery"] }
+outcome:
+  - first_request_bytes_delta_vs_off: { max: 1024 }   # see context/idle-overhead
+control: none
+supersedes: today/cc-sessionstart-using-oac
+today:
+  claude-code: { status: known-red, ref: v1.1, ev: F, note: "158 lines / 18,869 B" }
+  opencode-v2: { status: unknown, ev: O }

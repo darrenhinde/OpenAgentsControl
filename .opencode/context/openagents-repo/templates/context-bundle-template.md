@@ -47,13 +47,13 @@ Status: in_progress
 - `.opencode/context/openagents-repo/quick-start.md` → Repo orientation and common commands
 
 **Core Concepts** (Load based on task type):
-- `.opencode/context/openagents-repo/core-concepts/agents.md` → How agents work
+- `.opencode/context/openagents-repo/core-concepts/canonical-build.md` → How agents are built
 - `.opencode/context/openagents-repo/core-concepts/evals.md` → How testing works
 - `.opencode/context/openagents-repo/core-concepts/registry.md` → How registry works
-- `.opencode/context/openagents-repo/core-concepts/categories.md` → How organization works
+- `.opencode/context/openagents-repo/lookup/file-locations.md` → Where files live
 
 **Guides** (Load for specific workflows):
-- `.opencode/context/openagents-repo/guides/adding-agent-basics.md` → Step-by-step agent creation
+- `.opencode/context/openagents-repo/guides/authoring-agents.md` → Step-by-step agent creation
 - `.opencode/context/openagents-repo/guides/testing-agent.md` → Testing workflow
 - `.opencode/context/openagents-repo/guides/updating-registry.md` → Registry workflow
 - `.opencode/context/openagents-repo/guides/debugging.md` → Troubleshooting
@@ -213,7 +213,7 @@ Create a context bundle when:
 4. **Pass to subagent**:
    ```javascript
    task(
-     subagent_type="subagents/core/{subagent}",
+     subagent_type="{SubagentName}"  // OpenCode v1; on v2 delegate with agent="{subagent-id}",
      description="Brief description",
      prompt="Load context from .tmp/context/{session-id}/bundle.md before starting.
              

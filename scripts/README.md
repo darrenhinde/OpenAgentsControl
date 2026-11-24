@@ -6,26 +6,19 @@ This directory contains utility scripts for the OpenAgents Control system, organ
 
 ```
 scripts/
-├── registry/              # Component registry management
-│   ├── auto-detect-components.sh
-│   ├── register-component.sh
-│   ├── validate-component.sh
-│   └── validate-registry.sh
-├── validation/            # Context and validation scripts
-│   └── validate-context-refs.sh
-├── versioning/            # Version management
-│   └── bump-version.sh
-├── maintenance/           # Cleanup and maintenance
-│   ├── cleanup-stale-sessions.sh
-│   └── uninstall.sh
-├── development/           # Development utilities
-│   ├── dashboard.sh
-│   └── demo.sh
-├── testing/               # Test runner
-│   └── test.sh
+├── registry/              # Registry validation and legacy scanner (see registry/README.md)
+├── validation/            # Drift gate, PR change detection, link and context checks
+├── versioning/            # bump-version.sh
+├── maintenance/           # cleanup-stale-sessions.sh, uninstall.sh
+├── development/           # dashboard.sh, demo.sh
+├── testing/               # test.sh (eval runner)
+├── tests/                 # Installer test scripts
+├── prompts/               # Prompt variant scripts
+├── docs/                  # sync-component-list.sh
+├── external-context/      # manage-external-context.sh
 ├── check-context-logs/    # Context logging utilities
-├── prompts/               # Prompt management
-└── tests/                 # Installer test scripts
+├── hooks/                 # pre-commit
+└── README.md
 ```
 
 ## Available Scripts
@@ -42,13 +35,14 @@ See `tests/` subdirectory for installer test scripts.
 
 ### Registry Management
 
-- `registry/auto-detect-components.sh` - Auto-detect new components in .opencode/
-- `registry/register-component.sh` - Register a new component in the registry
+- `registry/auto-detect-components.sh` - Legacy scanner for non-canonical `.opencode/` components; canonical agents are emitted from `agent-library/agents/**` by `oac build`
+- `registry/register-component.sh` - Only refreshes `metadata.lastUpdated` in the generated registry; do not use it to register agents (`oac build` does that)
 - `registry/validate-component.sh` - Validate component structure and metadata
-- `registry/validate-registry.sh` - Validate all registry paths
+- `registry/validate-registry.sh` / `validate-registry.ts` - Validate all registry paths and dependencies (`bun run validate:registry`)
 
 ### Validation
 
+- `validation/check-build-drift.sh` - The drift gate behind `make check-canonical-drift`: real build, then fail if any generated file changed
 - `validation/validate-context-refs.sh` - Validate context references in markdown files
 
 ### Versioning
@@ -100,17 +94,14 @@ Sessions are safe to delete anytime - they only contain temporary context files 
 ### Registry Management
 
 ```bash
-# Auto-detect new components
+# Inspect non-canonical .opencode components (does not generate canonical agents)
 ./scripts/registry/auto-detect-components.sh --dry-run
 
-# Add new components to registry
+# Update residual non-canonical components only
 ./scripts/registry/auto-detect-components.sh --auto-add
 
 # Validate registry
 ./scripts/registry/validate-registry.sh -v
-
-# Register a specific component
-./scripts/registry/register-component.sh path/to/component
 
 # Validate a component
 ./scripts/registry/validate-component.sh path/to/component
@@ -177,4 +168,4 @@ Use the full test suite (71 tests) for:
 - 🔬 Edge case coverage
 - 🔬 Regression testing
 
-See `evals/agents/openagent/CORE_TESTS.md` for detailed documentation.
+See [evals/CORE_TEST_SUITE.md](../evals/CORE_TEST_SUITE.md) for the core suite.

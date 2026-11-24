@@ -1,0 +1,43 @@
+id: obs/report-totals
+title: oac report totals equal a hand count
+area: obs
+kind: capability
+layer: L2
+release: v1.4
+runner: host
+hosts: [claude-code, opencode-v2]
+fixture: ts-single
+profile: team
+asks: reject
+setup:
+  - failing_test: { path: tests/a.test.ts }
+  - approve: { plan: specs/001-x/plan.md, files: ["src/**"] }
+  - sentinel: { dir: "${SENTINEL}", files: 1 }
+script:
+  - call: read                   # 1 secrets deny
+    path: .env
+  - call: shell                  # 1 destructive deny
+    command: "rm -rf ${SENTINEL}"
+  - call: write                  # 1 scope ask (protect.ask), rejected
+    path: migrations/0002.sql
+    content: "-- x"
+  - call: edit                   # allowed
+    path: src/a.ts
+    old: "export const a = 1;"
+    new: "export const a = 3;"
+  - call: done                   # 1 verifier stop (CC) / nudge (OC)
+  - call: say
+    text: "Tests fail; reporting."
+  - runner: "oac report --json --since 1h > ${ARTIFACTS}/report.json"
+outcome:
+  - report_equals:
+      secrets:     { blocked: 1 }
+      destructive: { blocked: 1 }
+      scope:       { asked: 1 }
+      verifier:    { claude-code: { blocked: 1 }, opencode-v2: { nudged: 1 } }
+  - report_matches_log            # every count re-derived from decisions.jsonl
+  - log_matches_host_events       # 1:1 with permission_denials / permission.asked
+control: none
+today:
+  claude-code: { status: known-red, ref: v1.4, ev: O }
+  opencode-v2: { status: known-red, ref: v1.4, ev: O }

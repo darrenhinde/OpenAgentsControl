@@ -23,7 +23,7 @@ For subagents, the most critical instruction is: **which tools to use**.
 # Frontmatter (lines 1-50)
 id: subagent-name
 name: Subagent Name
-category: subagents/core
+category: core
 type: subagent
 mode: subagent
 tools:
@@ -270,7 +270,7 @@ Before deploying optimized prompt:
 - **Result**: Test passed (was failing with 0 tool calls)
 
 **Files**:
-- Optimized: `.opencode/agent/subagents/core/contextscout.md`
+- Optimized: `.opencode/agent/context-scout.md`
 - Backup: (example: `.opencode/agent/ContextScout-original-backup.md`)
 
 ---

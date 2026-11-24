@@ -1,12 +1,11 @@
 name: Update Component Registry (Direct Push)
 
+# Manual only. `oac build` (RegistryEmitter) now owns the agent, subagent, skill, command and profile sections
+# of built-ai-configs/registry/registry.json and CI gates drift on them, so this append-only auto-detect pass must not run
+# on every push or it fights the emitter. Dispatch it by hand for the hand-authored categories
+# (tools, plugins, config). Skills, commands and contexts are generated from agent-library/ like agents
+# (contexts from agent-library/context/components.json); do not use this pass for them.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.opencode/**'
-      - '!registry.json'
   workflow_dispatch:
 
 permissions:
@@ -87,7 +86,7 @@ jobs:
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "⚠️ WARNING: Direct push to main with invalid registry!" >> $GITHUB_STEP_SUMMARY
-            echo "Please fix registry.json and push a correction." >> $GITHUB_STEP_SUMMARY
+            echo "Please fix built-ai-configs/registry/registry.json and push a correction." >> $GITHUB_STEP_SUMMARY
             # Don't exit 1 here - we already pushed to main, just warn
           fi
       
@@ -97,8 +96,8 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          if ! git diff --quiet registry.json; then
-            git add registry.json
+          if ! git diff --quiet built-ai-configs/registry/registry.json; then
+            git add built-ai-configs/registry/registry.json
             git commit -m "chore: auto-update registry with new components [skip ci]"
             git push
             
@@ -122,4 +121,4 @@ jobs:
             "- **Tools:** \(.components.tools | length)",
             "- **Plugins:** \(.components.plugins | length)",
             "- **Contexts:** \(.components.contexts | length)"
-          ' registry.json >> $GITHUB_STEP_SUMMARY
+          ' built-ai-configs/registry/registry.json >> $GITHUB_STEP_SUMMARY

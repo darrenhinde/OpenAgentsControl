@@ -46,20 +46,23 @@ fi
 # Configuration
 REPO_URL="https://github.com/darrenhinde/OpenAgentsControl"
 BRANCH="${OPENCODE_BRANCH:-main}"  # Allow override via environment variable
-RAW_URL="https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/${BRANCH}"
+# OAC_RAW_URL overrides where component files are fetched from, e.g. file:///path/to/checkout
+# or http://127.0.0.1:8000 for installer tests against a local tree (D-014). Default unchanged.
+RAW_URL="${OAC_RAW_URL:-https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/${BRANCH}}"
 
-# Registry URL - supports local fallback for development
-# Priority: 1) REGISTRY_URL env var, 2) Local registry.json, 3) Remote GitHub
-if [ -n "$REGISTRY_URL" ]; then
-    # Use explicitly set REGISTRY_URL (for testing)
-    :
-elif [ -f "./registry.json" ]; then
-    # Use local registry.json if it exists (for development)
-    REGISTRY_URL="file://$(pwd)/registry.json"
-else
-    # Default to remote GitHub registry
-    REGISTRY_URL="${RAW_URL}/registry.json"
-fi
+# Which OpenCode major to install for. v2 is the default and is never inferred from the host;
+# v1 is an explicit opt-in (--opencode v1 or OAC_OPENCODE=v1). The v1 build lives under
+# built-ai-configs/opencode-v1/ in the repository and installs into the user's .opencode/ - the folder name is
+# never used in a project.
+OPENCODE_FLAVOR="${OAC_OPENCODE:-v2}"
+# True when the user asked for a flavor (flag or OAC_OPENCODE) rather than getting the default.
+OPENCODE_FLAVOR_EXPLICIT=false
+[ -n "${OAC_OPENCODE:-}" ] && OPENCODE_FLAVOR_EXPLICIT=true
+
+# Registry URL - supports local fallback for development.
+# Priority: 1) REGISTRY_URL env var, 2) Local registry file, 3) Remote GitHub.
+# The registry file depends on the flavor, so it is resolved in fetch_registry once the
+# arguments are parsed: built-ai-configs/registry/registry.json for v2, built-ai-configs/registry/registry.v1.json for v1.
 
 INSTALL_DIR="${OPENCODE_INSTALL_DIR:-.opencode}"  # Allow override via environment variable
 TEMP_DIR="/tmp/opencode-installer-$$"
@@ -73,6 +76,7 @@ INSTALL_MODE=""
 PROFILE=""
 NON_INTERACTIVE=false
 CUSTOM_INSTALL_DIR=""  # Set via --install-dir argument
+LIST_ONLY=false
 
 #############################################################################
 # Utility Functions
@@ -264,10 +268,357 @@ check_dependencies() {
 # Registry Functions
 #############################################################################
 
+# Normalise and validate an OpenCode flavor ("v1", "v2", "1", "2"); echoes v1 or v2, or nothing.
+normalize_flavor() {
+    case "$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" in
+        v1|1) echo "v1" ;;
+        v2|2) echo "v2" ;;
+        *) echo "" ;;
+    esac
+}
+
+registry_file_name() {
+    if [ "$OPENCODE_FLAVOR" = "v1" ]; then
+        echo "built-ai-configs/registry/registry.v1.json"
+    else
+        echo "built-ai-configs/registry/registry.json"
+    fi
+}
+
+# Major version of the OpenCode on PATH, or empty. OAC_OPENCODE_VERSION overrides detection
+# (CI and tests set it so a real opencode is never run); "none" means no host.
+detect_opencode_major() {
+    local out
+    if [ -n "${OAC_OPENCODE_VERSION:-}" ]; then
+        out="$OAC_OPENCODE_VERSION"
+    else
+        out=$(opencode --version 2>/dev/null || true)
+    fi
+    [ "$out" = "none" ] && return 0
+    printf '%s' "$out" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | cut -d. -f1
+}
+
+warn_flavor_host_mismatch() {
+    local major
+    major=$(detect_opencode_major)
+    [ -z "$major" ] && return 0
+    if [ "$OPENCODE_FLAVOR" = "v2" ] && [ "$major" = "1" ]; then
+        print_warning "OpenCode v1 is installed, but this installs for OpenCode v2 (the default). For v1, run again with --opencode v1."
+    elif [ "$OPENCODE_FLAVOR" = "v1" ] && [ "$major" != "1" ]; then
+        print_warning "Installing for OpenCode v1, but OpenCode ${major} is installed; v1 agents, tools and plugins do not load there."
+    fi
+}
+
+# A later release can rename an agent (contextscout -> context-scout) or move it (v1:
+# agent/subagents/core/x.md -> agent/core/x.md). The registry lists, on the component that replaced
+# it, the paths it used to ship at ("supersedes"). OpenCode loads every file under agent/, so
+# leaving the old copy next to the new one defines the agent twice.
+#
+# superseded_rows prints "old<TAB>new<TAB>description" for every such pair in the registry.
+superseded_rows() {
+    [ -f "$TEMP_DIR/registry.json" ] || return 0
+    jq -r '.components | to_entries[] | .value[]? | select((.supersedes // []) | length > 0)
+           | .path as $p | (.description // "") as $d | .supersedes[] | [., $p, $d] | @tsv' \
+        "$TEMP_DIR/registry.json" 2>/dev/null | tr -d '\r'
+}
+
+# Physical (symlink-free) path of a directory, or fail. cd -P / pwd -P exist in bash 3.2 and on macOS.
+physical_dir() {
+    (cd -P "$1" 2>/dev/null && pwd -P)
+}
+
+# A superseded file may only be an .md file under <install dir>/agent/ ($1 = install-relative path).
+# The registry comes from the network, so this holds whatever the build validated.
+superseded_rel_ok() {
+    case "$1" in
+        agent/*.md) ;;
+        *) return 1 ;;
+    esac
+    case "$1" in
+        *\\*|*/../*|../*|*/..|*//*|*/./*) return 1 ;;
+    esac
+    return 0
+}
+
+# Safe to read or remove $2 (a file under install dir $1)? Not a symlink, and its parent directory,
+# with symlinks resolved, lies inside the resolved <install dir>/<$3, default agent>. A missing file is fine.
+superseded_target_safe() {
+    local install_dir="$1" file="$2" jail="${3:-agent}" agent_real parent_real
+    [ -L "$file" ] && return 1
+    [ -e "$file" ] || return 0
+    [ -f "$file" ] || return 1
+    agent_real=$(physical_dir "${install_dir}/${jail}") || return 1
+    parent_real=$(physical_dir "$(dirname "$file")") || return 1
+    case "${parent_real}/" in
+        "${agent_real}/"*) return 0 ;;
+    esac
+    return 1
+}
+
+# The description line of an agent's frontmatter, without surrounding quotes.
+frontmatter_description() {
+    sed -n -E '1,/^---[[:space:]]*$/{ s/^description:[[:space:]]*//p; }' "$1" 2>/dev/null | head -n 1 \
+        | sed -E 's/^"(.*)"$/\1/; s/^'"'"'(.*)'"'"'$/\1/; s/[[:space:]]+$//'
+}
+
+# Remove empty directories between a removed file and the install dir (never the install dir itself).
+prune_empty_dirs() {
+    local dir
+    dir=$(dirname "$1")
+    while [ "$dir" != "$INSTALL_DIR" ] && [ "${dir#"$INSTALL_DIR"/}" != "$dir" ]; do
+        # A v1 folder holding only its category marker is empty for our purposes.
+        if [ ! -L "$dir" ] && [ -f "$dir/0-category.json" ] && [ ! -L "$dir/0-category.json" ] && [ "$(ls -A "$dir" | wc -l | tr -d ' ')" = "1" ]; then
+            rm -f "$dir/0-category.json"
+        fi
+        rmdir "$dir" 2>/dev/null || return 0
+        dir=$(dirname "$dir")
+    done
+}
+
+# Retire installed files that a renamed or moved component replaced, once the replacement is on
+# disk. Never deletes without a copy: each file is first copied to ${INSTALL_DIR}.backup.<time>/
+# (the same convention as the "backup" install strategy). A file that no longer reads as the old
+# bundled copy (its description differs) is the user's own agent: it is left and reported.
+# Needs jq (already required by this script). Paths come from the registry and are checked by
+# get_install_path, so nothing outside the install directory can be touched.
+retire_superseded_files() {
+    local rows old new desc dest_old dest_new retired=0 kept=0 backup_dir="" actual
+    rows=$(superseded_rows) || return 0
+    [ -n "$rows" ] || return 0
+    while IFS=$'\t' read -r old new desc; do
+        [ -n "$old" ] && [ -n "$new" ] || continue
+        dest_new=$(get_install_path "$new") || continue
+        dest_old=$(get_install_path "$old") || { print_warning "Refusing unsafe registry path: $old"; continue; }
+        [ "$dest_old" != "$dest_new" ] || continue
+        superseded_rel_ok "${dest_old#"${INSTALL_DIR}"/}" || { print_warning "Ignoring superseded path outside agent/: $old"; continue; }
+        [ -e "$dest_old" ] || [ -L "$dest_old" ] || continue
+        [ -f "$dest_new" ] || continue
+        if ! superseded_target_safe "$INSTALL_DIR" "$dest_old"; then
+            print_warning "Left ${dest_old}: it is a symlink, or sits behind one that leaves ${INSTALL_DIR}/agent. Nothing was read or removed."
+            kept=$((kept + 1))
+            continue
+        fi
+        actual=$(frontmatter_description "$dest_old")
+        if [ "$actual" != "$desc" ]; then
+            print_warning "Left ${dest_old}: it does not look like the old OAC file replaced by ${dest_new}. If it is a duplicate, remove it yourself."
+            kept=$((kept + 1))
+            continue
+        fi
+        if [ -z "$backup_dir" ]; then
+            backup_dir="${INSTALL_DIR}.backup.$(date +%Y%m%d-%H%M%S)"
+        fi
+        local rel="${dest_old#"${INSTALL_DIR}"/}"
+        mkdir -p "$(dirname "${backup_dir}/${rel}")"
+        if cp "$dest_old" "${backup_dir}/${rel}" && rm -f "$dest_old"; then
+            print_success "Removed superseded ${rel} (replaced by ${dest_new#"${INSTALL_DIR}"/}; copy in ${backup_dir})"
+            prune_empty_dirs "$dest_old"
+            retired=$((retired + 1))
+        else
+            print_warning "Could not remove superseded ${dest_old}"
+        fi
+    done <<< "$rows"
+    SUPERSEDED_RETIRED=$retired
+    SUPERSEDED_KEPT=$kept
+    SUPERSEDED_BACKUP_DIR=$backup_dir
+}
+
+SUPERSEDED_RETIRED=0
+SUPERSEDED_KEPT=0
+SUPERSEDED_BACKUP_DIR=
+
+# Retired files: paths an earlier release shipped that no release ships now, replaced by nothing
+# installable (the registry's top-level "retired" list, e.g. the agent-creation templates that sat
+# in command/openagents/new-agents/). Same containment as superseded agent files, widened to the
+# three folders OpenCode loads content from: a normalised path under agent/, command/ or skills/,
+# no symlink, and a parent directory that stays inside that folder once symlinks are resolved. The
+# file must still hash to a version OAC shipped (they are not all agents, so there is no description
+# to compare); an edited file or the user's own is left and reported. A copy goes to
+# ${INSTALL_DIR}.backup.<time>/ before any removal.
+
+# Hex SHA-256 of a file, empty when no tool is available.
+file_sha256() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" 2>/dev/null | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" 2>/dev/null | awk '{print $1}'
+    elif command -v openssl >/dev/null 2>&1; then
+        openssl dgst -sha256 "$1" 2>/dev/null | awk '{print $NF}'
+    fi
+}
+
+# "path<TAB>sha1,sha2,..." for every retired entry in the registry file $1.
+retired_rows() {
+    [ -f "$1" ] || return 0
+    jq -r '(.retired // [])[]? | select(.path != null) | [.path, ((.sha256 // []) | join(","))] | @tsv' "$1" 2>/dev/null | tr -d '\r'
+}
+
+# A retired file may only sit under <install dir>/{agent,command,skills,context/openagents-repo}/ ($1 = install-relative path).
+retired_rel_ok() {
+    case "$1" in
+        agent/?*|command/?*|skills/?*|context/openagents-repo/?*) ;;
+        *) return 1 ;;
+    esac
+    case "$1" in
+        *\\*|*/../*|../*|*/..|*//*|*/./*|*/.) return 1 ;;
+    esac
+    return 0
+}
+
+# Remove the retired files listed in registry file $1 from install dir $2. $3 turns a registry path
+# into the install-relative path (a function name). Updates SUPERSEDED_RETIRED / KEPT / BACKUP_DIR.
+retire_retired_files_from() {
+    local registry_file="$1" install_dir="$2" mapper="$3"
+    local rows path sums rel dest root actual backup_dir
+    rows=$(retired_rows "$registry_file") || return 0
+    [ -n "$rows" ] || return 0
+    backup_dir="$SUPERSEDED_BACKUP_DIR"
+    while IFS=$'\t' read -r path sums; do
+        [ -n "$path" ] || continue
+        rel=$($mapper "$path") || { print_warning "Refusing unsafe registry path: $path"; continue; }
+        retired_rel_ok "$rel" || { print_warning "Ignoring retired path outside agent/, command/, skills/ and context/openagents-repo/: $path"; continue; }
+        dest="${install_dir}/${rel}"
+        [ -e "$dest" ] || [ -L "$dest" ] || continue
+        root="${rel%%/*}"
+        if ! superseded_target_safe "$install_dir" "$dest" "$root"; then
+            print_warning "Left ${dest}: it is a symlink, or sits behind one that leaves ${install_dir}/${root}. Nothing was read or removed."
+            SUPERSEDED_KEPT=$((SUPERSEDED_KEPT + 1))
+            continue
+        fi
+        actual=$(file_sha256 "$dest")
+        case ",${sums}," in
+            *",${actual},"*) [ -n "$actual" ] || actual="" ;;
+            *) actual="" ;;
+        esac
+        if [ -z "$actual" ]; then
+            print_warning "Left ${dest}: OAC no longer ships it, but it differs from the version OAC shipped (edited, or your own file). Remove it yourself if you do not need it."
+            SUPERSEDED_KEPT=$((SUPERSEDED_KEPT + 1))
+            continue
+        fi
+        if [ -z "$backup_dir" ]; then
+            backup_dir="${install_dir}.backup.$(date +%Y%m%d-%H%M%S)"
+        fi
+        mkdir -p "$(dirname "${backup_dir}/${rel}")"
+        if cp "$dest" "${backup_dir}/${rel}" && rm -f "$dest"; then
+            SUPERSEDED_BACKUP_DIR="$backup_dir"
+            print_success "Removed retired ${rel} (no longer shipped; copy in ${backup_dir})"
+            prune_empty_dirs "$dest"
+            SUPERSEDED_RETIRED=$((SUPERSEDED_RETIRED + 1))
+        else
+            print_warning "Could not remove retired ${dest}"
+        fi
+    done <<< "$rows"
+}
+
+# install.sh: a registry path becomes install-relative the way get_install_path does.
+retired_mapper_install() {
+    local full
+    full=$(get_install_path "$1") || return 1
+    echo "${full#"${INSTALL_DIR}"/}"
+}
+
+retire_retired_files() {
+    retire_retired_files_from "$TEMP_DIR/registry.json" "$INSTALL_DIR" retired_mapper_install
+}
+
+# Warn about agent files from an earlier layout that are still next to their replacements.
+# retire_superseded_files has already removed what it safely could; this names the rest.
+warn_legacy_agent_layout() {
+    # v2: an earlier release nested agents by category (agent/core/openagent.md); v2 loads every file.
+    if [ "$OPENCODE_FLAVOR" = "v2" ]; then
+        if [ -d "${INSTALL_DIR}/agent/core" ] || [ -d "${INSTALL_DIR}/agent/subagents" ]; then
+            print_warning "Found nested agents from an earlier install in ${INSTALL_DIR}/agent/. OpenCode v2 would load them next to the new ones. Run 'oac update --opencode v2' to migrate safely, or remove them."
+        fi
+        return 0
+    fi
+    # v1: subagents used to live in agent/subagents/<category>/; they now live in agent/<category>/.
+    if [ -d "${INSTALL_DIR}/agent/subagents" ]; then
+        local left
+        left=$(find "${INSTALL_DIR}/agent/subagents" -name '*.md' -type f 2>/dev/null | head -n 20)
+        if [ -n "$left" ]; then
+            print_warning "Old-layout agents remain in ${INSTALL_DIR}/agent/subagents/ (OpenCode v1 loads them next to their replacements in agent/<category>/):"
+            while IFS= read -r f; do printf '    %s\n' "$f"; done <<< "$left"
+            print_warning "Run 'oac update' to remove the ones OAC shipped (edited copies are backed up), or delete them yourself if they are duplicates."
+        fi
+    fi
+}
+
+record_flavor() {
+    mkdir -p "$INSTALL_DIR"
+    printf '%s\n' "$OPENCODE_FLAVOR" > "${INSTALL_DIR}/.oac-opencode"
+}
+
+FILES_WRITTEN=0
+
+# Write the marker when this run left files of this flavor on disk: at least one file was written,
+# or nothing failed and every file was already there (an all-skipped re-run). Components that
+# failed do not matter once some file was written - a mostly complete install with no marker is
+# later refused by update.sh as "unknown version". A run that wrote nothing and failed records
+# nothing. refuse_flavor_switch has already ruled out an install of the other flavor.
+record_flavor_if_ok() {
+    local written=$1 failed=$2
+    if [ "$written" -gt 0 ] || [ "$failed" -eq 0 ]; then
+        record_flavor
+    fi
+}
+
+# Refuse to install one flavor over an existing install of the other: the files would sit side by
+# side (flat v2 agents next to nested v1 agents, every agent defined twice). Same wording as
+# update.sh; `oac update --opencode <flavor>` is the tool that migrates safely.
+# What the install is, in order: .oac/config.json (the CLI's record, which wins), the marker file,
+# and - only when the user explicitly asked for a flavor - the layout on disk.
+refuse_flavor_switch() {
+    local actual="" project_root="" config_file=""
+    if [ "$(basename "$INSTALL_DIR")" = ".opencode" ]; then
+        project_root="$(dirname "$INSTALL_DIR")"
+        config_file="${project_root}/.oac/config.json"
+    fi
+    if [ -n "$config_file" ] && [ -f "$config_file" ]; then
+        actual=$(normalize_flavor "$(jq -r '.opencode.target // empty' "$config_file" 2>/dev/null | tr -d '\r')")
+    fi
+    if [ -z "$actual" ] && [ -f "${INSTALL_DIR}/.oac-opencode" ]; then
+        actual=$(normalize_flavor "$(tr -d '[:space:]' < "${INSTALL_DIR}/.oac-opencode")")
+    fi
+    if [ -z "$actual" ] && [ "$OPENCODE_FLAVOR_EXPLICIT" = true ]; then
+        if [ -d "${INSTALL_DIR}/agent/core" ] || [ -d "${INSTALL_DIR}/agent/subagents" ]; then
+            actual="v1"
+        elif [ -f "${INSTALL_DIR}/agent/openagent.md" ]; then
+            actual="v2"
+        fi
+    fi
+    if [ -n "$actual" ] && [ "$actual" != "$OPENCODE_FLAVOR" ]; then
+        print_error "${INSTALL_DIR} is an OpenCode ${actual} install; install.sh cannot add OpenCode ${OPENCODE_FLAVOR} files next to it."
+        print_error "Migrate it with: oac update --opencode ${OPENCODE_FLAVOR}   (or install.sh --opencode ${actual} to stay on ${actual})"
+        cleanup_and_exit 1
+    fi
+}
+
+# A registry path is only ever a relative path inside the repository. Same rule as the CLI's
+# isInstallablePath: no absolute paths (POSIX or drive-letter) and no ".." segment.
+is_safe_registry_path() {
+    local p="${1//\\//}"
+    [ -n "$p" ] || return 1
+    case "$p" in
+        /*|[A-Za-z]:*|..|../*|*/..|*/../*) return 1 ;;
+    esac
+    return 0
+}
+
 fetch_registry() {
     print_step "Fetching component registry..."
     
     mkdir -p "$TEMP_DIR"
+
+    local registry_file
+    registry_file=$(registry_file_name)
+    if [ -n "$REGISTRY_URL" ]; then
+        # Explicit REGISTRY_URL (for testing) wins.
+        :
+    elif [ -f "./${registry_file}" ]; then
+        # Local registry file if it exists (for development)
+        REGISTRY_URL="file://$(pwd)/${registry_file}"
+    else
+        REGISTRY_URL="${RAW_URL}/${registry_file}"
+    fi
     
     # Handle local file:// URLs
     if [[ "$REGISTRY_URL" == file://* ]]; then
@@ -352,8 +703,11 @@ get_registry_key() {
 # We need to replace ".opencode" with the actual INSTALL_DIR
 get_install_path() {
     local registry_path=$1
-    # Strip leading .opencode/ if present
+    is_safe_registry_path "$registry_path" || return 1
+    # Strip the leading .opencode/ - or built-ai-configs/opencode-v1/, the repository folder of the v1 build,
+    # whose files install to the same place - if present
     local relative_path="${registry_path#.opencode/}"
+    relative_path="${relative_path#built-ai-configs/opencode-v1/}"
     # Return INSTALL_DIR + relative path
     echo "${INSTALL_DIR}/${relative_path}"
 }
@@ -993,10 +1347,10 @@ show_collision_report() {
 
 get_install_strategy() {
     echo -e "${BOLD}How would you like to proceed?${NC}\n" >&2
-    echo "  1) ${GREEN}Skip existing${NC} - Only install new files, keep all existing files unchanged" >&2
-    echo "  2) ${YELLOW}Overwrite all${NC} - Replace existing files with new versions (your changes will be lost)" >&2
-    echo "  3) ${CYAN}Backup & overwrite${NC} - Backup existing files, then install new versions" >&2
-    echo "  4) ${RED}Cancel${NC} - Exit without making changes" >&2
+    echo -e "  1) ${GREEN}Skip existing${NC} - Only install new files, keep all existing files unchanged" >&2
+    echo -e "  2) ${YELLOW}Overwrite all${NC} - Replace existing files with new versions (your changes will be lost)" >&2
+    echo -e "  3) ${CYAN}Backup & overwrite${NC} - Backup existing files, then install new versions" >&2
+    echo -e "  4) ${RED}Cancel${NC} - Exit without making changes" >&2
     echo "" >&2
     read -r -p "Enter your choice [1-4]: " strategy_choice
     
@@ -1023,6 +1377,7 @@ get_install_strategy() {
 #############################################################################
 
 perform_installation() {
+    refuse_flavor_switch
     print_step "Preparing installation..."
     
     # Create base directory only - subdirectories created on-demand when files are installed
@@ -1040,7 +1395,7 @@ perform_installation() {
         
         if [ -n "$path" ] && [ "$path" != "null" ]; then
             local install_path
-            install_path=$(get_install_path "$path")
+            install_path=$(get_install_path "$path") || continue
             if [ -f "$install_path" ]; then
                 collisions+=("$install_path")
             fi
@@ -1102,6 +1457,7 @@ perform_installation() {
     local installed=0
     local skipped=0
     local failed=0
+    FILES_WRITTEN=0
     
     for comp in "${SELECTED_COMPONENTS[@]}"; do
         local type="${comp%%:*}"
@@ -1134,7 +1490,11 @@ perform_installation() {
                 [ -z "$file_path" ] && continue
                 
                 local dest
-                dest=$(get_install_path "$file_path")
+                if ! dest=$(get_install_path "$file_path"); then
+                    print_warning "Refusing unsafe registry path: $file_path"
+                    component_failed=$((component_failed + 1))
+                    continue
+                fi
                 
                 # Check if file exists and we're in skip mode
                 if [ -f "$dest" ] && [ "$install_strategy" = "skip" ]; then
@@ -1146,6 +1506,7 @@ perform_installation() {
                 mkdir -p "$(dirname "$dest")"
                 
                 if curl -fsSL "$url" -o "$dest"; then
+                    FILES_WRITTEN=$((FILES_WRITTEN + 1))
                     # Transform paths for global installation
                     if [[ "$INSTALL_DIR" != ".opencode" ]] && [[ "$INSTALL_DIR" != *"/.opencode" ]]; then
                         local expanded_path="${INSTALL_DIR/#\~/$HOME}"
@@ -1169,7 +1530,11 @@ perform_installation() {
         else
             # Single file component - original logic
             local dest
-            dest=$(get_install_path "$path")
+            if ! dest=$(get_install_path "$path"); then
+                print_error "Refusing unsafe registry path for ${type}:${id}: $path"
+                failed=$((failed + 1))
+                continue
+            fi
             
             # Check if file exists before we install (for proper messaging)
             local file_existed=false
@@ -1191,6 +1556,7 @@ perform_installation() {
             mkdir -p "$(dirname "$dest")"
             
             if curl -fsSL "$url" -o "$dest"; then
+                FILES_WRITTEN=$((FILES_WRITTEN + 1))
                 # Transform paths for global installation (any non-local path)
                 # Local paths: .opencode or */.opencode
                 if [[ "$INSTALL_DIR" != ".opencode" ]] && [[ "$INSTALL_DIR" != *"/.opencode" ]]; then
@@ -1230,11 +1596,26 @@ perform_installation() {
         fi
     fi
     
+    record_flavor_if_ok "$FILES_WRITTEN" "$failed"
+    # Always: a re-run that skipped everything can still find old copies beside earlier new ones.
+    retire_superseded_files
+    retire_retired_files
+    if [ "$installed" -gt 0 ] || [ "$SUPERSEDED_RETIRED" -gt 0 ] || [ "$SUPERSEDED_KEPT" -gt 0 ]; then
+        warn_legacy_agent_layout
+    fi
+
     echo ""
-    print_success "Installation complete!"
+    if [ "$failed" -gt 0 ]; then
+        # The exit status stays 0: callers (and scripts/tests) rely on it, so say it loudly instead.
+        print_warning "Installation completed with ${failed} failure(s): ${failed} component(s) could not be installed (see the errors above). Re-run install.sh to retry them."
+    else
+        print_success "Installation complete!"
+    fi
+    echo -e "  OpenCode:  ${OPENCODE_FLAVOR}"
     echo -e "  Installed: ${GREEN}${installed}${NC}"
     [ $skipped -gt 0 ] && echo -e "  Skipped: ${CYAN}${skipped}${NC}"
     [ $failed -gt 0 ] && echo -e "  Failed: ${RED}${failed}${NC}"
+    [ -n "$SUPERSEDED_BACKUP_DIR" ] && echo -e "  Replaced files backed up in: ${CYAN}${SUPERSEDED_BACKUP_DIR}${NC} (add '.opencode.backup.*/' to .gitignore)"
     
     show_post_install
 }
@@ -1247,7 +1628,7 @@ show_post_install() {
     echo ""
     print_step "Next Steps"
     
-    echo "1. Review the installed components in ${CYAN}${INSTALL_DIR}/${NC}"
+    echo -e "1. Review the installed components in ${CYAN}${INSTALL_DIR}/${NC}"
     
     # Check if env.example was installed
     if [ -f "${INSTALL_DIR}/env.example" ] || [ -f "env.example" ]; then
@@ -1354,6 +1735,21 @@ main() {
                     exit 1
                 fi
                 ;;
+            --opencode=*)
+                OPENCODE_FLAVOR="${1#*=}"
+                OPENCODE_FLAVOR_EXPLICIT=true
+                shift
+                ;;
+            --opencode)
+                if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+                    OPENCODE_FLAVOR="$2"
+                    OPENCODE_FLAVOR_EXPLICIT=true
+                    shift 2
+                else
+                    echo "Error: --opencode requires v1 or v2"
+                    exit 1
+                fi
+                ;;
             essential|--essential)
                 INSTALL_MODE="profile"
                 PROFILE="essential"
@@ -1385,10 +1781,9 @@ main() {
                 shift
                 ;;
             list|--list)
-                check_dependencies
-                fetch_registry
-                list_components
-                cleanup_and_exit 0
+                # Deferred until every option is parsed, so `list --opencode v1` works too.
+                LIST_ONLY=true
+                shift
                 ;;
             --help|-h|help)
                 print_header
@@ -1404,12 +1799,17 @@ main() {
                 echo -e "${BOLD}Options:${NC}"
                 echo "  --install-dir PATH        Custom installation directory"
                 echo "                            (default: .opencode)"
+                echo "  --opencode v1|v2          OpenCode major to install for (default: v2)."
+                echo "                            v1 is an explicit opt-in and installs the full v1 build"
+                echo "                            (agents, tools, plugins, skills, commands) into .opencode/"
                 echo "  list, --list              List all available components"
                 echo "  help, --help, -h          Show this help message"
                 echo ""
                 echo -e "${BOLD}Environment Variables:${NC}"
                 echo "  OPENCODE_INSTALL_DIR      Installation directory"
                 echo "  OPENCODE_BRANCH           Git branch to install from (default: main)"
+                echo "  OAC_OPENCODE              OpenCode major, v1 or v2 (same as --opencode; default: v2)"
+                echo "  OAC_RAW_URL               Base URL for component files (default: GitHub raw for the branch)"
                 echo ""
                 echo -e "${BOLD}Examples:${NC}"
                 echo ""
@@ -1465,6 +1865,23 @@ main() {
         fi
     fi
     
+    local normalized_flavor
+    normalized_flavor=$(normalize_flavor "$OPENCODE_FLAVOR")
+    if [ -z "$normalized_flavor" ]; then
+        print_error "Unknown OpenCode version '${OPENCODE_FLAVOR}'. Use v1 or v2."
+        exit 1
+    fi
+    OPENCODE_FLAVOR="$normalized_flavor"
+
+    if [ "$LIST_ONLY" = true ]; then
+        check_dependencies
+        fetch_registry
+        list_components
+        cleanup_and_exit 0
+    fi
+
+    warn_flavor_host_mismatch
+
     check_bash_version
     check_dependencies
     fetch_registry

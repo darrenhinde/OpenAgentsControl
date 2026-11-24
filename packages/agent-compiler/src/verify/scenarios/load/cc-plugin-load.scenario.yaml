@@ -1,0 +1,26 @@
+id: load/cc-plugin-load
+implemented_by: { claude-code: cc/plugin-load }
+title: The Claude Code plugin loads in an isolated HOME
+area: load
+kind: regression
+layer: L1
+release: v1.1
+runner: host
+hosts: [claude-code]
+fixture: cc-plugin-copy          # copy of plugins/claude-code passed with --plugin-dir
+script:
+  - call: say
+    text: "hi"
+    check:
+      init_event:
+        plugins_contains: { name: oac, source: "oac@inline" }
+        agents_superset_of: "${plugin.agents}"          # oac:<each agents/*.md>  (7 today)
+        skills_superset_of: "${plugin.skills}"          # oac:<each skills/*/SKILL.md> (12 dirs; 15 listed incl. 3 commands)
+        slash_commands_superset_of: "${plugin.commands}"  # 18 today
+        apiKeySource: ANTHROPIC_API_KEY
+        mcp_servers: []
+outcome:
+  - auth_shape_dummy_only
+control: none
+today:
+  claude-code: { status: pass, ev: F, note: "07 §3.4: 7 agents, 15 skills, 18 slash commands" }

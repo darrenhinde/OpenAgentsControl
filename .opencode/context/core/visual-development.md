@@ -21,6 +21,8 @@
 
 ## Image Specialist Capabilities
 
+> OpenCode v1 only: the v2 build has no image-specialist target (v2 has no `tool/` support), so on v2 handle image requests without delegating.
+
 ### What It Does
 
 The **Image Specialist** subagent uses Gemini Nano Banana AI to:
@@ -56,7 +58,7 @@ Delegate to Image Specialist when users request:
 
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="[Brief 3-5 word description]",
   prompt="Context to load:
           - .opencode/context/core/visual-development.md
@@ -85,7 +87,7 @@ task(
 **Invocation**:
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Generate microservices architecture diagram",
   prompt="Create a technical architecture diagram showing:
           
@@ -126,7 +128,7 @@ task(
 **Invocation**:
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Generate analytics dashboard mockup",
   prompt="Create a UI mockup for an analytics dashboard:
           
@@ -163,7 +165,7 @@ task(
 **Invocation**:
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Generate feature announcement graphic",
   prompt="Create a social media graphic for feature launch:
           
@@ -199,7 +201,7 @@ task(
 **Invocation**:
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Generate user onboarding flowchart",
   prompt="Create a flowchart showing user onboarding process:
           
@@ -240,7 +242,7 @@ task(
 **Invocation**:
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Generate file upload icon",
   prompt="Create a modern icon for file upload feature:
           
@@ -269,7 +271,7 @@ task(
 **Invocation**:
 ```javascript
 task(
-  subagent_type="Image Specialist",
+  subagent_type="ImageSpecialist",
   description="Enhance screenshot for documentation",
   prompt="Edit the existing screenshot at docs/raw-screenshot.png:
           
@@ -452,7 +454,7 @@ After receiving output:
 - **UI Styling Standards**: `.opencode/context/ui/web/ui-styling-standards.md`
 - **Animation Patterns**: `.opencode/context/ui/web/animation-basics.md`, `.opencode/context/ui/web/animation-advanced.md`
 - **Subagent Invocation Guide**: `.opencode/context/openagents-repo/guides/subagent-invocation.md`
-- **Agent Capabilities**: `.opencode/context/openagents-repo/core-concepts/agents.md`
+- **Agent Capabilities**: `.opencode/context/openagents-repo/core-concepts/canonical-build.md`
 
 ---
 

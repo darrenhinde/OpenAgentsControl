@@ -1,7 +1,0 @@
-{
-  "name": "dashboard-project",
-  "version": "1.0.0",
-  "type": "module",
-  "description": "A modular dashboard project with Time, Period, and Star Sign APIs.",
-  "main": "main.js"
-}

@@ -115,27 +115,27 @@ validate_directory_structure() {
 }
 
 validate_registry() {
-    print_info "Validating registry.json"
+    print_info "Validating built-ai-configs/registry/registry.json"
     
-    if [ ! -f "registry.json" ]; then
-        print_error "registry.json not found"
+    if [ ! -f "built-ai-configs/registry/registry.json" ]; then
+        print_error "built-ai-configs/registry/registry.json not found"
         return
     fi
     
     # Check if valid JSON
-    if ! jq empty registry.json 2>/dev/null; then
-        print_error "registry.json is not valid JSON"
+    if ! jq empty built-ai-configs/registry/registry.json 2>/dev/null; then
+        print_error "built-ai-configs/registry/registry.json is not valid JSON"
         return
     fi
     
-    print_success "registry.json is valid JSON"
+    print_success "built-ai-configs/registry/registry.json is valid JSON"
     
     # Check required fields
     local required_fields=("version" "repository" "components" "profiles" "metadata")
     
     for field in "${required_fields[@]}"; do
-        if ! jq -e ".$field" registry.json > /dev/null 2>&1; then
-            print_error "Missing required field in registry.json: $field"
+        if ! jq -e ".$field" built-ai-configs/registry/registry.json > /dev/null 2>&1; then
+            print_error "Missing required field in built-ai-configs/registry/registry.json: $field"
         else
             print_success "Has field: $field"
         fi

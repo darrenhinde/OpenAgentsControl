@@ -14,7 +14,7 @@
 
 1.  **Create**: `mkdir -p .opencode/skills/{name}/scripts`
 2.  **Implement**: Create `skill-cli.ts` (TypeScript) and `router.sh` (Bash)
-3.  **Register**: Add to `registry.json`
+3.  **Register**: Add to `built-ai-configs/registry/registry.json`
 4.  **Run**: `bash .opencode/skills/{name}/router.sh help`
 
 ---
@@ -26,7 +26,7 @@
 | **Logic** | `scripts/skill-cli.ts` | Type-safe implementation using `ts-node`. Handles args, logic, and output. |
 | **Router** | `router.sh` | Universal entry point. Routes commands to the TS script. |
 | **Docs** | `SKILL.md` | User guide, examples, and integration details. |
-| **Config** | `registry.json` | Makes the skill discoverable and installable via `install.sh`. |
+| **Config** | `built-ai-configs/registry/registry.json` | Makes the skill discoverable and installable via `install.sh`. |
 
 ---
 
@@ -82,7 +82,7 @@ Before shipping, verify your CLI delivers value:
 - [ ] **Error Handling**: Do invalid inputs return helpful error messages (not stack traces)?
 - [ ] **Performance**: Does it start in < 1s? (Avoid heavy imports at top level)
 - [ ] **Idempotency**: Can commands be run multiple times safely?
-- [ ] **Registry**: Is it added to `registry.json` with correct paths?
+- [ ] **Registry**: Is it added to `built-ai-configs/registry/registry.json` with correct paths?
 
 ---
 

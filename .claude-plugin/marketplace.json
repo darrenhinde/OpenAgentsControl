@@ -10,20 +10,14 @@
       "name": "oac",
       "source": "./plugins/claude-code",
       "description": "Ship faster with AI-powered development workflows. Automates code review, test generation, documentation, and task breakdown. Context-aware agents understand your codebase and enforce your team's standards.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "darrenhinde",
         "url": "https://github.com/darrenhinde"
       },
       "license": "MIT",
-      "repository": "https://github.com/darrenhinde/OpenAgentsControl"
-    }
-  ],
-  "categories": [
-    {
-      "name": "Development Tools",
-      "description": "Tools for software development and automation",
-      "plugins": ["oac"]
+      "repository": "https://github.com/darrenhinde/OpenAgentsControl",
+      "category": "development"
     }
   ]
 }

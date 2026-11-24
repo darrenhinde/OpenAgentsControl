@@ -1,12 +1,5 @@
 ---
-# OpenCode Agent Configuration
-id: eval-runner
-name: Eval Runner
 description: "Test harness for evaluation framework - DO NOT USE DIRECTLY"
-category: testing
-type: utility
-version: 1.0.0
-author: opencode
 mode: subagent
 temperature: 0.2
 ---

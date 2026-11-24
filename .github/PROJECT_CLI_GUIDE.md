@@ -31,7 +31,7 @@ make idea TITLE="Improve documentation"
 
 **Idea with description:**
 ```bash
-make idea TITLE="Add support for Cursor" BODY="Extend the framework to work with Cursor IDE" LABELS="idea,feature"
+make idea TITLE="Add support for Codex" BODY="Extend the framework to work with Codex CLI" LABELS="idea,feature"
 ```
 
 **Using gh directly:**

@@ -1,6 +1,6 @@
 /**
  * Registry Type Definitions
- * Schema for OpenAgents Control registry.json
+ * Schema for OpenAgents Control built-ai-configs/registry/registry.json
  */
 
 import { z } from 'zod'

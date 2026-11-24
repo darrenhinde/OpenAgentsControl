@@ -1,0 +1,369 @@
+/**
+ * @controlstack/agent-compiler
+ * 
+ * The build library behind `oac build`: loads canonical content/ and emits
+ * OpenCode and Claude Code trees plus built-ai-configs/registry/registry.json.
+ * 
+ * @module @controlstack/agent-compiler
+ * 
+ */
+
+// ============================================================================
+// TYPES & SCHEMAS
+// ============================================================================
+
+/**
+ * All Zod schemas and TypeScript types for OpenAgents Control.
+ * 
+ * Includes:
+ * - OpenAgent, AgentFrontmatter
+ * - ToolAccess, PermissionRule, GranularPermission
+ * - ContextReference, DependencyReference
+ * - ModelIdentifier, TemperatureSchema
+ * - SkillReference, HookDefinition
+ * - ToolCapabilities, ConversionResult
+ */
+export * from "./types.js";
+
+// ============================================================================
+// CORE - Agent Loading
+// ============================================================================
+
+/**
+ * AgentLoader class and convenience functions for loading OAC agent files.
+ * 
+ * @example
+ * ```typescript
+ * import { loadAgent, loadAgents } from '@controlstack/agent-compiler';
+ * 
+ * // Load single agent
+ * const agent = await loadAgent('.opencode/agent/opencoder.md');
+ * 
+ * // Load all agents from directory
+ * const agents = await loadAgents('.opencode/agent/');
+ * ```
+ */
+export {
+  AgentLoader,
+  loadAgent,
+  loadAgents,
+} from "./core/AgentLoader.js";
+
+/**
+ * Error classes from AgentLoader for handling load failures.
+ * 
+ * - AgentLoadError: Base error for agent loading
+ * - FrontmatterParseError: YAML parsing errors
+ * - ValidationError: Zod schema validation errors
+ */
+export {
+  AgentLoadError,
+  FrontmatterParseError,
+  MissingOacBlockError,
+  ValidationError,
+} from "./core/AgentLoader.js";
+
+// ============================================================================
+// CORE - Canonical Agent Loading (`oac:` block)
+// ============================================================================
+
+/**
+ * Loads canonical agent files — OpenCode frontmatter plus the `oac:` block — from a
+ * configurable content root (`agent-library/agents/**` by default).
+ *
+ * Identity comes from `oac.id`, never the filename: the registry, profiles and context docs
+ * reference the id.
+ *
+ * @example
+ * ```typescript
+ * const agents = await loadCanonicalAgents('agent-library/agents');
+ * // sorted by oac.id, deterministic regardless of filesystem enumeration order
+ * ```
+ */
+export {
+  CanonicalAgentLoader,
+  loadCanonicalAgents,
+  DEFAULT_CONTENT_ROOT,
+} from "./core/AgentLoader.js";
+
+export type { CanonicalAgentFile } from "./core/AgentLoader.js";
+
+// ============================================================================
+// CORE - Registry Emission
+// ============================================================================
+
+/**
+ * Generates `built-ai-configs/registry/registry.json` from canonical component and profile trees, replacing the
+ * hand-editing that `scripts/registry/auto-detect-components.sh` only ever appended to.
+ *
+ * It owns `components.agents`, `components.subagents`, and profile component lists; contexts,
+ * commands, tools, plugins, skills, config, and profile metadata remain carried from the base.
+ * Output is byte-stable and a fixed point over itself, so `oac build && git diff --exit-code`
+ * is a real drift gate.
+ *
+ * @example
+ * ```typescript
+ * import { emitRegistry } from '@controlstack/agent-compiler';
+ *
+ * // The bytes to write to built-ai-configs/registry/registry.json — identical across runs.
+ * const json = await emitRegistry(process.cwd());
+ * ```
+ */
+export {
+  RegistryEmitter,
+  assertUniqueRegistryIdentities,
+  duplicateRegistryIdentities,
+  emitRegistry,
+  serializeRegistry,
+  entryForAgent,
+} from "./core/RegistryEmitter.js";
+
+export type {
+  RegistryDocument,
+  RegistryEntry,
+  RegistryEmitterOptions,
+} from "./core/RegistryEmitter.js";
+
+// ============================================================================
+// CORE - Build Pipeline
+// ============================================================================
+
+/**
+ * The whole of `oac build`: load `agent-library/agents/**`, honour each agent's shipping scope
+ * (`TargetPolicy.emitsTo` — targets minus exclude, plus the v1-follows rule), run the
+ * matching adapter, and reconcile the generated trees.
+ *
+ * {@link plan} computes; {@link write} reconciles; {@link check} compares without touching
+ * anything. Splitting them is what makes `--check` and `--dry-run` share the build's code path
+ * rather than re-implement it.
+ *
+ * Orphan removal is gated on {@link BuildManifest}: the build removes a file only if a
+ * previous build recorded writing that exact path with those exact bytes. A file it never
+ * generated can never become a prune candidate.
+ *
+ * @example
+ * ```typescript
+ * import { plan, write } from '@controlstack/agent-compiler';
+ *
+ * const built = await plan({ root: process.cwd() });
+ * // Emit every target into built-ai-configs/<host>/ (opencode, opencode-v1, claude-code), mirror the
+ * // live paths (.opencode/agent/**, plugins/claude-code/agents/**), and write the registries.
+ * const result = write(built, { root: process.cwd() });
+ * ```
+ */
+export {
+  BUILD_TARGETS,
+  GENERATED_ROOTS,
+  HOSTS_ROOT,
+  TARGET_LAYOUT,
+  build,
+  buildAgent,
+  buildAgentIn,
+  check,
+  plan,
+  readManifest,
+  repoRelative,
+  serializeManifest,
+  write,
+} from "./core/BuildPipeline.js";
+
+export {
+  HOSTS_README_PATH,
+  HOSTS_README_TARGET,
+  renderHostsReadme,
+} from "./core/HostsReadme.js";
+export type { HostsReadmeInput } from "./core/HostsReadme.js";
+
+export type {
+  BuildFile,
+  BuildManifest,
+  BuildOptions,
+  BuildPlan,
+  BuildTarget,
+  BuildWarning,
+  Drift,
+  TargetLayout,
+  ManifestEntry,
+  OutputRoots,
+  WriteOptions,
+  WriteResult,
+} from "./core/BuildPipeline.js";
+
+// ============================================================================
+// CORE - Reference Resolution & Profiles
+// ============================================================================
+
+/**
+ * Resolves `type:id` references against `built-ai-configs/registry/registry.json`, catching the reference rot that
+ * `scripts/registry/validate-registry.sh` reports as 244/244 green.
+ */
+export { ReferenceResolver, formatResolutions } from "./core/ReferenceResolver.js";
+
+export type {
+  Reference,
+  Registry,
+  RegistryComponent,
+  Resolution,
+  ResolutionStatus,
+  ResolveResult,
+} from "./core/ReferenceResolver.js";
+
+/**
+ * Loads install profiles and computes their transitive closures — what "install this
+ * profile" actually means.
+ */
+export { ProfileLoader, ProfileLoadError } from "./core/ProfileLoader.js";
+
+export type { ClosureResult } from "./core/ProfileLoader.js";
+
+// ============================================================================
+// ADAPTERS - Base Class
+// ============================================================================
+
+/**
+ * BaseAdapter abstract class for creating custom adapters.
+ * 
+ * @example
+ * ```typescript
+ * import { BaseAdapter } from '@controlstack/agent-compiler';
+ * 
+ * class MyAdapter extends BaseAdapter {
+ *   readonly name = 'my-tool';
+ *   readonly displayName = 'My Tool';
+ *   
+ *   async toOAC(source: string): Promise<OpenAgent> {
+ *     // Implementation
+ *   }
+ *   
+ *   async fromOAC(agent: OpenAgent): Promise<ConversionResult> {
+ *     // Implementation
+ *   }
+ * }
+ * ```
+ */
+export { BaseAdapter } from "./adapters/BaseAdapter.js";
+
+// ============================================================================
+// ADAPTERS - Built-in Implementations
+// ============================================================================
+
+/**
+ * ClaudeAdapter — emits Claude Code agent files from canonical content.
+ */
+export { ClaudeAdapter } from "./adapters/ClaudeAdapter.js";
+
+/**
+ * OpenCodeAdapter — emits `.opencode/agent/**` from the canonical `agent-library/agents/**` tree by
+ * stripping the `oac:` block. The canonical build target.
+ *
+ * @example
+ * ```typescript
+ * import { OpenCodeAdapter } from '@controlstack/agent-compiler';
+ *
+ * const { content } = await new OpenCodeAdapter().fromCanonical(source);
+ * ```
+ */
+export {
+  OpenCodeAdapter,
+  OpenCodeEmitError,
+  OPENCODE_AGENT_ROOT,
+} from "./adapters/OpenCodeAdapter.js";
+export { OpenCodeV1Adapter, OPENCODE_V1_AGENT_ROOT } from "./adapters/v1/OpenCodeV1Adapter.js";
+
+export type {
+  CanonicalEmitResult,
+  FromCanonicalOptions,
+} from "./adapters/OpenCodeAdapter.js";
+
+// ============================================================================
+// CORE - Capability Matrix
+// ============================================================================
+
+/**
+ * CapabilityMatrix for feature compatibility analysis.
+ * 
+ * @example
+ * ```typescript
+ * import { analyzeCompatibility, getToolCapabilities } from '@controlstack/agent-compiler';
+ * 
+ * const result = analyzeCompatibility(agent, 'claude');
+ * // => { compatible: false, warnings: [...], blockers: [...] }
+ * ```
+ */
+export {
+  getCapabilityMatrix,
+  getFeaturesByCategory,
+  getFeatureSupport,
+  isFeatureSupported,
+  analyzeCompatibility,
+  getToolCapabilities,
+  comparePlatforms,
+  getConversionSummary,
+  type Platform,
+  type FeatureCategory,
+  type SupportLevel,
+  type FeatureDefinition,
+  type CompatibilityResult,
+} from "./core/CapabilityMatrix.js";
+
+// ============================================================================
+// VERSION INFO
+// ============================================================================
+
+/**
+ * Package version (injected at build time)
+ */
+export const VERSION = "0.1.0";
+
+// Delegation id resolution — one alias table, v1 and v2 id spaces.
+export { AgentIdResolver, AgentIdResolutionError, normalizeAlias, isGlob } from "./core/AgentIdResolver.js";
+export type { IdTarget, ResolverAgent, AliasUse } from "./core/AgentIdResolver.js";
+export { rewriteBodyRefs, rewriteTaskKeys } from "./core/DelegationRewriter.js";
+
+// Host blocks — `<!-- oac:only <target> -->` sections of a canonical body, resolved per target.
+export { filterHostBlocks, HostBlocksError, HOST_BLOCK_TARGETS } from "./core/HostBlocks.js";
+export type { FilterHostBlocksOptions } from "./core/HostBlocks.js";
+
+// Static lints over emitted OpenCode trees (v1 validity is checked here; no v1 host is pinned).
+export { lintV1Agents, lintV1Artifacts, lintV2Agents } from "./verify/lint/opencode.js";
+export type { LintFile, LintFinding, LintSeverity } from "./verify/lint/opencode.js";
+
+// Capability lint: an emitted agent is never told to do what its host will not let it do (L-001).
+export {
+  lintClaudeAgents,
+  lintOpenCodeDelegations,
+  taskAction,
+  OPENCODE_PATH_ALLOWLIST,
+} from "./verify/lint/capability.js";
+export type { ClaudeLintOptions, OpenCodeFlavor } from "./verify/lint/capability.js";
+export { lintNaming, derivedDisplayName, ROLE_SUFFIXES, KNOWN_COMPOUNDS, LEGACY_AGENT_SUFFIX_IDS, BRAND_IDS } from "./verify/lint/naming.js";
+export type { NamingFinding, NamingLevel, NamingSubject } from "./verify/lint/naming.js";
+export {
+  lintAssetNaming,
+  lintAssetReferences,
+  LEGACY_ASSET_SUFFIX_IDS,
+  LEGACY_COMMAND_GROUPS,
+} from "./verify/lint/assets.js";
+export type { AssetNamingFinding } from "./verify/lint/assets.js";
+export { lintContext, PLACEHOLDER_TARGETS } from "./verify/lint/context.js";
+export type { ContextFinding, ContextRule } from "./verify/lint/context.js";
+export {
+  CONTEXT_COMPONENTS_FILE,
+  CONTEXT_OUTPUT_ROOT,
+  CONTEXT_SOURCE_ROOT,
+  ContextLoadError,
+  loadContextLibrary,
+} from "./core/ContextLoader.js";
+export type { ContextComponent, ContextFile, ContextLibrary } from "./core/ContextLoader.js";
+export {
+  loadCanonicalAssets,
+  loadCanonicalSkills,
+  loadCanonicalCommands,
+  AssetLoadError,
+  SKILLS_ROOT,
+  COMMANDS_ROOT,
+} from "./core/AssetLoader.js";
+export type { CanonicalAssetFile, AssetKind, LoadedAssets } from "./core/AssetLoader.js";
+export { emitAsset, emitAssetMain } from "./core/AssetEmitter.js";
+export { lintBuild } from "./verify/lint/run.js";
+export type { LintableFile, TargetLintResult } from "./verify/lint/run.js";

@@ -400,7 +400,7 @@ After deleting external context files, update `.manifest.json`:
 
 ## References
 
-- **ExternalScout**: `.opencode/agent/subagents/core/externalscout.md` — Fetches and persists external docs
+- **ExternalScout**: `.opencode/agent/external-scout.md` (OpenCode v2; v1 nests it under `agent/core/`) — Fetches and persists external docs
 - **Task Delegation**: `.opencode/context/core/workflows/task-delegation-basics.md` — How to reference external context in sessions
 - **Session Management**: `.opencode/context/core/workflows/session-management.md` — Session lifecycle
 - **Library Registry**: `.opencode/skills/context7/library-registry.md` — Supported libraries and query patterns

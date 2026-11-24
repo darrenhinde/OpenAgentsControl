@@ -145,7 +145,7 @@ For each step:
 
 **Validation happens continuously**, not just at the end.
 
-For simple subtasks, delegates to `@subagents/coder-agent` to save time.
+For simple subtasks, delegates to `coder-agent` to save time.
 
 ---
 
@@ -157,9 +157,9 @@ When implementation is complete:
 1. Final validation
 2. User approval
 3. Handoff recommendations for:
-   - @tester (if tests needed)
-   - @documentation (if docs needed)
-   - @reviewer (if security review needed)
+   - @test-engineer (if tests needed)
+   - @doc-writer (if docs needed)
+   - @code-reviewer (if security review needed)
 ```
 
 ---
@@ -243,12 +243,12 @@ OpenCoder coordinates with specialized subagents:
 **Purpose:** Quick code implementation
 **Output:** Implemented code following specifications
 
-### @tester
+### @test-engineer
 **When:** Tests needed for implementation
 **Purpose:** Write comprehensive test suites
 **Output:** Unit, integration, and e2e tests
 
-### @reviewer
+### @code-reviewer
 **When:** Security or quality review needed
 **Purpose:** Code review, security analysis
 **Output:** Review report with recommendations
@@ -258,7 +258,7 @@ OpenCoder coordinates with specialized subagents:
 **Purpose:** Type checking, build verification
 **Output:** Build status, error reports
 
-### @documentation
+### @doc-writer
 **When:** Comprehensive documentation needed
 **Purpose:** Generate API docs, guides
 **Output:** Structured documentation
@@ -316,7 +316,7 @@ opencode --agent OpenCoder
 # 5. Delegate to @task-manager (multi-file)
 # 6. Implement repositories incrementally
 # 7. Update all consumers
-# 8. Add tests via @tester
+# 8. Add tests via @test-engineer
 # 9. Validate complete implementation
 ```
 
@@ -337,8 +337,8 @@ opencode --agent OpenCoder
 # 6. Implement Phase 1: JWT infrastructure
 # 7. Implement Phase 2: Refresh token mechanism
 # 8. Implement Phase 3: RBAC system
-# 9. Coordinate with @tester for test coverage
-# 10. Coordinate with @reviewer for security review
+# 9. Coordinate with @test-engineer for test coverage
+# 10. Coordinate with @code-reviewer for security review
 # 11. Validate end-to-end
 ```
 
@@ -367,8 +367,8 @@ OpenCoder will show you the plan before implementation. Take time to:
 ### 4. Let OpenCoder Delegate
 Don't manually delegate to subagents. OpenCoder knows when to:
 - Use @task-manager for breakdown
-- Call @tester for tests
-- Use @reviewer for security
+- Call @test-engineer for tests
+- Use @code-reviewer for security
 - Leverage @coder-agent for simple tasks
 
 ### 5. Use Test-Driven Development
@@ -396,7 +396,7 @@ OpenCoder adapts to your language:
 
 ## Configuration
 
-OpenCoder is configured in `.opencode/agent/core/opencoder.md`. Default settings:
+OpenCoder is configured in `.opencode/agent/opencoder.md` (OpenCode v1: `.opencode/agent/core/opencoder.md`). Default settings:
 
 ```yaml
 temperature: 0.1  # Deterministic, precise

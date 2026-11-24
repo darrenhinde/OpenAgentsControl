@@ -1,0 +1,72 @@
+{
+  "name": "@controlstack/agent-compiler",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Compatibility layer for converting OpenAgents Control agents to/from other AI coding tools (Cursor, Claude Code, Windsurf)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "openagents",
+    "compatibility",
+    "cursor",
+    "claude",
+    "windsurf",
+    "ai-tools",
+    "agent-conversion"
+  ],
+  "author": {
+    "name": "Darren Hinde",
+    "url": "https://github.com/darrenhinde/OpenAgentsControl"
+  },
+  "contributors": [
+    {
+      "name": "Alexander Daza",
+      "email": "dev.alexander.daza@gmail.com",
+      "url": "https://github.com/devalexanderdaza"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darrenhinde/OpenAgentsControl.git",
+    "directory": "packages/agent-compiler"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "zod": "3.25.76",
+    "js-yaml": "4.1.1",
+    "gray-matter": "4.0.3",
+    "commander": "12.1.0",
+    "chalk": "5.6.2",
+    "ora": "8.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/js-yaml": "^4.0.9",
+    "typescript": "^5.4.5",
+    "vitest": "^3.2.7",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.10.0",
+    "@typescript-eslint/parser": "^7.10.0"
+  }
+}

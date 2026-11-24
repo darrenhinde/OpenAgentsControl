@@ -25,7 +25,7 @@ hooks/
 | **Formatting hook** | `formatting-hook.md` |
 | **Markdown formatter** | `markdown-formatter.md` |
 | **Protection hook** | `protection-hook.md` |
-| **Hook concepts** | `../../concepts/hooks.md` |
+| **Hook concepts** | `../../concepts/hooks-system.md` |
 
 ---
 

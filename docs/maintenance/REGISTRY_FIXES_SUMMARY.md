@@ -1,5 +1,7 @@
 # Installer and Registry Fixes Summary
 
+> **Current state (2026-09-02):** This is a historical fixes summary. Current agent metadata comes only from `agent-library/agents/**` `oac:` blocks through RegistryEmitter; references to the retired metadata sidecar describe the former system.
+
 ## Overview
 This document summarizes the fixes made to resolve installer issues and registry inconsistencies.
 
@@ -89,7 +91,7 @@ Updated profile files to remove references to deleted components:
 ## Files Modified
 
 ### Registry & Configuration
-- `registry.json` - Fixed dead references, added 27 new entries, updated dependencies
+- `built-ai-configs/registry/registry.json` - Fixed dead references, added 27 new entries, updated dependencies
 - `.opencode/config/agent-metadata.json` - Updated agent dependencies
 
 ### Profiles

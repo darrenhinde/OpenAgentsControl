@@ -22,5 +22,5 @@ This is a test command created to verify that the auto-detection system works.
 
 This file should be:
 1. Detected by `auto-detect-components.sh`
-2. Added to registry.json automatically
+2. Added to built-ai-configs/registry/registry.json automatically
 3. Validated by `validate-registry.sh`

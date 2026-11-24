@@ -262,7 +262,7 @@ cd "$EVALS_DIR"
 
 # Run tests with real-time output
 set +e  # Don't exit on test failure
-npm run eval:sdk:core -- --agent="$AGENT_NAME" --model="$MODEL"
+pnpm run eval:sdk:core -- --agent="$AGENT_NAME" --model="$MODEL"
 TEST_EXIT_CODE=$?
 export TEST_EXIT_CODE
 set -e

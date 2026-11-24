@@ -1,12 +1,5 @@
 ---
 description: Context system manager - harvest summaries, extract knowledge, organize context
-tags:
-  - context
-  - knowledge-management
-  - harvest
-dependencies:
-  - subagent:context-organizer
-  - subagent:contextscout
 ---
 
 # Context Manager

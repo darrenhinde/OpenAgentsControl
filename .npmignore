@@ -23,10 +23,6 @@ pnpm-debug.log*
 bun.lock
 package-lock.json
 
-# Exclude tool directory (large binaries)
-.opencode/tool/
-**/.opencode/tool/
-
 # Build and test artifacts
 dist/
 build/
@@ -64,8 +60,6 @@ Makefile
 
 # Documentation that's not needed in package
 docs/
-ROADMAP.md
-COMPATIBILITY.md
 
 # Backup files
 *.backup-*/
@@ -77,10 +71,10 @@ COMPATIBILITY.md
 !.opencode/
 !scripts/
 !bin/
-!registry.json
+!built-ai-configs/registry/registry.json
 !install.sh
 !VERSION
 !LICENSE
 !README.md
 !CHANGELOG.md
-!CONTEXT_SYSTEM_GUIDE.md
+!docs/guides/context-system.md

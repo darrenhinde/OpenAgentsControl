@@ -19,7 +19,7 @@ NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-TEST_DIR="/tmp/opencode-noninteractive-test-$$"
+TEST_DIR="$(mktemp -d "${TMPDIR:-/tmp}/opencode-noninteractive-test.XXXXXX")"
 PASSED=0
 FAILED=0
 
@@ -81,10 +81,10 @@ test_fresh_install_piped() {
     if echo "" | bash "$REPO_ROOT/install.sh" essential --install-dir="$install_dir" 2>&1 | grep -q "Installation complete"; then
         if [ -d "$install_dir" ]; then
             pass "Fresh install completed successfully via pipe"
-            if [ -f "$install_dir/config/agent-metadata.json" ]; then
-                pass "Fresh piped install included agent metadata config"
+            if [ ! -e "$install_dir/config/agent-metadata.json" ]; then
+                pass "Fresh piped install omitted retired agent metadata sidecar"
             else
-                fail "Fresh piped install missing agent metadata config"
+                fail "Fresh piped install unexpectedly included agent metadata sidecar"
             fi
         else
             fail "Install reported success but directory not created"
@@ -101,8 +101,8 @@ test_collision_non_interactive() {
     echo -e "\n${BOLD}Test 2: Collision Handling in Non-Interactive Mode${NC}"
     
     local install_dir="$TEST_DIR/collision-test/.opencode"
-    mkdir -p "$install_dir/agent/core"
-    echo "existing content" > "$install_dir/agent/core/openagent.md"
+    mkdir -p "$install_dir/agent"
+    echo "existing content" > "$install_dir/agent/openagent.md"
     
     local output
     output=$(echo "" | bash "$REPO_ROOT/install.sh" essential --install-dir="$install_dir" 2>&1)
@@ -123,7 +123,7 @@ test_collision_non_interactive() {
     fi
     
     local original_content
-    original_content=$(cat "$install_dir/agent/core/openagent.md" 2>/dev/null || echo "")
+    original_content=$(cat "$install_dir/agent/openagent.md" 2>/dev/null || echo "")
     if [ "$original_content" = "existing content" ]; then
         pass "Existing file preserved (skip strategy worked)"
     else

@@ -612,7 +612,7 @@ CoderAgent   CoderAgent   CoderAgent
 - `task.json` — Feature metadata
 - `subtask_NN.json` — Individual task definitions
 
-**CLI**: `.opencode/skill/task-management/scripts/task-cli.ts`
+**CLI**: `.opencode/skills/task-management/scripts/task-cli.ts`
 
 **Commands**:
 - `status [feature]` — Check task status
@@ -641,7 +641,7 @@ CoderAgent   CoderAgent   CoderAgent
 
 ### Agent Configuration Integration
 
-**Location**: `.opencode/agent/subagents/core/`
+**Location**: the `task-manager` and `batch-executor` agents (OpenCode v2: `.opencode/agent/<id>.md`; v1: `.opencode/agent/core/`)
 
 **Files**:
 - `task-manager.md` — TaskManager configuration

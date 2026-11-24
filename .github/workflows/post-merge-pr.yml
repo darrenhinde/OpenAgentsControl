@@ -199,7 +199,7 @@ jobs:
           
           **Note:** This PR was created automatically by the post-merge workflow.
           
-          **Documentation updates:** If registry or component changes require documentation updates, the separate "Sync Documentation" workflow will handle that automatically when `registry.json` or `.opencode/` files are modified.
+          **Documentation updates:** If registry or component changes require documentation updates, the separate "Sync Documentation" workflow will handle that automatically when `built-ai-configs/registry/registry.json` or `.opencode/` files are modified.
           EOFPR
           
           # Replace variables

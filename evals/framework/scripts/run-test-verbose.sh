@@ -13,7 +13,8 @@ echo "Pattern: $PATTERN"
 echo ""
 
 # Run test with debug mode and capture session ID
-OUTPUT=$(cd .. && npm run eval:sdk -- --agent="$AGENT" --pattern="$PATTERN" --debug 2>&1)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+OUTPUT=$(pnpm --dir "$SCRIPT_DIR/.." run eval:sdk -- --agent="$AGENT" --pattern="$PATTERN" --debug 2>&1)
 
 # Extract session ID from output
 SESSION_ID=$(echo "$OUTPUT" | grep -o "Session created: ses_[a-zA-Z0-9]*" | head -1 | cut -d' ' -f3)
@@ -29,7 +30,7 @@ if [ -n "$SESSION_ID" ]; then
   echo ""
   
   # Show full conversation
-  ./debug/show-test-conversation.sh "$SESSION_ID"
+  "$SCRIPT_DIR/debug/show-test-conversation.sh" "$SESSION_ID"
 else
   echo ""
   echo "⚠️  No session ID found. Test may have failed to start."

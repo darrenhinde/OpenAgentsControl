@@ -196,3 +196,57 @@ describe('installFiles (real write)', () => {
     expect(entry?.sha256).toBe(actualHash);
   });
 });
+
+describe('installFiles destination boundary', () => {
+  test('refuses traversal and absolute paths without writing outside the project', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'oac-boundary-project-'));
+    const packageRoot = await mkdtemp(join(tmpdir(), 'oac-boundary-package-'));
+    const escapedPath = join(projectRoot, '..', 'escape.md');
+
+    try {
+      const { result } = await installFiles(['.opencode/../escape.md', escapedPath], makeOptions(projectRoot, packageRoot));
+
+      expect(result.errors).toHaveLength(2);
+      expect(await Bun.file(escapedPath).exists()).toBe(false);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(packageRoot, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('installFiles over an unmanaged tree', () => {
+  let projectRoot: string;
+  let packageRoot: string;
+  const relativePath = '.opencode/context/core/standards.md';
+
+  beforeAll(async () => {
+    projectRoot = await mkdtemp(join(tmpdir(), 'oac-unmanaged-project-'));
+    packageRoot = await mkdtemp(join(tmpdir(), 'oac-unmanaged-package-'));
+    await mkdir(join(packageRoot, '.opencode', 'context', 'core'), { recursive: true });
+    await mkdir(join(projectRoot, '.opencode', 'context', 'core'), { recursive: true });
+    await writeFile(join(packageRoot, relativePath), '# Bundled standards', 'utf8');
+    await writeFile(join(projectRoot, relativePath), '# User standards', 'utf8');
+  });
+
+  afterAll(async () => {
+    await rm(projectRoot, { recursive: true, force: true });
+    await rm(packageRoot, { recursive: true, force: true });
+  });
+
+  test('preserves an unmanaged file and records protected ownership', async () => {
+    const { result, updatedManifest } = await installFiles([relativePath], makeOptions(projectRoot, packageRoot));
+
+    expect(result.skipped).toEqual([relativePath]);
+    expect(await Bun.file(join(projectRoot, relativePath)).text()).toBe('# User standards');
+    expect(updatedManifest.files[relativePath]).toMatchObject({ source: 'custom', protected: true });
+  });
+
+  test('backs up an unmanaged file before yolo overwrites it', async () => {
+    const { result } = await installFiles([relativePath], makeOptions(projectRoot, packageRoot, { yolo: true }));
+
+    expect(result.backed_up).toHaveLength(1);
+    expect(await Bun.file(join(projectRoot, relativePath)).text()).toBe('# Bundled standards');
+    expect(await Bun.file(result.backed_up[0]!).text()).toBe('# User standards');
+  });
+});

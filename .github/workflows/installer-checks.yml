@@ -6,13 +6,20 @@ on:
     paths:
       - 'install.sh'
       - 'update.sh'
-      - 'registry.json'
+      - 'built-ai-configs/registry/registry.json'
+      - 'built-ai-configs/registry/registry.v1.json'
+      - 'built-ai-configs/opencode-v1/**'
+      - 'agent-library/**'
       - 'scripts/tests/test-*.sh'
   push:
     branches: [main]
     paths:
       - 'install.sh'
       - 'update.sh'
+      - 'built-ai-configs/registry/registry.json'
+      - 'built-ai-configs/registry/registry.v1.json'
+      - 'built-ai-configs/opencode-v1/**'
+      - 'agent-library/**'
   workflow_dispatch:
 
 permissions:
@@ -165,6 +172,31 @@ jobs:
           echo "## ✅ Compatibility Tests Passed (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
           echo "Platform compatibility validated" >> $GITHUB_STEP_SUMMARY
 
+  flavor-tests:
+    name: OpenCode Flavor Tests
+    runs-on: ${{ matrix.os }}
+    needs: [shellcheck, syntax-check]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install jq (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y jq
+
+      - name: Install jq (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install jq || true
+
+      - name: Run flavor tests
+        run: bash scripts/tests/test-flavor-install.sh
+
   profile-smoke-test:
     name: Profile Installation Smoke Test
     runs-on: ubuntu-latest
@@ -210,7 +242,7 @@ jobs:
   summary:
     name: Installer Checks Summary
     runs-on: ubuntu-latest
-    needs: [shellcheck, syntax-check, non-interactive-tests, e2e-tests, compatibility-tests, profile-smoke-test]
+    needs: [shellcheck, syntax-check, non-interactive-tests, e2e-tests, compatibility-tests, flavor-tests, profile-smoke-test]
     if: always()
     
     steps:
@@ -262,6 +294,7 @@ jobs:
           [ "${{ needs.syntax-check.result }}" != "success" ] && FAILED=1
           [ "${{ needs.non-interactive-tests.result }}" != "success" ] && FAILED=1
           [ "${{ needs.e2e-tests.result }}" != "success" ] && FAILED=1
+          [ "${{ needs.flavor-tests.result }}" != "success" ] && FAILED=1
           
           if [ $FAILED -eq 0 ]; then
             echo "### ✅ All Installer Checks Passed!" >> $GITHUB_STEP_SUMMARY

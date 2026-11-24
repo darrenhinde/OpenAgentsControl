@@ -1,0 +1,1 @@
+{ "hooks": { "PreToolUse": [ { "matcher": "Read|Grep|Glob|Bash|Edit|Write", "hooks": [ { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.oac/hooks/secrets.js\"" } ] } ] } }

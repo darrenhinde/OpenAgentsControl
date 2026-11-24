@@ -1,0 +1,9 @@
+{
+  "id": "core",
+  "contexts": [
+    "adding-skill-basics",
+    "essential-patterns",
+    "project-context",
+    "quick-start"
+  ]
+}

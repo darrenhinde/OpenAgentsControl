@@ -1,16 +1,6 @@
 ---
 name: task-management
 description: Task management CLI for tracking and managing feature subtasks with status, dependencies, and validation
-version: 1.0.0
-author: opencode
-type: skill
-category: development
-tags:
-  - tasks
-  - management
-  - tracking
-  - dependencies
-  - cli
 ---
 
 # Task Management Skill
@@ -199,8 +189,8 @@ Tasks are stored in `.tmp/tasks/` at the project root:
 The TaskManager subagent creates task files using this format. When you delegate to TaskManager:
 
 ```javascript
-task(
-  subagent_type="TaskManager",
+subagent(
+  agent="task-manager",
   description="Implement feature X",
   prompt="Break down this feature into atomic subtasks..."
 )
@@ -291,13 +281,13 @@ Working agents (CoderAgent, TestEngineer, etc.) execute subtasks and report comp
 
 ```bash
 # 1. TaskManager creates the task structure
-task(subagent_type="TaskManager", description="Implement feature X", ...)
+subagent(agent="task-manager", description="Implement feature X", ...)
 
 # 2. Check what's ready
 bash .opencode/skills/task-management/router.sh next
 
 # 3. Delegate first task to working agent
-task(subagent_type="CoderAgent", description="Implement subtask 01", ...)
+subagent(agent="coder-agent", description="Implement subtask 01", ...)
 ```
 
 ### Tracking Progress

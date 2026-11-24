@@ -2,7 +2,7 @@
 
 /**
  * Registry Validator Script (TypeScript/Bun version)
- * Validates that all paths in registry.json point to actual files
+ * Validates that all paths in built-ai-configs/registry/registry.json point to actual files
  * Exit codes:
  *   0 = All paths valid
  *   1 = Missing files found
@@ -26,7 +26,7 @@ const colors = {
 };
 
 // Configuration
-const REGISTRY_FILE = 'registry.json';
+const REGISTRY_FILE = 'built-ai-configs/registry/registry.json';
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
 // Counters
@@ -469,7 +469,7 @@ function printSummary(): boolean {
         console.log(`  - ${file}`);
       }
       console.log('');
-      console.log('Consider adding these to registry.json or removing them.');
+      console.log('Consider adding these to built-ai-configs/registry/registry.json or removing them.');
     }
     
     return true;

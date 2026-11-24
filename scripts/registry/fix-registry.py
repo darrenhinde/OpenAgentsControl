@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Registry Fix Script
-Fixes dead references and adds orphaned files to registry.json
+Fixes dead references and adds orphaned files to built-ai-configs/registry/registry.json
 """
 
 import json
@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent.parent
-REGISTRY_FILE = REPO_ROOT / "registry.json"
+REGISTRY_FILE = REPO_ROOT / "built-ai-configs/registry/registry.json"
 
 def load_registry():
     with open(REGISTRY_FILE, 'r') as f:

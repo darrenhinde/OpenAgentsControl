@@ -1,0 +1,9 @@
+packages:
+  - packages/*
+  - evals/framework
+  - evals/v2
+
+sharedWorkspaceLockfile: true
+minimumReleaseAge: 4320
+engineStrict: true
+nodeVersion: 20.19.0

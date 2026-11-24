@@ -1,0 +1,15 @@
+{
+  "id": "essentials",
+  "contexts": [
+    "feature-breakdown",
+    "session-management",
+    "standards-analysis",
+    "standards-code",
+    "standards-docs",
+    "standards-patterns",
+    "standards-tests",
+    "system-context-guide",
+    "task-delegation-basics",
+    "workflows-review"
+  ]
+}

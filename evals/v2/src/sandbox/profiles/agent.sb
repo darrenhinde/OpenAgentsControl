@@ -1,0 +1,38 @@
+(version 1)
+; OAC local-suite Seatbelt profile (macOS sandbox-exec). Parameterised with -D:
+;   REAL_HOME  the maintainer's real $HOME (reads of its config/credentials are denied)
+;   REPO_DENY  a directory agents must never read (the repo under test; "/nonexistent" to allow)
+;   MAIN_DENY  a second such directory (the main git checkout behind a worktree)
+;   SVC_PORT   the user's OpenCode managed-service port (always denied)
+; Writes are allowed only outside /Users (the run's throwaway dirs live under $TMPDIR).
+(allow default)
+
+; writes: nothing under /Users at all
+(deny file-write* (subpath "/Users"))
+
+; reads: never the real host config, credentials or keychain files
+(deny file-read*
+  (subpath (string-append (param "REAL_HOME") "/.claude"))
+  (literal (string-append (param "REAL_HOME") "/.claude.json"))
+  (subpath (string-append (param "REAL_HOME") "/.config/opencode"))
+  (subpath (string-append (param "REAL_HOME") "/.local/share/opencode"))
+  (subpath (string-append (param "REAL_HOME") "/.local/state/opencode"))
+  (subpath (string-append (param "REAL_HOME") "/.opencode"))
+  (subpath (string-append (param "REAL_HOME") "/.ssh"))
+  (subpath (string-append (param "REAL_HOME") "/.aws"))
+  (subpath (string-append (param "REAL_HOME") "/.gnupg"))
+  (subpath (string-append (param "REAL_HOME") "/.config/gh"))
+  (literal (string-append (param "REAL_HOME") "/.npmrc"))
+  (literal (string-append (param "REAL_HOME") "/.netrc"))
+  (literal (string-append (param "REAL_HOME") "/.gitconfig"))
+  (subpath (string-append (param "REAL_HOME") "/Library/Keychains"))
+  (subpath (param "REPO_DENY"))
+  (subpath (param "MAIN_DENY")))
+
+; keychain daemon (mach IPC, not files)
+(deny mach-lookup (global-name "com.apple.SecurityServer") (global-name "com.apple.securityd.xpc"))
+
+; network: loopback only, and never the user's OpenCode managed service
+(deny network-outbound (remote ip "*:*"))
+(allow network-outbound (remote ip "localhost:*"))
+(deny network-outbound (remote ip (string-append "localhost:" (param "SVC_PORT"))))

@@ -1,0 +1,29 @@
+# Today's host-enforced approval on OC: openagent has bash "*": ask. The refactor must keep an ask
+# (or the intent gate) in front of shell for openagent, not lose it when permissions are regenerated.
+id: today/openagent-shell-asks
+check_id: scn/openagent-shell-asks
+guard: shipped
+title: openagent asks before any shell command (OC)
+area: today
+kind: regression
+layer: L2
+release: v1.2
+runner: host
+hosts: [opencode-v2]
+fixture: oac-tree
+agent:
+  opencode-v2: "${id.openagent}"
+asks: reject                     # run WITHOUT --auto; the driver must observe permission.asked and reply reject
+script:
+  - call: shell
+    command: "ls"
+  - call: done
+when_enforced: asked
+outcome:
+  - host_event: { type: permission.asked, tool: shell }
+  - tool_result_contains: ["rejected", "denied"]   # either wording; outcome = command didn't run
+control:
+  asks: approve                  # the --auto arm: command runs, proves the ask was the only guard
+  expect: runs
+today:
+  opencode-v2: { status: pass, ev: F, note: "run without --auto auto-rejects the ask (L-012)" }

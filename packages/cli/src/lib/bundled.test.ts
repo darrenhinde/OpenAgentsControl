@@ -1,7 +1,9 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
-import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, mkdir, writeFile, symlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { execFile as execFileCallback } from 'node:child_process';
+import { promisify } from 'node:util';
 import {
   classifyBundledFile,
   findPackageRoot,
@@ -9,7 +11,11 @@ import {
   listBundledFiles,
   bundledFileExists,
   type BundledFileType,
+  toManifestType,
 } from './bundled.js';
+
+const execFile = promisify(execFileCallback);
+const PACKAGE_ROOT = join(import.meta.dir, '../../../../');
 
 // ── classifyBundledFile ───────────────────────────────────────────────────────
 // Pure function — no I/O, no setup needed.
@@ -123,12 +129,18 @@ describe('findPackageRoot', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  // ✅ Positive: finds a directory that has both .opencode/ and package.json
-  test('returns the directory that has both .opencode/ and package.json', async () => {
+  /** Writes a package.json with the given name at `dir`. */
+  const writePackageJson = async (dir: string, name: string): Promise<void> => {
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, 'package.json'), JSON.stringify({ name }), 'utf8');
+  };
+
+  // ✅ Positive: finds the directory whose package.json name is @controlstack/oac
+  test('returns the directory whose package.json is named @controlstack/oac', async () => {
     // Arrange — create a fake package root
     const fakeRoot = join(tmpDir, 'fake-pkg');
     await mkdir(join(fakeRoot, '.opencode'), { recursive: true });
-    await writeFile(join(fakeRoot, 'package.json'), '{}', 'utf8');
+    await writePackageJson(fakeRoot, '@controlstack/oac');
     // Also create a subdirectory to start the walk from
     const startDir = join(fakeRoot, 'dist', 'lib');
     await mkdir(startDir, { recursive: true });
@@ -145,13 +157,50 @@ describe('findPackageRoot', () => {
     // Arrange
     const fakeRoot = join(tmpDir, 'exact-root');
     await mkdir(join(fakeRoot, '.opencode'), { recursive: true });
-    await writeFile(join(fakeRoot, 'package.json'), '{}', 'utf8');
+    await writePackageJson(fakeRoot, '@controlstack/oac');
 
     // Act
     const result = findPackageRoot(fakeRoot);
 
     // Assert
     expect(result).toBe(fakeRoot);
+  });
+
+  // ✅ Regression: the published tarball ships built-ai-configs/registry/registry.json NEXT TO .opencode/ at
+  // the package root. The previous heuristic excluded any directory containing a
+  // built-ai-configs/registry/registry.json, so it walked straight past the real root and `oac init` failed
+  // on every `npm i -g` install. The root must still be found.
+  test('finds the package root even when built-ai-configs/registry/registry.json sits beside .opencode/', async () => {
+    // Arrange — mirror the installed layout exactly
+    const installedRoot = join(tmpDir, 'installed-pkg');
+    await mkdir(join(installedRoot, '.opencode', 'agent'), { recursive: true });
+    await writePackageJson(installedRoot, '@controlstack/oac');
+    await mkdir(join(installedRoot, 'built-ai-configs/registry'), { recursive: true });
+    await writeFile(join(installedRoot, 'built-ai-configs/registry/registry.json'), '{"components":[]}', 'utf8');
+    const startDir = join(installedRoot, 'packages', 'cli', 'dist');
+    await mkdir(startDir, { recursive: true });
+
+    // Act
+    const result = findPackageRoot(startDir);
+
+    // Assert
+    expect(result).toBe(installedRoot);
+  });
+
+  // ❌ Negative: a differently-named package.json must not match
+  test('walks past a package.json belonging to a different package', async () => {
+    // Arrange — @controlstack/oac-cli must NOT be mistaken for @controlstack/oac
+    const outer = join(tmpDir, 'named-outer');
+    await mkdir(join(outer, '.opencode'), { recursive: true });
+    await writePackageJson(outer, '@controlstack/oac');
+    const inner = join(outer, 'packages', 'cli');
+    await writePackageJson(inner, '@controlstack/oac-cli');
+
+    // Act — starting inside the CLI package, the walk must reach the outer root
+    const result = findPackageRoot(inner);
+
+    // Assert
+    expect(result).toBe(outer);
   });
 
   // ❌ Negative: throws when no package root is found (isolated tmp dir with no markers)
@@ -181,7 +230,7 @@ describe('findPackageRoot', () => {
     // find the repo root. We therefore test the error *shape* by directly
     // calling with a path that we know will fail: the filesystem root '/'.
     expect(() => findPackageRoot('/')).toThrow(
-      'getPackageRoot: could not find a directory with ".opencode/" and "package.json"',
+      'getPackageRoot: could not find the "@controlstack/oac" package root',
     );
   });
 
@@ -197,27 +246,44 @@ describe('findPackageRoot', () => {
     expect(thrownMessage).toContain('"/"');
   });
 
-  // ❌ Negative: directory with only package.json (no .opencode) does not match
-  test('does not match a directory that has package.json but no .opencode', async () => {
-    // Arrange — a directory with only package.json, no .opencode
-    const noOpencode = join(tmpDir, 'no-opencode');
-    await mkdir(noOpencode, { recursive: true });
-    await writeFile(join(noOpencode, 'package.json'), '{}', 'utf8');
-    // Start from a child — the walk will pass through noOpencode (no match)
-    // and continue upward until it finds the monorepo root or throws.
-    // We just verify it does NOT return noOpencode.
+  // ❌ Negative: an unnamed package.json does not match
+  test('does not match a directory whose package.json has no name', async () => {
+    // Arrange — a directory with an anonymous package.json
+    const unnamed = join(tmpDir, 'unnamed-pkg');
+    await mkdir(unnamed, { recursive: true });
+    await writeFile(join(unnamed, 'package.json'), '{}', 'utf8');
+
+    // Act — the walk passes through and continues upward; it may find the real
+    // monorepo root above tmpdir, or throw. Either is fine.
     let result: string | undefined;
     try {
-      result = findPackageRoot(noOpencode);
+      result = findPackageRoot(unnamed);
     } catch {
       result = undefined;
     }
-    // If it found something, it must NOT be noOpencode (which lacks .opencode)
-    if (result !== undefined) {
-      expect(result).not.toBe(noOpencode);
+
+    // Assert — the key property: it never returns the unnamed directory
+    expect(result).not.toBe(unnamed);
+  });
+
+  // ❌ Negative: a malformed package.json is skipped rather than throwing
+  test('walks past a malformed package.json without throwing a parse error', async () => {
+    // Arrange
+    const broken = join(tmpDir, 'broken-pkg');
+    await mkdir(broken, { recursive: true });
+    await writeFile(join(broken, 'package.json'), '{ not json', 'utf8');
+
+    // Act & Assert — must not surface a JSON.parse error
+    let thrownMessage = '';
+    try {
+      const found = findPackageRoot(broken);
+      expect(found).not.toBe(broken);
+    } catch (err) {
+      thrownMessage = err instanceof Error ? err.message : String(err);
     }
-    // Either it threw (correct) or found a higher-level root (also acceptable)
-    expect(true).toBe(true); // test passes either way — the key is it didn't return noOpencode
+    if (thrownMessage !== '') {
+      expect(thrownMessage).toContain('could not find the "@controlstack/oac" package root');
+    }
   });
 });
 
@@ -229,32 +295,44 @@ describe('listBundledFiles', () => {
   beforeAll(async () => {
     packageRoot = await mkdtemp(join(tmpdir(), 'oac-list-bundled-'));
 
-    // Create a fake package structure with files in all three subdirs
+    // Create a fake package structure with files in every installable directory.
     await mkdir(join(packageRoot, '.opencode', 'agent', 'core'), { recursive: true });
+    await mkdir(join(packageRoot, '.opencode', 'command'), { recursive: true });
     await mkdir(join(packageRoot, '.opencode', 'context'), { recursive: true });
+    await mkdir(join(packageRoot, '.opencode', 'plugin'), { recursive: true });
     await mkdir(join(packageRoot, '.opencode', 'skills', 'sub'), { recursive: true });
+    await mkdir(join(packageRoot, '.opencode', 'tool', 'env', 'node_modules', 'dependency'), { recursive: true });
 
     await writeFile(join(packageRoot, '.opencode', 'agent', 'core', 'openagent.md'), '# Agent', 'utf8');
     await writeFile(join(packageRoot, '.opencode', 'agent', 'helper.md'), '# Helper', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'command', 'clean.md'), '# Command', 'utf8');
     await writeFile(join(packageRoot, '.opencode', 'context', 'standards.md'), '# Standards', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'plugin', 'notify.ts'), 'export {};', 'utf8');
     await writeFile(join(packageRoot, '.opencode', 'skills', 'sub', 'skill.md'), '# Skill', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'tool', 'env', 'index.ts'), 'export {};', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'tool', 'env', 'node_modules', 'dependency', 'index.js'), 'module.exports = {};', 'utf8');
+    await writeFile(join(packageRoot, 'env.example'), 'EXAMPLE=value\n', 'utf8');
   });
 
   afterAll(async () => {
     await rm(packageRoot, { recursive: true, force: true });
   });
 
-  // ✅ Positive: returns relative paths for all files in all three subdirs
-  test('returns relative paths for all bundled files', async () => {
+  test('returns every installable path and excludes nested node_modules', async () => {
     // Act
     const files = await listBundledFiles(packageRoot);
 
-    // Assert — all four files should be present
     expect(files).toContain('.opencode/agent/core/openagent.md');
     expect(files).toContain('.opencode/agent/helper.md');
+    expect(files).toContain('.opencode/command/clean.md');
     expect(files).toContain('.opencode/context/standards.md');
     expect(files).toContain('.opencode/skills/sub/skill.md');
-    expect(files).toHaveLength(4);
+    expect(files).toContain('env.example');
+    // v2 never scans .opencode/tool/ and does not run v1 plugins, so they are not part of its bundle.
+    expect(files).not.toContain('.opencode/plugin/notify.ts');
+    expect(files).not.toContain('.opencode/tool/env/index.ts');
+    expect(files).not.toContain('.opencode/tool/env/node_modules/dependency/index.js');
+    expect(files).toHaveLength(6);
   });
 
   // ✅ Positive: paths are relative (not absolute)
@@ -265,11 +343,10 @@ describe('listBundledFiles', () => {
     }
   });
 
-  // ✅ Positive: paths start with .opencode/
-  test('all returned paths start with .opencode/', async () => {
+  test('returns only .opencode paths or explicitly allowlisted root files', async () => {
     const files = await listBundledFiles(packageRoot);
     for (const f of files) {
-      expect(f.startsWith('.opencode/')).toBe(true);
+      expect(f.startsWith('.opencode/') || f === 'env.example').toBe(true);
     }
   });
 
@@ -292,6 +369,34 @@ describe('listBundledFiles', () => {
     }
   });
 
+  test('skips secrets, ignore files, nested package manifests, and alias symlinks', async () => {
+    const filteredRoot = await mkdtemp(join(tmpdir(), 'oac-filtered-pkg-'));
+    try {
+      await mkdir(join(filteredRoot, '.opencode', 'context', 'core', 'standards'), { recursive: true });
+      await mkdir(join(filteredRoot, 'built-ai-configs', 'opencode-v1', 'plugin'), { recursive: true });
+      await mkdir(join(filteredRoot, 'built-ai-configs', 'opencode-v1', 'tool'), { recursive: true });
+      await writeFile(join(filteredRoot, '.opencode', 'context', 'core', 'standards', 'code-quality.md'), '# Code', 'utf8');
+      await writeFile(join(filteredRoot, 'built-ai-configs', 'opencode-v1', 'plugin', 'notify.ts'), 'export {};', 'utf8');
+      await writeFile(join(filteredRoot, 'built-ai-configs', 'opencode-v1', 'plugin', 'package.json'), '{"name":"plugin"}', 'utf8');
+      await writeFile(join(filteredRoot, 'built-ai-configs', 'opencode-v1', 'plugin', '.env'), 'SECRET=1', 'utf8');
+      await writeFile(join(filteredRoot, 'built-ai-configs', 'opencode-v1', 'plugin', '.gitignore'), 'node_modules', 'utf8');
+      await writeFile(join(filteredRoot, 'built-ai-configs', 'opencode-v1', 'tool', 'package.json'), '{"name":"tool"}', 'utf8');
+      await symlink('code-quality.md', join(filteredRoot, '.opencode', 'context', 'core', 'standards', 'code.md'));
+
+      const files = await listBundledFiles(filteredRoot, 'v1');
+
+      expect(files).toContain('.opencode/context/core/standards/code-quality.md');
+      expect(files).toContain('built-ai-configs/opencode-v1/plugin/notify.ts');
+      expect(files).not.toContain('.opencode/context/core/standards/code.md');
+      expect(files).not.toContain('built-ai-configs/opencode-v1/plugin/package.json');
+      expect(files).not.toContain('built-ai-configs/opencode-v1/tool/package.json');
+      expect(files).not.toContain('built-ai-configs/opencode-v1/plugin/.env');
+      expect(files).not.toContain('built-ai-configs/opencode-v1/plugin/.gitignore');
+    } finally {
+      await rm(filteredRoot, { recursive: true, force: true });
+    }
+  });
+
   // ❌ Negative: empty package root returns empty array
   test('returns empty array when no bundled subdirs exist', async () => {
     // Arrange — completely empty package root
@@ -302,6 +407,20 @@ describe('listBundledFiles', () => {
     } finally {
       await rm(emptyRoot, { recursive: true, force: true });
     }
+  });
+});
+
+describe('published package contents', () => {
+  test('npm pack --dry-run includes env.example and excludes node_modules', async () => {
+    const { stdout } = await execFile('npm', ['pack', '--dry-run', '--json'], {
+      cwd: PACKAGE_ROOT,
+      encoding: 'utf8',
+    });
+    const packed = JSON.parse(stdout) as Array<{ files: Array<{ path: string }> }>;
+    const files = packed[0]?.files.map((file) => file.path) ?? [];
+
+    expect(files).toContain('env.example');
+    expect(files.some((file) => file.includes('node_modules'))).toBe(false);
   });
 });
 
@@ -330,5 +449,97 @@ describe('bundledFileExists', () => {
   test('returns false when the bundled file does not exist', async () => {
     const exists = await bundledFileExists(packageRoot, '.opencode/agent/missing.md');
     expect(exists).toBe(false);
+  });
+});
+
+// ── classifyBundledFile — commands, tools, plugins ────────────────────────────
+
+describe('classifyBundledFile — profile kinds', () => {
+  test('returns "command" for .opencode/command/ paths', () => {
+    expect(classifyBundledFile('.opencode/command/clean.md')).toBe('command');
+  });
+
+  test('returns "tool" for .opencode/tool/ paths', () => {
+    expect(classifyBundledFile('.opencode/tool/env/index.ts')).toBe('tool');
+  });
+
+  test('returns "plugin" for .opencode/plugin/ paths', () => {
+    expect(classifyBundledFile('.opencode/plugin/notify.ts')).toBe('plugin');
+  });
+
+  test('returns "config" for the env template', () => {
+    expect(classifyBundledFile('env.example')).toBe('config');
+  });
+});
+
+describe('toManifestType', () => {
+  test('folds registry kinds into the manifest vocabulary', () => {
+    expect(toManifestType('agent')).toBe('agent');
+    expect(toManifestType('subagent')).toBe('agent');
+    expect(toManifestType('context')).toBe('context');
+    expect(toManifestType('skill')).toBe('skill');
+    expect(toManifestType('config')).toBe('config');
+    expect(toManifestType('command')).toBe('other');
+    expect(toManifestType('tool')).toBe('other');
+    expect(toManifestType('plugin')).toBe('other');
+  });
+});
+
+// ── Flavor-aware bundle view ──────────────────────────────────────────────────
+
+describe('listBundledFiles by flavor', () => {
+  let pkg: string;
+  const put = async (rel: string, text = 'x'): Promise<void> => {
+    await mkdir(join(pkg, rel, '..'), { recursive: true });
+    await writeFile(join(pkg, rel), text);
+  };
+  const registry = (agents: Array<[string, string]>): string =>
+    JSON.stringify({
+      version: '1',
+      components: { agents: agents.map(([id, path]) => ({ id, name: id, type: 'agent', path })) },
+    });
+
+  beforeAll(async () => {
+    pkg = await mkdtemp(join(tmpdir(), 'oac-bundle-flavor-'));
+    await put('.opencode/agent/openagent.md'); // v2-generated, flat
+    await put('.opencode/agent/eval-runner.md'); // hand-authored, shared by both
+    await put('.opencode/command/c.md');
+    await put('.opencode/command/openagents/x.md', 'v2 text');
+    await put('built-ai-configs/opencode-v1/agent/core/openagent.md');
+    await put('built-ai-configs/opencode-v1/command/openagents/x.md', 'v1 text');
+    await put('built-ai-configs/opencode-v1/tool/gemini/index.ts');
+    await put('built-ai-configs/opencode-v1/tool/package.json'); // never installable
+    await put('built-ai-configs/registry/registry.json', registry([['openagent', '.opencode/agent/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
+    await put('built-ai-configs/registry/registry.v1.json', registry([['openagent', 'built-ai-configs/opencode-v1/agent/core/openagent.md'], ['eval-runner', '.opencode/agent/eval-runner.md']]));
+  });
+  afterAll(async () => {
+    await rm(pkg, { recursive: true, force: true });
+  });
+
+  test('v2 (the default) is the .opencode tree and never mentions built-ai-configs/opencode-v1', async () => {
+    const expected = [
+      '.opencode/agent/eval-runner.md',
+      '.opencode/agent/openagent.md',
+      '.opencode/command/c.md',
+      '.opencode/command/openagents/x.md',
+    ];
+    expect(await listBundledFiles(pkg)).toEqual(expected);
+    expect(await listBundledFiles(pkg, 'v2')).toEqual(expected);
+  });
+
+  test('v1 is the shared files plus built-ai-configs/opencode-v1, minus v2-only agents, with v1 winning a collision', async () => {
+    expect(await listBundledFiles(pkg, 'v1')).toEqual([
+      '.opencode/agent/eval-runner.md',
+      '.opencode/command/c.md',
+      'built-ai-configs/opencode-v1/agent/core/openagent.md',
+      'built-ai-configs/opencode-v1/command/openagents/x.md',
+      'built-ai-configs/opencode-v1/tool/gemini/index.ts',
+    ]);
+  });
+
+  test('classifies a v1 source path by where it installs', () => {
+    expect(classifyBundledFile('built-ai-configs/opencode-v1/agent/core/openagent.md')).toBe('agent');
+    expect(classifyBundledFile('built-ai-configs/opencode-v1/tool/gemini/index.ts')).toBe('tool');
+    expect(classifyBundledFile('built-ai-configs/opencode-v1/plugin/notify.ts')).toBe('plugin');
   });
 });

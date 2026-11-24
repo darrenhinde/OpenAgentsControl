@@ -8,16 +8,14 @@ const fs = require('fs');
 const cliDist = path.join(__dirname, '..', 'packages', 'cli', 'dist', 'index.js');
 
 if (!fs.existsSync(cliDist)) {
-  console.error('Error: OAC CLI not built yet. Run: npm run build -w packages/cli');
+  console.error('Error: OAC CLI not built yet. Run: make oac-cli (or: pnpm --dir packages/cli run build)');
   process.exit(1);
 }
 
+// Re-exec the bundled CLI on the SAME Node binary that is running this shim, so
+// `oac` works wherever `npm i -g` could install it — no Bun, no PATH lookup.
 try {
-  execFileSync('bun', [cliDist, ...process.argv.slice(2)], { stdio: 'inherit' });
+  execFileSync(process.execPath, [cliDist, ...process.argv.slice(2)], { stdio: 'inherit' });
 } catch (err) {
-  if (err.code === 'ENOENT') {
-    console.error('Error: Bun is required to run OAC CLI. Install from https://bun.sh');
-    process.exit(1);
-  }
   process.exitCode = err.status ?? 1;
 }

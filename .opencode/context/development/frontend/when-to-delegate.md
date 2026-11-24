@@ -239,8 +239,8 @@ You: [Read the CSS, fix the issue directly]
 ❌ **Task is backend/logic focused** → Wrong subagent (use coder-agent or handle directly)  
 ❌ **Task is a single line change** → Handle directly  
 ❌ **Task is content update** → Handle directly  
-❌ **Task is testing/validation** → Wrong subagent (use tester)  
-❌ **Task is code review** → Wrong subagent (use reviewer)  
+❌ **Task is testing/validation** → Wrong subagent (use test-engineer)  
+❌ **Task is code review** → Wrong subagent (use code-reviewer)  
 
 ---
 
@@ -460,7 +460,7 @@ task(
 
 ## Related Context
 
-- **Frontend Specialist Agent** → `../../../agent/subagents/development/frontend-specialist.md`
+- **Frontend Specialist Agent** → `../../../agent/dev/frontend-specialist.md`
 - **Design Systems** → `../../ui/web/design-systems.md`
 - **UI Styling Standards** → `../../ui/web/ui-styling-standards.md`
 - **Animation Patterns** → `../../ui/web/animation-patterns.md`

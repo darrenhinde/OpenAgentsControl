@@ -7,6 +7,7 @@ OWNER := darrenhinde
 
 .PHONY: help idea ideas board labels project-info issue-view issue-comment issue-close bug feature
 .PHONY: test-evals test-golden test-smoke test-verbose build-evals validate-evals
+.PHONY: build-canonical check-canonical-drift check-core oac-cli test-local
 
 help: ## Show this help message
 	@echo "OpenAgents GitHub Project Management"
@@ -157,27 +158,64 @@ high-priority: ## List all high priority items
 # Evaluation Framework Commands
 # =============================================================================
 
+# The canonical build: agent-library/{agents,skills,commands,context}/** is the source; built-ai-configs/** (with its live
+# mirrors .opencode/{agent,skills,command}/** and plugins/claude-code/{agents,skills,commands}/**; the context library
+# agent-library/context/** is copied verbatim to .opencode/context/**),
+# built-ai-configs/registry/registry.json, built-ai-configs/registry/registry.v1.json and
+# .oac/build-manifest.json are its committed output. `check-canonical-drift` is exactly what CI
+# runs (.github/workflows/packages-checks.yml), so a contributor can reproduce a red gate here.
+oac-cli: ## Build the oac CLI and its agent-compiler dependency
+	@pnpm --dir packages/agent-compiler run build
+	@pnpm --dir packages/cli run build
+
+build-canonical: oac-cli ## Regenerate the committed trees from agent-library/**
+	@echo "🔨 Building canonical trees..."
+	@bun packages/cli/dist/index.js build
+
+check-canonical-drift: oac-cli ## Fail if the generated trees drift from agent-library/** (CI gate)
+	@echo "🔍 Checking for generated-tree drift..."
+	@bash scripts/validation/check-build-drift.sh
+
+check-core: check-canonical-drift ## Full core health check: drift gate, compiler + CLI tests, typecheck, change-detection tests
+	@echo "🧪 Compiler tests..."
+	@pnpm --dir packages/agent-compiler exec vitest run
+	@echo "🧪 CLI tests..."
+	@cd packages/cli && bun test
+	@echo "🔎 Typecheck..."
+	@pnpm --dir packages/agent-compiler exec tsc --noEmit
+	@pnpm --dir packages/cli exec tsc --noEmit
+	@echo "🔎 Lint (compiler)..."
+	@pnpm --dir packages/agent-compiler run lint
+	@echo "🧪 Change-detection tests..."
+	@bun test scripts/validation
+	@echo "🧪 Installer flavor tests (bash)..."
+	@/bin/bash scripts/tests/test-flavor-install.sh
+	@echo "🔗 Documentation links (report only)..."
+	@bash scripts/validation/check-doc-links.sh
+	@echo "✅ Core is healthy"
+
 build-evals: ## Build the evaluation framework
 	@echo "🔨 Building evaluation framework..."
-	@cd evals/framework && npm ci && npm run build
+	@pnpm install --frozen-lockfile
+	@pnpm --dir evals/framework run build
 	@echo "✅ Build complete"
 
 validate-evals: ## Validate all test suites
 	@echo "🔍 Validating test suites..."
-	@cd evals/framework && npm run validate:suites:all
+	@pnpm --dir evals/framework run validate:suites:all
 	@echo "✅ Validation complete"
 
 test-golden: ## Run golden tests (8 tests, ~3-5 min)
 	@echo "🧪 Running golden tests..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml"
 
 test-smoke: ## Run smoke test only (1 test, ~30s)
 	@echo "🧪 Running smoke test..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --pattern="**/golden/01-smoke-test.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --pattern="**/golden/01-smoke-test.yaml"
 
 test-verbose: ## Run golden tests with full conversation output
 	@echo "🧪 Running golden tests (verbose)..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml" --verbose
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml" --verbose
 
 test-evals: build-evals validate-evals test-golden ## Full eval pipeline: build, validate, test
 
@@ -190,7 +228,7 @@ test-agent: ## Run tests for specific agent (requires AGENT=name)
 		exit 1; \
 	fi
 	@echo "🧪 Running tests for agent: $(AGENT)..."
-	@cd evals/framework && npm run eval:sdk -- --agent=$(AGENT) --pattern="**/golden/*.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=$(AGENT) --pattern="**/golden/*.yaml"
 
 # Test with specific model
 test-model: ## Run tests with specific model (requires MODEL=provider/model)
@@ -201,7 +239,7 @@ test-model: ## Run tests with specific model (requires MODEL=provider/model)
 		exit 1; \
 	fi
 	@echo "🧪 Running tests with model: $(MODEL)..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --model=$(MODEL) --pattern="**/golden/*.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --model=$(MODEL) --pattern="**/golden/*.yaml"
 
 # Test with prompt variant
 test-variant: ## Run tests with prompt variant (requires VARIANT=name)
@@ -213,34 +251,34 @@ test-variant: ## Run tests with prompt variant (requires VARIANT=name)
 		exit 1; \
 	fi
 	@echo "🧪 Running tests with prompt variant: $(VARIANT)..."
-	@cd evals/framework && npm run eval:sdk -- --agent=openagent --prompt-variant=$(VARIANT) --pattern="**/golden/*.yaml"
+	@pnpm --dir evals/framework run eval:sdk -- --agent=openagent --prompt-variant=$(VARIANT) --pattern="**/golden/*.yaml"
 
 # Test subagent standalone
 test-subagent: ## Test subagent in standalone mode (requires SUBAGENT=name)
 	@if [ -z "$(SUBAGENT)" ]; then \
 		echo "Error: SUBAGENT is required"; \
 		echo "Usage: make test-subagent SUBAGENT=coder-agent"; \
-		echo "       make test-subagent SUBAGENT=tester"; \
+		echo "       make test-subagent SUBAGENT=test-engineer"; \
 		echo ""; \
 		echo "Available subagents:"; \
-		echo "  Code: coder-agent, tester, reviewer, build-agent"; \
-		echo "  Core: task-manager, documentation, context-retriever"; \
+		echo "  Code: coder-agent, test-engineer, code-reviewer, build-agent"; \
+		echo "  Core: task-manager, doc-writer, context-retriever"; \
 		echo "  System: agent-generator, command-creator, context-organizer"; \
 		exit 1; \
 	fi
 	@echo "⚡ Testing subagent (standalone mode): $(SUBAGENT)..."
-	@cd evals/framework && npm run eval:sdk -- --subagent=$(SUBAGENT)
+	@pnpm --dir evals/framework run eval:sdk -- --subagent=$(SUBAGENT)
 
 # Test subagent via delegation
 test-subagent-delegate: ## Test subagent via parent delegation (requires SUBAGENT=name)
 	@if [ -z "$(SUBAGENT)" ]; then \
 		echo "Error: SUBAGENT is required"; \
 		echo "Usage: make test-subagent-delegate SUBAGENT=coder-agent"; \
-		echo "       make test-subagent-delegate SUBAGENT=tester"; \
+		echo "       make test-subagent-delegate SUBAGENT=test-engineer"; \
 		exit 1; \
 	fi
 	@echo "🔗 Testing subagent (delegation mode): $(SUBAGENT)..."
-	@cd evals/framework && npm run eval:sdk -- --subagent=$(SUBAGENT) --delegate
+	@pnpm --dir evals/framework run eval:sdk -- --subagent=$(SUBAGENT) --delegate
 
 # View results
 view-results: ## Open results dashboard in browser
@@ -259,3 +297,9 @@ show-results: ## Show latest test results summary
 	else \
 		echo "No results found. Run 'make test-golden' first."; \
 	fi
+
+# The local suite (evals/v2): every deterministic check, plus real hosts against a fake model
+# under the sandbox for TIER=hosts. Same as `pnpm test:local $(TIER)`. Results: .tmp/test-runs/latest/
+TIER ?= quick
+test-local: ## Run the local suite (TIER=quick|hosts; ARGS="--only build/")
+	@pnpm test:local $(TIER) $(ARGS)

@@ -241,7 +241,7 @@ Create a new agent with minimal, high-signal prompts following "right altitude" 
   </step_5>
 
   <step_6 name="RegisterAndValidate">
-    1. Register in `registry.json`:
+    1. Register in `built-ai-configs/registry/registry.json`:
     ```json
     {
       "name": "{agent-name}",
@@ -287,7 +287,7 @@ Create a new agent with minimal, high-signal prompts following "right altitude" 
     - `.opencode/context/project/{agent-name}-context.md` - Project context (CLAUDE.md pattern)
     - `evals/agents/{agent-name}/config/config.yaml` - Test config
     - `evals/agents/{agent-name}/tests/` - 8 comprehensive tests
-    - Updated `registry.json`
+    - Updated `built-ai-configs/registry/registry.json`
     
     ### Research-Backed Principles Applied
     ✅ **Single agent + tools** (not multi-agent for coding)
@@ -466,8 +466,8 @@ Create a new agent with minimal, high-signal prompts following "right altitude" 
   </research>
   
   <examples>
-    - `.opencode/agent/core/opencoder.md` - Development specialist example
-    - `.opencode/agent/core/openagent.md` - Universal orchestrator example
-    - `.opencode/agent/subagents/development/frontend-specialist.md` - Category agent example
+    - `.opencode/agent/opencoder.md` - Development specialist example
+    - `.opencode/agent/openagent.md` - Universal orchestrator example
+    - `.opencode/agent/frontend-specialist.md` - Category agent example (OpenCode v1 nests these under `agent/core/` and `agent/dev/`)
   </examples>
 </references>

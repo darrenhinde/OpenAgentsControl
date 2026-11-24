@@ -27,6 +27,7 @@ async function main(): Promise<void> {
     { registerUpdateCommand },
     { registerAddCommand },
     { registerApplyCommand },
+    { registerBuildCommand },
     { registerDoctorCommand },
     { registerListCommand },
     { registerStatusCommand },
@@ -35,6 +36,7 @@ async function main(): Promise<void> {
     import('./commands/update.js'),
     import('./commands/add.js'),
     import('./commands/apply.js'),
+    import('./commands/build.js'),
     import('./commands/doctor.js'),
     import('./commands/list.js'),
     import('./commands/status.js'),
@@ -44,6 +46,7 @@ async function main(): Promise<void> {
   registerUpdateCommand(program)
   registerAddCommand(program) // also registers `remove`
   registerApplyCommand(program)
+  registerBuildCommand(program)
   registerDoctorCommand(program)
   registerListCommand(program)
   registerStatusCommand(program)

@@ -1,0 +1,301 @@
+{
+  "retired": [
+    {
+      "path": ".opencode/command/openagents/new-agents/README.md",
+      "sha256": [
+        "30c08ef52def2fc92cd79ba6626db15921fcccbcc6132ad0cdac346262bae082",
+        "6004a9dcdaa62b9a6b1ceeec5d2d7be273d250dc96519ec6f892132e69d7061c",
+        "63d2b9a64c22542c6efc95211f10d11f14ebd43fd13baf26f2201afd65b445b9",
+        "7d26b22e1ffa32d64868fd0f9b8b02faedecccd63bd403636a0f1b2ef8461773",
+        "9302246796085e0d0a12da80cb14194ed688eac797d4b3e59b50fb1b038c39c6",
+        "ffb5a377328635daba37a595911ee2fad45def47b7bad28145fb43e8da7c7474"
+      ],
+      "replacedBy": "docs/guides/new-agents/README.md"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/agent-template.md",
+      "sha256": [
+        "00b8199fd85674b69dabaa92649106f16977ef495f5fd4b1b290f2fb38e9dfa6"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/agent-template.md"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/context-template.md",
+      "sha256": [
+        "b086ca0b96d8044a3abbf21f640d183821f3ca9bdb0da238a0ed960eb82b06fe"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/context-template.md"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-1-planning-approval.yaml",
+      "sha256": [
+        "833c781d1f0707f9b79213458ce1eda52d72593851fdaef2b64bd1c1ee43d7d8"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-1-planning-approval.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-2-context-loading.yaml",
+      "sha256": [
+        "80a3a1034823a0cc517e0cec86bedbbd63eb9acbd430fedd74095ff3775c15f6"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-2-context-loading.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-3-incremental.yaml",
+      "sha256": [
+        "e1e9f9e7ec43e17928288ecc19c0c8d49dc173fb09950e7685be86bde760b975"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-3-incremental.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-4-tool-usage.yaml",
+      "sha256": [
+        "ae1cc81056f48c4a98f5ac3456d9fe9c087d9cec772e08c36590bbb606df5f82"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-4-tool-usage.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-5-error-handling.yaml",
+      "sha256": [
+        "431170e3d382df43c2e2ae4c3c00020470af0f928b8de6d98b75bc7079bfdd82"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-5-error-handling.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-6-extended-thinking.yaml",
+      "sha256": [
+        "2cc5e208e3b2af2af4b975e96c5d1eee309de028034199ccafe6abcb7dc0a4c5"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-6-extended-thinking.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-7-compaction.yaml",
+      "sha256": [
+        "1da4d48d01838e2b0561495faf0b13fe4e4b4809c02842ef0e290a20ef1ea104"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-7-compaction.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-8-completion.yaml",
+      "sha256": [
+        "4d7b3e017d12c522bf22583c6c23da8a9d4051213f707dea7e6fd011ee188e4a"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-8-completion.yaml"
+    },
+    {
+      "path": ".opencode/command/openagents/new-agents/templates/test-config-template.yaml",
+      "sha256": [
+        "6fcb0ece340f31f6a7e56b1b48773e85b9a3ff24945f3286a7aa4368db02f47c"
+      ],
+      "replacedBy": "docs/guides/new-agents/templates/test-config-template.yaml"
+    },
+    {
+      "path": ".opencode/context/openagents-repo/blueprints/context-bundle-template.md",
+      "sha256": [
+        "3d7993593b5886950cfb5ce15075faf758da5eff13a9c15f88805932e63e528e",
+        "6186fdecdff7ab6486ed6a4ef6e2b4a5849878ca66dcc5661ba911acbc0c5d91",
+        "a7d498863486fbf575f74a29077326a6215f04eb0e82221d2eec234d7a02a5ef",
+        "b3673b9046de42922933be1977b400477949a26ef73d35e5ee87eaa7807bfb65",
+        "ec56fbadbf452c66f0a2731ee01073eea288b64776a5af511cd49dc09d23b93b"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/blueprints/navigation.md",
+      "sha256": [
+        "95949cbee1739810f975b65ccaf456fa553ab86ca35f16a86c04e32632f0c1e2",
+        "f2cc8fae0c91f68802fae3f5fd67833c18076989afa2e077ea9d8750aa5b22e1"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/concepts/compatibility-layer.md",
+      "sha256": [
+        "148cc4ba79316f3b1160b22d013f7446a39e3bf81654398541449281ab5b02af",
+        "358f946208d35ce998de3cb82f594633c543c3ab7f90f595686aed6d2d16ef64",
+        "5c8344245bece743302a9df5bc98ea8f90167fa492fbb541bd44661da2c9d586",
+        "61a1af218103d7acf2e9d703e72d5e911fcb9b9a871b94364ee6d49fb84d36d6",
+        "fae2f5590e7cc067b7e7a1247e46366a2723dd5b2ccfddecd14313be34c98cc2"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/core-concepts/agents.md",
+      "sha256": [
+        "1e32a39f0309e2a52c15cb9da166dcf2633bc1e34a6563937f863397e9106ace",
+        "5fdc8ccecafe6f5c9255b83d944230ecc3da25395894f415f2e5ad04bfd8e39f",
+        "64a97871cea4abb1b91d517726052474cdca1aaa95bbb3c4335cd24fd2dd0f42",
+        "7a336f5d7512cd0c96a01c538f4185fa95746016f7ddc852657b353de22da120",
+        "7d8ad233624752deba37c08e2d20a9a1507491341a5d496cbfa9c3799e15fbdd",
+        "9a2c8173a35400299d055f7376bd7ddec0c430e9ed05bdf1ef6bef8e6f75e96a",
+        "c713a959b0be0e18100e3e9990ec8d815469be9556e054938385405159c76c95",
+        "d93dca35d30353b530aabfb75493d5b7b8466c2d64b27c54418cdda1a0ce8398",
+        "f55e24dd3807dc7a5432bab95f7dc94fe4963726d88c523c8fefcffaa6f6dea4"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/core-concepts/categories.md",
+      "sha256": [
+        "049805f74e085719a924bc04498abad10906886585531863dc13faea5e10dc7d",
+        "7469e1125a28ba01e9753170282dbb1015ba065df82f5b094ad6b6350e7bf3f8",
+        "7b7136084c0da6c46854f6857173247ac0ed46d8fca0e89f61ecbc13ff5c3f15",
+        "8fd42301073a8164dfc7a696c5c21c56c129799aa47daeea8460122be2d781e7",
+        "a67aca262d4201c0e58fcf872a3182317e0c2a264c577a45abba704b6fc981f7",
+        "cbd6bef31dedeca2721a2b0647b7e25c2328b2865941c20d628a8924d2940e2a"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/examples/baseadapter-implementation.md",
+      "sha256": [
+        "2fbe2f7743f0bbb86bfec55a1e735e61cfd902407eee43d2bbf623a452603768",
+        "48a69d4594697a17166963dc324b4b7cc2bb045b602d6546283a9eed4842e263",
+        "c8e5ab0f41af71248d949f396ab8147e71712508c46d0c8f9974d2a39b4d5451"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/examples/baseadapter-pattern.md",
+      "sha256": [
+        "26187f21188ce10fe4795ceee75c166f8875e0928aec9fa6a46bbe0c96a0327e",
+        "86c7545cd3dded473b6653f31c859fae224d86c3fcf52c3cd0fd320a777c4d47",
+        "bb8c6cb6ca50275cc6853ebef048f31e8a165bdd5745b133b808ed3609d62a06"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/examples/zod-schema-migration.md",
+      "sha256": [
+        "3f34b5b26fa8cc2c5070a0193c7b0f39a798044d78d2526c21c38a1d87e0e18b",
+        "6d93b960a93a83fac397b794bb4af787fb28b4cdc0aa6cecd162d1b3c11c11e0",
+        "b0e6beab85d253f0656f9e0cd150fc9185aebaaa3a26723334789acf31dbecea"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/features/navigation.md",
+      "sha256": [
+        "c725d577a6588423a555e9ca48ce980ddd87d2d86f11ccda5ee9563f7c7e2c7c"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/features/oac-package-refactor.md",
+      "sha256": [
+        "8aff22aed04bd72953264f60de6d7b186e4cc6decbf07fa69627f7c1f99dee33",
+        "af6debe3157d757a0c77ff0256b49ee6c6b4daa7a01ec6f9a180fa7f28a3446e",
+        "df2ddb54f9e96f2a27b8e4ebd6bf0fa9100bdd336e8229423155954c40058c62"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/features/oac-refactor-feedback.md",
+      "sha256": [
+        "0257b254fe4c88ede186b82bb7d568100aa6bb7ec89e8d18e1015018dcbb15c1",
+        "a2bc6e0569f4c26bbbcdf31adc0eee0de73bce8f55adf0e5308c62e9fbfa7fd5",
+        "d1a9ec7d0a5cf428121e9a2148a3e544477c48a9635aefaab51873ab6b3229d1"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/features/oac-refactor-quickstart.md",
+      "sha256": [
+        "836310f7573e5e6fb6da56092b049bca5a40e3ed5db7b81c2c984ad06593a122",
+        "879707778f4d93b00ce2a970f69d507dddce0f863011415d4126c277994d23f0",
+        "e8532b5d578e70121924e6ecd72700bc830fda292800486c5917f4dc3e9e7326"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/adding-agent-basics.md",
+      "sha256": [
+        "0bcaf078029a3ce56febf4a69dafaef236282c778534933100faf4e2852f43d3",
+        "327600413ab459972d881f85c33dc53f5778daa56a1b9d621526289daadc7fda",
+        "5427dc8c560f57fc6b7032e2d31222a301af206e61fed59904e6b021d61fbf5e",
+        "6fec4edef8af9306a89ec6a47a52c95a9af9dc253c038742c1b8af61c2f4afe9",
+        "9e93fbd2f0b86e105fe61d6e1a7de1f32d2fcdb18c07049d579c4b311899be74",
+        "f8303dedf4e3d9590971d05058cea80e91c78687e4415793a8a6e51c270befc8"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/compatibility-layer-development.md",
+      "sha256": [
+        "1585f721f62637d75ad2e4dda3587de2eb66b0b23410a7fda868ccbc711fc7eb",
+        "6876a759cad73cdf01c187b8780a169254974a6fcabbc2c04ca7a49b616a5b62"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/compatibility-layer-workflow.md",
+      "sha256": [
+        "0f6d75365364a37018dcc08ef1bd9f7a71874e935da04cd1e3ebdae22238f47f",
+        "626c4974e449d5353bc2e856d9ba6e3fa702efeab8fd9f7f34cea2c6d1e84922",
+        "cd0c746dd11ac699677cdfc2dcf9bb59da82ab01aef9853a409c5677468f87ba",
+        "ef7e4bc74c3899810c17b500b9dbf0fb5d5e3df36b0afbf9e42e427902477ff4"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/creating-subagents.md",
+      "sha256": [
+        "0e4fd8e2062e2f3587f174c24135eff0ae583e03de567dddfca32c2ddea2647a",
+        "2ec3cb3697a99b8a9f10637f5c4512f2538d3f3596bca4da4f65ea4ce23e0990",
+        "3b2813c1c7c438fed40602eb09440236f70057cbbda21c604837468dd8ed8972",
+        "557b7de3c9541c4a65c1b6ebd696ba43a5cb51856119905716903c98acf760c8",
+        "b16fb8840838c0fc639cfa91aa9cd7b7b7105216975fc852a2b11babf6a20733",
+        "d9f79fd937a2d6e266192828ba3ae0c37770435264191c320310878cbda13949"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/guides/profile-validation.md",
+      "sha256": [
+        "7a1c861d98f1a2c12d1456fd4783a7ef18ff7fe7b02f628c315d2fdadb0dc2c4",
+        "7cabb36a9ab51015455582d9cd17fd25dad69b805dafaafda8510a6740e82296",
+        "9e67616f80c3e803cd6311498d443e8e0d6c7b1ff89d483b05d27cb9bf633707",
+        "b45e70df7e9f3af40984c772cd5a9b82a53fe584440efffff455ccd712b266a7",
+        "c0a483c901506d4ece6408a9f4989efb6ef116f7a8506f7fe28636446e36d8d1",
+        "e09d5c6ffd761d12559f05884b730221c1178ba261c87a562fbd0135e63bfaaf",
+        "f205aaa733a704dfe50fbf9ad8f29eebe3c17aca6b8d87a3738e3b0ac2c903b1",
+        "f98e0f95711e4d0842c9708a4f7b1c0744cc6e333523ab66e3d3283a57babf8f"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-layer-adapters.md",
+      "sha256": [
+        "0d76798753f35f8c79e617e8589394722c9915a3cde09fe1d4e136a3fb0200bf",
+        "15e61fe5b0cbcc2489173c7071a6ea467e1d650ed70b80cc9be5af2214a44cb4",
+        "dfe1eb319a2e8ef2b57c0759631ddaec8d0314ddb177eb2aedce2ebc502a87e7",
+        "f014f04a7688c3ab45392dc7c2bb32d2bb3e63cef52fa2103df31d061906f07d"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-layer-progress.md",
+      "sha256": [
+        "340555a4c4b5ca26c245a487523798ef5a3f9ff93e974e7f77afcdfc1e968ef0",
+        "7e690feb3cbc5913e56a5ac66bdfcbd1a3ff5039f0df9dce1a6c67a7bdec7abe",
+        "b5d3ca5d935f089fb235f70b95a6bf8740cc5abf72a680204b066a34231f1913",
+        "d55ae0aceb5ef3e08466d5751dcf09c6264434edd1e83913f664dce2ac8f3d27"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-layer-structure.md",
+      "sha256": [
+        "0de9f2e5330d92bb80ba85aa4372902395f85563f034d10e1fb2214cd1735153",
+        "30d1ae1c6087495c39e76d7f43233567d52104c6bc184cc9e29d43b5effbaacd",
+        "ec26e2e9e865e30a11f6e1afe6a33453bf0d00dd20bceb5b45dfb203687cf288",
+        "fc80b56bd82627963165b9ac0cea80c8863a6a6373a036888c0c986e38b7d773"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-layer-summary.md",
+      "sha256": [
+        "33b9aae1684b7fe44f3ff1b7570e564cf4a7dcddc4513b6794dda5279d93738d",
+        "4d61518d81375ab21a6f7025aaa54e4cb48fb6e156e486bcb2dcad1a323350b7",
+        "bfb554bd012bfb820f051e34c0a6ae590bd863ee2414a5aa38a9a8461d81e4d9"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/compatibility-learnings.md",
+      "sha256": [
+        "37548eab71254b5da249658f0da78a1504deb26c6514917a4852106b5e9e81ef",
+        "c9e59e99f8f2b50533675666cf1a777dc53d982bb618d299b73dbb8bdfde6ab2",
+        "e98e18fd58b1051c2101128be08cc47cfb1da98fae60250b457ff82d45c11c5d"
+      ]
+    },
+    {
+      "path": ".opencode/context/openagents-repo/lookup/tool-feature-parity.md",
+      "sha256": [
+        "3a86d6c8b0bce3c90f8af667a8bb6ff1c1ff29dbd410d23c1a3c98ac6755f7b1",
+        "3dc05736b05fa155b7fdb24293a1814ea99cd24efa9a9bc5f81d7d714e45e2af",
+        "723695f0dbace9c9e030c18e52583e4c0b69317b0769714700893470f0fd81e9"
+      ]
+    }
+  ]
+}

@@ -1,16 +1,6 @@
 ---
 name: context-manager
 description: Context management skill providing discovery, fetching, harvesting, extraction, compression, organization, cleanup, and guided workflows for project context
-version: 1.0.0
-author: opencode
-type: skill
-category: development
-tags:
-  - context
-  - management
-  - discovery
-  - organization
-  - external-docs
 ---
 
 # Context Manager Skill

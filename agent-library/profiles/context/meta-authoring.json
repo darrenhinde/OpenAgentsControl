@@ -1,0 +1,14 @@
+{
+  "id": "meta-authoring",
+  "contexts": [
+    "codebase-references",
+    "context-system",
+    "core/context-system/*",
+    "frontmatter",
+    "orchestrator-template",
+    "registry-dependencies",
+    "subagent-template",
+    "system-builder-guide",
+    "templates"
+  ]
+}

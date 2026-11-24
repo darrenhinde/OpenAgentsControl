@@ -25,23 +25,16 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Check for ajv-cli (JSON schema validator)
-# Use npx to run from local node_modules
-if ! command -v npx &> /dev/null; then
-    echo -e "${RED}❌ Error: npx not found (Node.js required)${NC}"
-    exit 2
-fi
+AJV_CMD=(pnpm --dir "$PROJECT_ROOT/evals/framework" exec ajv)
 
 # Check if ajv-cli is installed
-if ! (cd "$PROJECT_ROOT/evals/framework" && npx ajv validate -s /dev/null -d /dev/null 2>&1 | grep -q "valid"); then
+if ! "${AJV_CMD[@]}" help > /dev/null 2>&1; then
     echo -e "${RED}❌ Error: ajv-cli not found${NC}"
     echo ""
-    echo "Install with: cd evals/framework && npm install"
-    echo "Or globally: npm install -g ajv-cli"
+    echo "Install workspace dependencies with: pnpm install"
+    echo "Or add ajv-cli to the eval workspace with: pnpm --dir evals/framework add -D ajv-cli"
     exit 2
 fi
-
-AJV_CMD="cd $PROJECT_ROOT/evals/framework && npx ajv"
 
 # Parse arguments
 AGENT="${1:-openagent}"
@@ -91,8 +84,7 @@ validate_suite() {
     
     # 2. Validate against schema
     if [[ -f "$schema_file" ]]; then
-        # shellcheck disable=SC2294
-        validation_output=$(eval "$AJV_CMD validate -s \"$schema_file\" -d \"$suite_file\" --strict=false 2>&1")
+        validation_output=$("${AJV_CMD[@]}" validate -s "$schema_file" -d "$suite_file" --strict=false 2>&1)
         if ! echo "$validation_output" | grep -q "valid"; then
             echo -e "  ${RED}❌ Schema validation failed${NC}"
             echo "$validation_output" | grep -v "valid" | sed 's/^/     /'

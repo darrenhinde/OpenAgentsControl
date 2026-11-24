@@ -10,6 +10,7 @@ import {
   isYoloMode,
   isAutoBackup,
   getConfigPath,
+  withOpenCodeFlavor,
 } from './config.js';
 
 // ── getConfigPath ─────────────────────────────────────────────────────────────
@@ -53,6 +54,15 @@ describe('createDefaultConfig', () => {
   test('autoBackup defaults to true', () => {
     const config = createDefaultConfig();
     expect(config.preferences.autoBackup).toBe(true);
+  });
+
+  test('defaults installation scope to the essential profile', () => {
+    const config = createDefaultConfig();
+    expect(config.installationScope).toEqual({
+      profile: 'essential',
+      contextOnly: false,
+      profiles: ['essential'],
+    });
   });
 
   // ❌ Negative: two calls return independent objects (no shared reference)
@@ -244,6 +254,41 @@ describe('readConfig / writeConfig', () => {
     expect(read?.preferences.autoBackup).toBe(false);
   });
 
+  test('writeConfig then readConfig preserves installation scope', async () => {
+    const projectRoot = join(tmpDir, 'roundtrip-scope');
+    const config = {
+      ...createDefaultConfig(),
+      installationScope: {
+        profile: 'developer',
+        contextOnly: true,
+        profiles: ['essential', 'developer'],
+      },
+    };
+    await writeConfig(projectRoot, config);
+    const read = await readConfig(projectRoot);
+    expect(read?.installationScope).toEqual(config.installationScope);
+  });
+
+  test('reads version-1 config files without installation scope using compatible defaults', async () => {
+    const projectRoot = join(tmpDir, 'legacy-config');
+    const configPath = getConfigPath(projectRoot);
+    await mkdir(dirname(configPath), { recursive: true });
+    await Bun.write(
+      configPath,
+      JSON.stringify({ version: '1', preferences: { yoloMode: true, autoBackup: false } }),
+    );
+    const read = await readConfig(projectRoot);
+    expect(read).toEqual({
+      version: '1',
+      preferences: { yoloMode: true, autoBackup: false },
+      installationScope: {
+        profile: 'essential',
+        contextOnly: false,
+        profiles: ['essential'],
+      },
+    });
+  });
+
   // ✅ Positive: writeConfig is idempotent — second write overwrites first
   test('second writeConfig call overwrites the first', async () => {
     // Arrange
@@ -294,5 +339,38 @@ describe('readConfig / writeConfig', () => {
     );
     // Act & Assert
     await expect(readConfig(projectRoot)).rejects.toThrow();
+  });
+});
+
+// ── OpenCode flavor record ────────────────────────────────────────────────────
+
+describe('config opencode flavor', () => {
+  let root: string;
+  beforeAll(async () => {
+    root = await mkdtemp(join(tmpdir(), 'oac-config-flavor-'));
+  });
+  afterAll(async () => {
+    await rm(root, { recursive: true, force: true });
+  });
+
+  test('a default config records no flavor, so older configs stay readable', () => {
+    expect(createDefaultConfig().opencode).toBeUndefined();
+  });
+
+  test('withOpenCodeFlavor records the choice without touching anything else', () => {
+    const next = withOpenCodeFlavor(createDefaultConfig(), 'v1');
+    expect(next.opencode).toEqual({ target: 'v1' });
+    expect(next.preferences).toEqual(createDefaultConfig().preferences);
+  });
+
+  test('round-trips through disk', async () => {
+    await writeConfig(root, withOpenCodeFlavor(createDefaultConfig(), 'v1'));
+    expect((await readConfig(root))?.opencode).toEqual({ target: 'v1' });
+  });
+
+  test('rejects an unknown target', async () => {
+    await mkdir(join(root, '.oac'), { recursive: true });
+    await Bun.write(getConfigPath(root), JSON.stringify({ ...createDefaultConfig(), opencode: { target: 'v3' } }));
+    await expect(readConfig(root)).rejects.toThrow(/Invalid config/);
   });
 });

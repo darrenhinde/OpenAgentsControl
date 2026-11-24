@@ -20,7 +20,7 @@ This directory contains a TypeScript-based context installer that downloads cont
 
 ### Utilities
 
-- **`utils/registry-fetcher.ts`** - Fetch and parse registry.json from GitHub
+- **`utils/registry-fetcher.ts`** - Fetch and parse built-ai-configs/registry/registry.json from GitHub
 - **`utils/git-sparse.ts`** - Git sparse-checkout operations
 
 ## Usage
@@ -61,7 +61,7 @@ bun run plugins/claude-code/scripts/test-install.ts
 
 ## Features
 
-✅ Fetch registry.json from GitHub  
+✅ Fetch built-ai-configs/registry/registry.json from GitHub  
 ✅ Parse and validate with Zod  
 ✅ Filter context components by profile  
 ✅ Download using git sparse-checkout  
@@ -76,7 +76,7 @@ bun run plugins/claude-code/scripts/test-install.ts
 ### Registry Fetching
 
 The `registry-fetcher` utility:
-1. Fetches registry.json from GitHub raw URL
+1. Fetches built-ai-configs/registry/registry.json from GitHub raw URL
 2. Validates structure with Zod schema
 3. Filters components by profile or custom IDs
 4. Extracts unique directory paths for sparse checkout

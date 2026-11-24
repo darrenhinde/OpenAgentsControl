@@ -1,0 +1,3825 @@
+{
+  "version": 1,
+  "files": {
+    ".opencode/agent/adr-manager.md": {
+      "sha256": "9fcee4cba71daa33065636608aed909d987017adfbd4d80ccecfcfc3a2f345ad",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "adr-manager"
+    },
+    ".opencode/agent/agent-generator.md": {
+      "sha256": "901755a854570722c63109926acb1a8e2918fa8adef9d4b1989bdbb3bb8f8b7a",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "agent-generator"
+    },
+    ".opencode/agent/architecture-analyzer.md": {
+      "sha256": "05b7dc6165f6326c354a87f27bff892a7c54e09491fc0106f17ee0e2ec108cca",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "architecture-analyzer"
+    },
+    ".opencode/agent/batch-executor.md": {
+      "sha256": "3a429bfb544b629588e59965283ab38ef9df77be94e12bcfa740358ff43bf04a",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "batch-executor"
+    },
+    ".opencode/agent/build-agent.md": {
+      "sha256": "3416317b22ae1e9983f1d73b7e042ca2805cfa5b889a883d9dc56d5b2cdfccb4",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "build-agent"
+    },
+    ".opencode/agent/code-reviewer.md": {
+      "sha256": "662d48e65c007618e29e5a889453fe6cc55623a34689e982bf9420c50d5320ab",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "code-reviewer",
+      "aliases": [
+        "reviewer"
+      ]
+    },
+    ".opencode/agent/coder-agent.md": {
+      "sha256": "10863d85247437a12fbeb9474e3caa06e9cd64f204a659eec4cb234361b644d6",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "coder-agent"
+    },
+    ".opencode/agent/command-creator.md": {
+      "sha256": "c84fd1645cf84e56829e54b223edf250028b59f1a3d54e6bfba2e256a31a136e",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "command-creator"
+    },
+    ".opencode/agent/context-manager.md": {
+      "sha256": "3ba537b59ec5a99bfd9bd08c4b27c0d7c7c9fe56f9b0789b1e325b742bd7fdc6",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "context-manager"
+    },
+    ".opencode/agent/context-organizer.md": {
+      "sha256": "12b392c1f23025af897ddc08d264eb481902ff05a6e911a471115c95b8a72b7d",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "context-organizer"
+    },
+    ".opencode/agent/context-retriever.md": {
+      "sha256": "1a19a480eeb8a6d0eb4b627e07247a73448760aabcf891866f9a7852e3c0f595",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "context-retriever"
+    },
+    ".opencode/agent/context-scout.md": {
+      "sha256": "fee4377780bedfcd2e8b6c524a47ecf4167a2131c5fea26acf89815402c19be9",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "context-scout",
+      "aliases": [
+        "contextscout"
+      ]
+    },
+    ".opencode/agent/contract-manager.md": {
+      "sha256": "208cb66ed73749e33d0ba42b852a6bb385ecd5630fd00b41a90cb915a682381c",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "contract-manager"
+    },
+    ".opencode/agent/copywriter.md": {
+      "sha256": "ccffd8c1c9f657274458a16f32ee21daa909625b5c47a4d66f6eb95d2001559d",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "copywriter"
+    },
+    ".opencode/agent/data-analyst.md": {
+      "sha256": "a87483f9d735e0162c6a664b6200cd7a271fef241e7d8acb7bfcfbec47d20d97",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "data-analyst"
+    },
+    ".opencode/agent/devops-specialist.md": {
+      "sha256": "de8d900d5f7a9e010e3171a9a56cd6ec90307dc66e7ee80ca6daa677e3c106eb",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "devops-specialist"
+    },
+    ".opencode/agent/doc-writer.md": {
+      "sha256": "58841c67f7277d6e0aed15382dde30fef4da63dd67933c0623b98468a8441f9e",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "doc-writer",
+      "aliases": [
+        "documentation"
+      ]
+    },
+    ".opencode/agent/domain-analyzer.md": {
+      "sha256": "633a96cc784fffc85558306e5cdd03bdbcfd5ea84906733a35fded0168de6b67",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "domain-analyzer"
+    },
+    ".opencode/agent/eval-runner.md": {
+      "sha256": "ed0cf6a8894ba838902fa1f3914383ed86788e3a887ce9223f91d10ac7d5fed2",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "eval-runner"
+    },
+    ".opencode/agent/external-scout.md": {
+      "sha256": "6c692d01d1dddec37ee246b336c0db3dfefa243417effff2040a1743f289150c",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "external-scout",
+      "aliases": [
+        "externalscout"
+      ]
+    },
+    ".opencode/agent/frontend-specialist.md": {
+      "sha256": "9a69739bfda28e7a33c4be5f47f1f0787a70a28dc98a01c3544a230c6f7d8d4f",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "frontend-specialist"
+    },
+    ".opencode/agent/openagent.md": {
+      "sha256": "94dded5fd3a3afa73174e701b6430f8a35f98dd53586f87d60b08a930265b2ed",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "openagent"
+    },
+    ".opencode/agent/opencoder.md": {
+      "sha256": "60e4df58a156f84ee3dd6fd4c91829467b62dd8a4ccdde4103481031b59adc94",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "opencoder"
+    },
+    ".opencode/agent/prioritization-engine.md": {
+      "sha256": "3325c6bd7a6260ba5c791c36fc7940311600cbe112573df435f63b175ab17113",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "prioritization-engine"
+    },
+    ".opencode/agent/repo-manager.md": {
+      "sha256": "05d484da8fa9ce456b8a71bc55d906eb7505eff64f66431ef368219913d19294",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "repo-manager"
+    },
+    ".opencode/agent/simple-responder.md": {
+      "sha256": "67d041bf2ddff8e20fa0271c700a3c0a11adbce4ec087b668a28ba7c2efc2d67",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "simple-responder"
+    },
+    ".opencode/agent/stage-orchestrator.md": {
+      "sha256": "57f9d17ccaed46b35e7c6039a8c28c7a547511dbf22cae0851080e2e9cfb0836",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "stage-orchestrator"
+    },
+    ".opencode/agent/story-mapper.md": {
+      "sha256": "d5fefb6bd66c1cf3211cbd35246661b8e735e0391bc2bf020394e661459a1fef",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "story-mapper"
+    },
+    ".opencode/agent/system-builder.md": {
+      "sha256": "b79c29de5952418804c46865391b7419400913ac2b3f5ea01a7c654c5a5dfd13",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "system-builder"
+    },
+    ".opencode/agent/task-manager.md": {
+      "sha256": "df0bbadf0145487cce243d9c32742e6ecaa32e12864f25edd8f041a7cb241223",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "task-manager"
+    },
+    ".opencode/agent/technical-writer.md": {
+      "sha256": "ad4be4d4c6fb8581efcb0a3cb862a428d5230393bbc518fe829d125b859900b9",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "technical-writer"
+    },
+    ".opencode/agent/test-engineer.md": {
+      "sha256": "31b02fd4d676d843a45ace0a2b5b80242e3a772d90456c27cfb96d15d4ef644b",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "test-engineer",
+      "aliases": [
+        "tester"
+      ]
+    },
+    ".opencode/agent/workflow-designer.md": {
+      "sha256": "97601f0fdc98b2966e8f8aeb42469b28ca8505e10009b568a4ecf9cc7387b0af",
+      "target": "opencode",
+      "root": ".opencode/agent",
+      "agentId": "workflow-designer"
+    },
+    ".opencode/command/add-context.md": {
+      "sha256": "13e2abccf9d63cdc12e03cb1b072431b096f51b04eb6b2d6c904e226d9d8d2d6",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "add-context"
+    },
+    ".opencode/command/analyze-patterns.md": {
+      "sha256": "477f1dae2e1671b65b3a7c5d39a87444fd205ef9782f0c0b93254d62d73f788f",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "analyze-patterns"
+    },
+    ".opencode/command/build-context-system.md": {
+      "sha256": "95ec5038b3e8fcb601efb06d972e1ef66e078b8e4e73e1aec512080ef36f340e",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "build-context-system"
+    },
+    ".opencode/command/clean.md": {
+      "sha256": "0db0d11e9bfb49647eec7660937ad0a1e8c5c0448ced01942351c32f0757d580",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "clean"
+    },
+    ".opencode/command/commit-openagents.md": {
+      "sha256": "432e96cf759cf875df4be4fa8efa5865c71c1510a87fe9541dbdc6bb03ee4ec3",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "commit-openagents"
+    },
+    ".opencode/command/commit.md": {
+      "sha256": "e1ed2887c3114a07bfba0c1cac6d05f33b3b0a566f1cf17e75518881827df8bb",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "commit"
+    },
+    ".opencode/command/context.md": {
+      "sha256": "27dfee45a506621aa707dcadcefed0be5b08a0dfa5a79e63ff1376b4813e45d2",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "context"
+    },
+    ".opencode/command/openagents/check-context-deps.md": {
+      "sha256": "0a10a8136dd46524f83c69b4431769466e9bfbe6e2b8ee9aef5f689d24344a59",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "check-context-deps"
+    },
+    ".opencode/command/openagents/new-agents/create-agent.md": {
+      "sha256": "e3f81cd0c527d1e153325243bf539202428c6b016704827f746cbfff0f23ba28",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "create-agent"
+    },
+    ".opencode/command/openagents/new-agents/create-tests.md": {
+      "sha256": "c0fffabf0f5f6188dc4780a07c91292b821e04e67e528c20355a7d1848d56dcc",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "create-tests"
+    },
+    ".opencode/command/optimize.md": {
+      "sha256": "6f7aec5327e512abef618173d139db223e45c2acc5f74041f1811149d4b26263",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "optimize"
+    },
+    ".opencode/command/prompt-engineering/prompt-enhancer.md": {
+      "sha256": "57e8a533525a782ab664de61c4d41cec2e2ef44e05b46daa262e506ece3a21ec",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "prompt-enhancer"
+    },
+    ".opencode/command/prompt-engineering/prompt-optimizer.md": {
+      "sha256": "d19e891ac4cc6027a3e3c3e0d14cb44112748d1d401ae88618b988766e76c257",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "prompt-optimizer"
+    },
+    ".opencode/command/test-new-command.md": {
+      "sha256": "49f78b0bc7a8ee4c9f4f6f8155d47b60a669543b2e3c728e128e99b88e0da8aa",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "test-new-command"
+    },
+    ".opencode/command/test.md": {
+      "sha256": "2cf3b3b8d1ba1e761ebe8840b2937b0464f7a5b5b6b30c92d6ad4cc2ec5a1138",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "test"
+    },
+    ".opencode/command/validate-repo.md": {
+      "sha256": "b0b0a668e2db6604458f08248c50b28fd60b88f9dde8fe72e85003ffb2d0c16a",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "validate-repo"
+    },
+    ".opencode/command/worktrees.md": {
+      "sha256": "15e16fc3e3753c1e7ec896f0874d5c0a11f758208df18775786826a84cdf6875",
+      "target": "opencode",
+      "root": ".opencode/command",
+      "assetKind": "command",
+      "assetId": "worktrees"
+    },
+    ".opencode/context/CODEBASE_STANDARDS.md": {
+      "sha256": "8e662368031415473826276cd22a402c7ebfd525c9ec30b8424e4671143d9c9c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "CODEBASE_STANDARDS.md"
+    },
+    ".opencode/context/content-creation/examples/navigation.md": {
+      "sha256": "c23e587e7ab18a3f825a8538d1450671f08dca778ebcf3d8e5a4fab747f59c69",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/examples/navigation.md"
+    },
+    ".opencode/context/content-creation/formats/audio-content.md": {
+      "sha256": "a06bb123912c7c6324b768d1a8eb274d2cab825bef054f67c02efc70f84d9723",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/formats/audio-content.md"
+    },
+    ".opencode/context/content-creation/formats/image-content.md": {
+      "sha256": "b4099f08a61c348b097256d4a19172533b00deedf756a184de0aea743a467c70",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/formats/image-content.md"
+    },
+    ".opencode/context/content-creation/formats/navigation.md": {
+      "sha256": "d27be36d9b8c82d33ee7fc8fd76187ec4fadca1bfe3d590966aca1173351632e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/formats/navigation.md"
+    },
+    ".opencode/context/content-creation/formats/video-content.md": {
+      "sha256": "1db93d44992bfe297291f817be07fad356244e8602da00bb34ce302436047cac",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/formats/video-content.md"
+    },
+    ".opencode/context/content-creation/formats/written-content.md": {
+      "sha256": "ed67b75cd701483b25791e209a99e368cd32dfd685c88dd7e923b864e446bcdf",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/formats/written-content.md"
+    },
+    ".opencode/context/content-creation/navigation.md": {
+      "sha256": "9cdc1aa84186fbc89063c2fb2658671bfd8f99742cf10f67474faa1dd928b032",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/navigation.md"
+    },
+    ".opencode/context/content-creation/principles/audience-targeting.md": {
+      "sha256": "88bed214faaa3304ae2cf6676cd89c953119e7c6a479a93cfbe281da3d1ec9cd",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/principles/audience-targeting.md"
+    },
+    ".opencode/context/content-creation/principles/copywriting-frameworks.md": {
+      "sha256": "5b2d83edd5fd869d80eab8bdf2b9d86d10e5a26015b63cbde38dcda854fd0e98",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/principles/copywriting-frameworks.md"
+    },
+    ".opencode/context/content-creation/principles/hooks.md": {
+      "sha256": "a6baeaac5915f4367b40258a042d0259453a4c55e87195d7860118c5ce9c87ae",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/principles/hooks.md"
+    },
+    ".opencode/context/content-creation/principles/navigation.md": {
+      "sha256": "798a1abe21474f8cade96e579ebee2bc33dac70bb584e20c0ff003a037dd9b2c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/principles/navigation.md"
+    },
+    ".opencode/context/content-creation/principles/tone-voice.md": {
+      "sha256": "b3110b6749dd5df4f18fb3f04bd15000cd4d6f645372f5bcc1c38955da8e0c6a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/principles/tone-voice.md"
+    },
+    ".opencode/context/content-creation/workflows/audience-review.md": {
+      "sha256": "ce2e3f2605d506ca7089d4295c8b6207472c7a48f78f2d60a0915ebb33737f55",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/workflows/audience-review.md"
+    },
+    ".opencode/context/content-creation/workflows/content-ideas.md": {
+      "sha256": "a630eaf4ebead13d46dc626d4e73eb8d6f167fd8b9a73c22e107c1673bbd2fa8",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/workflows/content-ideas.md"
+    },
+    ".opencode/context/content-creation/workflows/content-matrix.md": {
+      "sha256": "cc5997e58cd388030eca344b13c19972091bb0e323d4f88f632ea988c6115fa7",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/workflows/content-matrix.md"
+    },
+    ".opencode/context/content-creation/workflows/navigation.md": {
+      "sha256": "b8a58d3197e7a4ca7b1c2d32375b2b202a02d77a364b6f4874f900fb9bcd5f4a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/workflows/navigation.md"
+    },
+    ".opencode/context/content-creation/workflows/remix-repurpose.md": {
+      "sha256": "ca9d97d1b9f356bbe0118994e0c73442bd623a97acacd4882b857a31c128da09",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "content-creation/workflows/remix-repurpose.md"
+    },
+    ".opencode/context/core/config/navigation.md": {
+      "sha256": "710b28427a10222e940f928737af24bdca36db772dead2e9310a3716118d0750",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/config/navigation.md"
+    },
+    ".opencode/context/core/config/paths.json": {
+      "sha256": "2efd7a313b0a5719f4034876f4261e936849f9fcfd921870093807c77614d874",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/config/paths.json"
+    },
+    ".opencode/context/core/context-system.md": {
+      "sha256": "f8822749c4587f9309ff5e48abd1633e034cf239c6cc4558e5ab71ae2369486b",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system.md"
+    },
+    ".opencode/context/core/context-system/CHANGELOG.md": {
+      "sha256": "3f1e276a20f5fe1cb6a722aad51e5da66b73495f829208a9ac3a3a36296ab691",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/CHANGELOG.md"
+    },
+    ".opencode/context/core/context-system/examples/navigation-examples.md": {
+      "sha256": "a5bbe00d18683deede1404d22435acbd3ff280f4e3284df50984d071b391d447",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/examples/navigation-examples.md"
+    },
+    ".opencode/context/core/context-system/examples/navigation.md": {
+      "sha256": "62318d316683af66b8a27a18c72d0d6da00d7257768544bb5188207ba252c418",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/examples/navigation.md"
+    },
+    ".opencode/context/core/context-system/guides/compact.md": {
+      "sha256": "2be296e78c2a64304bca481f1c9151528f46542ed2c9ad5f9af8d6dcdca3defd",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/guides/compact.md"
+    },
+    ".opencode/context/core/context-system/guides/creation.md": {
+      "sha256": "b2096128fee8005fd8df06661105edcc8cfddb58dabed195d0f3dd0f9f43ba4c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/guides/creation.md"
+    },
+    ".opencode/context/core/context-system/guides/navigation-design-basics.md": {
+      "sha256": "b7fd7e3613c9e93a9a314c1036c15599a93b0027379943358e0aba03ec3f8674",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/guides/navigation-design-basics.md"
+    },
+    ".opencode/context/core/context-system/guides/navigation-templates.md": {
+      "sha256": "866a7fee04c9fa8c3f464a88a446a9c4db25effb229f4d92ab9b9d52ae4caa7e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/guides/navigation-templates.md"
+    },
+    ".opencode/context/core/context-system/guides/navigation.md": {
+      "sha256": "184269cbd2f40ac8297dd1a667ffbb827a2f427c80bc80e553a4d2826f3a375e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/guides/navigation.md"
+    },
+    ".opencode/context/core/context-system/guides/organizing-context.md": {
+      "sha256": "d815b5a971e99a9cfbff5c966811ab909e905da6b8110d1762b4ff32bbedf72c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/guides/organizing-context.md"
+    },
+    ".opencode/context/core/context-system/guides/workflows.md": {
+      "sha256": "17ca41dc06cc39229baafafe5cbe5496479375dcd7acd66e35365e011e6c1c08",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/guides/workflows.md"
+    },
+    ".opencode/context/core/context-system/navigation.md": {
+      "sha256": "3873f6fd59a71c277d740cfe807666eca7203d9bf3b077b274c43044b1666a7a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/navigation.md"
+    },
+    ".opencode/context/core/context-system/operations/error.md": {
+      "sha256": "a49b998e8ccde811cac183400a0ea8724c1755ed2b9902f974fccf4d3de89ee5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/operations/error.md"
+    },
+    ".opencode/context/core/context-system/operations/extract.md": {
+      "sha256": "3e345b1cdb5757c876fa1a55e3151c7e684f35e7fc68d93ab1b6d69895694a33",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/operations/extract.md"
+    },
+    ".opencode/context/core/context-system/operations/harvest.md": {
+      "sha256": "9fb1bea6db731a25d43f56c026d03256aa5725ac8d567b7be20e17d4bf63028c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/operations/harvest.md"
+    },
+    ".opencode/context/core/context-system/operations/migrate.md": {
+      "sha256": "82e7ad077f7aabdbbea625a60ce4364f5c991bf01b3db6c14f8352d1800ecbfe",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/operations/migrate.md"
+    },
+    ".opencode/context/core/context-system/operations/navigation.md": {
+      "sha256": "72837622a53564e635ee8b936941fc956edefbbf602751e9528430e66126e3aa",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/operations/navigation.md"
+    },
+    ".opencode/context/core/context-system/operations/organize.md": {
+      "sha256": "6fe90fe548a5b6a615292008a964cc243094ca72907139d4fe64530e7c2c230c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/operations/organize.md"
+    },
+    ".opencode/context/core/context-system/operations/update.md": {
+      "sha256": "1beb1a990b69746f680b329bb954f96025718cedad6aea6e65afd2b919f31f74",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/operations/update.md"
+    },
+    ".opencode/context/core/context-system/standards/codebase-references.md": {
+      "sha256": "8f707ea15d8fb77e06cf7e508645bc77a719aa5fd4418d397f3bf6cde2ac7983",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/standards/codebase-references.md"
+    },
+    ".opencode/context/core/context-system/standards/frontmatter.md": {
+      "sha256": "af172579811a545d399983115677406b496b827ba0f4ef8bdd5576328db59bb6",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/standards/frontmatter.md"
+    },
+    ".opencode/context/core/context-system/standards/mvi.md": {
+      "sha256": "d5ba2405bf4500b240332a01e844f466148e9b8554400a4bfd9f43d7ac6b14df",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/standards/mvi.md"
+    },
+    ".opencode/context/core/context-system/standards/navigation.md": {
+      "sha256": "d30606a1fbaa6eadcb9419aa90d7d13179a4d1fa2b63d6719be46be378ee8b97",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/standards/navigation.md"
+    },
+    ".opencode/context/core/context-system/standards/structure.md": {
+      "sha256": "2ae33baa5c263d8143c2c476a4b18abf71770cf51e986c5f1ff64f9598cc3624",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/standards/structure.md"
+    },
+    ".opencode/context/core/context-system/standards/templates.md": {
+      "sha256": "c18f7e4117892edf0053608117bd52414721736ef47a20200a8ca31f127412d5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/standards/templates.md"
+    },
+    ".opencode/context/core/context-system/standards/typescript-coding.md": {
+      "sha256": "f9d5eb41c61e5da9ea5a4b43acb116c4e7d0ec32627063c037dff63048b8fe01",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/context-system/standards/typescript-coding.md"
+    },
+    ".opencode/context/core/essential-patterns.md": {
+      "sha256": "16a9f6990dd1577832839303588a801dd398561016a376a04800458437dace34",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/essential-patterns.md"
+    },
+    ".opencode/context/core/guides/navigation.md": {
+      "sha256": "d84f1cc4be8fd79c039dde65d67ecd0d4d8a1d9bbebd23bdf46363152edbcc24",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/guides/navigation.md"
+    },
+    ".opencode/context/core/guides/resuming-sessions.md": {
+      "sha256": "2869d1f15c80dd67dbe083b8784152a0821881bf619e1df067479d89ccca6a1e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/guides/resuming-sessions.md"
+    },
+    ".opencode/context/core/navigation.md": {
+      "sha256": "619dab3b47db9bac3b4762698c52725344c54858281c34f8adedb278ec122df2",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/navigation.md"
+    },
+    ".opencode/context/core/standards/code-analysis.md": {
+      "sha256": "e58e77cdfe47f34e98e63ffd5a3a33104cb232e5dcb5182d744bb6d8b150f5f5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/code-analysis.md"
+    },
+    ".opencode/context/core/standards/code-quality.md": {
+      "sha256": "e9e8392863e3e64581c2ff5e1daa752c6b4057f5446463ad2fa1d19e5a411139",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/code-quality.md"
+    },
+    ".opencode/context/core/standards/code.md": {
+      "sha256": "5c32e014dcc0fe65e196ade92cbe8670e5a97d4dc1416fd7c9da6a5c30d51041",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/code.md"
+    },
+    ".opencode/context/core/standards/csharp-project-structure.md": {
+      "sha256": "d65d3a54dd3b2a5dc11717c00f35120d48739cd7722c62dcf100287cbee1547f",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/csharp-project-structure.md"
+    },
+    ".opencode/context/core/standards/csharp.md": {
+      "sha256": "d4aa7c56707b1e4a0e290746296487d59bebb502f2ac10afeadc7aaf1519c1f3",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/csharp.md"
+    },
+    ".opencode/context/core/standards/docs.md": {
+      "sha256": "f00fb5eeaac1548bdeace378626a0bca0216f4eb023958985f1a2983a10486ba",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/docs.md"
+    },
+    ".opencode/context/core/standards/documentation.md": {
+      "sha256": "b7710d138096cb6b4e53f8fe1f146ea1c551e02030b7dc72d4498d6873f27879",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/documentation.md"
+    },
+    ".opencode/context/core/standards/navigation.md": {
+      "sha256": "5288c2f79275bc19750c7b0cfa6771abd523088519932936aacd2a9a1ba5f9dd",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/navigation.md"
+    },
+    ".opencode/context/core/standards/project-intelligence-management.md": {
+      "sha256": "73b495d4fdd3e5e21ac5ae53d35592c03c99ff780d1dafa79ecc17b06d198d4b",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/project-intelligence-management.md"
+    },
+    ".opencode/context/core/standards/project-intelligence.md": {
+      "sha256": "786022b15a1b250dac6914ccc53ade58814892fdabe44fd3850d139dcdb20212",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/project-intelligence.md"
+    },
+    ".opencode/context/core/standards/security-patterns.md": {
+      "sha256": "651f614041d6266b5b543aecba58c1ddf302db1e9ed91b27f863a6387eaaaf64",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/security-patterns.md"
+    },
+    ".opencode/context/core/standards/test-coverage.md": {
+      "sha256": "6455cd0ccdf46c59d24180805c925527030394e35bbf1ba2e73ce8288c01f1a5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/test-coverage.md"
+    },
+    ".opencode/context/core/standards/tests.md": {
+      "sha256": "585787d74eb29fae9f534488c5015eb18fb14f82acf132238ed0a79dd11fec43",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/tests.md"
+    },
+    ".opencode/context/core/standards/typescript.md": {
+      "sha256": "97e1bf5e7a9578c9e860c16b8ce4fcb1c3aad122779eba89e9c4d3cae9d87b62",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/standards/typescript.md"
+    },
+    ".opencode/context/core/system/context-guide.md": {
+      "sha256": "6d96cc98ed2d7b1392bee81f31518cdfa28fe2b754be73340aa555a5518ab2f2",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/system/context-guide.md"
+    },
+    ".opencode/context/core/system/context-paths.md": {
+      "sha256": "9663e09a5128e763d93ecae24c1d25ade3938ffdd38f75899568b8288006a2db",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/system/context-paths.md"
+    },
+    ".opencode/context/core/system/navigation.md": {
+      "sha256": "fa36880f77c029298f0c0b82e320ba26097e0503b3615d0f86fcf316e9cec4b3",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/system/navigation.md"
+    },
+    ".opencode/context/core/task-management/guides/managing-tasks.md": {
+      "sha256": "6152c985c7591fca93c0617a9391f4bf06daa9c3637e3f66e5225a3f5f291979",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/task-management/guides/managing-tasks.md"
+    },
+    ".opencode/context/core/task-management/guides/navigation.md": {
+      "sha256": "b18a8a3268d6a68bd703b5faf0de77fe7840a0ba3ebee0471f9bee8f22c577e1",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/task-management/guides/navigation.md"
+    },
+    ".opencode/context/core/task-management/guides/splitting-tasks.md": {
+      "sha256": "b85f227ddc3f188fdcf76ad9cd3759dffbcf50289233046d6e16deeabff35439",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/task-management/guides/splitting-tasks.md"
+    },
+    ".opencode/context/core/task-management/lookup/navigation.md": {
+      "sha256": "63c53745c233975c74b52932051f4f8e1858d6a5d9ae3c209b9633b97e8048e2",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/task-management/lookup/navigation.md"
+    },
+    ".opencode/context/core/task-management/lookup/task-commands.md": {
+      "sha256": "d187252a9f99f411ee7253ff5337971c4fa748bf4a77b403a44b5c4663a2c2f4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/task-management/lookup/task-commands.md"
+    },
+    ".opencode/context/core/task-management/navigation.md": {
+      "sha256": "f8bc8e7d16dbe482ffb3e31f3d937c311bdcc24c31314578d25d2e74a6cda398",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/task-management/navigation.md"
+    },
+    ".opencode/context/core/task-management/standards/enhanced-task-schema.md": {
+      "sha256": "43626bb27e62ea24fc7106cf9f33eef17e2df8eba0896b64b0566b4da1d709e4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/task-management/standards/enhanced-task-schema.md"
+    },
+    ".opencode/context/core/task-management/standards/navigation.md": {
+      "sha256": "44705138334aa005df2feebbb4409de2c8b3c578ba449e5f4482a3684b4b8265",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/task-management/standards/navigation.md"
+    },
+    ".opencode/context/core/task-management/standards/task-schema.md": {
+      "sha256": "df8dbe2acafd6acf3926aaa3f29f03bdf43394bc29937401e8770ff9d64482f5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/task-management/standards/task-schema.md"
+    },
+    ".opencode/context/core/visual-development.md": {
+      "sha256": "8fcb24bcd981c8b907620294c08ee8ec06602f109f6ff0d350ac99104b6d2994",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/visual-development.md"
+    },
+    ".opencode/context/core/workflows/code-review.md": {
+      "sha256": "e2acc512146f689b1ba038d1c9d2f23907ca01189dd755f091853030e6e1cd8a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/code-review.md"
+    },
+    ".opencode/context/core/workflows/component-planning.md": {
+      "sha256": "23c257d0c783ad496458be21fae3f211adf17b3e11d47242d3f65e3c609e482b",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/component-planning.md"
+    },
+    ".opencode/context/core/workflows/delegation.md": {
+      "sha256": "afabf927cc7f403f6fa5c43549351f3f9120cb1c55d3f7a723877435d6a71243",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/delegation.md"
+    },
+    ".opencode/context/core/workflows/design-iteration-best-practices.md": {
+      "sha256": "4b7a06e3022940a1f5183a0d51cf622046218cf1fdbe1c5f80f3ff44d1cfdfee",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/design-iteration-best-practices.md"
+    },
+    ".opencode/context/core/workflows/design-iteration-overview.md": {
+      "sha256": "44534ce47177e8784847bf3eb5482c0c6eb34f8b43e7c369f395df97192ba66d",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/design-iteration-overview.md"
+    },
+    ".opencode/context/core/workflows/design-iteration-plan-file.md": {
+      "sha256": "bcf7f45227bdccbd8b9dfd348beacdb22e47d1d0fc6d593f42f126ff05e46f05",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/design-iteration-plan-file.md"
+    },
+    ".opencode/context/core/workflows/design-iteration-plan-iterations.md": {
+      "sha256": "0e19ca768d96e9caeba466683427306b1670863735caed2f06710bf22e9a2b17",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/design-iteration-plan-iterations.md"
+    },
+    ".opencode/context/core/workflows/design-iteration-stage-animation.md": {
+      "sha256": "7f719f542dc58bc45d3c715ef5517cccb4ed45ba560d90fa55c88745ce696251",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/design-iteration-stage-animation.md"
+    },
+    ".opencode/context/core/workflows/design-iteration-stage-implementation.md": {
+      "sha256": "5006cdcdcda4dd62437562ccb6773b4ba5451682d85c4f41f7f2fcc59240c2ce",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/design-iteration-stage-implementation.md"
+    },
+    ".opencode/context/core/workflows/design-iteration-stage-layout.md": {
+      "sha256": "f79b7efe39cfee35bc71004fcee6236d2290e8b7a3685da6ffe2725caaafd228",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/design-iteration-stage-layout.md"
+    },
+    ".opencode/context/core/workflows/design-iteration-stage-theme.md": {
+      "sha256": "0f0b8d6b9190f59e248f9618282e82784ee7379b48d790c6226aeb955184adbd",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/design-iteration-stage-theme.md"
+    },
+    ".opencode/context/core/workflows/design-iteration-visual-content.md": {
+      "sha256": "c9c5a62b17fffd18a051a6fd82e9abc5bc0e736a2ad42cf8ec32726701f739ff",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/design-iteration-visual-content.md"
+    },
+    ".opencode/context/core/workflows/external-context-integration.md": {
+      "sha256": "b0e5ccd0643660dc53daf674a5a934e4b1d6efd32c66623e33ea8979ec5f7230",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/external-context-integration.md"
+    },
+    ".opencode/context/core/workflows/external-context-management.md": {
+      "sha256": "0050105322fe68be021cae6516c3875fa46ef622a4c165c6b73fe89f6d1a1eb2",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/external-context-management.md"
+    },
+    ".opencode/context/core/workflows/external-libraries-faq.md": {
+      "sha256": "608b1d0f09dbdc0d3a84737d6ab29578329dd911317446c35d03b01e2103047b",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/external-libraries-faq.md"
+    },
+    ".opencode/context/core/workflows/external-libraries-scenarios.md": {
+      "sha256": "2a245acff263ea91073395dc6ecc8dcc44cc5b1e87f45e85a75c2fee2c449655",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/external-libraries-scenarios.md"
+    },
+    ".opencode/context/core/workflows/external-libraries-workflow.md": {
+      "sha256": "e0d317ee0339e52a079b5ad8155a485db81f9172393079c5789cb1b85300d0aa",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/external-libraries-workflow.md"
+    },
+    ".opencode/context/core/workflows/feature-breakdown.md": {
+      "sha256": "41c7b66abe445cf43c7b6edfed405a9ed5d2b56d1e0d3c665a69e91a2084cda9",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/feature-breakdown.md"
+    },
+    ".opencode/context/core/workflows/lightweight-context-handoff-example.md": {
+      "sha256": "de7842516aa9faef028c9d7db989862f0248fd08dc1ddda0527301f16f713c69",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/lightweight-context-handoff-example.md"
+    },
+    ".opencode/context/core/workflows/lightweight-context-handoff.md": {
+      "sha256": "2be85d9a002ac8035a5c62a3423dfaeb7f9ae74846c0794f52acdd5cce7b15f0",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/lightweight-context-handoff.md"
+    },
+    ".opencode/context/core/workflows/multi-stage-orchestration.md": {
+      "sha256": "ddcfcf71a2e9cfac9967ffc6ee13dd8900c87ca6cc3c2a348964b5a9baee4fb4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/multi-stage-orchestration.md"
+    },
+    ".opencode/context/core/workflows/navigation.md": {
+      "sha256": "dc0362911ba0881a919eb831da552756977ada18f25883cd5a5db0c2b160d1db",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/navigation.md"
+    },
+    ".opencode/context/core/workflows/review.md": {
+      "sha256": "f597938f98704ff52ad47d42576bb8a6aa6a5c1a32ae0b7314fa3fc511b7227f",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/review.md"
+    },
+    ".opencode/context/core/workflows/session-context-pattern.md": {
+      "sha256": "d53de8e8b5258830e07d49b44b801bce6304621495b3c85ee8ec66aaad5084d6",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/session-context-pattern.md"
+    },
+    ".opencode/context/core/workflows/session-management.md": {
+      "sha256": "6e4aab369c9c44871d1abda348708951db922e8a794343f264ebb07fde6fba59",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/session-management.md"
+    },
+    ".opencode/context/core/workflows/task-delegation-basics.md": {
+      "sha256": "827dbc7ff31108641e2c921d83623e063d90badcf7bd1787a5307182204495eb",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/task-delegation-basics.md"
+    },
+    ".opencode/context/core/workflows/task-delegation-caching.md": {
+      "sha256": "70722d9e9840b338880d030ccba672f284ffa1af19f15837b14859202176ddce",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/task-delegation-caching.md"
+    },
+    ".opencode/context/core/workflows/task-delegation-specialists.md": {
+      "sha256": "2731e180016cbeb1cb13c13e6030f58e0814352da0298203575ac559d8fdecb9",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/task-delegation-specialists.md"
+    },
+    ".opencode/context/core/workflows/task-delegation.md": {
+      "sha256": "f72f3d6b1d379ba486113ca69be0bb73594be11fb0aec946099e2fb9d35c695c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "core/workflows/task-delegation.md"
+    },
+    ".opencode/context/data/README.md": {
+      "sha256": "89a8c3d5404e59ec744551f4a5645989d6df7aa458ca068d0c815c1bf4a47a13",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "data/README.md"
+    },
+    ".opencode/context/data/navigation.md": {
+      "sha256": "6b83bd833864d92b8476bc6d007b53475e6a748959874e14c7fff9418ba3fb23",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "data/navigation.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/concepts/agents-tools.md": {
+      "sha256": "1ad34db3e00813ad0c8eade63efcb503a6e46cfa60610ffedbbd09b5118290f6",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/concepts/agents-tools.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/concepts/core.md": {
+      "sha256": "2e4560f498ef9feaaf40235c2f71b94b4d251fb69df56ef60ca083c65a0decee",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/concepts/core.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/concepts/evaluations.md": {
+      "sha256": "6d4b75fbd78f28ed4ad3728f0e66aab5180f1b15992ed782d14dda67eb05171a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/concepts/evaluations.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/concepts/navigation.md": {
+      "sha256": "78bc2c6d0ea297d1887f13b0c9b430807cf2b72d38541a55e6d9085baa19a641",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/concepts/navigation.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/concepts/storage.md": {
+      "sha256": "ff431511100f8e02884affd5187e7e71426c396aefc980e3c79b702ef5b014de",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/concepts/storage.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/concepts/workflows.md": {
+      "sha256": "716567c7f8f89383a502fd18ad12096bc2f691db4a850781d6146ef02eb1a642",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/concepts/workflows.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/errors/mastra-errors.md": {
+      "sha256": "d934fe5ef8902b8645a0a88d128db63cef965d63a13d5b10790a13e37310aaca",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/errors/mastra-errors.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/errors/navigation.md": {
+      "sha256": "cc5558b55109ceabc62455e489535a8cdfeb4ac74155daf7d8032dbd97fb9d35",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/errors/navigation.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/examples/navigation.md": {
+      "sha256": "8106cc9a6c0e51fc5a70a293fa6e6916352954ac516bcfe27c8ab78af45b9b04",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/examples/navigation.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/examples/workflow-example.md": {
+      "sha256": "f8c3c1bbaaeefe8df130efcb86e649c30ba4248d3666aedab7924251534093f3",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/examples/workflow-example.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/guides/modular-building.md": {
+      "sha256": "7384950089f6b6404bf10a1d166756c55e21c9c0c0ca21f4da5857da09531109",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/guides/modular-building.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/guides/navigation.md": {
+      "sha256": "3fffb28a5c8928278cc81a93fdad997098d190bc6c1d80fff09381eebcc3d604",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/guides/navigation.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/guides/testing.md": {
+      "sha256": "0cdf4d9fc6ba4a65cb1d65c7ebb9afd17603813d9825550a06a9c0c2c899981b",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/guides/testing.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/guides/workflow-step-structure.md": {
+      "sha256": "486a4d7699cb75ed2fbb6a108dd52ee06e31d651988b747f780db17f64a68334",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/guides/workflow-step-structure.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/lookup/mastra-config.md": {
+      "sha256": "a585dc44ac950e8e4e226a1aefcc5b59698f95febec58f2f81d4ce0413e7b731",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/lookup/mastra-config.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/lookup/navigation.md": {
+      "sha256": "78774ca0249242ef4ae85cfa141497914f8abb6887a3248a887e390b52ee3c55",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/lookup/navigation.md"
+    },
+    ".opencode/context/development/ai/mastra-ai/navigation.md": {
+      "sha256": "091d3412b860ec3af1ffb0e83b641cb571e1b08d3849cea5aa60301ca444b3c0",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/mastra-ai/navigation.md"
+    },
+    ".opencode/context/development/ai/navigation.md": {
+      "sha256": "70d44dac42e80897085b7353321d322943dee733e73dd19bd6cd476750cfeeb1",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ai/navigation.md"
+    },
+    ".opencode/context/development/backend-navigation.md": {
+      "sha256": "31295d33592f9e79f213e74361aaf6a1773c6b0472dbd5facce4f4799aafa6b1",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/backend-navigation.md"
+    },
+    ".opencode/context/development/backend/navigation.md": {
+      "sha256": "21a8491cf1739fd14c2202c02a916e189b99981a66faa42ecf7adef77ba33ee4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/backend/navigation.md"
+    },
+    ".opencode/context/development/data/navigation.md": {
+      "sha256": "13a4ccf7d726c938841bf6767060c1d9df62022694f5b3cec5ede7046da58c92",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/data/navigation.md"
+    },
+    ".opencode/context/development/frameworks/navigation.md": {
+      "sha256": "a238ef2c44e0901ad13b8579ac42cafe463b33a927a2b5e943897cf647c145b0",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/frameworks/navigation.md"
+    },
+    ".opencode/context/development/frameworks/tanstack-start/navigation.md": {
+      "sha256": "6d790b8fa2161523563e69b7bef5cea3c185849f27000fc049e77a7c744634f9",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/frameworks/tanstack-start/navigation.md"
+    },
+    ".opencode/context/development/frontend/navigation.md": {
+      "sha256": "6e28a482132435f99bea55c9d66be2098825093b203c2f6609e2519aeb13c514",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/frontend/navigation.md"
+    },
+    ".opencode/context/development/frontend/react/navigation.md": {
+      "sha256": "52466992e8f13d3cc496ba2bd63833e36dff405c9913d3138d2cdf6a23ba057d",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/frontend/react/navigation.md"
+    },
+    ".opencode/context/development/frontend/when-to-delegate.md": {
+      "sha256": "640a519762db5c5bd1f46b95939ff53b7a06bceb41c0288446e6a22ba075f522",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/frontend/when-to-delegate.md"
+    },
+    ".opencode/context/development/fullstack-navigation.md": {
+      "sha256": "3c65299546c4918e820b1f4f9f7070562353e884f4e275a293c978205599cf1e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/fullstack-navigation.md"
+    },
+    ".opencode/context/development/infrastructure/navigation.md": {
+      "sha256": "20359b3aaff8898e441cf16ac1b2f7f2aa47f54403dbe0ea8b40cca45a9d1b56",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/infrastructure/navigation.md"
+    },
+    ".opencode/context/development/integration/navigation.md": {
+      "sha256": "48d744c9205f75bf566bb9c9ce22236797b99f1ea8e9d5f3d7616bbf6e472400",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/integration/navigation.md"
+    },
+    ".opencode/context/development/navigation.md": {
+      "sha256": "7c7a8995244e5bea4b547d7fb232f606d6adc8a243db0e6d749f52d4f9154cca",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/navigation.md"
+    },
+    ".opencode/context/development/principles/api-design.md": {
+      "sha256": "a8dd871af5953f1f65348a43239845aa025c08214a319099c13e9655506d1b76",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/principles/api-design.md"
+    },
+    ".opencode/context/development/principles/clean-code.md": {
+      "sha256": "68102e10429acc512154ca7eafa81383ba1020c02e91e13cf37d6e8aea9a3229",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/principles/clean-code.md"
+    },
+    ".opencode/context/development/principles/navigation.md": {
+      "sha256": "0f092154f0d8bceb1dd093b755d5444baff3ddf1674593836790539744abf413",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/principles/navigation.md"
+    },
+    ".opencode/context/development/ui-navigation.md": {
+      "sha256": "9fa28764b611646ab3cc16d262dc8a33600f09088b148ae66b822a9d59c5be9a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "development/ui-navigation.md"
+    },
+    ".opencode/context/index.md": {
+      "sha256": "97588a51c9f292c603e109bb0de708fe6d4fa157255556312b42721a0d47a569",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "index.md"
+    },
+    ".opencode/context/learning/README.md": {
+      "sha256": "1b9e3c81b8449f629085d56386ba87c5ce9462af5e4234e449a4ce1213a4afd7",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "learning/README.md"
+    },
+    ".opencode/context/learning/navigation.md": {
+      "sha256": "566e99de28c13431f8d78ca36a155c9a6af977ed536eb8f0efe91713c9a5a810",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "learning/navigation.md"
+    },
+    ".opencode/context/navigation.md": {
+      "sha256": "9250628c66f938ac4ab704ba78936b58100f0b60aecb02ae1d56ff269aa1d4fb",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "navigation.md"
+    },
+    ".opencode/context/openagents-repo/concepts/agent-skills.md": {
+      "sha256": "d8b6134ccafe484cf51ee075039ba1ac9d07083b7da106a027aa53347e37d52f",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/concepts/agent-skills.md"
+    },
+    ".opencode/context/openagents-repo/concepts/hooks-system.md": {
+      "sha256": "927551eb4ce707eb2ac56f6cb33cb09558b4dc536470cfaa887953aa8d9703f7",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/concepts/hooks-system.md"
+    },
+    ".opencode/context/openagents-repo/concepts/navigation.md": {
+      "sha256": "f1c81af78771cd980edb653a769aaab1d650fbab72fca06fb3c8b27710e103d0",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/concepts/navigation.md"
+    },
+    ".opencode/context/openagents-repo/concepts/subagent-testing-modes.md": {
+      "sha256": "f726e0d2879e2ac5e45232923cce3bc717413953d108db09b760bfee4742818b",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/concepts/subagent-testing-modes.md"
+    },
+    ".opencode/context/openagents-repo/concepts/subagents-system.md": {
+      "sha256": "174a1488432bd45ce211f5621f7d29b540fa851fe0b3627563bf109c701bfc81",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/concepts/subagents-system.md"
+    },
+    ".opencode/context/openagents-repo/core-concepts/agent-metadata.md": {
+      "sha256": "1cea10e2f9ac2409d9c022df13af6345ccb041d37666327c14c73576c7caf6cc",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/core-concepts/agent-metadata.md"
+    },
+    ".opencode/context/openagents-repo/core-concepts/canonical-build.md": {
+      "sha256": "b21ea1f96559ef0ee43013f518e3a1cc4732bbedac6b493eee4bc15adf2e4819",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/core-concepts/canonical-build.md"
+    },
+    ".opencode/context/openagents-repo/core-concepts/evals.md": {
+      "sha256": "9846c9e173ea0a116b9ba2319487ecf1d93479098d12d339cb8c66d4b4834fab",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/core-concepts/evals.md"
+    },
+    ".opencode/context/openagents-repo/core-concepts/navigation.md": {
+      "sha256": "4f9ae101219d5d28c26441eaa6aac4913be0ae5b050d355b6003a436acb4a23f",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/core-concepts/navigation.md"
+    },
+    ".opencode/context/openagents-repo/core-concepts/registry.md": {
+      "sha256": "a92a61eb9fe27b65c13af0cb8fade8d08c376cc57b942a19a1a7ed04995fac00",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/core-concepts/registry.md"
+    },
+    ".opencode/context/openagents-repo/errors/navigation.md": {
+      "sha256": "f00309af2cd93f672d7437ca21f915e47b05f4009f8588d6b560f88181a1083c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/errors/navigation.md"
+    },
+    ".opencode/context/openagents-repo/errors/skills-errors.md": {
+      "sha256": "a915722a0480a6b3db97e44b8962f6b0d21545d1ff09280ffc3f600bd158831c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/errors/skills-errors.md"
+    },
+    ".opencode/context/openagents-repo/errors/tool-permission-errors.md": {
+      "sha256": "ff6fd8a79f11f57c1294b90ccb8541e2ccc8986337d5c2e3314d0b4f969979fe",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/errors/tool-permission-errors.md"
+    },
+    ".opencode/context/openagents-repo/examples/context-bundle-example.md": {
+      "sha256": "25df78e974b8631a363d9a8f522b28128f9f68db9448b6770859ec5698682659",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/context-bundle-example.md"
+    },
+    ".opencode/context/openagents-repo/examples/hooks/formatting-hook.md": {
+      "sha256": "7153da70644294df26cc63b83c4fce50b3fc4addee96219de3b5152def3a802e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/hooks/formatting-hook.md"
+    },
+    ".opencode/context/openagents-repo/examples/hooks/markdown-formatter.md": {
+      "sha256": "9a6c0be2ca01cbf30c27ec29b7505100f0c18b64fd7c4195e3dd89a93ae2b6ec",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/hooks/markdown-formatter.md"
+    },
+    ".opencode/context/openagents-repo/examples/hooks/navigation.md": {
+      "sha256": "a8ff1525b5f68979d95d8c1726308e6f14644cf2c2c4b80f72cbdd10f9bb3b32",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/hooks/navigation.md"
+    },
+    ".opencode/context/openagents-repo/examples/hooks/protection-hook.md": {
+      "sha256": "23366815ac844eb38ab5459b430684219caa26ad23e73d8e3b74da1dcf349ee8",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/hooks/protection-hook.md"
+    },
+    ".opencode/context/openagents-repo/examples/navigation.md": {
+      "sha256": "ab1782c137f0cecf31428d8cb1f43736cda7bbeb09eb6d781063dcb803ade084",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/navigation.md"
+    },
+    ".opencode/context/openagents-repo/examples/skills/multi-file-skill.md": {
+      "sha256": "a996182e6246e14bd94fa464e0636e779981d9f0719ed5b7cfb472a526f657b4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/skills/multi-file-skill.md"
+    },
+    ".opencode/context/openagents-repo/examples/skills/navigation.md": {
+      "sha256": "c6c345266344d9577af7b53a1d8d042712751327aae1ea999677f06adb3ba449",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/skills/navigation.md"
+    },
+    ".opencode/context/openagents-repo/examples/subagent-prompt-structure.md": {
+      "sha256": "56e55515c697000680f2aeb00e1c58a311b4f3767c7aa893cf1e97b671f7d70a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/subagent-prompt-structure.md"
+    },
+    ".opencode/context/openagents-repo/examples/subagents/code-reviewer.md": {
+      "sha256": "3d8c30419e81ab18e9cbee6fde28774ac125120547b5b2c5d338efd138ef6766",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/subagents/code-reviewer.md"
+    },
+    ".opencode/context/openagents-repo/examples/subagents/db-validator.md": {
+      "sha256": "73e8b07127a90cf71a659e638c99c4b2fed7a020ab16c05a623c0e5148498bb0",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/subagents/db-validator.md"
+    },
+    ".opencode/context/openagents-repo/examples/subagents/debugger.md": {
+      "sha256": "7d40f6e435eaaf8c86051919595e01cc6fa373453a6587ff0dea227fec9268f2",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/subagents/debugger.md"
+    },
+    ".opencode/context/openagents-repo/examples/subagents/navigation.md": {
+      "sha256": "b2fc57b2fc4ed948e6554c1774dd0d8b9c73e95fefc88b0aa6107f2710e979cd",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/examples/subagents/navigation.md"
+    },
+    ".opencode/context/openagents-repo/guides/adding-agent-testing.md": {
+      "sha256": "b47de6ea4391a94c0c29cda08191811c6b0ee92f4653f42a22370d4890c5d3cf",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/adding-agent-testing.md"
+    },
+    ".opencode/context/openagents-repo/guides/adding-skill-basics.md": {
+      "sha256": "8a976525288b43d219862546ee8681027615b34d028abf61ea31b804b79f58e9",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/adding-skill-basics.md"
+    },
+    ".opencode/context/openagents-repo/guides/adding-skill-example.md": {
+      "sha256": "7b9f019cfdb14b6373a09ebb76dac720943b83f81b7eb44da69240f6098185a5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/adding-skill-example.md"
+    },
+    ".opencode/context/openagents-repo/guides/adding-skill-implementation.md": {
+      "sha256": "589906edad398cfdcd82c18e7f0ddc5d90fb1083c411d4f81f6b019d45523401",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/adding-skill-implementation.md"
+    },
+    ".opencode/context/openagents-repo/guides/authoring-agents.md": {
+      "sha256": "63a24325f5dcc52cc7c583c5ed2ac661974fc93a4c09ecd8940eadcda15865cc",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/authoring-agents.md"
+    },
+    ".opencode/context/openagents-repo/guides/building-cli-compact.md": {
+      "sha256": "71214ed1d7d3029b47a31a1f0add486436d1d328fb611395ac91ea712cb54b5c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/building-cli-compact.md"
+    },
+    ".opencode/context/openagents-repo/guides/compiler-development.md": {
+      "sha256": "9936249eb19a23aaaf48d3266052653962b7b66345887ac3b0917e9f4c3afe80",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/compiler-development.md"
+    },
+    ".opencode/context/openagents-repo/guides/creating-release.md": {
+      "sha256": "22ca823141882d32a8e01200252bdd52a8bb0e1dba46d0075a45c78f536e2033",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/creating-release.md"
+    },
+    ".opencode/context/openagents-repo/guides/creating-skills.md": {
+      "sha256": "372f0b427f847307ffe89ba36d72cd642028fa86405dc95c1b297c49cde90d62",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/creating-skills.md"
+    },
+    ".opencode/context/openagents-repo/guides/debugging.md": {
+      "sha256": "a3459661a90f9ad61fb01a5a42aa5b079631a274c8bcca164717b170da6415c4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/debugging.md"
+    },
+    ".opencode/context/openagents-repo/guides/external-libraries-workflow.md": {
+      "sha256": "87bc3cba45322b9f3f7c1d54ea516baf83fc25e883926ebd62f610e0c27a68ec",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/external-libraries-workflow.md"
+    },
+    ".opencode/context/openagents-repo/guides/github-issues-workflow.md": {
+      "sha256": "2ded8b7199f1dddde2396f189f3ba3cb6b7bec04e4ed4d2be15208cadc9bde03",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/github-issues-workflow.md"
+    },
+    ".opencode/context/openagents-repo/guides/navigation.md": {
+      "sha256": "f678eb82386a1eda562b44a171ea2f9b0208ecbc4ede637b3349e58a52008156",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/navigation.md"
+    },
+    ".opencode/context/openagents-repo/guides/npm-publishing.md": {
+      "sha256": "176b7b1bac46a448d4c5f5cf93d6f0682a6db000e6cb648dc23c03b62333ddb0",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/npm-publishing.md"
+    },
+    ".opencode/context/openagents-repo/guides/oac-cli-install.md": {
+      "sha256": "9895289e760ae0d6ed8ef951daa1b75c27c0a2bc4a089dabb78fa1c27e258aa4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/oac-cli-install.md"
+    },
+    ".opencode/context/openagents-repo/guides/resolving-installer-wildcard-failures.md": {
+      "sha256": "d4065c84e45b7b49394d0a5f6e6c77e3e6d51028eb0f2f8ac5bf3c07b558ca3a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/resolving-installer-wildcard-failures.md"
+    },
+    ".opencode/context/openagents-repo/guides/subagent-invocation.md": {
+      "sha256": "84da760a329b051d613202614a40ab80901ac0f782ea6cca2f4a149a7357df91",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/subagent-invocation.md"
+    },
+    ".opencode/context/openagents-repo/guides/testing-agent.md": {
+      "sha256": "f708fbf049b3eae2479a764cc63b85730439e9c66cfc60c76b8f5f9ad977a547",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/testing-agent.md"
+    },
+    ".opencode/context/openagents-repo/guides/testing-subagents-approval.md": {
+      "sha256": "a713082dc6d6f22953f098f51753af460f821c804245c4642113329148908d2a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/testing-subagents-approval.md"
+    },
+    ".opencode/context/openagents-repo/guides/testing-subagents.md": {
+      "sha256": "69ed9037bac44f2cdc984a38a599a5aed500b639091d8e0317fa4663528e0c62",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/testing-subagents.md"
+    },
+    ".opencode/context/openagents-repo/guides/updating-registry.md": {
+      "sha256": "be044966104e5680d3f0a3489ab25dcbb5cfd0ccdb6372522eaaf567c0a29957",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/guides/updating-registry.md"
+    },
+    ".opencode/context/openagents-repo/lookup/builtin-subagents.md": {
+      "sha256": "7ccceac145c0a3eea65ac038f1c26f56891592a39e0f3304f693c07925ca0c82",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/builtin-subagents.md"
+    },
+    ".opencode/context/openagents-repo/lookup/commands.md": {
+      "sha256": "e513c0d9771aced115387ac5da3177950627fc30f7e8f0458b6bacb370ecf06e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/commands.md"
+    },
+    ".opencode/context/openagents-repo/lookup/file-locations.md": {
+      "sha256": "69e0cc6f9553d429c362fdcdace3065829ccf56fa34bf27caa2a96bd275428fe",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/file-locations.md"
+    },
+    ".opencode/context/openagents-repo/lookup/hook-events.md": {
+      "sha256": "af36823d25a3d6ca6dba54691e0072ebbe44259399118cbd5e1912c3a9625e3b",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/hook-events.md"
+    },
+    ".opencode/context/openagents-repo/lookup/navigation.md": {
+      "sha256": "3b21d78156500f88ca16be7a21509ac2c1c1f7d3f0db48e8c17bc4aab14da621",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/navigation.md"
+    },
+    ".opencode/context/openagents-repo/lookup/skill-metadata.md": {
+      "sha256": "dec1823b97f2b5b70798cfbde78eb8982e9010ea2d9b9d66cb21cd9ecddcfd7e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/skill-metadata.md"
+    },
+    ".opencode/context/openagents-repo/lookup/skills-comparison.md": {
+      "sha256": "b6aa6ba61d8044c585080ef35d903d8952ba7136f0475dcd7ddfbc21010c9b23",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/skills-comparison.md"
+    },
+    ".opencode/context/openagents-repo/lookup/subagent-framework-maps.md": {
+      "sha256": "00536337f88ec8b98dab2b14639501560d0b8e33ad17444070209a0f12241f49",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/subagent-framework-maps.md"
+    },
+    ".opencode/context/openagents-repo/lookup/subagent-frontmatter.md": {
+      "sha256": "a968537d590436b040d4b47db9560e773293715a18edb3ea6a83d40d031578a4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/subagent-frontmatter.md"
+    },
+    ".opencode/context/openagents-repo/lookup/subagent-test-commands.md": {
+      "sha256": "039ee4ea5a64fb74f1ba3e87322dc832e9c60a03524de5e1539243eb0663cc9d",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/lookup/subagent-test-commands.md"
+    },
+    ".opencode/context/openagents-repo/navigation.md": {
+      "sha256": "e55b2116293f87df4de8c59fc3f0772348a6ada9bb0ce39fb4b9f6d71189a350",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/navigation.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/architecture/lifecycle.md": {
+      "sha256": "0717fd2f6ef62ae1619ca9c97bbf4cd976f2a0cb2499d74dc34d43a4aab0e379",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/architecture/lifecycle.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/architecture/navigation.md": {
+      "sha256": "9312a063b80fe550516c9fa9e7d274e5ed8da2e30307dbec1051c7874dc12cbd",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/architecture/navigation.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/architecture/overview.md": {
+      "sha256": "906b2238e30587ce3a34af5c3d21a2bef0d22b864df0597fb672ba4a8f7a7d2f",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/architecture/overview.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/capabilities/agents.md": {
+      "sha256": "17e137e0337168f74aed08fbb36df0df0468f833108a195459bf446fc11d6897",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/capabilities/agents.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/capabilities/events.md": {
+      "sha256": "142c9c9ac6193fc960ee1165791d6ae1764e6154e12da90e274f3acd7a14ce43",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/capabilities/events.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/capabilities/events_skills.md": {
+      "sha256": "e75f6e4c9159e953ac8f49b3681275dc6463892c588a012dd430d886d99b1558",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/capabilities/events_skills.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/capabilities/navigation.md": {
+      "sha256": "8039958108bb95dc6a55d518ef7ca831ca43bbe2fde83232ec4c2a4835c01393",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/capabilities/navigation.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/capabilities/tools.md": {
+      "sha256": "818380c6fe2a6a7c8ba5ba3475bec7e59765de832d439497a8f215a2bd43ffd3",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/capabilities/tools.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/concepts/navigation.md": {
+      "sha256": "12295c4b1a17ce771f53cfdb8a5784d124f6d6fd4488266e647d6c1ac84a13d9",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/concepts/navigation.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/concepts/plugin-architecture.md": {
+      "sha256": "91d02c03bd8b8e814603d051ee7ddac4b0d7c50e1e50f1f075ab73b27186539a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/concepts/plugin-architecture.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/context-overview.md": {
+      "sha256": "506b1fbe097a1f588c94b3283a689166878aa8cb7753d321a47ac1a402f7f78f",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/context-overview.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/guides/creating-plugins.md": {
+      "sha256": "98883d6073769259cbd6cc35f7d6fce7a31fc69202b17ddee95341d784fc72e1",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/guides/creating-plugins.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/guides/migrating-to-plugins.md": {
+      "sha256": "3fe5768cbd2a592801fd2a6d86bf62c15edfd19bb668cbea4d81546e084e34de",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/guides/migrating-to-plugins.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/guides/navigation.md": {
+      "sha256": "6ac63d7ec5507b2fb33136d72436ca104717a8cdbb93fa41a4e05ba7f9599021",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/guides/navigation.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/lookup/navigation.md": {
+      "sha256": "df040259c8d85d980813641f191a8d2285e9c7fb1a8dce50b29ecc70b2c9f742",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/lookup/navigation.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/lookup/plugin-structure.md": {
+      "sha256": "551804b20a92e7893e44e33fa1846e235de614416138337f5333b634bc00d979",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/lookup/plugin-structure.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/navigation.md": {
+      "sha256": "132b88d0fd65e7ce0a59a6f8beebc32e6fa4b2a631e529c31f75bcef13986345",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/navigation.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/reference/best-practices.md": {
+      "sha256": "4414a6f287d964b8584fdbae028c22364847f04d4ca43fe50416199deba1d1fc",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/reference/best-practices.md"
+    },
+    ".opencode/context/openagents-repo/plugins/context/reference/navigation.md": {
+      "sha256": "48d4ed8eb4cf90b16d28b09ec696573b3e37514dd6c25105d160427f91309fbf",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/context/reference/navigation.md"
+    },
+    ".opencode/context/openagents-repo/plugins/navigation.md": {
+      "sha256": "92d479d240afc96751cde0a9b415ce8fbc992cec48a58403772779d81ec0d455",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/plugins/navigation.md"
+    },
+    ".opencode/context/openagents-repo/quality/navigation.md": {
+      "sha256": "c74fe0a1c833682659281a7fc712dcb5da4663fd57daefa80d182f388072ab13",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/quality/navigation.md"
+    },
+    ".opencode/context/openagents-repo/quality/registry-dependencies.md": {
+      "sha256": "720ce8bf5d256a63d0f06c91b29d3303bd466e1ac160c333299c9c5fa04f4b5c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/quality/registry-dependencies.md"
+    },
+    ".opencode/context/openagents-repo/quick-start.md": {
+      "sha256": "51802ef696fb54e2d0ef84230ce12df8c593a3475db21bb70c201f930169b485",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/quick-start.md"
+    },
+    ".opencode/context/openagents-repo/standards/agent-frontmatter.md": {
+      "sha256": "f8b89762bb0d53c484da197c8fe5322bbb3e835c165c293d532e4f1f848937c2",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/standards/agent-frontmatter.md"
+    },
+    ".opencode/context/openagents-repo/standards/navigation.md": {
+      "sha256": "7a0381677cf9c3d097a064c8463f6b24d5723b4625bfa8af8e83d43a8de32fbc",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/standards/navigation.md"
+    },
+    ".opencode/context/openagents-repo/standards/opencode-typescript.md": {
+      "sha256": "8a338b13b48b801fc56a0f849fd146582abaa79f698d9b77e4d2b9ded6f1d7d6",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/standards/opencode-typescript.md"
+    },
+    ".opencode/context/openagents-repo/standards/permission-patterns.md": {
+      "sha256": "e7d296e36e01805f81a0579bc7393be681c6278311a67ab655ad35550cf4af27",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/standards/permission-patterns.md"
+    },
+    ".opencode/context/openagents-repo/standards/subagent-structure.md": {
+      "sha256": "ec72dd0401ff6493dee2ccce6fabc549de5e154c7f76b7d03ae53e5ab698fafa",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/standards/subagent-structure.md"
+    },
+    ".opencode/context/openagents-repo/templates/context-bundle-template.md": {
+      "sha256": "1a4086c88c123e9b7fcf312c2d0f3002084cc16b2984d946b6f23d7b916565b5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/templates/context-bundle-template.md"
+    },
+    ".opencode/context/openagents-repo/templates/navigation.md": {
+      "sha256": "31cd8b3e558c0a8f6351831ffd07765184fe86d6122e3d809900965720917c81",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "openagents-repo/templates/navigation.md"
+    },
+    ".opencode/context/product/README.md": {
+      "sha256": "3ba85640bc247221652247dfd2c312db9488a15532389331cb71e5b1a19322c5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "product/README.md"
+    },
+    ".opencode/context/product/navigation.md": {
+      "sha256": "fd2da0d232f8a5098f3166a85a8614f33c3c57d64b8a41100f4944501485d6ac",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "product/navigation.md"
+    },
+    ".opencode/context/project-intelligence/business-domain.md": {
+      "sha256": "b8e18393d8edcc9be854e16ac7d5bbe5dbe5f3b699d6c6aeb8c20173ffb0447a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "project-intelligence/business-domain.md"
+    },
+    ".opencode/context/project-intelligence/business-tech-bridge.md": {
+      "sha256": "9f80b2fb86719dec1892dffa7675fcdbbf60dd7d0bd997bddbc0b9b2b39eab5e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "project-intelligence/business-tech-bridge.md"
+    },
+    ".opencode/context/project-intelligence/decisions-log.md": {
+      "sha256": "3fd1e5de2403f64e5f505c12a7ed74dc083cae3737c4a0e67633a6e09900eed8",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "project-intelligence/decisions-log.md"
+    },
+    ".opencode/context/project-intelligence/living-notes.md": {
+      "sha256": "040d63052bbc2310588e964c77185a34ee8a33d3b25e3db788484946fb2ac127",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "project-intelligence/living-notes.md"
+    },
+    ".opencode/context/project-intelligence/navigation.md": {
+      "sha256": "6d65ca47c53f3795acf4a01c50b44d13be633c7a7ceaef3329e1d65bef852890",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "project-intelligence/navigation.md"
+    },
+    ".opencode/context/project-intelligence/technical-domain.md": {
+      "sha256": "ba4e2a0a93b235862b133edd34a481849eb65c208e13cefdf971b177c66e1d6a",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "project-intelligence/technical-domain.md"
+    },
+    ".opencode/context/project/navigation.md": {
+      "sha256": "8d89202cde4670ba808483c68e27d2e639c7793157d6277b9d1fcac9b9911704",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "project/navigation.md"
+    },
+    ".opencode/context/project/project-context.md": {
+      "sha256": "5fd6707cbedd6904613bfd0f77ff3cedc4cee8d185974576340cee64fb36f3c4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "project/project-context.md"
+    },
+    ".opencode/context/system-builder-templates/SYSTEM-BUILDER-GUIDE.md": {
+      "sha256": "cfcd306f433cd16c87b5592ce4e7c58c81102ac520857925354d4559e9466a73",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "system-builder-templates/SYSTEM-BUILDER-GUIDE.md"
+    },
+    ".opencode/context/system-builder-templates/navigation.md": {
+      "sha256": "ee0224765f8dfe13857eca8c8540fa1a1c46e41e2c2886264349f4adecd50502",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "system-builder-templates/navigation.md"
+    },
+    ".opencode/context/system-builder-templates/orchestrator-template.md": {
+      "sha256": "1f3afc4aee191c951a09ca7a81a186ddd81e960ecef66b3770d59703673c4618",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "system-builder-templates/orchestrator-template.md"
+    },
+    ".opencode/context/system-builder-templates/subagent-template.md": {
+      "sha256": "af9708446c81968bef438ed6ee606f87e87a9c67e621677c7338807a50735464",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "system-builder-templates/subagent-template.md"
+    },
+    ".opencode/context/ui/navigation.md": {
+      "sha256": "0cc54d726c1477e00485b648e526e87f0fca1747e3b29bb2cc678f26dec0fd82",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/navigation.md"
+    },
+    ".opencode/context/ui/terminal/navigation.md": {
+      "sha256": "053cb183b3dd0ebc76ccd5b83cbd3ebee08d38ed42832e94fe8a8fcc46e2ed83",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/terminal/navigation.md"
+    },
+    ".opencode/context/ui/web/animation-advanced.md": {
+      "sha256": "5c62e1b67d73323f50e2feb41c3fb3cbea6adfb7a62d55af2d094271e0054202",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/animation-advanced.md"
+    },
+    ".opencode/context/ui/web/animation-basics.md": {
+      "sha256": "29cee1df932ca7a8d841399107e169e7c2c28b22567df0fa57938767372d8c24",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/animation-basics.md"
+    },
+    ".opencode/context/ui/web/animation-chat.md": {
+      "sha256": "e516cce2b03583daa56713083fcfefbe08995238c3c89abe28c7c67c9d2f1925",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/animation-chat.md"
+    },
+    ".opencode/context/ui/web/animation-components.md": {
+      "sha256": "435b0d84afd0d89241bd31ee1a6a3cfa0a0c1e56e8e649bfe33b736e1e3a3f12",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/animation-components.md"
+    },
+    ".opencode/context/ui/web/animation-forms.md": {
+      "sha256": "9f2a8610fc419a3d64b0121f85a8b36d01524534468db0477122ccf1b59b4915",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/animation-forms.md"
+    },
+    ".opencode/context/ui/web/animation-loading.md": {
+      "sha256": "b76407710cddcfab1999eb486e13cada97a4c95ff4e8e8b0c21e67159584f7a1",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/animation-loading.md"
+    },
+    ".opencode/context/ui/web/cdn-resources.md": {
+      "sha256": "18ca793346220cb5fda9701434f7334a1c0c4305ea343563096331178f29f719",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/cdn-resources.md"
+    },
+    ".opencode/context/ui/web/design-systems.md": {
+      "sha256": "4f0eab3fd5ef7d3e5101fe53547ae791f9ad93ae93180bbccc8cbbfb06f8b232",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design-systems.md"
+    },
+    ".opencode/context/ui/web/design/concepts/navigation.md": {
+      "sha256": "5c892ea5fd067507239a0ce4d24df234aa172716ca1b8e13cb9ee46bb8f04319",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/concepts/navigation.md"
+    },
+    ".opencode/context/ui/web/design/concepts/scroll-linked-animations.md": {
+      "sha256": "2c77588a1eda51dde3d5877a7f6108cd5275a178719862aa20edb05786549bea",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/concepts/scroll-linked-animations.md"
+    },
+    ".opencode/context/ui/web/design/examples/navigation.md": {
+      "sha256": "c03573bcb8f3c285d923fffe21efe4f8acafd554b13c7baa30ed4102fb5d4149",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/examples/navigation.md"
+    },
+    ".opencode/context/ui/web/design/examples/scrollytelling-headphone.md": {
+      "sha256": "d0a51da14752b763d42450d14fefff903589cf08a8e50234a71ac2953a760a49",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/examples/scrollytelling-headphone.md"
+    },
+    ".opencode/context/ui/web/design/guides/building-scrollytelling-pages.md": {
+      "sha256": "4c59af8b4fceb910dfddfe29de233ef866777ec69d02b01855daa021c5fbecd4",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/guides/building-scrollytelling-pages.md"
+    },
+    ".opencode/context/ui/web/design/guides/navigation.md": {
+      "sha256": "5d31d91289177ee957d83bf193acb82a0e45137a43390388f7a07e34ca8344f1",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/guides/navigation.md"
+    },
+    ".opencode/context/ui/web/design/guides/premium-dark-ui-advanced.md": {
+      "sha256": "05413d442c8a89cf10387ffa4782ccd16183a705b599135432f94f4789f957e5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/guides/premium-dark-ui-advanced.md"
+    },
+    ".opencode/context/ui/web/design/guides/premium-dark-ui-colors.md": {
+      "sha256": "c87251ca7839c8ee71c723f92a41a7de8c46374ba9dc56bf1d7c0f6ea9f51b3d",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/guides/premium-dark-ui-colors.md"
+    },
+    ".opencode/context/ui/web/design/guides/premium-dark-ui-components.md": {
+      "sha256": "8ea3ac5b48a7c45978e0cd86aec05202bfb17d6f64d60e9d84c215f0e5344e0e",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/guides/premium-dark-ui-components.md"
+    },
+    ".opencode/context/ui/web/design/guides/premium-dark-ui-layouts.md": {
+      "sha256": "8e375fe953c81aeea6946baf86be1049daec534df7489cb48bfab0b252313e67",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/guides/premium-dark-ui-layouts.md"
+    },
+    ".opencode/context/ui/web/design/guides/premium-dark-ui-visual-reference.md": {
+      "sha256": "09be1c1fbbcb953249e804bcec0edafb08781b999c94e38b2d1089f51ecea553",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/guides/premium-dark-ui-visual-reference.md"
+    },
+    ".opencode/context/ui/web/design/lookup/navigation.md": {
+      "sha256": "801295dc3ab9c797d15cab630d6646b8527f1f9a225892c0a1d402e3f0993036",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/lookup/navigation.md"
+    },
+    ".opencode/context/ui/web/design/lookup/scroll-animation-prompts.md": {
+      "sha256": "6e57376016bc88856d1dacd262857c6fd243f74f07c46c0fc06fd27b02b063ee",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/lookup/scroll-animation-prompts.md"
+    },
+    ".opencode/context/ui/web/design/navigation.md": {
+      "sha256": "c40e73165e207d982b025f597a51bbbff818bcfa7eb10ab1aa6a595e7adb9767",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/design/navigation.md"
+    },
+    ".opencode/context/ui/web/fonts-guide.md": {
+      "sha256": "469b1c13d9a2351ab0c2c61a3a532a92f40b78ad5dca7285a5660c8b97079adf",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/fonts-guide.md"
+    },
+    ".opencode/context/ui/web/icons-guide.md": {
+      "sha256": "6182adcc48e58897a7553cff1b690a00e9ca87203699ff6ba3408afe43c5588c",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/icons-guide.md"
+    },
+    ".opencode/context/ui/web/images-guide.md": {
+      "sha256": "08bda1a0e33ebd48ddecb986cde0c39f93c563c87eb782716af8bfbe7ab792d5",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/images-guide.md"
+    },
+    ".opencode/context/ui/web/navigation.md": {
+      "sha256": "e21ff90db03d7d998e882fbef443414a71abce5e6ca7496536fe15a7f766d821",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/navigation.md"
+    },
+    ".opencode/context/ui/web/react-patterns.md": {
+      "sha256": "749874505fa86e1d63312006231b887d7c41aa258c6f60d7aab3414a14b0fe45",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/react-patterns.md"
+    },
+    ".opencode/context/ui/web/ui-styling-standards.md": {
+      "sha256": "19fca90aed7f93d941be0454b98c808da98eadec62417432a52981426c842d37",
+      "target": "opencode",
+      "root": ".opencode/context",
+      "assetKind": "context",
+      "assetId": "ui/web/ui-styling-standards.md"
+    },
+    ".opencode/skills/context-manager/SKILL.md": {
+      "sha256": "c61c208db2f6c59099df7b35b516c3bfd42f2df05d7680f5a19f53ac83022f34",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context-manager"
+    },
+    ".opencode/skills/context-manager/router.sh": {
+      "sha256": "9e5ead4625a22038e71045c710e51163f41702689b8c5a22863e289cbd891ef3",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context-manager"
+    },
+    ".opencode/skills/context7/README.md": {
+      "sha256": "8c99068808fc31e14c2197ac990ba87ee91f5d681084258acd16d59ebfe51f18",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    ".opencode/skills/context7/SKILL.md": {
+      "sha256": "03c54428be33f4533d9cee60a25723c8f20b43e869b9eba7cafde8a1c1c471ab",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    ".opencode/skills/context7/library-registry.md": {
+      "sha256": "7dc406da783fafe9d27a98219f407ed8d6d17de48291b1cabae5423233cbfd7a",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    ".opencode/skills/context7/navigation.md": {
+      "sha256": "e820d3a4bdef94e83995844e17bad05bf9953378d099c3cc8c6546207fe41b92",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    ".opencode/skills/project-orchestration/SKILL.md": {
+      "sha256": "be37bb19e0395edc12bf49b6f0554b3567ed0de802e77f80427d539a0776e651",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    ".opencode/skills/project-orchestration/router.sh": {
+      "sha256": "cab700fc07395d221337998e0218c8703f328a998105a6984040039333e48fd5",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    ".opencode/skills/project-orchestration/scripts/context-index.ts": {
+      "sha256": "8b95fd75461294e229b3f2250d03a454dae76a8b854903f61ee9482d6266f1ca",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    ".opencode/skills/project-orchestration/scripts/session-context-manager.ts": {
+      "sha256": "d6bbfc28cd2d1589864f6e9ed58be25238b5083c133ccfc18b21c79714b67d28",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    ".opencode/skills/project-orchestration/scripts/stage-cli.ts": {
+      "sha256": "7b878aadc123efd4a2ffaaa5073fb9b7f792e3fa7711cea9498ee2f8d7a76200",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    ".opencode/skills/project-orchestration/workflows/8-stage-delivery.md": {
+      "sha256": "ddcfcf71a2e9cfac9967ffc6ee13dd8900c87ca6cc3c2a348964b5a9baee4fb4",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    ".opencode/skills/project-orchestration/workflows/context-handoff.md": {
+      "sha256": "dc9e387818212902ab3ef54f54383ab6b6d2574f378ad812b6dc617ef6767227",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    ".opencode/skills/project-orchestration/workflows/planning-agents.md": {
+      "sha256": "f8b4784ffa03d2e8bf5a986993feaf8248dade5f77aa271d80d78facc4b9e8b8",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    ".opencode/skills/smart-router-skill/SKILL.md": {
+      "sha256": "6571c7b195e656e5872e90bf4e1a9501361e73b6179692e29c5f3540c0589070",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    ".opencode/skills/smart-router-skill/config/personality-config.json": {
+      "sha256": "3b8bf2b3e4b4295c2bc0a8cc334f6898c7acfb178de17db48dc8864bf0c72a75",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    ".opencode/skills/smart-router-skill/router.sh": {
+      "sha256": "c8537faa77b0cf736ba93364a660a41f25d17a0967fae6bacdebbe06a18f372d",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    ".opencode/skills/smart-router-skill/scripts/sherlock-workflow.sh": {
+      "sha256": "8f187b6bd77ecc728725eab94733b8345320bae63c368dd5d23443ab23913b64",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    ".opencode/skills/smart-router-skill/scripts/stark-workflow.sh": {
+      "sha256": "fd0a291f411b4f70b724ae7ffaf3aff8e79973b39bb5d40f12cd0173c75fc32a",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    ".opencode/skills/smart-router-skill/scripts/yoda-workflow.sh": {
+      "sha256": "475f57196792ebde3e21e877cd6d5486c661e1e419ad9f374b41d2cac1452f2d",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    ".opencode/skills/task-management/SKILL.md": {
+      "sha256": "c2fa63c82442698889655da1e666733f8f277c7eb6940ac47a7c93caf7b43c9f",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "task-management"
+    },
+    ".opencode/skills/task-management/router.sh": {
+      "sha256": "178769389e03a43b31963e0f0ba7c71a47823147c5bd86e1fdc9bc3ad6365d6a",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "task-management"
+    },
+    ".opencode/skills/task-management/scripts/task-cli.ts": {
+      "sha256": "df6b6ee33c2538b681e3763ffeeca6fc6001b90998fddab428e808be5bc4b813",
+      "target": "opencode",
+      "root": ".opencode/skills",
+      "assetKind": "skill",
+      "assetId": "task-management"
+    },
+    "built-ai-configs/README.md": {
+      "sha256": "5b5e68f26f715af3530479403a9df76e385fd5641ca6d08af816db10fa2936de",
+      "target": "hosts-readme",
+      "root": "built-ai-configs/README.md"
+    },
+    "built-ai-configs/claude-code/agents/code-reviewer.md": {
+      "sha256": "b93c33289b9d0ba5283dbc9ddefdb2e8c3165e7caa1cf1ff8f6356798f388b01",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/agents",
+      "agentId": "code-reviewer",
+      "aliases": [
+        "reviewer"
+      ]
+    },
+    "built-ai-configs/claude-code/agents/coder-agent.md": {
+      "sha256": "eb99bacb6938dc18ac99e0f08e9768ca04e23ad9caab0eead8c8619ce9d0f1f7",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/agents",
+      "agentId": "coder-agent"
+    },
+    "built-ai-configs/claude-code/agents/context-manager.md": {
+      "sha256": "e44f766613d28976cc501c858db6f247d11788442fabf807978e1192f19ef363",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/agents",
+      "agentId": "context-manager"
+    },
+    "built-ai-configs/claude-code/agents/context-scout.md": {
+      "sha256": "c9985615a27101be5c0ec96625c2006bddd1148a6c6195869eba46564eb24e00",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/agents",
+      "agentId": "context-scout",
+      "aliases": [
+        "contextscout"
+      ]
+    },
+    "built-ai-configs/claude-code/agents/external-scout.md": {
+      "sha256": "8868482f1b616c22371b843b41eb00c0c246824f1d8db537959269d170b4ab2c",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/agents",
+      "agentId": "external-scout",
+      "aliases": [
+        "externalscout"
+      ]
+    },
+    "built-ai-configs/claude-code/agents/task-manager.md": {
+      "sha256": "7536f19b980a98a386a0ed9f5be0e0aa9f2a20716775ca181588db632955ee4e",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/agents",
+      "agentId": "task-manager"
+    },
+    "built-ai-configs/claude-code/agents/test-engineer.md": {
+      "sha256": "a474b2b97146207cdea9d78239c8921a2c035173de9f08996e9a791a65ea2fa0",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/agents",
+      "agentId": "test-engineer",
+      "aliases": [
+        "tester"
+      ]
+    },
+    "built-ai-configs/claude-code/commands/brainstorm.md": {
+      "sha256": "689d783a64729de6e07bdfd61fbe42aa30b0eaeb951cfcef8bde5fb773586cf0",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "brainstorm"
+    },
+    "built-ai-configs/claude-code/commands/debug.md": {
+      "sha256": "465193211509c8cd3bd1293e812e449920a1448e5799ca96f2f38b47d4865d47",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "debug"
+    },
+    "built-ai-configs/claude-code/commands/install-context.md": {
+      "sha256": "130fe54ffe36807d88a3e0722b8c2a7b7cdb90e00784c29594b1b2d3a92e7e10",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "install-context"
+    },
+    "built-ai-configs/claude-code/commands/oac-cleanup.md": {
+      "sha256": "9a5e4f84023bcfd4524869f34b2f25daf793ba8e79093a4121890194b16dd5d3",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "oac-cleanup"
+    },
+    "built-ai-configs/claude-code/commands/oac-help.md": {
+      "sha256": "86d02f85ef5dcd77393dca6d6ef2b99e96374710a70387e2bf247013b2eae9d9",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "oac-help"
+    },
+    "built-ai-configs/claude-code/commands/oac-status.md": {
+      "sha256": "1f8f73d808bab69f2c0e819827c2b3f8f8b5a1ecdfa758f92fc2b8af4bb6906f",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "oac-status"
+    },
+    "built-ai-configs/claude-code/skills/code-execution/SKILL.md": {
+      "sha256": "3bb426c9e8ad946b7494bc8922b1c1c6bda052e211446b0d08087cbb67a9e1e6",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "code-execution"
+    },
+    "built-ai-configs/claude-code/skills/code-review/SKILL.md": {
+      "sha256": "b183501487704bc82d2425a34ca7765709a757022d9e7e3fc2b23a797f569379",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "code-review"
+    },
+    "built-ai-configs/claude-code/skills/context-discovery/SKILL.md": {
+      "sha256": "f2b516e1696e415a79eb693311bbd6d4a00dc11bd707962d45cef86791cb1138",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "context-discovery"
+    },
+    "built-ai-configs/claude-code/skills/context-discovery/context-discovery-protocol.md": {
+      "sha256": "8274840f40eefc961d3c7a027d1febf5dd05172db0e3566eeaf6bfa0ffee6c94",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "context-discovery"
+    },
+    "built-ai-configs/claude-code/skills/context-setup/SKILL.md": {
+      "sha256": "05b44153c32762a2872f42054f6b6996f8010bd9ef3debca6fe4516ecb0822e9",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "context-setup"
+    },
+    "built-ai-configs/claude-code/skills/debugger/SKILL.md": {
+      "sha256": "86514b447eabf38768b21137dcc53a44fdf994567682bc0db276e162b029bcf7",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "debugger"
+    },
+    "built-ai-configs/claude-code/skills/external-research/SKILL.md": {
+      "sha256": "23926ffcc7ce0a49d1df17acb826b6048060140741db44d6990e330d91bd5f0d",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "external-research"
+    },
+    "built-ai-configs/claude-code/skills/oac-approach/SKILL.md": {
+      "sha256": "217bdbbe4cb774b7ad69c80311d5e871421de1e4780981d8ec0982b1238a8768",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "oac-approach"
+    },
+    "built-ai-configs/claude-code/skills/parallel-execution/SKILL.md": {
+      "sha256": "b902b923e646870d8abb9a49c4010387f15eee0235fe44de95f71dedf47d346d",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "parallel-execution"
+    },
+    "built-ai-configs/claude-code/skills/task-breakdown/SKILL.md": {
+      "sha256": "1787142d7a588474118d5fde5927779cd56d0da476acc0454fccc9af4671a39b",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "task-breakdown"
+    },
+    "built-ai-configs/claude-code/skills/test-generation/SKILL.md": {
+      "sha256": "fc839f9cee736dbed77a5ddecc96b0c5f47acb661bda151585405b1ad84ed9a5",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "test-generation"
+    },
+    "built-ai-configs/claude-code/skills/using-oac/SKILL.md": {
+      "sha256": "6d83e0330f0c4c210b44c9e19820dfff343f630dce253369fdd2024f64983b84",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "using-oac"
+    },
+    "built-ai-configs/claude-code/skills/verification-before-completion/SKILL.md": {
+      "sha256": "3eb50937baed7186782f1f1f7ee830a800651962f73685bf15d8692dc72c566f",
+      "target": "claude-code",
+      "root": "built-ai-configs/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "verification-before-completion"
+    },
+    "built-ai-configs/opencode-v1/agent/code/build-agent.md": {
+      "sha256": "0c92050349f7cf255d34ff329016ec88ee33fefea4a0f4614fb93e72c0c91dc8",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "build-agent"
+    },
+    "built-ai-configs/opencode-v1/agent/code/code-reviewer.md": {
+      "sha256": "6e492a80252ea7cd63af734d8f793a57443d467541c80064b87eadbbc0e1022f",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "code-reviewer",
+      "aliases": [
+        "reviewer"
+      ]
+    },
+    "built-ai-configs/opencode-v1/agent/code/coder-agent.md": {
+      "sha256": "fcf92de3f4aacedd022742def58e43903718211a6d8ecbdbca00276fc8a25790",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "coder-agent"
+    },
+    "built-ai-configs/opencode-v1/agent/code/test-engineer.md": {
+      "sha256": "fd70ed3ed510e012c43153b435430f35606369a4b15c97ba3bbe943d71c1d85e",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "test-engineer",
+      "aliases": [
+        "tester"
+      ]
+    },
+    "built-ai-configs/opencode-v1/agent/content/copywriter.md": {
+      "sha256": "44b147c69b1396872101c43d502abf8276e7129411ac659d16c7f09b8a3cbb37",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "copywriter"
+    },
+    "built-ai-configs/opencode-v1/agent/content/image-specialist.md": {
+      "sha256": "b5d8c6d77acf55da8b7050644ec66056f05d32b29534d9f6e0bb609ce32eebbe",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "image-specialist"
+    },
+    "built-ai-configs/opencode-v1/agent/content/technical-writer.md": {
+      "sha256": "96a24c31e2771eb7e2d0d09125cd9fc2e4469714be6cab0c3934e4225f34ba53",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "technical-writer"
+    },
+    "built-ai-configs/opencode-v1/agent/core/batch-executor.md": {
+      "sha256": "8b88f343aa0d94b8353c305c0de3295a9b7d930eae2d928426b067a3921ce2ea",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "batch-executor"
+    },
+    "built-ai-configs/opencode-v1/agent/core/context-manager.md": {
+      "sha256": "46711521f91a07200206dd2f6d773294876f5991207f96fd2489f7623347e3d5",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "context-manager"
+    },
+    "built-ai-configs/opencode-v1/agent/core/context-retriever.md": {
+      "sha256": "781d419a338d0bef40e6278a9d3f445f1c3049cca8ea1024117eab2d89a55c3e",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "context-retriever"
+    },
+    "built-ai-configs/opencode-v1/agent/core/context-scout.md": {
+      "sha256": "04bc658215b47fbc5cf001df23ff7f4d7338602639f6519656a6a836167aef3b",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "context-scout",
+      "aliases": [
+        "contextscout"
+      ]
+    },
+    "built-ai-configs/opencode-v1/agent/core/doc-writer.md": {
+      "sha256": "1f9bf43e9febd94a7a13268bb67670eb7185d7ad4073861cc9c3fa0afa8930c7",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "doc-writer",
+      "aliases": [
+        "documentation"
+      ]
+    },
+    "built-ai-configs/opencode-v1/agent/core/external-scout.md": {
+      "sha256": "7c0fc12b8be5a645f14481b00b4962fa25ebf20382ab9c19684bc77be20c3956",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "external-scout",
+      "aliases": [
+        "externalscout"
+      ]
+    },
+    "built-ai-configs/opencode-v1/agent/core/openagent.md": {
+      "sha256": "ba8bb9bc03a6782c0b65b4dbc531a7ec4026340f6bd00d3492db75462f8ab8ff",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "openagent"
+    },
+    "built-ai-configs/opencode-v1/agent/core/opencoder.md": {
+      "sha256": "a101876950b9613d7450c7c29b8d4ef3936d8f72ffb2e62c80996f98459979c8",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "opencoder"
+    },
+    "built-ai-configs/opencode-v1/agent/core/stage-orchestrator.md": {
+      "sha256": "e0c18985281b7b18c0bd2ff64f501fb8e95dc947e4f553322ade124943bf6a7d",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "stage-orchestrator"
+    },
+    "built-ai-configs/opencode-v1/agent/core/task-manager.md": {
+      "sha256": "3474dea4531724529d07df1b51d1700bf780861a3c3a7e32a62d11f8990a30d7",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "task-manager"
+    },
+    "built-ai-configs/opencode-v1/agent/data/data-analyst.md": {
+      "sha256": "d4afd3f6bcf8eeeaf6bf397aeaa32de0d60c47949a69b6d0be0324738cccfd04",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "data-analyst"
+    },
+    "built-ai-configs/opencode-v1/agent/dev/devops-specialist.md": {
+      "sha256": "7637179bbf56d2fa09e38014650b245b39b9a7d7cdc3f17bc03efeb0ff740445",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "devops-specialist"
+    },
+    "built-ai-configs/opencode-v1/agent/dev/eval-runner.md": {
+      "sha256": "b4bf7c313329b28a872ead8daa1000120edb14ea99e30601ac57d448a2f4af1f",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "eval-runner"
+    },
+    "built-ai-configs/opencode-v1/agent/dev/frontend-specialist.md": {
+      "sha256": "330744d8d4b2683383e0de116ac5fecb50b75379824080d0394547770fcf051b",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "frontend-specialist"
+    },
+    "built-ai-configs/opencode-v1/agent/dev/simple-responder.md": {
+      "sha256": "b8c71126971bf71a5b0194c34207745ebf487276824ce1baf11f416700715361",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "simple-responder"
+    },
+    "built-ai-configs/opencode-v1/agent/meta/repo-manager.md": {
+      "sha256": "a4d79d48894c99fc287c3185912942e08da579caf546e6b56442ad135abe163c",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "repo-manager"
+    },
+    "built-ai-configs/opencode-v1/agent/meta/system-builder.md": {
+      "sha256": "4ac001868e0146b87bb15df625c6a8d9fc74cfdfb19ff882eeedca546079bba8",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "system-builder"
+    },
+    "built-ai-configs/opencode-v1/agent/planning/adr-manager.md": {
+      "sha256": "cae099506037b4b15c53a5ca2d979727d5acff4a2974317de5981ea5cd1f0236",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "adr-manager"
+    },
+    "built-ai-configs/opencode-v1/agent/planning/architecture-analyzer.md": {
+      "sha256": "800e1664f46c1978aa5b40157b2cc39abcd64981312fb48625cb9122976bc4b7",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "architecture-analyzer"
+    },
+    "built-ai-configs/opencode-v1/agent/planning/contract-manager.md": {
+      "sha256": "f086eff5b7d806c7738914213e4d00f84d5940139563858c60ef540c0bb88e2b",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "contract-manager"
+    },
+    "built-ai-configs/opencode-v1/agent/planning/prioritization-engine.md": {
+      "sha256": "a7d99def4c77ce3fc0552b38993365f95cb2a6be5e1d77736e81376faeb0f414",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "prioritization-engine"
+    },
+    "built-ai-configs/opencode-v1/agent/planning/story-mapper.md": {
+      "sha256": "dede846c1b44b23903007d244bd381f3b155d64ec6be6a46af75e29493b9c3e8",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "story-mapper"
+    },
+    "built-ai-configs/opencode-v1/agent/system-builder/agent-generator.md": {
+      "sha256": "20aff495f9a4c5b1c5612d559e6cb35412c30b61516d8c158e0b24d751778a5c",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "agent-generator"
+    },
+    "built-ai-configs/opencode-v1/agent/system-builder/command-creator.md": {
+      "sha256": "60a707fa7a4d0f134810d619bf88e5a1d0a031138fa20f322f49e4512b462e8c",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "command-creator"
+    },
+    "built-ai-configs/opencode-v1/agent/system-builder/context-organizer.md": {
+      "sha256": "a053d7040cbb05880064ae0d6a56e2725765e9b249697f245fc301139c748d37",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "context-organizer"
+    },
+    "built-ai-configs/opencode-v1/agent/system-builder/domain-analyzer.md": {
+      "sha256": "0a42eb8c7c333d910b5bba56453416b2f80fc32f9015a9386b88d0e544209aa7",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "domain-analyzer"
+    },
+    "built-ai-configs/opencode-v1/agent/system-builder/workflow-designer.md": {
+      "sha256": "6cab0b04d038d2e217631360ff02b5d806576df97d0f3ee007c524273ef7332c",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/agent",
+      "agentId": "workflow-designer"
+    },
+    "built-ai-configs/opencode-v1/command/add-context.md": {
+      "sha256": "13e2abccf9d63cdc12e03cb1b072431b096f51b04eb6b2d6c904e226d9d8d2d6",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "add-context"
+    },
+    "built-ai-configs/opencode-v1/command/analyze-patterns.md": {
+      "sha256": "477f1dae2e1671b65b3a7c5d39a87444fd205ef9782f0c0b93254d62d73f788f",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "analyze-patterns"
+    },
+    "built-ai-configs/opencode-v1/command/build-context-system.md": {
+      "sha256": "95ec5038b3e8fcb601efb06d972e1ef66e078b8e4e73e1aec512080ef36f340e",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "build-context-system"
+    },
+    "built-ai-configs/opencode-v1/command/clean.md": {
+      "sha256": "0db0d11e9bfb49647eec7660937ad0a1e8c5c0448ced01942351c32f0757d580",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "clean"
+    },
+    "built-ai-configs/opencode-v1/command/commit-openagents.md": {
+      "sha256": "432e96cf759cf875df4be4fa8efa5865c71c1510a87fe9541dbdc6bb03ee4ec3",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "commit-openagents"
+    },
+    "built-ai-configs/opencode-v1/command/commit.md": {
+      "sha256": "e1ed2887c3114a07bfba0c1cac6d05f33b3b0a566f1cf17e75518881827df8bb",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "commit"
+    },
+    "built-ai-configs/opencode-v1/command/context.md": {
+      "sha256": "27dfee45a506621aa707dcadcefed0be5b08a0dfa5a79e63ff1376b4813e45d2",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "context"
+    },
+    "built-ai-configs/opencode-v1/command/openagents/check-context-deps.md": {
+      "sha256": "266f8cee5752481a6b33a5cccd4e57f9467687fa63d32061e6b9dc88f6c42998",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "check-context-deps"
+    },
+    "built-ai-configs/opencode-v1/command/openagents/new-agents/create-agent.md": {
+      "sha256": "e3f81cd0c527d1e153325243bf539202428c6b016704827f746cbfff0f23ba28",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "create-agent"
+    },
+    "built-ai-configs/opencode-v1/command/openagents/new-agents/create-tests.md": {
+      "sha256": "c0fffabf0f5f6188dc4780a07c91292b821e04e67e528c20355a7d1848d56dcc",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "create-tests"
+    },
+    "built-ai-configs/opencode-v1/command/optimize.md": {
+      "sha256": "6f7aec5327e512abef618173d139db223e45c2acc5f74041f1811149d4b26263",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "optimize"
+    },
+    "built-ai-configs/opencode-v1/command/prompt-engineering/prompt-enhancer.md": {
+      "sha256": "57e8a533525a782ab664de61c4d41cec2e2ef44e05b46daa262e506ece3a21ec",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "prompt-enhancer"
+    },
+    "built-ai-configs/opencode-v1/command/prompt-engineering/prompt-optimizer.md": {
+      "sha256": "d19e891ac4cc6027a3e3c3e0d14cb44112748d1d401ae88618b988766e76c257",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "prompt-optimizer"
+    },
+    "built-ai-configs/opencode-v1/command/test-new-command.md": {
+      "sha256": "49f78b0bc7a8ee4c9f4f6f8155d47b60a669543b2e3c728e128e99b88e0da8aa",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "test-new-command"
+    },
+    "built-ai-configs/opencode-v1/command/test.md": {
+      "sha256": "2cf3b3b8d1ba1e761ebe8840b2937b0464f7a5b5b6b30c92d6ad4cc2ec5a1138",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "test"
+    },
+    "built-ai-configs/opencode-v1/command/validate-repo.md": {
+      "sha256": "b0b0a668e2db6604458f08248c50b28fd60b88f9dde8fe72e85003ffb2d0c16a",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "validate-repo"
+    },
+    "built-ai-configs/opencode-v1/command/worktrees.md": {
+      "sha256": "15e16fc3e3753c1e7ec896f0874d5c0a11f758208df18775786826a84cdf6875",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/command",
+      "assetKind": "command",
+      "assetId": "worktrees"
+    },
+    "built-ai-configs/opencode-v1/skills/context-manager/SKILL.md": {
+      "sha256": "c61c208db2f6c59099df7b35b516c3bfd42f2df05d7680f5a19f53ac83022f34",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "context-manager"
+    },
+    "built-ai-configs/opencode-v1/skills/context-manager/router.sh": {
+      "sha256": "9e5ead4625a22038e71045c710e51163f41702689b8c5a22863e289cbd891ef3",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "context-manager"
+    },
+    "built-ai-configs/opencode-v1/skills/context7/README.md": {
+      "sha256": "8c99068808fc31e14c2197ac990ba87ee91f5d681084258acd16d59ebfe51f18",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    "built-ai-configs/opencode-v1/skills/context7/SKILL.md": {
+      "sha256": "03c54428be33f4533d9cee60a25723c8f20b43e869b9eba7cafde8a1c1c471ab",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    "built-ai-configs/opencode-v1/skills/context7/library-registry.md": {
+      "sha256": "7dc406da783fafe9d27a98219f407ed8d6d17de48291b1cabae5423233cbfd7a",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    "built-ai-configs/opencode-v1/skills/context7/navigation.md": {
+      "sha256": "e820d3a4bdef94e83995844e17bad05bf9953378d099c3cc8c6546207fe41b92",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    "built-ai-configs/opencode-v1/skills/project-orchestration/SKILL.md": {
+      "sha256": "be37bb19e0395edc12bf49b6f0554b3567ed0de802e77f80427d539a0776e651",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode-v1/skills/project-orchestration/router.sh": {
+      "sha256": "cab700fc07395d221337998e0218c8703f328a998105a6984040039333e48fd5",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode-v1/skills/project-orchestration/scripts/context-index.ts": {
+      "sha256": "8b95fd75461294e229b3f2250d03a454dae76a8b854903f61ee9482d6266f1ca",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode-v1/skills/project-orchestration/scripts/session-context-manager.ts": {
+      "sha256": "d6bbfc28cd2d1589864f6e9ed58be25238b5083c133ccfc18b21c79714b67d28",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode-v1/skills/project-orchestration/scripts/stage-cli.ts": {
+      "sha256": "7b878aadc123efd4a2ffaaa5073fb9b7f792e3fa7711cea9498ee2f8d7a76200",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode-v1/skills/project-orchestration/workflows/8-stage-delivery.md": {
+      "sha256": "ddcfcf71a2e9cfac9967ffc6ee13dd8900c87ca6cc3c2a348964b5a9baee4fb4",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode-v1/skills/project-orchestration/workflows/context-handoff.md": {
+      "sha256": "dc9e387818212902ab3ef54f54383ab6b6d2574f378ad812b6dc617ef6767227",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode-v1/skills/project-orchestration/workflows/planning-agents.md": {
+      "sha256": "f8b4784ffa03d2e8bf5a986993feaf8248dade5f77aa271d80d78facc4b9e8b8",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode-v1/skills/smart-router-skill/SKILL.md": {
+      "sha256": "6571c7b195e656e5872e90bf4e1a9501361e73b6179692e29c5f3540c0589070",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode-v1/skills/smart-router-skill/config/personality-config.json": {
+      "sha256": "3b8bf2b3e4b4295c2bc0a8cc334f6898c7acfb178de17db48dc8864bf0c72a75",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode-v1/skills/smart-router-skill/router.sh": {
+      "sha256": "c8537faa77b0cf736ba93364a660a41f25d17a0967fae6bacdebbe06a18f372d",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode-v1/skills/smart-router-skill/scripts/sherlock-workflow.sh": {
+      "sha256": "8f187b6bd77ecc728725eab94733b8345320bae63c368dd5d23443ab23913b64",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode-v1/skills/smart-router-skill/scripts/stark-workflow.sh": {
+      "sha256": "fd0a291f411b4f70b724ae7ffaf3aff8e79973b39bb5d40f12cd0173c75fc32a",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode-v1/skills/smart-router-skill/scripts/yoda-workflow.sh": {
+      "sha256": "475f57196792ebde3e21e877cd6d5486c661e1e419ad9f374b41d2cac1452f2d",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode-v1/skills/task-management/SKILL.md": {
+      "sha256": "9cc031faa602384a8072ccd417c275075989973b273004516e7e5af598e90e25",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "task-management"
+    },
+    "built-ai-configs/opencode-v1/skills/task-management/router.sh": {
+      "sha256": "178769389e03a43b31963e0f0ba7c71a47823147c5bd86e1fdc9bc3ad6365d6a",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "task-management"
+    },
+    "built-ai-configs/opencode-v1/skills/task-management/scripts/task-cli.ts": {
+      "sha256": "df6b6ee33c2538b681e3763ffeeca6fc6001b90998fddab428e808be5bc4b813",
+      "target": "opencode-v1",
+      "root": "built-ai-configs/opencode-v1/skills",
+      "assetKind": "skill",
+      "assetId": "task-management"
+    },
+    "built-ai-configs/opencode/agent/adr-manager.md": {
+      "sha256": "9fcee4cba71daa33065636608aed909d987017adfbd4d80ccecfcfc3a2f345ad",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "adr-manager"
+    },
+    "built-ai-configs/opencode/agent/agent-generator.md": {
+      "sha256": "901755a854570722c63109926acb1a8e2918fa8adef9d4b1989bdbb3bb8f8b7a",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "agent-generator"
+    },
+    "built-ai-configs/opencode/agent/architecture-analyzer.md": {
+      "sha256": "05b7dc6165f6326c354a87f27bff892a7c54e09491fc0106f17ee0e2ec108cca",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "architecture-analyzer"
+    },
+    "built-ai-configs/opencode/agent/batch-executor.md": {
+      "sha256": "3a429bfb544b629588e59965283ab38ef9df77be94e12bcfa740358ff43bf04a",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "batch-executor"
+    },
+    "built-ai-configs/opencode/agent/build-agent.md": {
+      "sha256": "3416317b22ae1e9983f1d73b7e042ca2805cfa5b889a883d9dc56d5b2cdfccb4",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "build-agent"
+    },
+    "built-ai-configs/opencode/agent/code-reviewer.md": {
+      "sha256": "662d48e65c007618e29e5a889453fe6cc55623a34689e982bf9420c50d5320ab",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "code-reviewer",
+      "aliases": [
+        "reviewer"
+      ]
+    },
+    "built-ai-configs/opencode/agent/coder-agent.md": {
+      "sha256": "10863d85247437a12fbeb9474e3caa06e9cd64f204a659eec4cb234361b644d6",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "coder-agent"
+    },
+    "built-ai-configs/opencode/agent/command-creator.md": {
+      "sha256": "c84fd1645cf84e56829e54b223edf250028b59f1a3d54e6bfba2e256a31a136e",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "command-creator"
+    },
+    "built-ai-configs/opencode/agent/context-manager.md": {
+      "sha256": "3ba537b59ec5a99bfd9bd08c4b27c0d7c7c9fe56f9b0789b1e325b742bd7fdc6",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "context-manager"
+    },
+    "built-ai-configs/opencode/agent/context-organizer.md": {
+      "sha256": "12b392c1f23025af897ddc08d264eb481902ff05a6e911a471115c95b8a72b7d",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "context-organizer"
+    },
+    "built-ai-configs/opencode/agent/context-retriever.md": {
+      "sha256": "1a19a480eeb8a6d0eb4b627e07247a73448760aabcf891866f9a7852e3c0f595",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "context-retriever"
+    },
+    "built-ai-configs/opencode/agent/context-scout.md": {
+      "sha256": "fee4377780bedfcd2e8b6c524a47ecf4167a2131c5fea26acf89815402c19be9",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "context-scout",
+      "aliases": [
+        "contextscout"
+      ]
+    },
+    "built-ai-configs/opencode/agent/contract-manager.md": {
+      "sha256": "208cb66ed73749e33d0ba42b852a6bb385ecd5630fd00b41a90cb915a682381c",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "contract-manager"
+    },
+    "built-ai-configs/opencode/agent/copywriter.md": {
+      "sha256": "ccffd8c1c9f657274458a16f32ee21daa909625b5c47a4d66f6eb95d2001559d",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "copywriter"
+    },
+    "built-ai-configs/opencode/agent/data-analyst.md": {
+      "sha256": "a87483f9d735e0162c6a664b6200cd7a271fef241e7d8acb7bfcfbec47d20d97",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "data-analyst"
+    },
+    "built-ai-configs/opencode/agent/devops-specialist.md": {
+      "sha256": "de8d900d5f7a9e010e3171a9a56cd6ec90307dc66e7ee80ca6daa677e3c106eb",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "devops-specialist"
+    },
+    "built-ai-configs/opencode/agent/doc-writer.md": {
+      "sha256": "58841c67f7277d6e0aed15382dde30fef4da63dd67933c0623b98468a8441f9e",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "doc-writer",
+      "aliases": [
+        "documentation"
+      ]
+    },
+    "built-ai-configs/opencode/agent/domain-analyzer.md": {
+      "sha256": "633a96cc784fffc85558306e5cdd03bdbcfd5ea84906733a35fded0168de6b67",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "domain-analyzer"
+    },
+    "built-ai-configs/opencode/agent/eval-runner.md": {
+      "sha256": "ed0cf6a8894ba838902fa1f3914383ed86788e3a887ce9223f91d10ac7d5fed2",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "eval-runner"
+    },
+    "built-ai-configs/opencode/agent/external-scout.md": {
+      "sha256": "6c692d01d1dddec37ee246b336c0db3dfefa243417effff2040a1743f289150c",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "external-scout",
+      "aliases": [
+        "externalscout"
+      ]
+    },
+    "built-ai-configs/opencode/agent/frontend-specialist.md": {
+      "sha256": "9a69739bfda28e7a33c4be5f47f1f0787a70a28dc98a01c3544a230c6f7d8d4f",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "frontend-specialist"
+    },
+    "built-ai-configs/opencode/agent/openagent.md": {
+      "sha256": "94dded5fd3a3afa73174e701b6430f8a35f98dd53586f87d60b08a930265b2ed",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "openagent"
+    },
+    "built-ai-configs/opencode/agent/opencoder.md": {
+      "sha256": "60e4df58a156f84ee3dd6fd4c91829467b62dd8a4ccdde4103481031b59adc94",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "opencoder"
+    },
+    "built-ai-configs/opencode/agent/prioritization-engine.md": {
+      "sha256": "3325c6bd7a6260ba5c791c36fc7940311600cbe112573df435f63b175ab17113",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "prioritization-engine"
+    },
+    "built-ai-configs/opencode/agent/repo-manager.md": {
+      "sha256": "05d484da8fa9ce456b8a71bc55d906eb7505eff64f66431ef368219913d19294",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "repo-manager"
+    },
+    "built-ai-configs/opencode/agent/simple-responder.md": {
+      "sha256": "67d041bf2ddff8e20fa0271c700a3c0a11adbce4ec087b668a28ba7c2efc2d67",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "simple-responder"
+    },
+    "built-ai-configs/opencode/agent/stage-orchestrator.md": {
+      "sha256": "57f9d17ccaed46b35e7c6039a8c28c7a547511dbf22cae0851080e2e9cfb0836",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "stage-orchestrator"
+    },
+    "built-ai-configs/opencode/agent/story-mapper.md": {
+      "sha256": "d5fefb6bd66c1cf3211cbd35246661b8e735e0391bc2bf020394e661459a1fef",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "story-mapper"
+    },
+    "built-ai-configs/opencode/agent/system-builder.md": {
+      "sha256": "b79c29de5952418804c46865391b7419400913ac2b3f5ea01a7c654c5a5dfd13",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "system-builder"
+    },
+    "built-ai-configs/opencode/agent/task-manager.md": {
+      "sha256": "df0bbadf0145487cce243d9c32742e6ecaa32e12864f25edd8f041a7cb241223",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "task-manager"
+    },
+    "built-ai-configs/opencode/agent/technical-writer.md": {
+      "sha256": "ad4be4d4c6fb8581efcb0a3cb862a428d5230393bbc518fe829d125b859900b9",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "technical-writer"
+    },
+    "built-ai-configs/opencode/agent/test-engineer.md": {
+      "sha256": "31b02fd4d676d843a45ace0a2b5b80242e3a772d90456c27cfb96d15d4ef644b",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "test-engineer",
+      "aliases": [
+        "tester"
+      ]
+    },
+    "built-ai-configs/opencode/agent/workflow-designer.md": {
+      "sha256": "97601f0fdc98b2966e8f8aeb42469b28ca8505e10009b568a4ecf9cc7387b0af",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/agent",
+      "agentId": "workflow-designer"
+    },
+    "built-ai-configs/opencode/command/add-context.md": {
+      "sha256": "13e2abccf9d63cdc12e03cb1b072431b096f51b04eb6b2d6c904e226d9d8d2d6",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "add-context"
+    },
+    "built-ai-configs/opencode/command/analyze-patterns.md": {
+      "sha256": "477f1dae2e1671b65b3a7c5d39a87444fd205ef9782f0c0b93254d62d73f788f",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "analyze-patterns"
+    },
+    "built-ai-configs/opencode/command/build-context-system.md": {
+      "sha256": "95ec5038b3e8fcb601efb06d972e1ef66e078b8e4e73e1aec512080ef36f340e",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "build-context-system"
+    },
+    "built-ai-configs/opencode/command/clean.md": {
+      "sha256": "0db0d11e9bfb49647eec7660937ad0a1e8c5c0448ced01942351c32f0757d580",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "clean"
+    },
+    "built-ai-configs/opencode/command/commit-openagents.md": {
+      "sha256": "432e96cf759cf875df4be4fa8efa5865c71c1510a87fe9541dbdc6bb03ee4ec3",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "commit-openagents"
+    },
+    "built-ai-configs/opencode/command/commit.md": {
+      "sha256": "e1ed2887c3114a07bfba0c1cac6d05f33b3b0a566f1cf17e75518881827df8bb",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "commit"
+    },
+    "built-ai-configs/opencode/command/context.md": {
+      "sha256": "27dfee45a506621aa707dcadcefed0be5b08a0dfa5a79e63ff1376b4813e45d2",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "context"
+    },
+    "built-ai-configs/opencode/command/openagents/check-context-deps.md": {
+      "sha256": "0a10a8136dd46524f83c69b4431769466e9bfbe6e2b8ee9aef5f689d24344a59",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "check-context-deps"
+    },
+    "built-ai-configs/opencode/command/openagents/new-agents/create-agent.md": {
+      "sha256": "e3f81cd0c527d1e153325243bf539202428c6b016704827f746cbfff0f23ba28",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "create-agent"
+    },
+    "built-ai-configs/opencode/command/openagents/new-agents/create-tests.md": {
+      "sha256": "c0fffabf0f5f6188dc4780a07c91292b821e04e67e528c20355a7d1848d56dcc",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "create-tests"
+    },
+    "built-ai-configs/opencode/command/optimize.md": {
+      "sha256": "6f7aec5327e512abef618173d139db223e45c2acc5f74041f1811149d4b26263",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "optimize"
+    },
+    "built-ai-configs/opencode/command/prompt-engineering/prompt-enhancer.md": {
+      "sha256": "57e8a533525a782ab664de61c4d41cec2e2ef44e05b46daa262e506ece3a21ec",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "prompt-enhancer"
+    },
+    "built-ai-configs/opencode/command/prompt-engineering/prompt-optimizer.md": {
+      "sha256": "d19e891ac4cc6027a3e3c3e0d14cb44112748d1d401ae88618b988766e76c257",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "prompt-optimizer"
+    },
+    "built-ai-configs/opencode/command/test-new-command.md": {
+      "sha256": "49f78b0bc7a8ee4c9f4f6f8155d47b60a669543b2e3c728e128e99b88e0da8aa",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "test-new-command"
+    },
+    "built-ai-configs/opencode/command/test.md": {
+      "sha256": "2cf3b3b8d1ba1e761ebe8840b2937b0464f7a5b5b6b30c92d6ad4cc2ec5a1138",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "test"
+    },
+    "built-ai-configs/opencode/command/validate-repo.md": {
+      "sha256": "b0b0a668e2db6604458f08248c50b28fd60b88f9dde8fe72e85003ffb2d0c16a",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "validate-repo"
+    },
+    "built-ai-configs/opencode/command/worktrees.md": {
+      "sha256": "15e16fc3e3753c1e7ec896f0874d5c0a11f758208df18775786826a84cdf6875",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/command",
+      "assetKind": "command",
+      "assetId": "worktrees"
+    },
+    "built-ai-configs/opencode/skills/context-manager/SKILL.md": {
+      "sha256": "c61c208db2f6c59099df7b35b516c3bfd42f2df05d7680f5a19f53ac83022f34",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context-manager"
+    },
+    "built-ai-configs/opencode/skills/context-manager/router.sh": {
+      "sha256": "9e5ead4625a22038e71045c710e51163f41702689b8c5a22863e289cbd891ef3",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context-manager"
+    },
+    "built-ai-configs/opencode/skills/context7/README.md": {
+      "sha256": "8c99068808fc31e14c2197ac990ba87ee91f5d681084258acd16d59ebfe51f18",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    "built-ai-configs/opencode/skills/context7/SKILL.md": {
+      "sha256": "03c54428be33f4533d9cee60a25723c8f20b43e869b9eba7cafde8a1c1c471ab",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    "built-ai-configs/opencode/skills/context7/library-registry.md": {
+      "sha256": "7dc406da783fafe9d27a98219f407ed8d6d17de48291b1cabae5423233cbfd7a",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    "built-ai-configs/opencode/skills/context7/navigation.md": {
+      "sha256": "e820d3a4bdef94e83995844e17bad05bf9953378d099c3cc8c6546207fe41b92",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "context7"
+    },
+    "built-ai-configs/opencode/skills/project-orchestration/SKILL.md": {
+      "sha256": "be37bb19e0395edc12bf49b6f0554b3567ed0de802e77f80427d539a0776e651",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode/skills/project-orchestration/router.sh": {
+      "sha256": "cab700fc07395d221337998e0218c8703f328a998105a6984040039333e48fd5",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode/skills/project-orchestration/scripts/context-index.ts": {
+      "sha256": "8b95fd75461294e229b3f2250d03a454dae76a8b854903f61ee9482d6266f1ca",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode/skills/project-orchestration/scripts/session-context-manager.ts": {
+      "sha256": "d6bbfc28cd2d1589864f6e9ed58be25238b5083c133ccfc18b21c79714b67d28",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode/skills/project-orchestration/scripts/stage-cli.ts": {
+      "sha256": "7b878aadc123efd4a2ffaaa5073fb9b7f792e3fa7711cea9498ee2f8d7a76200",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode/skills/project-orchestration/workflows/8-stage-delivery.md": {
+      "sha256": "ddcfcf71a2e9cfac9967ffc6ee13dd8900c87ca6cc3c2a348964b5a9baee4fb4",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode/skills/project-orchestration/workflows/context-handoff.md": {
+      "sha256": "dc9e387818212902ab3ef54f54383ab6b6d2574f378ad812b6dc617ef6767227",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode/skills/project-orchestration/workflows/planning-agents.md": {
+      "sha256": "f8b4784ffa03d2e8bf5a986993feaf8248dade5f77aa271d80d78facc4b9e8b8",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "project-orchestration"
+    },
+    "built-ai-configs/opencode/skills/smart-router-skill/SKILL.md": {
+      "sha256": "6571c7b195e656e5872e90bf4e1a9501361e73b6179692e29c5f3540c0589070",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode/skills/smart-router-skill/config/personality-config.json": {
+      "sha256": "3b8bf2b3e4b4295c2bc0a8cc334f6898c7acfb178de17db48dc8864bf0c72a75",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode/skills/smart-router-skill/router.sh": {
+      "sha256": "c8537faa77b0cf736ba93364a660a41f25d17a0967fae6bacdebbe06a18f372d",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode/skills/smart-router-skill/scripts/sherlock-workflow.sh": {
+      "sha256": "8f187b6bd77ecc728725eab94733b8345320bae63c368dd5d23443ab23913b64",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode/skills/smart-router-skill/scripts/stark-workflow.sh": {
+      "sha256": "fd0a291f411b4f70b724ae7ffaf3aff8e79973b39bb5d40f12cd0173c75fc32a",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode/skills/smart-router-skill/scripts/yoda-workflow.sh": {
+      "sha256": "475f57196792ebde3e21e877cd6d5486c661e1e419ad9f374b41d2cac1452f2d",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "smart-router-skill"
+    },
+    "built-ai-configs/opencode/skills/task-management/SKILL.md": {
+      "sha256": "c2fa63c82442698889655da1e666733f8f277c7eb6940ac47a7c93caf7b43c9f",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "task-management"
+    },
+    "built-ai-configs/opencode/skills/task-management/router.sh": {
+      "sha256": "178769389e03a43b31963e0f0ba7c71a47823147c5bd86e1fdc9bc3ad6365d6a",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "task-management"
+    },
+    "built-ai-configs/opencode/skills/task-management/scripts/task-cli.ts": {
+      "sha256": "df6b6ee33c2538b681e3763ffeeca6fc6001b90998fddab428e808be5bc4b813",
+      "target": "opencode",
+      "root": "built-ai-configs/opencode/skills",
+      "assetKind": "skill",
+      "assetId": "task-management"
+    },
+    "built-ai-configs/registry/registry.json": {
+      "sha256": "b3938289f1d58a4e09fc8464a29bf36403c7cb0bf2adad48694cb9959f740f60",
+      "target": "registry",
+      "root": "built-ai-configs/registry/registry.json"
+    },
+    "built-ai-configs/registry/registry.v1.json": {
+      "sha256": "8bc0e11a53e2ef9053dcb9e322df7452b5da020cb661001191c7a301c22e91e5",
+      "target": "registry-v1",
+      "root": "built-ai-configs/registry/registry.v1.json"
+    },
+    "plugins/claude-code/agents/code-reviewer.md": {
+      "sha256": "b93c33289b9d0ba5283dbc9ddefdb2e8c3165e7caa1cf1ff8f6356798f388b01",
+      "target": "claude-code",
+      "root": "plugins/claude-code/agents",
+      "agentId": "code-reviewer",
+      "aliases": [
+        "reviewer"
+      ]
+    },
+    "plugins/claude-code/agents/coder-agent.md": {
+      "sha256": "eb99bacb6938dc18ac99e0f08e9768ca04e23ad9caab0eead8c8619ce9d0f1f7",
+      "target": "claude-code",
+      "root": "plugins/claude-code/agents",
+      "agentId": "coder-agent"
+    },
+    "plugins/claude-code/agents/context-manager.md": {
+      "sha256": "e44f766613d28976cc501c858db6f247d11788442fabf807978e1192f19ef363",
+      "target": "claude-code",
+      "root": "plugins/claude-code/agents",
+      "agentId": "context-manager"
+    },
+    "plugins/claude-code/agents/context-scout.md": {
+      "sha256": "c9985615a27101be5c0ec96625c2006bddd1148a6c6195869eba46564eb24e00",
+      "target": "claude-code",
+      "root": "plugins/claude-code/agents",
+      "agentId": "context-scout",
+      "aliases": [
+        "contextscout"
+      ]
+    },
+    "plugins/claude-code/agents/external-scout.md": {
+      "sha256": "8868482f1b616c22371b843b41eb00c0c246824f1d8db537959269d170b4ab2c",
+      "target": "claude-code",
+      "root": "plugins/claude-code/agents",
+      "agentId": "external-scout",
+      "aliases": [
+        "externalscout"
+      ]
+    },
+    "plugins/claude-code/agents/task-manager.md": {
+      "sha256": "7536f19b980a98a386a0ed9f5be0e0aa9f2a20716775ca181588db632955ee4e",
+      "target": "claude-code",
+      "root": "plugins/claude-code/agents",
+      "agentId": "task-manager"
+    },
+    "plugins/claude-code/agents/test-engineer.md": {
+      "sha256": "a474b2b97146207cdea9d78239c8921a2c035173de9f08996e9a791a65ea2fa0",
+      "target": "claude-code",
+      "root": "plugins/claude-code/agents",
+      "agentId": "test-engineer",
+      "aliases": [
+        "tester"
+      ]
+    },
+    "plugins/claude-code/commands/brainstorm.md": {
+      "sha256": "689d783a64729de6e07bdfd61fbe42aa30b0eaeb951cfcef8bde5fb773586cf0",
+      "target": "claude-code",
+      "root": "plugins/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "brainstorm"
+    },
+    "plugins/claude-code/commands/debug.md": {
+      "sha256": "465193211509c8cd3bd1293e812e449920a1448e5799ca96f2f38b47d4865d47",
+      "target": "claude-code",
+      "root": "plugins/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "debug"
+    },
+    "plugins/claude-code/commands/install-context.md": {
+      "sha256": "130fe54ffe36807d88a3e0722b8c2a7b7cdb90e00784c29594b1b2d3a92e7e10",
+      "target": "claude-code",
+      "root": "plugins/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "install-context"
+    },
+    "plugins/claude-code/commands/oac-cleanup.md": {
+      "sha256": "9a5e4f84023bcfd4524869f34b2f25daf793ba8e79093a4121890194b16dd5d3",
+      "target": "claude-code",
+      "root": "plugins/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "oac-cleanup"
+    },
+    "plugins/claude-code/commands/oac-help.md": {
+      "sha256": "86d02f85ef5dcd77393dca6d6ef2b99e96374710a70387e2bf247013b2eae9d9",
+      "target": "claude-code",
+      "root": "plugins/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "oac-help"
+    },
+    "plugins/claude-code/commands/oac-status.md": {
+      "sha256": "1f8f73d808bab69f2c0e819827c2b3f8f8b5a1ecdfa758f92fc2b8af4bb6906f",
+      "target": "claude-code",
+      "root": "plugins/claude-code/commands",
+      "assetKind": "command",
+      "assetId": "oac-status"
+    },
+    "plugins/claude-code/skills/code-execution/SKILL.md": {
+      "sha256": "3bb426c9e8ad946b7494bc8922b1c1c6bda052e211446b0d08087cbb67a9e1e6",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "code-execution"
+    },
+    "plugins/claude-code/skills/code-review/SKILL.md": {
+      "sha256": "b183501487704bc82d2425a34ca7765709a757022d9e7e3fc2b23a797f569379",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "code-review"
+    },
+    "plugins/claude-code/skills/context-discovery/SKILL.md": {
+      "sha256": "f2b516e1696e415a79eb693311bbd6d4a00dc11bd707962d45cef86791cb1138",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "context-discovery"
+    },
+    "plugins/claude-code/skills/context-discovery/context-discovery-protocol.md": {
+      "sha256": "8274840f40eefc961d3c7a027d1febf5dd05172db0e3566eeaf6bfa0ffee6c94",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "context-discovery"
+    },
+    "plugins/claude-code/skills/context-setup/SKILL.md": {
+      "sha256": "05b44153c32762a2872f42054f6b6996f8010bd9ef3debca6fe4516ecb0822e9",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "context-setup"
+    },
+    "plugins/claude-code/skills/debugger/SKILL.md": {
+      "sha256": "86514b447eabf38768b21137dcc53a44fdf994567682bc0db276e162b029bcf7",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "debugger"
+    },
+    "plugins/claude-code/skills/external-research/SKILL.md": {
+      "sha256": "23926ffcc7ce0a49d1df17acb826b6048060140741db44d6990e330d91bd5f0d",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "external-research"
+    },
+    "plugins/claude-code/skills/oac-approach/SKILL.md": {
+      "sha256": "217bdbbe4cb774b7ad69c80311d5e871421de1e4780981d8ec0982b1238a8768",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "oac-approach"
+    },
+    "plugins/claude-code/skills/parallel-execution/SKILL.md": {
+      "sha256": "b902b923e646870d8abb9a49c4010387f15eee0235fe44de95f71dedf47d346d",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "parallel-execution"
+    },
+    "plugins/claude-code/skills/task-breakdown/SKILL.md": {
+      "sha256": "1787142d7a588474118d5fde5927779cd56d0da476acc0454fccc9af4671a39b",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "task-breakdown"
+    },
+    "plugins/claude-code/skills/test-generation/SKILL.md": {
+      "sha256": "fc839f9cee736dbed77a5ddecc96b0c5f47acb661bda151585405b1ad84ed9a5",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "test-generation"
+    },
+    "plugins/claude-code/skills/using-oac/SKILL.md": {
+      "sha256": "6d83e0330f0c4c210b44c9e19820dfff343f630dce253369fdd2024f64983b84",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "using-oac"
+    },
+    "plugins/claude-code/skills/verification-before-completion/SKILL.md": {
+      "sha256": "3eb50937baed7186782f1f1f7ee830a800651962f73685bf15d8692dc72c566f",
+      "target": "claude-code",
+      "root": "plugins/claude-code/skills",
+      "assetKind": "skill",
+      "assetId": "verification-before-completion"
+    }
+  }
+}

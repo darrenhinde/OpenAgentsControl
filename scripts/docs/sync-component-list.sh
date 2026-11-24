@@ -2,7 +2,7 @@
 
 #############################################################################
 # Documentation Sync Validator
-# Validates that component counts in README.md match registry.json
+# Validates that component counts in README.md match built-ai-configs/registry/registry.json
 # Used in CI to detect when docs are out of sync
 # 
 # For actual syncing, use the sync-docs.yml GitHub workflow which
@@ -21,7 +21,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-REGISTRY_FILE="registry.json"
+REGISTRY_FILE="built-ai-configs/registry/registry.json"
 README_FILE="README.md"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DRY_RUN=false
@@ -67,7 +67,7 @@ usage() {
     echo "  -h, --help          Show this help message"
     echo ""
     echo "Description:"
-    echo "  Syncs component counts and lists from registry.json to README.md"
+    echo "  Syncs component counts and lists from built-ai-configs/registry/registry.json to README.md"
     echo "  Ensures documentation stays accurate with the component registry"
     echo ""
     exit 0

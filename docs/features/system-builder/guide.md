@@ -61,7 +61,7 @@ This launches an interactive interview (5-10 minutes) that guides you through de
 ### 3. Specialized Subagents
 
 #### `domain-analyzer`
-**Location**: `.opencode/agent/subagents/domain-analyzer.md`
+**Location**: `.opencode/agent/domain-analyzer.md`
 
 **Purpose**: Analyzes user domains to identify core concepts, recommended agents, and context structure
 
@@ -78,7 +78,7 @@ This launches an interactive interview (5-10 minutes) that guides you through de
 - Domain analysis report
 
 #### `agent-generator`
-**Location**: `.opencode/agent/subagents/agent-generator.md`
+**Location**: `.opencode/agent/agent-generator.md`
 
 **Purpose**: Generates XML-optimized agent files following research-backed patterns
 
@@ -101,7 +101,7 @@ This launches an interactive interview (5-10 minutes) that guides you through de
 - Validation gates and checkpoints
 
 #### `context-organizer`
-**Location**: `.opencode/agent/subagents/context-organizer.md`
+**Location**: `.opencode/agent/context-organizer.md`
 
 **Purpose**: Organizes and generates context files in modular 50-200 line files
 
@@ -119,7 +119,7 @@ This launches an interactive interview (5-10 minutes) that guides you through de
 - Context README guide
 
 #### `workflow-designer`
-**Location**: `.opencode/agent/subagents/workflow-designer.md`
+**Location**: `.opencode/agent/workflow-designer.md`
 
 **Purpose**: Designs complete workflow definitions with context dependencies
 
@@ -136,7 +136,7 @@ This launches an interactive interview (5-10 minutes) that guides you through de
 - Success criteria and metrics
 
 #### `command-creator`
-**Location**: `.opencode/agent/subagents/command-creator.md`
+**Location**: `.opencode/agent/command-creator.md`
 
 **Purpose**: Creates custom slash commands with clear syntax and examples
 
@@ -475,20 +475,19 @@ After generation, customize:
 
 ### Agents
 - `.opencode/agent/system-builder.md` - Main orchestrator
-- `.opencode/agent/subagents/domain-analyzer.md` - Domain analysis specialist
-- `.opencode/agent/subagents/agent-generator.md` - Agent file generator
-- `.opencode/agent/subagents/context-organizer.md` - Context file organizer
-- `.opencode/agent/subagents/workflow-designer.md` - Workflow designer
-- `.opencode/agent/subagents/command-creator.md` - Command creator
+- `.opencode/agent/domain-analyzer.md` - Domain analysis specialist
+- `.opencode/agent/agent-generator.md` - Agent file generator
+- `.opencode/agent/context-organizer.md` - Context file organizer
+- `.opencode/agent/workflow-designer.md` - Workflow designer
+- `.opencode/agent/command-creator.md` - Command creator
 
 ### Templates
-- `.opencode/context/system-builder-templates/README.md` - Template guide
+- `.opencode/context/system-builder-templates/navigation.md` - Template index
 - `.opencode/context/system-builder-templates/orchestrator-template.md` - Orchestrator pattern
 - `.opencode/context/system-builder-templates/subagent-template.md` - Subagent pattern
-- `.opencode/context/system-builder-templates/SYSTEM-BUILDER-GUIDE.md` - Complete usage guide
 
 ### Documentation
-- `.opencode/CONTEXT-SYSTEM-BUILDER.md` - This file
+- This file
 
 ## Next Steps
 
