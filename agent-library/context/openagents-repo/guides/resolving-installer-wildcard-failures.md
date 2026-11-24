@@ -44,7 +44,7 @@ bash scripts/tests/test-e2e-install.sh
 
 ## Verification
 ```bash
-REGISTRY_URL="file://$(pwd)/registry.json" ./install.sh --list
+REGISTRY_URL="file://$(pwd)/built-ai-configs/registry/registry.json" ./install.sh --list
 ```
 
 ## Troubleshooting

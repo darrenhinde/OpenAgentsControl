@@ -107,6 +107,14 @@ print_usage() {
     echo "  --opencode v1|v2     OpenCode major of the install (default: the recorded one, else v2)"
     echo "  --help               Show this help message"
     echo ""
+    echo "Installs made by an older shell installer (nested agents, no recorded version) are refused"
+    echo "until you choose. Existing shell-installed users run either:"
+    echo "  oac update                      (npm i -g @controlstack/oac; migrates safely)"
+    echo "  curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash -s -- --opencode v1   (stay on v1)"
+    echo "New installs default to OpenCode v2; install.sh --opencode v1 is available."
+    echo "Files this script retires or replaces are copied to <install dir>.backup.<timestamp>/"
+    echo "(add .opencode.backup.*/ to your .gitignore)."
+    echo ""
     echo "Environment variables:"
     echo "  OPENCODE_INSTALL_DIR   Override the default installation directory"
     echo "  OPENCODE_BRANCH        Branch to pull updates from (default: main)"
@@ -279,8 +287,12 @@ resolve_flavor() {
     OPENCODE_FLAVOR="v2"
     if [ "$nested" = true ]; then
         print_warning "This install predates OpenCode v2 support (nested agents, no recorded version)."
-        print_warning "Updating as v1 would need --opencode v1; v2 files are flat. Run 'oac update' to migrate it safely."
-        print_error "Not updating an install of unknown OpenCode version. Re-run with --opencode v1 to stay on v1."
+        print_warning "Updating as v1 would need --opencode v1; v2 files are flat."
+        print_error "Not updating an install of unknown OpenCode version. Pick one:"
+        echo "  Stay on OpenCode v1 (paste this):"
+        echo "    curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash -s -- --opencode v1"
+        echo "  Or migrate safely with the oac CLI:"
+        echo "    npm i -g @controlstack/oac && oac update"
         exit 1
     fi
 }
@@ -738,6 +750,7 @@ main() {
 
     if [ -n "$SUPERSEDED_BACKUP_DIR" ]; then
         print_info "Replaced files were backed up in: ${SUPERSEDED_BACKUP_DIR}"
+        print_info "Tip: add '.opencode.backup.*/' to your .gitignore"
     fi
 
     if [ "$FAILED_COUNT" -gt 0 ]; then

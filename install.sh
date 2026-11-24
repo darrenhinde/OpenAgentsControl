@@ -1615,7 +1615,7 @@ perform_installation() {
     echo -e "  Installed: ${GREEN}${installed}${NC}"
     [ $skipped -gt 0 ] && echo -e "  Skipped: ${CYAN}${skipped}${NC}"
     [ $failed -gt 0 ] && echo -e "  Failed: ${RED}${failed}${NC}"
-    [ -n "$SUPERSEDED_BACKUP_DIR" ] && echo -e "  Replaced files backed up in: ${CYAN}${SUPERSEDED_BACKUP_DIR}${NC}"
+    [ -n "$SUPERSEDED_BACKUP_DIR" ] && echo -e "  Replaced files backed up in: ${CYAN}${SUPERSEDED_BACKUP_DIR}${NC} (add '.opencode.backup.*/' to .gitignore)"
     
     show_post_install
 }

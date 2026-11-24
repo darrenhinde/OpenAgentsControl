@@ -256,7 +256,7 @@ Cursor file ≤ size limit). Validation failures in `--strict`/`--check` → exi
 ### 2.2 Profiles
 Profiles (`essential`, `developer`, `business`, `full`, `advanced`) live in `registry.json`
 `profiles.*.components[]` (25/41/25/50/68 components; `advanced` adds `additionalPaths`
-`.Building/`, `.github/workflows/`). `oac init --profile` selects the component set; the CLI
+`.github/workflows/`). `oac init --profile` selects the component set; the CLI
 resolves it exactly as `install.sh get_profile_components` did, then runs dependency closure.
 `additionalPaths` (advanced) — `install.sh` only *printed* these as "manual download required";
 the CLI must actually copy them from the bundle (parity improvement, not just parity).

@@ -1643,7 +1643,7 @@
       "assetId": "openagents-repo/guides/oac-cli-install.md"
     },
     ".opencode/context/openagents-repo/guides/resolving-installer-wildcard-failures.md": {
-      "sha256": "94b60fbb7b8adb451b5c74843aa558d3bc5dffef0bf28a7c2ccf4e04ff9aa754",
+      "sha256": "d4065c84e45b7b49394d0a5f6e6c77e3e6d51028eb0f2f8ac5bf3c07b558ca3a",
       "target": "opencode",
       "root": ".opencode/context",
       "assetKind": "context",

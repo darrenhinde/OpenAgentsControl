@@ -8,7 +8,7 @@ const fs = require('fs');
 const cliDist = path.join(__dirname, '..', 'packages', 'cli', 'dist', 'index.js');
 
 if (!fs.existsSync(cliDist)) {
-  console.error('Error: OAC CLI not built yet. Run: npm run build -w packages/cli');
+  console.error('Error: OAC CLI not built yet. Run: make oac-cli (or: pnpm --dir packages/cli run build)');
   process.exit(1);
 }
 

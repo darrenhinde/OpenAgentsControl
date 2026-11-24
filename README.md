@@ -160,12 +160,20 @@ curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/
 ### Keep Updated
 
 ```bash
-oac update            # CLI installs (skips files you have modified; --yolo to overwrite with a backup)
+oac update            # recommended (skips files you have modified; --yolo to overwrite with a backup)
+```
+
+Installed with the shell installer? `update.sh` refuses an older install it cannot place on a version. Run either of these:
+
+```bash
+oac update            # npm i -g @controlstack/oac first; migrates the install safely
 ```
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash   # shell installs (overwrites files you edited, no backup; `oac update` protects edits)
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash -s -- --opencode v1   # stay on OpenCode v1
 ```
+
+Installs made by the current `install.sh` record their version, so a plain `curl -fsSL .../update.sh | bash` works for them (it overwrites files you edited; `oac update` protects edits). New installs default to OpenCode v2; pass `--opencode v1` to `install.sh` or `oac init` for v1. Files `update.sh` retires or replaces are copied to `.opencode.backup.<timestamp>/`; add `.opencode.backup.*/` to your `.gitignore`.
 
 > Use `--install-dir PATH` with the shell updater if you installed to a custom location (e.g. `~/.config/opencode`).
 
