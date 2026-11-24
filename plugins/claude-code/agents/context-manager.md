@@ -15,8 +15,7 @@ description: |
   assistant: "Let me use context-manager to validate the context structure and report problems."
   <commentary>A validation and maintenance request on the context system itself.</commentary>
   </example>
-tools: Read, Write, Glob, Grep, Bash
-disallowedTools: Edit, WebFetch, Task
+tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task
 model: sonnet
 ---
 

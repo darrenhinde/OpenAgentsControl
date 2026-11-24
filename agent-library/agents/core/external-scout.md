@@ -64,11 +64,13 @@ oac:
       # and .tmp/external-context/** (its own skill and cache); on Claude Code these reach the
       # whole repo. The prompt confines them to .tmp/external-context/, but only as a hint.
       # Glob is read-only and is what the cache check needs.
-      # NARROWED — Bash removed (was granted until the canonical merge). Canonical allows only
-      # `curl -s https://context7.com/*` and `jq *`; on Claude Code Bash would be unrestricted
-      # shell for an agent that fetches untrusted documentation off the internet. The merged
-      # prompt fetches Context7 through WebFetch instead, so nothing here needs a shell.
-      tools: [Read, Write, Glob, WebFetch]
+      # UNRESTRICTED on Claude Code, by decision (2026-11-24): every Claude Code tool is
+      # granted, including Bash, Edit and Task. Canonical allows only
+      # `curl -s https://context7.com/*` and `jq *`; on Claude Code Bash is unrestricted shell
+      # for an agent that fetches untrusted documentation off the internet, so treat what it
+      # fetches as untrusted input. The prompt still fetches Context7 through WebFetch and
+      # does not ask for a shell. The scoping holds on OpenCode.
+      tools: [Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task]
       # No .opencode/ paths in the Claude output: the context7 skill files are OpenCode-only.
 ---
 

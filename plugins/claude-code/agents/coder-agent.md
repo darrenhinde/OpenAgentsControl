@@ -15,8 +15,7 @@ description: |
   assistant: "Let me use the code-execution skill to handle this via coder-agent."
   <commentary>A concrete implementation task with a specific file — coder-agent executes it.</commentary>
   </example>
-tools: Read, Write, Edit, Glob, Grep
-disallowedTools: Bash, WebFetch, Task
+tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task
 model: sonnet
 ---
 

@@ -51,22 +51,21 @@ oac:
         assistant: "Let me use the code-execution skill to handle this via coder-agent."
         <commentary>A concrete implementation task with a specific file — coder-agent executes it.</commentary>
         </example>
-      # Matches what ships today. Bash and Task are scoped in canonical and denied here: this
-      # agent cannot run the task router on Claude Code and cannot delegate to the scouts.
-      # The body follows suit (oac:only blocks): on Claude Code it uses pre-loaded context,
-      # asks the main agent for missing library docs, and marks the subtask complete by
-      # editing the subtask JSON instead of running router.sh.
-      #
-      # WIDENING — Edit: canonical denies edits to *.env*, *.key, *.secret, node_modules/**
-      # and .git/**. Claude Code applies none of them (Edit is on or off, and rules that could
-      # express the paths only live session-wide in settings.json, which a plugin cannot ship).
-      # Accepted because a coding agent that cannot edit is not an agent. The globs still hold
-      # on OpenCode; on Claude Code the advisory @protected_paths rule and the deny-only
+      # UNRESTRICTED on Claude Code, by decision (2026-11-24): every Claude Code tool is
+      # granted, including Bash and Task. Canonical scopes Bash and Task, and denies edits to
+      # *.env*, *.key, *.secret, node_modules/** and .git/**. Claude Code applies none of
+      # that (a tool is on or off, and rules that could express the paths only live
+      # session-wide in settings.json, which a plugin cannot ship). The globs still hold on
+      # OpenCode; on Claude Code the advisory @protected_paths rule and the deny-only
       # snippets in RECOMMENDED-PERMISSIONS.md (plugin root) are the compensating controls.
+      #
+      # The body's oac:only blocks still steer Claude Code away from router.sh and delegation
+      # (it marks subtasks complete by editing the subtask JSON); the tools are granted but
+      # the prompt does not ask for them.
       #
       # Claude output keeps no .opencode/ paths: the router.sh commands under
       # .opencode/skills/task-management/ appear only inside OpenCode-only blocks.
-      tools: [Read, Write, Edit, Glob, Grep]
+      tools: [Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task]
 ---
 
 # CoderAgent

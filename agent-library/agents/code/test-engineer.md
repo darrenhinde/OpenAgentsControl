@@ -60,20 +60,14 @@ oac:
         assistant: "Let me use test-engineer to propose a test plan and write the failing tests first."
         <commentary>TDD request — test-engineer writes the tests before the implementation.</commentary>
         </example>
-      # Matches what ships today. Task is scoped in canonical and denied here, so the body tells
-      # only OpenCode to call ContextScout (oac:only blocks). Glob and Grep are NOT granted
-      # though canonical leaves them unconstrained — this agent has shipped without them and
-      # does not need them to author tests against files it is pointed at; the body does not
-      # tell it to glob or grep.
-      #
-      # WIDENING — Bash: canonical allows ten test-runner prefixes (npx vitest, pytest, go
-      # test, ...), asks on "rm -rf *", and denies sudo and all else. Claude Code collapses
-      # that to unrestricted shell: this is the only place the rm -rf ask and the sudo deny
-      # disappear. Accepted because running tests is the whole point of the agent. The body's
-      # "Shell Use" section restates the limits as advisory text on Claude Code.
-      # WIDENING — Edit: canonical denies *.env*, *.key, *.secret; Claude applies none. Same
-      # trade as coder-agent — authoring tests requires Edit, and the globs hold on OpenCode.
-      tools: [Read, Write, Edit, Bash]
+      # UNRESTRICTED on Claude Code, by decision (2026-11-24): every Claude Code tool is
+      # granted, including Glob, Grep and Task. Canonical allows ten test-runner prefixes
+      # (npx vitest, pytest, go test, ...), asks on "rm -rf *", denies sudo and all else, and
+      # denies edits to *.env*, *.key, *.secret. Claude Code collapses all of that to
+      # unrestricted shell and edit, so the rm -rf ask and the sudo deny disappear there. The
+      # body's "Shell Use" section restates the limits as advisory text. The scoping holds on
+      # OpenCode. The body still only tells OpenCode to call ContextScout (oac:only blocks).
+      tools: [Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task]
 ---
 
 # TestEngineer

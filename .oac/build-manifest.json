@@ -2441,7 +2441,7 @@
       "assetId": "task-management"
     },
     "built-ai-configs/README.md": {
-      "sha256": "f4126f9415099de889aeb7b4bd06b95f6075411b420a77e8b487ead5722b0b72",
+      "sha256": "5b5e68f26f715af3530479403a9df76e385fd5641ca6d08af816db10fa2936de",
       "target": "hosts-readme",
       "root": "built-ai-configs/README.md"
     },
@@ -2455,13 +2455,13 @@
       ]
     },
     "built-ai-configs/claude-code/agents/coder-agent.md": {
-      "sha256": "713f11819ea41e8eaa14e382fd99d67a31b43e4f8345f3afaf99734208cfa349",
+      "sha256": "eb99bacb6938dc18ac99e0f08e9768ca04e23ad9caab0eead8c8619ce9d0f1f7",
       "target": "claude-code",
       "root": "built-ai-configs/claude-code/agents",
       "agentId": "coder-agent"
     },
     "built-ai-configs/claude-code/agents/context-manager.md": {
-      "sha256": "64001d2767ff7930d79992c1ce894be344726be0042cddfed074dff6ad195bba",
+      "sha256": "e44f766613d28976cc501c858db6f247d11788442fabf807978e1192f19ef363",
       "target": "claude-code",
       "root": "built-ai-configs/claude-code/agents",
       "agentId": "context-manager"
@@ -2476,7 +2476,7 @@
       ]
     },
     "built-ai-configs/claude-code/agents/external-scout.md": {
-      "sha256": "d4cc0d44b6c22c111d38691b035d3937c5d35e62cc01ab7b4d7501f32b3efe62",
+      "sha256": "8868482f1b616c22371b843b41eb00c0c246824f1d8db537959269d170b4ab2c",
       "target": "claude-code",
       "root": "built-ai-configs/claude-code/agents",
       "agentId": "external-scout",
@@ -2485,13 +2485,13 @@
       ]
     },
     "built-ai-configs/claude-code/agents/task-manager.md": {
-      "sha256": "4bd98c10fc4d64ad05d0c3ac389824474d6abaf6008cb4b3f69497944885b7b7",
+      "sha256": "7536f19b980a98a386a0ed9f5be0e0aa9f2a20716775ca181588db632955ee4e",
       "target": "claude-code",
       "root": "built-ai-configs/claude-code/agents",
       "agentId": "task-manager"
     },
     "built-ai-configs/claude-code/agents/test-engineer.md": {
-      "sha256": "cc41b8213755670f397fdc1833042dced3f92e9068a73c2d2625502dbba9fe01",
+      "sha256": "a474b2b97146207cdea9d78239c8921a2c035173de9f08996e9a791a65ea2fa0",
       "target": "claude-code",
       "root": "built-ai-configs/claude-code/agents",
       "agentId": "test-engineer",
@@ -3644,13 +3644,13 @@
       ]
     },
     "plugins/claude-code/agents/coder-agent.md": {
-      "sha256": "713f11819ea41e8eaa14e382fd99d67a31b43e4f8345f3afaf99734208cfa349",
+      "sha256": "eb99bacb6938dc18ac99e0f08e9768ca04e23ad9caab0eead8c8619ce9d0f1f7",
       "target": "claude-code",
       "root": "plugins/claude-code/agents",
       "agentId": "coder-agent"
     },
     "plugins/claude-code/agents/context-manager.md": {
-      "sha256": "64001d2767ff7930d79992c1ce894be344726be0042cddfed074dff6ad195bba",
+      "sha256": "e44f766613d28976cc501c858db6f247d11788442fabf807978e1192f19ef363",
       "target": "claude-code",
       "root": "plugins/claude-code/agents",
       "agentId": "context-manager"
@@ -3665,7 +3665,7 @@
       ]
     },
     "plugins/claude-code/agents/external-scout.md": {
-      "sha256": "d4cc0d44b6c22c111d38691b035d3937c5d35e62cc01ab7b4d7501f32b3efe62",
+      "sha256": "8868482f1b616c22371b843b41eb00c0c246824f1d8db537959269d170b4ab2c",
       "target": "claude-code",
       "root": "plugins/claude-code/agents",
       "agentId": "external-scout",
@@ -3674,13 +3674,13 @@
       ]
     },
     "plugins/claude-code/agents/task-manager.md": {
-      "sha256": "4bd98c10fc4d64ad05d0c3ac389824474d6abaf6008cb4b3f69497944885b7b7",
+      "sha256": "7536f19b980a98a386a0ed9f5be0e0aa9f2a20716775ca181588db632955ee4e",
       "target": "claude-code",
       "root": "plugins/claude-code/agents",
       "agentId": "task-manager"
     },
     "plugins/claude-code/agents/test-engineer.md": {
-      "sha256": "cc41b8213755670f397fdc1833042dced3f92e9068a73c2d2625502dbba9fe01",
+      "sha256": "a474b2b97146207cdea9d78239c8921a2c035173de9f08996e9a791a65ea2fa0",
       "target": "claude-code",
       "root": "plugins/claude-code/agents",
       "agentId": "test-engineer",

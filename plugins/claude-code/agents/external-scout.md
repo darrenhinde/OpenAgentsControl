@@ -15,8 +15,7 @@ description: |
   assistant: "Let me use external-scout to pull the current TanStack Router docs and cache them."
   <commentary>Live documentation for a third-party framework — external-scout fetches and caches it.</commentary>
   </example>
-tools: Read, Write, Glob, WebFetch
-disallowedTools: Edit, Grep, Bash, Task
+tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task
 model: haiku
 ---
 

@@ -64,19 +64,13 @@ oac:
         assistant: "Let me use context-manager to validate the context structure and report problems."
         <commentary>A validation and maintenance request on the context system itself.</commentary>
         </example>
-      # Matches what ships today. Edit and Task are scoped in canonical and denied here; this
-      # agent writes context files rather than editing them in place on Claude Code, and the
-      # Claude body never delegates.
-      #
-      # WIDENING — Write: canonical confines writes to .opencode/context/**/*.{md,json} and
-      # denies *.env*, *.key, *.secret. Claude enforces none of it; the prompt restates the
-      # secret-file ban as a hint. Accepted because managing context files IS this agent's
-      # only job. The confinement holds on OpenCode.
-      # WIDENING — Bash: canonical allows exactly four shapes (find/ls/mkdir/mv under
-      # .opencode/context) and denies everything else; on Claude Code this is unrestricted
-      # shell (the Claude body uses it to fetch context from GitHub, worktrees and URLs). The
-      # widest grant in this corpus — revisit here first.
-      tools: [Read, Write, Glob, Grep, Bash]
+      # UNRESTRICTED on Claude Code, by decision (2026-11-24): every Claude Code tool is
+      # granted, including Edit and Task. Canonical confines writes to
+      # .opencode/context/**/*.{md,json}, denies *.env*, *.key, *.secret, and allows exactly
+      # four Bash shapes (find/ls/mkdir/mv under .opencode/context). Claude Code enforces none
+      # of that; the prompt restates the secret-file ban as advice only. The confinement holds
+      # on OpenCode.
+      tools: [Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task]
       # .opencode/ paths kept in the Claude output, deliberately: `.opencode/context` as the
       # last project-local step of the context-root discovery chain and as the default root
       # proposed when none exists (it is where `oac` installs context for Claude Code).

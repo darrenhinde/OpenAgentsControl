@@ -15,8 +15,7 @@ description: |
   assistant: "Let me use task-manager to create atomic subtasks with acceptance criteria."
   <commentary>Planning and dependency tracking come before implementation.</commentary>
   </example>
-tools: Read, Write, Glob, Grep
-disallowedTools: Edit, Bash, WebFetch, Task
+tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task
 model: sonnet
 ---
 

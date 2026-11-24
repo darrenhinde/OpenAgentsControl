@@ -56,15 +56,13 @@ oac:
         assistant: "Let me use task-manager to create atomic subtasks with acceptance criteria."
         <commentary>Planning and dependency tracking come before implementation.</commentary>
         </example>
-      # Matches what ships today. Bash, Edit and Task are all scoped in canonical and all
-      # denied here rather than widened.
-      #
-      # The cost is real and accepted: canonical allows `npx ts-node*task-cli*`, so on Claude
-      # Code this agent cannot drive the task CLI; the Claude body plans and writes task JSON
-      # only, and leaves status tracking, verification and archiving to the caller. Granting
-      # Bash to buy that back would mean unrestricted shell for a planning agent — a far
-      # worse trade. No Task either: the Claude body never delegates context discovery.
-      tools: [Read, Write, Glob, Grep]
+      # UNRESTRICTED on Claude Code, by decision (2026-11-24). Canonical scopes Bash, Edit and
+      # Task, and Claude Code cannot express those scopes, so rather than hand-picking a
+      # subset this agent gets every Claude Code tool. The scoping still holds on OpenCode.
+      # On Claude Code the prompt rules are advisory and the deny-only snippets in
+      # RECOMMENDED-PERMISSIONS.md (plugin root) are the compensating control. The Claude body
+      # still only plans and writes task JSON; it is not told to use the extra tools.
+      tools: [Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task]
       # .opencode/ paths kept in the Claude output, deliberately: `.opencode/context/...`
       # standards paths in the example task files. That is the context root `oac` installs
       # for Claude Code too, so the examples are real paths on both hosts.

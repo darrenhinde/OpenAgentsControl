@@ -15,8 +15,7 @@ description: |
   assistant: "Let me use test-engineer to propose a test plan and write the failing tests first."
   <commentary>TDD request — test-engineer writes the tests before the implementation.</commentary>
   </example>
-tools: Read, Write, Edit, Bash
-disallowedTools: Glob, Grep, WebFetch, Task
+tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Task
 model: sonnet
 ---
 

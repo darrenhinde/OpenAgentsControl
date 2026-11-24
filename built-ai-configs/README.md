@@ -38,7 +38,7 @@ OpenCode v1 vs v2: [docs/features/opencode-v1-and-v2.md](../docs/features/openco
 | --- | --- | ---: | ---: | --- | --- |
 | `opencode` | `built-ai-configs/opencode/` | 33 | 0 | `.opencode/agent/` | this repo's own OpenCode, and installers (`oac install` / `install.sh`), which copy the paths `built-ai-configs/registry/registry.json` lists |
 | `opencode-v1` | `built-ai-configs/opencode-v1/` | 34 | 0 | — | installers asked for OpenCode v1, which copy the paths `built-ai-configs/registry/registry.v1.json` lists (no live mirror) |
-| `claude-code` | `built-ai-configs/claude-code/` | 7 | 14 | `plugins/claude-code/agents/` | the Claude Code marketplace: `.claude-plugin/marketplace.json` publishes `./plugins/claude-code` |
+| `claude-code` | `built-ai-configs/claude-code/` | 7 | 24 | `plugins/claude-code/agents/` | the Claude Code marketplace: `.claude-plugin/marketplace.json` publishes `./plugins/claude-code` |
 
 ### `opencode` — OpenCode v2 (the default)
 
@@ -83,9 +83,9 @@ target that host. Warnings counts the degradation warnings across all hosts.
 | `batch-executor` | `core/batch-executor.md` | `batch-executor.md` | `core/batch-executor.md` | — | 0 |
 | `build-agent` | `code/build-agent.md` | `build-agent.md` | `code/build-agent.md` | — | 0 |
 | `code-reviewer` | `code/code-reviewer.md` | `code-reviewer.md` | `code/code-reviewer.md` | `code-reviewer.md` | 1 |
-| `coder-agent` | `code/coder-agent.md` | `coder-agent.md` | `code/coder-agent.md` | `coder-agent.md` | 2 |
+| `coder-agent` | `code/coder-agent.md` | `coder-agent.md` | `code/coder-agent.md` | `coder-agent.md` | 4 |
 | `command-creator` | `system-builder/command-creator.md` | `command-creator.md` | `system-builder/command-creator.md` | — | 0 |
-| `context-manager` | `core/context-manager.md` | `context-manager.md` | `core/context-manager.md` | `context-manager.md` | 3 |
+| `context-manager` | `core/context-manager.md` | `context-manager.md` | `core/context-manager.md` | `context-manager.md` | 5 |
 | `context-organizer` | `system-builder/context-organizer.md` | `context-organizer.md` | `system-builder/context-organizer.md` | — | 0 |
 | `context-retriever` | `core/context-retriever.md` | `context-retriever.md` | `core/context-retriever.md` | — | 0 |
 | `context-scout` | `core/context-scout.md` | `context-scout.md` | `core/context-scout.md` | `context-scout.md` | 0 |
@@ -96,7 +96,7 @@ target that host. Warnings counts the degradation warnings across all hosts.
 | `doc-writer` | `core/doc-writer.md` | `doc-writer.md` | `core/doc-writer.md` | — | 0 |
 | `domain-analyzer` | `system-builder/domain-analyzer.md` | `domain-analyzer.md` | `system-builder/domain-analyzer.md` | — | 0 |
 | `eval-runner` | `dev/eval-runner.md` | `eval-runner.md` | `dev/eval-runner.md` | — | 0 |
-| `external-scout` | `core/external-scout.md` | `external-scout.md` | `core/external-scout.md` | `external-scout.md` | 3 |
+| `external-scout` | `core/external-scout.md` | `external-scout.md` | `core/external-scout.md` | `external-scout.md` | 5 |
 | `frontend-specialist` | `dev/frontend-specialist.md` | `frontend-specialist.md` | `dev/frontend-specialist.md` | — | 0 |
 | `image-specialist` | `content/image-specialist.md` | — | `content/image-specialist.md` | — | 0 |
 | `openagent` | `core/openagent.md` | `openagent.md` | `core/openagent.md` | — | 0 |
@@ -107,9 +107,9 @@ target that host. Warnings counts the degradation warnings across all hosts.
 | `stage-orchestrator` | `core/stage-orchestrator.md` | `stage-orchestrator.md` | `core/stage-orchestrator.md` | — | 0 |
 | `story-mapper` | `planning/story-mapper.md` | `story-mapper.md` | `planning/story-mapper.md` | — | 0 |
 | `system-builder` | `meta/system-builder.md` | `system-builder.md` | `meta/system-builder.md` | — | 0 |
-| `task-manager` | `core/task-manager.md` | `task-manager.md` | `core/task-manager.md` | `task-manager.md` | 2 |
+| `task-manager` | `core/task-manager.md` | `task-manager.md` | `core/task-manager.md` | `task-manager.md` | 5 |
 | `technical-writer` | `content/technical-writer.md` | `technical-writer.md` | `content/technical-writer.md` | — | 0 |
-| `test-engineer` | `code/test-engineer.md` | `test-engineer.md` | `code/test-engineer.md` | `test-engineer.md` | 3 |
+| `test-engineer` | `code/test-engineer.md` | `test-engineer.md` | `code/test-engineer.md` | `test-engineer.md` | 4 |
 | `workflow-designer` | `system-builder/workflow-designer.md` | `workflow-designer.md` | `system-builder/workflow-designer.md` | — | 0 |
 
 ## Skills and commands by host
@@ -180,19 +180,29 @@ None: every agent carries over completely.
   - Feature 'temperature' (0.1) is not supported by Claude Code
 - **`coder-agent`** → `built-ai-configs/claude-code/agents/coder-agent.md`
   - Agent 'coder-agent': Claude Code tool 'Edit' is granted unscoped: 5 scoped rule(s) [deny **/*.env*, deny **/*.key, deny **/*.secret, deny node_modules/**, deny .git/**] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'coder-agent': Claude Code tool 'Bash' is granted unscoped: 3 scoped rule(s) [deny *, allow bash .opencode/skills/task-management/router.sh complete*, allow bash .opencode/skills/task-management/router.sh status*] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'coder-agent': Claude Code tool 'Task' is granted unscoped: 3 scoped rule(s) [allow context-scout, allow external-scout, allow test-engineer] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0) is not supported by Claude Code
 - **`context-manager`** → `built-ai-configs/claude-code/agents/context-manager.md`
   - Agent 'context-manager': Claude Code tool 'Write' is granted unscoped: 5 scoped rule(s) [allow .opencode/context/**/*.md, allow .opencode/context/**/*.json, deny **/*.env*, deny **/*.key, deny **/*.secret] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'context-manager': Claude Code tool 'Edit' is granted unscoped: 5 scoped rule(s) [allow .opencode/context/**/*.md, allow .opencode/context/**/*.json, deny **/*.env*, deny **/*.key, deny **/*.secret] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Agent 'context-manager': Claude Code tool 'Bash' is granted unscoped: 5 scoped rule(s) [deny *, allow find .opencode/context*, allow ls -la .opencode/context*, allow mkdir -p .opencode/context*, allow mv .opencode/context*] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'context-manager': Claude Code tool 'Task' is granted unscoped: 2 scoped rule(s) [deny *, allow context-scout] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
 - **`external-scout`** → `built-ai-configs/claude-code/agents/external-scout.md`
   - Permission 'skill' has no Claude Code tool: 2 rule(s) are dropped because Claude Code exposes no tool this capability maps to. Claude Code will not enforce them.
   - Agent 'external-scout': Claude Code tool 'Read' is granted unscoped: 3 scoped rule(s) [deny **/*, allow .opencode/skills/context7/**, allow .tmp/external-context/**] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'external-scout': Claude Code tool 'Bash' is granted unscoped: 3 scoped rule(s) [deny *, allow curl -s https://context7.com/*, allow jq *] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'external-scout': Claude Code tool 'Task' is granted unscoped: 1 scoped rule(s) [deny *] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
 - **`task-manager`** → `built-ai-configs/claude-code/agents/task-manager.md`
   - Permission 'skill' has no Claude Code tool: 2 rule(s) are dropped because Claude Code exposes no tool this capability maps to. Claude Code will not enforce them.
+  - Agent 'task-manager': Claude Code tool 'Edit' is granted unscoped: 5 scoped rule(s) [deny **/*.env*, deny **/*.key, deny **/*.secret, deny node_modules/**, deny .git/**] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'task-manager': Claude Code tool 'Bash' is granted unscoped: 4 scoped rule(s) [deny *, allow npx ts-node*task-cli*, allow mkdir -p .tmp/tasks*, allow mv .tmp/tasks*] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'task-manager': Claude Code tool 'Task' is granted unscoped: 3 scoped rule(s) [deny *, allow context-scout, allow external-scout] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
 - **`test-engineer`** → `built-ai-configs/claude-code/agents/test-engineer.md`
   - Agent 'test-engineer': Claude Code tool 'Edit' is granted unscoped: 3 scoped rule(s) [deny **/*.env*, deny **/*.key, deny **/*.secret] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Agent 'test-engineer': Claude Code tool 'Bash' is granted unscoped: 13 scoped rule(s) [deny *, allow npx vitest *, allow npx jest *, allow pytest *, allow npm test *, allow npm run test *, +7 more] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
+  - Agent 'test-engineer': Claude Code tool 'Task' is granted unscoped: 2 scoped rule(s) [allow context-scout, allow external-scout] are dropped because Claude Code's tools: list is on/off. Claude Code will not enforce them.
   - Feature 'temperature' (0.1) is not supported by Claude Code
