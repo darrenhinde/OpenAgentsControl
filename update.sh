@@ -112,7 +112,7 @@ print_usage() {
     echo "  oac update                      (npm i -g @controlstack/oac; migrates safely)"
     echo "  curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash -s -- --opencode v1   (stay on v1)"
     echo "New installs default to OpenCode v2; install.sh --opencode v1 is available."
-    echo "Files this script retires or replaces are copied to <install dir>.backup.<timestamp>/"
+    echo "Every file this script changes, retires or replaces keeps its old copy in <install dir>.backup.<timestamp>/"
     echo "(add .opencode.backup.*/ to your .gitignore)."
     echo ""
     echo "Environment variables:"
@@ -316,6 +316,37 @@ is_safe_relative_path() {
     return 0
 }
 
+# A file just fetched over its local copy. This script cannot tell an upstream change from the
+# user's own edit, so any file whose content changed keeps its old copy in
+# <install dir>.backup.<time>/ (the same folder the superseded/retired handling uses). A file
+# already identical to upstream needs no backup and is not reported. If the old copy cannot be
+# saved, the file is put back and counted as failed: an edit is never discarded unsaved.
+CHANGED_COUNT=0
+finish_update() {
+    local path="$1" backup="$2" install_dir="$3" rel="$4"
+
+    if ! cmp -s "$backup" "$path"; then
+        if [ -z "$SUPERSEDED_BACKUP_DIR" ]; then
+            SUPERSEDED_BACKUP_DIR="${install_dir}.backup.$(date +%Y%m%d-%H%M%S)"
+        fi
+        if ! { mkdir -p "$(dirname "${SUPERSEDED_BACKUP_DIR}/${rel}")" && cp "$backup" "${SUPERSEDED_BACKUP_DIR}/${rel}"; }; then
+            print_warning "Could not back up $path — leaving it as it was"
+            mv "$backup" "$path"
+            return 1
+        fi
+        print_success "Updated $path (old copy saved in ${SUPERSEDED_BACKUP_DIR})"
+        CHANGED_COUNT=$((CHANGED_COUNT + 1))
+    fi
+
+    rm -f "$backup"
+    # Remove from tracking array (bash 3.2 compatible)
+    local remaining=()
+    for f in "${BACKUP_FILES[@]}"; do
+        [ "$f" != "$backup" ] && remaining+=("$f")
+    done
+    BACKUP_FILES=("${remaining[@]+"${remaining[@]}"}")
+}
+
 update_component() {
     local path="$1"
     local install_dir="$2"
@@ -344,22 +375,9 @@ update_component() {
     # v1 prefers its own build of a file (nested agents, tools, plugins) and falls back to the
     # files both flavors share.
     if [ "$OPENCODE_FLAVOR" = "v1" ] && curl -fsSL "${REPO_URL}/built-ai-configs/opencode-v1/${relative_path}" -o "$path" 2>/dev/null; then
-        print_success "Updated $path"
-        rm -f "$backup"
-        local v1_backups=()
-        for f in "${BACKUP_FILES[@]}"; do
-            [ "$f" != "$backup" ] && v1_backups+=("$f")
-        done
-        BACKUP_FILES=("${v1_backups[@]+"${v1_backups[@]}"}")
+        finish_update "$path" "$backup" "$install_dir" "$relative_path" || return 1
     elif curl -fsSL "$url" -o "$path" 2>/dev/null; then
-        print_success "Updated $path"
-        rm -f "$backup"
-        # Remove from tracking array (bash 3.2 compatible)
-        local new_backups=()
-        for f in "${BACKUP_FILES[@]}"; do
-            [ "$f" != "$backup" ] && new_backups+=("$f")
-        done
-        BACKUP_FILES=("${new_backups[@]+"${new_backups[@]}"}")
+        finish_update "$path" "$backup" "$install_dir" "$relative_path" || return 1
     else
         print_warning "Could not update $path — restoring backup"
         mv "$backup" "$path"
@@ -647,7 +665,7 @@ update_all_components() {
     done < <(find "$install_dir" -name "*.sh" -type f -not -path "*/node_modules/*" -print0)
 
     updated=$((updated - SKIPPED_SUPERSEDED))
-    print_info "Updated: $updated file(s), failed: $failed file(s)"
+    print_info "Updated: $updated file(s), failed: $failed file(s) ($CHANGED_COUNT changed, the rest already current)"
     UPDATED_COUNT=$updated
     FAILED_COUNT=$failed
 }

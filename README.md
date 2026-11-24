@@ -173,7 +173,7 @@ oac update            # npm i -g @controlstack/oac first; migrates the install s
 curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgentsControl/main/update.sh | bash -s -- --opencode v1   # stay on OpenCode v1
 ```
 
-Installs made by the current `install.sh` record their version, so a plain `curl -fsSL .../update.sh | bash` works for them (it overwrites files you edited; `oac update` protects edits). New installs default to OpenCode v2; pass `--opencode v1` to `install.sh` or `oac init` for v1. Files `update.sh` retires or replaces are copied to `.opencode.backup.<timestamp>/`; add `.opencode.backup.*/` to your `.gitignore`.
+Installs made by the current `install.sh` record their version, so a plain `curl -fsSL .../update.sh | bash` works for them (it replaces files you edited, but saves each old copy first; `oac update` goes further and skips edited files). New installs default to OpenCode v2; pass `--opencode v1` to `install.sh` or `oac init` for v1. Every file `update.sh` changes, retires or replaces has its old copy saved in `.opencode.backup.<timestamp>/`; add `.opencode.backup.*/` to your `.gitignore`.
 
 > Use `--install-dir PATH` with the shell updater if you installed to a custom location (e.g. `~/.config/opencode`).
 

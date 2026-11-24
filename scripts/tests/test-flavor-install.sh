@@ -110,6 +110,24 @@ echo "stale" > "$D/agent/openagent.md"
 if grep -q "stale" "$D/agent/openagent.md"; then fail "update.sh refreshes a v2 file"; else pass "update.sh refreshes a v2 file"; fi
 assert_no_file "$D/agent/core" "update.sh on v2 does not create nested agents"
 
+# a file the update replaces keeps its old copy (an edit must never be discarded unsaved)
+KEPT=$(ls -d "$D".backup.*/agent/openagent.md 2>/dev/null | head -1)
+if [ -n "$KEPT" ] && grep -q "^stale$" "$KEPT"; then
+    pass "update.sh saves the replaced copy of a changed file in <install dir>.backup.<time>/"
+else
+    fail "update.sh saves the replaced copy of a changed file in <install dir>.backup.<time>/"
+fi
+assert_contains "$TEST_DIR/upd2.log" "old copy saved in" "...and says where the old copy went"
+
+# a file already identical to upstream is left alone and produces no backup of its own
+rm -rf "$D".backup.*
+(cd "$REPO_ROOT" && bash update.sh --install-dir "$D") > "$TEST_DIR/upd2b.log" 2>&1
+if ls -d "$D".backup.* > /dev/null 2>&1; then
+    fail "update.sh makes no backup when nothing changed"
+else
+    pass "update.sh makes no backup when nothing changed"
+fi
+
 # an install with no marker and nested agents is refused, not guessed
 rm -f "$V/.oac-opencode"
 if (cd "$REPO_ROOT" && bash update.sh --install-dir "$V") > "$TEST_DIR/upd3.log" 2>&1; then
